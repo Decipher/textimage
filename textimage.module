@@ -20,7 +20,7 @@ function textimage_captchachallenge(&$form) {
   $form['captcha_response'] = array (
     '#type' => 'textfield',
     '#title' => t('Captcha Validation'),
-    '#defaultvalue' => '',
+    '#default_value' => '',
     '#required' => TRUE,
     '#validate' => array('_captcha_validate' => array()),
     '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
