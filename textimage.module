@@ -56,7 +56,7 @@ function textimage_menu($may_cache) {
     $items[] = array(
       'path' => 'textimage/image'.$suffix, 'title' => t('textimage'),
       'callback' => '_textimage_image', 
-      'access' => user_access('access textimage'),
+      'access' => user_access('access textimages'),
       'type' => MENU_CALLBACK
     );
   }
