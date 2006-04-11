@@ -24,7 +24,7 @@ function textimage_captchachallenge(&$form) {
     '#required' => TRUE,
     '#validate' => array('_captcha_validate' => array()),
     '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
-    '#prefix' => '<img src="' . url('textimage/image/'.time()) . '"  alt="Captcha Image: you will need to recognize the text in it."/>',
+    '#prefix' => '<img src="' . url('_textimage/image/'.time()) . '"  alt="Captcha Image: you will need to recognize the text in it."/>',
   );
 
   return $form;
@@ -51,15 +51,14 @@ function textimage_menu($may_cache) {
 
   $suffix = '';
 
-  if ($may_cache) {
-    if (arg(2)!=null) $suffix='/'.arg(2);
-    $items[] = array(
-      'path' => 'textimage/image'.$suffix, 'title' => t('textimage'),
-      'callback' => '_textimage_image', 
-      'access' => user_access('access textimages'),
-      'type' => MENU_CALLBACK
-    );
-  }
+  if (arg(2)!=null) $suffix='/'.arg(2);
+
+  $items[] = array(
+    'path' => '_textimage/image'.$suffix, 'title' => t('textimage'),
+    'callback' => '_textimage_image', 
+    'access' => user_access('access textimages'),
+    'type' => MENU_CALLBACK
+  );
 
   return $items;
 }
