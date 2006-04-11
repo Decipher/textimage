@@ -83,7 +83,12 @@ function textimage_settings() {
 	elseif ($fonts_path!="" && !is_dir($fonts_path))
 		drupal_set_message(t('The current font path is invalid. The default font will be used.'));
 
-  $form['textimage_fonts_path'] = array(
+  //Fonts settings
+  $form['fonts'] = array(
+                '#type' => 'fieldset', '#title' => t('Fonts settings'),
+                '#collapsible' => TRUE, '#collapsed' => FALSE
+              );
+  $form['fonts']['textimage_fonts_path'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('TrueType Fonts Path'),
                                   '#default_value' =>  $fonts_path,
@@ -91,7 +96,19 @@ function textimage_settings() {
                                   '#maxlength' => 255,
                                   '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
                                 );
+  $form['fonts']['captcha_font_size'] = array(
+                                  '#type' => 'textfield',
+                                  '#title' => t('Font Size'),
+                                  '#default_value' =>  variable_get('captcha_font_size',24),
+                                  '#size' => 5,
+                                  '#maxlength' => 2,
+                                  '#description' => t('Font size of Captcha text. (Only work with non-default fonts)'),
+                                );
 
+  $form['info'] = array(
+                '#type' => 'fieldset', '#title' => t('Image and font information'),
+                '#collapsible' => TRUE, '#collapsed' => FALSE
+              );
   if (isset($fonts_path)) {
     $imagefontinfo .= t('Number of fonts found: ').count(_textimage_font_list());
   }
@@ -102,9 +119,8 @@ function textimage_settings() {
   $imagefontinfo .= ($gdinfo["FreeType Support"]==true) ? 'True' : 'False';
   $imagefontinfo .= '<br />';
 
-  $form['textimage_info'] = array (
+  $form['info']['captcha_info'] = array (
                            '#type' => 'item',
-                           '#title' => t('Image and font information'),
                            '#value' => $imagefontinfo,
                           );
 
@@ -155,7 +171,7 @@ function _textimage_image() {
     if (function_exists(imagettftext) && count($fonts) > 0) {
 
       // write text using a truetype font
-      $charSize = 24;        // font size
+      $charSize = variable_get('captcha_font_size',24);        // font size
       $charWidth = 0;        // width of previous character
       $x = 10;               // initial x position
       $y = 30;
