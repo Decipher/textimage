@@ -68,28 +68,20 @@ function textimage_perm() {
 }
 
 function textimage_settings() {
-
+	
+	$fonts_path = variable_get("textimage_fonts_path", "");
+	
   //check for GD
-  if (!function_exists(imagecreate))
-    form_set_error('No GD', t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'));
+  if (!function_exists(imagecreate)) 
+    drupal_set_message(t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'));
 
-  else {
+	//check for TTF support
+	elseif (!function_exists(imagettftext))
+		drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'),'status');
 
-    $fonts_path = variable_get("textimage_fonts_path", "");
-
-    //check for TTF support
-    if (!function_exists(imagettftext))
-
-      drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'),'status');
-
-    else {
-
-      //check for valid font path
-      if ($fonts_path!="" && !is_dir($fonts_path))
-        form_set_error('Invalid font path', t('The current font path is invalid. The default font will be used.'));
-    }
-
-  }
+	//check for valid font path
+	elseif ($fonts_path!="" && !is_dir($fonts_path))
+		drupal_set_message(t('The current font path is invalid. The default font will be used.'));
 
   $form['textimage_fonts_path'] = array(
                                   '#type' => 'textfield',
@@ -97,7 +89,7 @@ function textimage_settings() {
                                   '#default_value' =>  $fonts_path,
                                   '#size' => 30,
                                   '#maxlength' => 255,
-                                  '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text.'),
+                                  '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
                                 );
 
   if (isset($fonts_path)) {
@@ -117,6 +109,12 @@ function textimage_settings() {
                           );
 
   return $form;
+}
+
+function textimage_settings_form_validate ($form_id,$form) {
+      //check for valid font path
+      if ($form['textimage_fonts_path'] !="" && !is_dir($form['textimage_fonts_path']))
+        form_set_error('textimage_fonts_path', t('The entered font path is invalid'));
 }
 
 /**
@@ -254,7 +252,7 @@ function _textimage_font_list() {
   $fontdir = variable_get("textimage_fonts_path", "");
 
   $filelist = array();
-  if ($handle = opendir($fontdir)) {
+  if (is_dir($fontdir) && $handle = opendir($fontdir)) {
     while ($file = readdir($handle)) {
       if (preg_match("/\.ttf$/i",$file) == 1)
         $filelist[] = $fontdir.'/'.$file;
