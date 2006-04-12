@@ -93,6 +93,13 @@ function textimage_settings() {
                 '#type' => 'fieldset', '#title' => t('Fonts settings'),
                 '#collapsible' => TRUE, '#collapsed' => FALSE
               );
+              
+  $form['fonts']['textimage_use_only_upper'] = array(
+                                     '#type' => 'checkbox',
+                                     '#title' => t('Use only Uppercase'),
+                                     '#default_value' => variable_get('textimage_use_only_upper',0)
+                                    );
+              
   $form['fonts']['textimage_fonts_path'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('TrueType Fonts Path'),
@@ -102,54 +109,54 @@ function textimage_settings() {
                                   '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
                                 );
                                 
-  $form['fonts']['captcha_font_size'] = array(
+  $form['fonts']['textimage_font_size'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Font Size'),
-                                  '#default_value' =>  variable_get('captcha_font_size',24),
+                                  '#default_value' =>  variable_get('textimage_font_size',24),
                                   '#size' => 5,
                                   '#maxlength' => 2,
                                   '#description' => t('Font size of Captcha text (in pixels).'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_font_size")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_font_size")),
                                 );
                                 
-  $form['fonts']['captcha_char_spacing_max'] = array(
+  $form['fonts']['textimage_char_spacing_max'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Character Spacing'),
-                                  '#default_value' =>  variable_get('captcha_char_spacing_max',10),
+                                  '#default_value' =>  variable_get('textimage_char_spacing_max',10),
                                   '#size' => 5,
                                   '#maxlength' => 4,
                                   '#description' => t('Sets the kerning between letters in Captcha. Higher numbers indicate more spacing.'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_char_spacing_max")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_spacing_max")),
                                 );
                                 
-  $form['fonts']['captcha_char_jiggle_amount'] = array(
+  $form['fonts']['textimage_char_jiggle_amount'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Character Jiggle'),
-                                  '#default_value' =>  variable_get('captcha_char_jiggle_amount',5),
+                                  '#default_value' =>  variable_get('textimage_char_jiggle_amount',5),
                                   '#size' => 5,
                                   '#maxlength' => 2,
                                   '#description' => t('Sets the amount of up and down movement in the Captcha letters. Higher numbers indicate more jiggling.'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_char_jiggle_amount")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_jiggle_amount")),
                                 );
                                 
-  $form['fonts']['captcha_char_rotate_amount'] = array(
+  $form['fonts']['textimage_char_rotate_amount'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Character Rotation'),
-                                  '#default_value' =>  variable_get('captcha_char_rotate_amount',5),
+                                  '#default_value' =>  variable_get('textimage_char_rotate_amount',5),
                                   '#size' => 5,
                                   '#maxlength' => 2,
                                   '#description' => t('Sets the amount of rotation in the Captcha letters (in degrees, only works with non-default fonts).'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_char_rotate_amount")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_rotate_amount")),
                                 );
                                 
-  $form['fonts']['captcha_char_size_amount'] = array(
+  $form['fonts']['textimage_char_size_amount'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Character Size Adjustment'),
-                                  '#default_value' =>  variable_get('captcha_char_size_amount',2),
+                                  '#default_value' =>  variable_get('textimage_char_size_amount',2),
                                   '#size' => 5,
                                   '#maxlength' => 2,
                                   '#description' => t('Sets the amount of variation in size between the different letters in the Captcha (in pixels).'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_char_size_amount")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_size_amount")),
                                 );
 
   //Image settings
@@ -166,34 +173,34 @@ function textimage_settings() {
                                   '#description' => t('Location of the directory where the background images are stored. If you do not provide a directory, solid colors will be used. Relative paths will be resolved relative to the Drupal installation directory.'),
                                 );
                                 
-  $form['images']['captcha_image_noise'] = array(
+  $form['images']['textimage_image_noise'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Image Noise (pixels)'),
-                                  '#default_value' =>  variable_get('captcha_image_noise',4),
+                                  '#default_value' =>  variable_get('textimage_image_noise',4),
                                   '#size' => 5,
                                   '#maxlength' => 4,
                                   '#description' => t('Sets the amount of noise (random pixels) in the Captcha image. Higher numbers indicate more noise.'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_image_noise")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_image_noise")),
                                 );
                                 
-  $form['images']['captcha_image_lines'] = array(
+  $form['images']['textimage_image_lines'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Image Noise (lines)'),
-                                  '#default_value' =>  variable_get('captcha_image_lines',4),
+                                  '#default_value' =>  variable_get('textimage_image_lines',4),
                                   '#size' => 5,
                                   '#maxlength' => 4,
                                   '#description' => t('Sets the amount of noise (random lines) in the Captcha image. Higher numbers indicate more noise.'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_image_lines")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_image_lines")),
                                 );
                                 
-  $form['images']['captcha_image_margin'] = array(
+  $form['images']['textimage_image_margin'] = array(
                                   '#type' => 'textfield',
                                   '#title' => t('Image Margin'),
-                                  '#default_value' =>  variable_get('captcha_image_margin',10),
+                                  '#default_value' =>  variable_get('textimage_image_margin',10),
                                   '#size' => 5,
                                   '#maxlength' => 4,
                                   '#description' => t('Set a distance between the Captcha letters and the edges of the image.'),
-                                  '#validate' => array("_textimage_number_validate" => array("captcha_image_margin")),
+                                  '#validate' => array("_textimage_number_validate" => array("textimage_image_margin")),
                                 );
 
 
@@ -260,19 +267,19 @@ function _textimage_image() {
     $images = _textimage_image_list();
  
     // Randomization amounts:
-    $charSpacingMax   = variable_get('captcha_char_spacing_max',10);   // Letter spacing max (pixels)
+    $charSpacingMax   = variable_get('textimage_char_spacing_max',10);   // Letter spacing max (pixels)
     $charSpacingMin   = max($charSpacingMax*.5,0);                     // Letter spacing minimum (pixels)
-    $charJiggleAmount = variable_get('captcha_char_jiggle_amount',5);  // Up and down randomization (pixels)
-    $charRotateAmount = variable_get('captcha_char_rotate_amount',5);  // Character rotation amount (degrees)
-    $charSizeAmount   = variable_get('captcha_char_size_amount',2);    // Character size amount (pixels)
+    $charJiggleAmount = variable_get('textimage_char_jiggle_amount',5);  // Up and down randomization (pixels)
+    $charRotateAmount = variable_get('textimage_char_rotate_amount',5);  // Character rotation amount (degrees)
+    $charSizeAmount   = variable_get('textimage_char_size_amount',2);    // Character size amount (pixels)
 
     $imageRotateAmount = variable_get('captcha_image_rotate_amount',12); // Image rotation amount (degrees)
     
     // Static amounts:
-    $charInitialSize   = variable_get('captcha_font_size',24);      // Initial Font 
-    $imageNoise        = variable_get('captcha_image_noise',4);    // Amount of noise added to image
-    $imageLines        = variable_get('captcha_image_lines',4);    // Amount of noise added to image
-    $imageMargin       = variable_get('captcha_image_margin',10);    // Margin around image (pixels)
+    $charInitialSize   = variable_get('textimage_font_size',24);      // Initial Font 
+    $imageNoise        = variable_get('textimage_image_noise',4);    // Amount of noise added to image
+    $imageLines        = variable_get('textimage_image_lines',4);    // Amount of noise added to image
+    $imageMargin       = variable_get('textimage_image_margin',10);    // Margin around image (pixels)
 
     // write text using a truetype font
     if (function_exists(imagettftext) && count($fonts) > 0) {
@@ -431,6 +438,9 @@ function _textimage_code() {
 
     //everytime we create a new code, we write it to session
     $_SESSION['captcha'] = drupal_strtolower($string);
+
+    if(variable_get('textimage_use_only_upper',0))
+      $string = drupal_strtoupper($string);
 
     return $string;
 
