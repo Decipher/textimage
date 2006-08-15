@@ -24,7 +24,7 @@ function textimage_captchachallenge(&$form) {
     '#required' => TRUE,
     '#validate' => array('_captcha_validate' => array()),
     '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
-    '#prefix' => '<img src="' . url('_textimage/image/'.time()) . '" '.$imageSize[3].'  alt="Captcha Image: you will need to recognize the text in it."/>',
+    '#prefix' => '<div class=\"textimage-challenge\"><img src="' . url('_textimage/image/'.time()) . '" '.$imageSize[3].'  alt="Captcha Image: you will need to recognize the text in it."/></div>',
   );
 
   return $form;
