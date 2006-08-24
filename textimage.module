@@ -1,46 +1,23 @@
-<?
-
-function textimage_help($section = "admin/help#textimage") {
+<?php
+// $Id$
+ 
+/**
+* Implementation of hook_help().
+*/
+function textimage_help($section) {
   $output = "";
 
   switch ($section) {
-  case 'admin/help#textimage':
-    $output .= "<p>Implements an image recognition captcha.</p>";
-    break;
-  case 'admin/modules#description':
-  case 'admin/modules/textimage':
-  case 'admin/textimage':
-    $output = t('Implements an image recognition captcha.');
-    break;
+    case 'admin/help#textimage':
+      $output .= "<p>Implements an image recognition captcha.</p>";
+      break;
+    case 'admin/modules#description':
+    case 'admin/modules/textimage':
+    case 'admin/textimage':
+      $output = t('Implements an image recognition captcha.');
+      break;
   }
   return $output;
-}
-
-function textimage_captchachallenge(&$form) {
-  $form['captcha_response'] = array (
-    '#type' => 'textfield',
-    '#title' => t('Captcha Validation'),
-    '#default_value' => '',
-    '#required' => TRUE,
-    '#validate' => array('_captcha_validate' => array()),
-    '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
-    '#prefix' => '<div class="textimage-challenge"><img src="' . url('_textimage/image/'.time()) . '" '.$imageSize[3].'  alt="Captcha Image: you will need to recognize the text in it."/></div>',
-  );
- 
-  return $form;
-}
-
-function textimage_captchavalidate(&$captcha_word, &$correct) {
-
-  $captcha_word = drupal_strtolower($captcha_word);
-  if ($captcha_word == $_SESSION['captcha']) {
-    $correct = true;
-  }
-  else {
-    $correct = false;
-    form_set_error('captcha_response', t('The image verification code you entered is incorrect.'));
-  }
-
 }
 
 /**
@@ -63,145 +40,152 @@ function textimage_menu($may_cache) {
   return $items;
 }
 
+/**
+* Implementation of hook_perm().
+*/
 function textimage_perm() {
   return array('access textimages');
 }
 
+/**
+* Implementation of hook_settings().
+*/
 function textimage_settings() {
 	
 	$fonts_path = variable_get("textimage_fonts_path", "");
   $images_path = variable_get("textimage_images_path", "");
 	
   //check for GD
-  if (!function_exists(imagecreate)) 
+  if (!function_exists(imagecreate)) {
     drupal_set_message(t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'));
-
-	//check for TTF support
-	elseif (!function_exists(imagettftext))
-		drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'),'status');
-
-	//check for valid font path
-	elseif ($fonts_path!="" && !is_dir($fonts_path))
-		drupal_set_message(t('The current font path is invalid. The default font will be used.'));
-
-	//check for valid image path
-	if ($images_path!="" && !is_dir($images_path))
-		drupal_set_message(t('The current images path is invalid. No images will be used.'));
+  }
+  //check for TTF support
+  if (!function_exists(imagettftext)) {
+    drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'), 'status');
+  }
+  //check for valid font path
+  if ($fonts_path != '' && !is_dir($fonts_path)) {
+    drupal_set_message(t('The current font path is invalid. The default font will be used.'));
+  }
+  //check for valid image path
+  if ($images_path != '' && !is_dir($images_path)) {
+    drupal_set_message(t('The current images path is invalid. No images will be used.'));
+  }
 
   //Fonts settings
   $form['fonts'] = array(
-                '#type' => 'fieldset', '#title' => t('Fonts settings'),
-                '#collapsible' => TRUE, '#collapsed' => FALSE
-              );
+    '#type' => 'fieldset', '#title' => t('Fonts settings'),
+    '#collapsible' => TRUE, '#collapsed' => FALSE
+  );
               
   $form['fonts']['textimage_use_only_upper'] = array(
-                                     '#type' => 'checkbox',
-                                     '#title' => t('Use only Uppercase'),
-                                     '#default_value' => variable_get('textimage_use_only_upper',0)
-                                    );
+    '#type' => 'checkbox',
+    '#title' => t('Use only Uppercase'),
+    '#default_value' => variable_get('textimage_use_only_upper',0)
+  );
               
   $form['fonts']['textimage_fonts_path'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('TrueType Fonts Path'),
-                                  '#default_value' =>  $fonts_path,
-                                  '#size' => 30,
-                                  '#maxlength' => 255,
-                                  '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
-                                );
-                                
+    '#type' => 'textfield',
+    '#title' => t('TrueType Fonts Path'),
+    '#default_value' =>  $fonts_path,
+    '#size' => 30,
+    '#maxlength' => 255,
+    '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
+  );
+  
   $form['fonts']['textimage_font_size'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Font Size'),
-                                  '#default_value' =>  variable_get('textimage_font_size',24),
-                                  '#size' => 5,
-                                  '#maxlength' => 2,
-                                  '#description' => t('Font size of Captcha text (in pixels).'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_font_size")),
-                                );
-                                
+    '#type' => 'textfield',
+    '#title' => t('Font Size'),
+    '#default_value' =>  variable_get('textimage_font_size',24),
+    '#size' => 5,
+    '#maxlength' => 2,
+    '#description' => t('Font size of Captcha text (in pixels).'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_font_size")),
+  );
+  
   $form['fonts']['textimage_char_spacing_max'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Character Spacing'),
-                                  '#default_value' =>  variable_get('textimage_char_spacing_max',10),
-                                  '#size' => 5,
-                                  '#maxlength' => 4,
-                                  '#description' => t('Sets the kerning between letters in Captcha. Higher numbers indicate more spacing.'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_spacing_max")),
-                                );
-                                
+    '#type' => 'textfield',
+    '#title' => t('Character Spacing'),
+    '#default_value' =>  variable_get('textimage_char_spacing_max',10),
+    '#size' => 5,
+    '#maxlength' => 4,
+    '#description' => t('Sets the kerning between letters in Captcha. Higher numbers indicate more spacing.'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_char_spacing_max")),
+  );
+  
   $form['fonts']['textimage_char_jiggle_amount'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Character Jiggle'),
-                                  '#default_value' =>  variable_get('textimage_char_jiggle_amount',5),
-                                  '#size' => 5,
-                                  '#maxlength' => 2,
-                                  '#description' => t('Sets the amount of up and down movement in the Captcha letters. Higher numbers indicate more jiggling.'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_jiggle_amount")),
-                                );
-                                
+    '#type' => 'textfield',
+    '#title' => t('Character Jiggle'),
+    '#default_value' =>  variable_get('textimage_char_jiggle_amount',5),
+    '#size' => 5,
+    '#maxlength' => 2,
+    '#description' => t('Sets the amount of up and down movement in the Captcha letters. Higher numbers indicate more jiggling.'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_char_jiggle_amount")),
+  );
+  
   $form['fonts']['textimage_char_rotate_amount'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Character Rotation'),
-                                  '#default_value' =>  variable_get('textimage_char_rotate_amount',5),
-                                  '#size' => 5,
-                                  '#maxlength' => 2,
-                                  '#description' => t('Sets the amount of rotation in the Captcha letters (in degrees, only works with non-default fonts).'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_rotate_amount")),
-                                );
-                                
+    '#type' => 'textfield',
+    '#title' => t('Character Rotation'),
+    '#default_value' =>  variable_get('textimage_char_rotate_amount',5),
+    '#size' => 5,
+    '#maxlength' => 2,
+    '#description' => t('Sets the amount of rotation in the Captcha letters (in degrees, only works with non-default fonts).'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_char_rotate_amount")),
+  );
+  
   $form['fonts']['textimage_char_size_amount'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Character Size Adjustment'),
-                                  '#default_value' =>  variable_get('textimage_char_size_amount',2),
-                                  '#size' => 5,
-                                  '#maxlength' => 2,
-                                  '#description' => t('Sets the amount of variation in size between the different letters in the Captcha (in pixels).'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_char_size_amount")),
-                                );
+    '#type' => 'textfield',
+    '#title' => t('Character Size Adjustment'),
+    '#default_value' =>  variable_get('textimage_char_size_amount',2),
+    '#size' => 5,
+    '#maxlength' => 2,
+    '#description' => t('Sets the amount of variation in size between the different letters in the Captcha (in pixels).'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_char_size_amount")),
+  );
 
   //Image settings
   $form['images'] = array(
-                '#type' => 'fieldset', '#title' => t('Image settings'),
-                '#collapsible' => TRUE, '#collapsed' => FALSE
-              );
+    '#type' => 'fieldset', '#title' => t('Image settings'),
+    '#collapsible' => TRUE, '#collapsed' => FALSE
+  );
   $form['images']['textimage_images_path'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Background Images Path'),
-                                  '#default_value' =>  $images_path,
-                                  '#size' => 30,
-                                  '#maxlength' => 255,
-                                  '#description' => t('Location of the directory where the background images are stored. If you do not provide a directory, solid colors will be used. Relative paths will be resolved relative to the Drupal installation directory.'),
-                                );
+    '#type' => 'textfield',
+    '#title' => t('Background Images Path'),
+    '#default_value' =>  $images_path,
+    '#size' => 30,
+    '#maxlength' => 255,
+    '#description' => t('Location of the directory where the background images are stored. If you do not provide a directory, solid colors will be used. Relative paths will be resolved relative to the Drupal installation directory.'),
+  );
                                 
   $form['images']['textimage_image_noise'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Image Noise (pixels)'),
-                                  '#default_value' =>  variable_get('textimage_image_noise',4),
-                                  '#size' => 5,
-                                  '#maxlength' => 4,
-                                  '#description' => t('Sets the amount of noise (random pixels) in the Captcha image. Higher numbers indicate more noise.'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_image_noise")),
-                                );
+    '#type' => 'textfield',
+    '#title' => t('Image Noise (pixels)'),
+    '#default_value' =>  variable_get('textimage_image_noise',4),
+    '#size' => 5,
+    '#maxlength' => 4,
+    '#description' => t('Sets the amount of noise (random pixels) in the Captcha image. Higher numbers indicate more noise.'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_image_noise")),
+  );
                                 
   $form['images']['textimage_image_lines'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Image Noise (lines)'),
-                                  '#default_value' =>  variable_get('textimage_image_lines',4),
-                                  '#size' => 5,
-                                  '#maxlength' => 4,
-                                  '#description' => t('Sets the amount of noise (random lines) in the Captcha image. Higher numbers indicate more noise.'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_image_lines")),
-                                );
+    '#type' => 'textfield',
+    '#title' => t('Image Noise (lines)'),
+    '#default_value' =>  variable_get('textimage_image_lines',4),
+    '#size' => 5,
+    '#maxlength' => 4,
+    '#description' => t('Sets the amount of noise (random lines) in the Captcha image. Higher numbers indicate more noise.'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_image_lines")),
+  );
                                 
   $form['images']['textimage_image_margin'] = array(
-                                  '#type' => 'textfield',
-                                  '#title' => t('Image Margin'),
-                                  '#default_value' =>  variable_get('textimage_image_margin',10),
-                                  '#size' => 5,
-                                  '#maxlength' => 4,
-                                  '#description' => t('Set a distance between the Captcha letters and the edges of the image.'),
-                                  '#validate' => array("_textimage_number_validate" => array("textimage_image_margin")),
-                                );
+    '#type' => 'textfield',
+    '#title' => t('Image Margin'),
+    '#default_value' =>  variable_get('textimage_image_margin',10),
+    '#size' => 5,
+    '#maxlength' => 4,
+    '#description' => t('Set a distance between the Captcha letters and the edges of the image.'),
+    '#validate' => array("_textimage_number_validate" => array("textimage_image_margin")),
+  );
 
 
   $form['info'] = array(
@@ -229,7 +213,7 @@ function textimage_settings() {
   return $form;
 }
 
-function textimage_settings_form_validate ($form_id,$form) {
+function textimage_settings_form_validate($form_id,$form) {
   //check for valid font path
   if ($form['textimage_fonts_path'] !="" && !is_dir($form['textimage_fonts_path']))
     form_set_error('textimage_fonts_path', t('The entered font path is invalid'));
@@ -238,10 +222,37 @@ function textimage_settings_form_validate ($form_id,$form) {
     form_set_error('textimage_images_path', t('The entered image path is invalid'));
 }
 
-function _textimage_number_validate ($field,$fieldName) {
+function _textimage_number_validate($field,$fieldName) {
   if (!is_numeric($field['#value'])) {
     form_set_error($fieldName, t('The value for %field must be a number.', array('%field' => $field['#title'])));
   }
+}
+
+function textimage_captchachallenge(&$form) {
+  $form['captcha_response'] = array (
+    '#type' => 'textfield',
+    '#title' => t('Captcha Validation'),
+    '#default_value' => '',
+    '#required' => TRUE,
+    '#validate' => array('_captcha_validate' => array()),
+    '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
+    '#prefix' => '<div class="textimage-challenge"><img src="' . url('_textimage/image/'.time()) . '" '.$imageSize[3].'  alt="Captcha Image: you will need to recognize the text in it."/></div>',
+  );
+ 
+  return $form;
+}
+
+function textimage_captchavalidate(&$captcha_word, &$correct) {
+
+  $captcha_word = drupal_strtolower($captcha_word);
+  if ($captcha_word == $_SESSION['captcha']) {
+    $correct = true;
+  }
+  else {
+    $correct = false;
+    form_set_error('captcha_response', t('The image verification code you entered is incorrect.'));
+  }
+
 }
 
 /**
@@ -423,7 +434,6 @@ function _textimage_image() {
 * Returns a random string for use in a captcha
 */
 function _textimage_code() {
-
   $consts='bcdgjxvmnprst';
   $vowels='aeiou';
 
