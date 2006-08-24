@@ -240,7 +240,7 @@ function textimage_settings_form_validate ($form_id,$form) {
 
 function _textimage_number_validate ($field,$fieldName) {
   if (!is_numeric($field['#value'])) {
-    form_set_error($fieldName,t("The value for")." ".t($field['#title'])." ".t("must be a number"));
+    form_set_error($fieldName, t('The value for %field must be a number.', array('%field' => $field['#title'])));
   }
 }
 
@@ -248,174 +248,174 @@ function _textimage_number_validate ($field,$fieldName) {
 * Prints an image containing a textimage code.
 */
 function _textimage_image() {
-    //if we don't have GD2 functions, we can't generate the image
-    if (!function_exists('imagecreatetruecolor')) return;
+  //if we don't have GD2 functions, we can't generate the image
+  if (!function_exists('imagecreatetruecolor')) return;
 
-    // Set headers
-    header('Expires: Mon, 01 Jan 1997 05:00:00 GMT');
-    header('Cache-Control: no-store, no-cache, must-revalidate');
-    header('Cache-Control: post-check=0, pre-check=0', false);
-    header('Pragma: no-cache');
+  // Set headers
+  header('Expires: Mon, 01 Jan 1997 05:00:00 GMT');
+  header('Cache-Control: no-store, no-cache, must-revalidate');
+  header('Cache-Control: post-check=0, pre-check=0', false);
+  header('Pragma: no-cache');
 
-    header('Content-type: image/png');
+  header('Content-type: image/png');
 
-    $string = _textimage_code();
+  $string = _textimage_code();
 
-    // Get truetype font list
-    $fonts = _textimage_font_list();
-    // Get the background images list
-    $images = _textimage_image_list();
- 
-    // Randomization amounts:
-    $charSpacingMax   = variable_get('textimage_char_spacing_max',10);   // Letter spacing max (pixels)
-    $charSpacingMin   = max($charSpacingMax*.5,0);                     // Letter spacing minimum (pixels)
-    $charJiggleAmount = variable_get('textimage_char_jiggle_amount',5);  // Up and down randomization (pixels)
-    $charRotateAmount = variable_get('textimage_char_rotate_amount',5);  // Character rotation amount (degrees)
-    $charSizeAmount   = variable_get('textimage_char_size_amount',2);    // Character size amount (pixels)
+  // Get truetype font list
+  $fonts = _textimage_font_list();
+  // Get the background images list
+  $images = _textimage_image_list();
 
-    $imageRotateAmount = variable_get('captcha_image_rotate_amount',12); // Image rotation amount (degrees)
+  // Randomization amounts:
+  $charSpacingMax   = variable_get('textimage_char_spacing_max',10);   // Letter spacing max (pixels)
+  $charSpacingMin   = max($charSpacingMax*.5,0);                     // Letter spacing minimum (pixels)
+  $charJiggleAmount = variable_get('textimage_char_jiggle_amount',5);  // Up and down randomization (pixels)
+  $charRotateAmount = variable_get('textimage_char_rotate_amount',5);  // Character rotation amount (degrees)
+  $charSizeAmount   = variable_get('textimage_char_size_amount',2);    // Character size amount (pixels)
+
+  $imageRotateAmount = variable_get('captcha_image_rotate_amount',12); // Image rotation amount (degrees)
+  
+  // Static amounts:
+  $charInitialSize   = variable_get('textimage_font_size',24);      // Initial Font 
+  $imageNoise        = variable_get('textimage_image_noise',4);    // Amount of noise added to image
+  $imageLines        = variable_get('textimage_image_lines',4);    // Amount of noise added to image
+  $imageMargin       = variable_get('textimage_image_margin',10);    // Margin around image (pixels)
+
+  // write text using a truetype font
+  if (function_exists(imagettftext) && count($fonts) > 0) {
+
     
-    // Static amounts:
-    $charInitialSize   = variable_get('textimage_font_size',24);      // Initial Font 
-    $imageNoise        = variable_get('textimage_image_noise',4);    // Amount of noise added to image
-    $imageLines        = variable_get('textimage_image_lines',4);    // Amount of noise added to image
-    $imageMargin       = variable_get('textimage_image_margin',10);    // Margin around image (pixels)
+    // Initialize variables for the loop
+    $characterDetails = array(); // contains the final info about each character
+          
+    // Build a list of character settings for the captcha string
+    for ($i=0;$i<drupal_strlen($string);$i++) {
+      // Select our character
+      $char = drupal_substr($string,$i,1);
 
-    // write text using a truetype font
-    if (function_exists(imagettftext) && count($fonts) > 0) {
+      // Define angle, size, and font of the character
+      $charAngle = rand(-$charRotateAmount,$charRotateAmount);
+      $charSize  = $charInitialSize + rand(-$charSizeAmount,$charSizeAmount);
+      $font = $fonts[rand(0,count($fonts)-1)];
 
+      // Find height and width of the character
+      $bbox = imagettfbbox($charSize,$charAngle,$font,$char);
+      $charWidth = max($bbox[0],$bbox[2],$bbox[4],$bbox[6]) - min($bbox[0],$bbox[2],$bbox[4],$bbox[6]);
+      $charHeight = abs(max($bbox[1],$bbox[3])) - min($bbox[5],$bbox[7]);
       
-      // Initialize variables for the loop
-			$characterDetails = array(); // contains the final info about each character
-			      
-      // Build a list of character settings for the captcha string
-      for ($i=0;$i<drupal_strlen($string);$i++) {
-      	// Select our character
-        $char = drupal_substr($string,$i,1);
+      // Define the x and y position
+      $charSpacing = rand($charSpacingMin, $charSpacingMax);
+      $x = $imageWidth + $charSpacing;
+      $y = ($charHeight + rand(0,$charJiggleAmount));
 
-        // Define angle, size, and font of the character
-        $charAngle = rand(-$charRotateAmount,$charRotateAmount);
-        $charSize  = $charInitialSize + rand(-$charSizeAmount,$charSizeAmount);
-        $font = $fonts[rand(0,count($fonts)-1)];
-
-        // Find height and width of the character
-        $bbox = imagettfbbox($charSize,$charAngle,$font,$char);
-        $charWidth = max($bbox[0],$bbox[2],$bbox[4],$bbox[6]) - min($bbox[0],$bbox[2],$bbox[4],$bbox[6]);
-        $charHeight = abs(max($bbox[1],$bbox[3])) - min($bbox[5],$bbox[7]);
-        
-				// Define the x and y position
-				$charSpacing = rand($charSpacingMin, $charSpacingMax);
-        $x = $imageWidth + $charSpacing;
-        $y = ($charHeight + rand(0,$charJiggleAmount));
-
-				$characterDetails[] = array (
-					"size"  => $charSize,
-					"angle" => $charAngle,
-					"x"     => $x,
-					"y"     => $y,
-					"color" => $foreground,
-					"font"  => $font,
-					"char"  => $char
-				);
-				
-        // Increment the image size
-				$imageWidth  = $x + $charWidth;
-				$imageHeight = max($imageHeight,$y+$charJiggleAmount);
-      }
+      $characterDetails[] = array (
+        "size"  => $charSize,
+        "angle" => $charAngle,
+        "x"     => $x,
+        "y"     => $y,
+        "color" => $foreground,
+        "font"  => $font,
+        "char"  => $char
+      );
       
-			// Create the image based off the string length and margin
-      if (count($images) > 0) {
-        // We're going to be using an image, and need a tranparent background to start with
-        $im = _textimage_create_transparent_image($imageWidth+2*$imageMargin, $imageHeight+2*$imageMargin);
-        $noisecolor = imagecolorallocatealpha($im, 0, 0, 0, 127);
-      } else {
-        // Just make a plain-jane color brackground
-        $im = imagecreatetruecolor($imageWidth+2*$imageMargin, $imageHeight+2*$imageMargin);
-        $background = imagecolorallocate($im, rand(180, 250), rand(180, 250), rand(180, 250));
-        $noisecolor = $background;
-        imagefill($im, 0, 0, $background);
-      }
-      
-      
-			// Specify colors to be used in the image
-			$foreground = imagecolorallocate($im, rand(0, 80), rand(0, 80), rand(0, 80));
-      
-			foreach($characterDetails as $char) {
-				// draw character
-				imagettftext($im,$char['size'],$char['angle'],$char['x']+$imageMargin,$char['y']+$imageMargin,$foreground,$char['font'],$char['char']);
-			}
- 
-    }
-
-    else {
-      // write text using a built-in font
-      $x = 0;
-      $y = 0;
-      $imageWidth = 60 + drupal_strlen($string)*$charSpacingMax*.35;
-      $imageHeight = 30 + $charJiggleAmount;
- 
-      // Create the image
-      if (count($images) > 0 && function_exists(imagecolorallocatealpha)) {
-        // We're going to be using an image, and need a tranparent background to start with
-        $im = _textimage_create_transparent_image($imageWidth, $imageHeight);
-        $noisecolor = imagecolorallocatealpha($im, 0, 0, 0, 127);
-      } else {
-        // Just make a plain-jane color brackground
-        $im = imagecreatetruecolor($imageWidth, $imageHeight);
-        $background = imagecolorallocate($im, rand(180, 250), rand(180, 250), rand(180, 250));
-        $noisecolor = $background;
-        imagefill($im, 0, 0, $background);
-      }
-      
-      // Add the text
-      for ($i=0;$i<drupal_strlen($string);$i++) {
-        imagestring($im,max(2,5-rand(0,$charSizeAmount)),$x,$y,drupal_substr($string,$i,1),$foreground);
-        $x += rand(10+$charSpacingMin,10+$charSpacingMax);
-        $y = $imageMargin + rand(0,$charJiggleAmount);
-      }
-      
-      // Scale the image according to the user defined font size and add the margin
-      $imageWidth  = imagesx($im) * ($charInitialSize * .08) + $imageMargin;
-      $imageHeight = imagesy($im) * ($charInitialSize * .08) + $imageMargin;
-     
-      if (count($images) > 0) {
-        // Prepare a larger image with a background image
-        $im2 = _textimage_create_transparent_image($imageWidth, $imageHeight);
-      } else {
-        // Prepare a larger image with a solid color
-        $im2 = imagecreatetruecolor($imageWidth, $imageHeight);
-        imagefill($im2, 0, 0, $background);
-      }
-      
-      $result = imagecopyresampled ($im2, $im, $imageMargin, $imageMargin, 0, 0, $imageWidth, $imageHeight, imagesx($im), imagesy($im));
-      $im = $im2;
-    }
-
-    // strikethrough
-    imageline($im, rand(0, 120), rand(0, 120), rand(0, 120), rand(0, 120), $foreground);
-
-    // Add Noise
-    for ($x=0; $x<$imageWidth; $x++) {
-      for ($row=0; $row<$imageNoise;$row++) {
-        $y = rand(0,$imageHeight);
-        imagesetpixel($im, $x, $y, $noisecolor);
-      }
-    }
-    // Add Lines and Ellipses
-    for ($x=0; $x<$imageLines;$x++) {
-      imageline($im, rand(0, $imageWidth), rand(0, $imageHeight), rand(0, $imageWidth), rand(0, $imageHeight), $noisecolor);
-      imageellipse($im, rand(0, $imageWidth), rand(0, $imageHeight), rand(0, $imageWidth), rand(0, $imageHeight), $noisecolor);
+      // Increment the image size
+      $imageWidth  = $x + $charWidth;
+      $imageHeight = max($imageHeight,$y+$charJiggleAmount);
     }
     
-    // Fill image with a random background image if available
+    // Create the image based off the string length and margin
     if (count($images) > 0) {
-      $image = $images[rand(0,count($images)-1)];
-      _textimage_apply_background_image($im,$image);
+      // We're going to be using an image, and need a tranparent background to start with
+      $im = _textimage_create_transparent_image($imageWidth+2*$imageMargin, $imageHeight+2*$imageMargin);
+      $noisecolor = imagecolorallocatealpha($im, 0, 0, 0, 127);
+    } else {
+      // Just make a plain-jane color brackground
+      $im = imagecreatetruecolor($imageWidth+2*$imageMargin, $imageHeight+2*$imageMargin);
+      $background = imagecolorallocate($im, rand(180, 250), rand(180, 250), rand(180, 250));
+      $noisecolor = $background;
+      imagefill($im, 0, 0, $background);
     }
     
-    //output to browser
-    imagepng($im);
-    imagedestroy($im);
+    
+    // Specify colors to be used in the image
+    $foreground = imagecolorallocate($im, rand(0, 80), rand(0, 80), rand(0, 80));
+    
+    foreach($characterDetails as $char) {
+      // draw character
+      imagettftext($im,$char['size'],$char['angle'],$char['x']+$imageMargin,$char['y']+$imageMargin,$foreground,$char['font'],$char['char']);
+    }
+
+  }
+
+  else {
+    // write text using a built-in font
+    $x = 0;
+    $y = 0;
+    $imageWidth = 60 + drupal_strlen($string)*$charSpacingMax*.35;
+    $imageHeight = 30 + $charJiggleAmount;
+
+    // Create the image
+    if (count($images) > 0 && function_exists(imagecolorallocatealpha)) {
+      // We're going to be using an image, and need a tranparent background to start with
+      $im = _textimage_create_transparent_image($imageWidth, $imageHeight);
+      $noisecolor = imagecolorallocatealpha($im, 0, 0, 0, 127);
+    } else {
+      // Just make a plain-jane color brackground
+      $im = imagecreatetruecolor($imageWidth, $imageHeight);
+      $background = imagecolorallocate($im, rand(180, 250), rand(180, 250), rand(180, 250));
+      $noisecolor = $background;
+      imagefill($im, 0, 0, $background);
+    }
+    
+    // Add the text
+    for ($i=0;$i<drupal_strlen($string);$i++) {
+      imagestring($im,max(2,5-rand(0,$charSizeAmount)),$x,$y,drupal_substr($string,$i,1),$foreground);
+      $x += rand(10+$charSpacingMin,10+$charSpacingMax);
+      $y = $imageMargin + rand(0,$charJiggleAmount);
+    }
+    
+    // Scale the image according to the user defined font size and add the margin
+    $imageWidth  = imagesx($im) * ($charInitialSize * .08) + $imageMargin;
+    $imageHeight = imagesy($im) * ($charInitialSize * .08) + $imageMargin;
+   
+    if (count($images) > 0) {
+      // Prepare a larger image with a background image
+      $im2 = _textimage_create_transparent_image($imageWidth, $imageHeight);
+    } else {
+      // Prepare a larger image with a solid color
+      $im2 = imagecreatetruecolor($imageWidth, $imageHeight);
+      imagefill($im2, 0, 0, $background);
+    }
+    
+    $result = imagecopyresampled ($im2, $im, $imageMargin, $imageMargin, 0, 0, $imageWidth, $imageHeight, imagesx($im), imagesy($im));
+    $im = $im2;
+  }
+
+  // strikethrough
+  imageline($im, rand(0, 120), rand(0, 120), rand(0, 120), rand(0, 120), $foreground);
+
+  // Add Noise
+  for ($x=0; $x<$imageWidth; $x++) {
+    for ($row=0; $row<$imageNoise;$row++) {
+      $y = rand(0,$imageHeight);
+      imagesetpixel($im, $x, $y, $noisecolor);
+    }
+  }
+  // Add Lines and Ellipses
+  for ($x=0; $x<$imageLines;$x++) {
+    imageline($im, rand(0, $imageWidth), rand(0, $imageHeight), rand(0, $imageWidth), rand(0, $imageHeight), $noisecolor);
+    imageellipse($im, rand(0, $imageWidth), rand(0, $imageHeight), rand(0, $imageWidth), rand(0, $imageHeight), $noisecolor);
+  }
+  
+  // Fill image with a random background image if available
+  if (count($images) > 0) {
+    $image = $images[rand(0,count($images)-1)];
+    _textimage_apply_background_image($im,$image);
+  }
+  
+  //output to browser
+  imagepng($im);
+  imagedestroy($im);
 
 }
 
@@ -424,26 +424,25 @@ function _textimage_image() {
 */
 function _textimage_code() {
 
-    $consts='bcdgjxvmnprst';
-    $vowels='aeiou';
+  $consts='bcdgjxvmnprst';
+  $vowels='aeiou';
 
-    for ($x=0; $x < 6; $x++) {
-      mt_srand ((double) microtime() * 1000000);
-      $const[$x] = drupal_substr($consts,mt_rand(0,drupal_strlen($consts)-1),1);
-      $vow[$x] = drupal_substr($vowels,mt_rand(0,drupal_strlen($vowels)-1),1);
-    }
+  for ($x=0; $x < 6; $x++) {
+    mt_srand ((double) microtime() * 1000000);
+    $const[$x] = drupal_substr($consts,mt_rand(0,drupal_strlen($consts)-1),1);
+    $vow[$x] = drupal_substr($vowels,mt_rand(0,drupal_strlen($vowels)-1),1);
+  }
 
-    $string = $const[0] . $vow[0] .$const[2] . $const[1] . $vow[1] . $const[3] . $vow[3] . $const[4];
-    $string = drupal_substr($string,0,rand(4,6));
+  $string = $const[0] . $vow[0] .$const[2] . $const[1] . $vow[1] . $const[3] . $vow[3] . $const[4];
+  $string = drupal_substr($string,0,rand(4,6));
 
-    //everytime we create a new code, we write it to session
-    $_SESSION['captcha'] = drupal_strtolower($string);
+  //everytime we create a new code, we write it to session
+  $_SESSION['captcha'] = drupal_strtolower($string);
 
-    if(variable_get('textimage_use_only_upper',0))
-      $string = drupal_strtoupper($string);
+  if(variable_get('textimage_use_only_upper',0))
+    $string = drupal_strtoupper($string);
 
-    return $string;
-
+  return $string;
 }
 
 /**
