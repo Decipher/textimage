@@ -1,0 +1,3 @@
+; $Id$
+name = Text Image
+description = "Provides text to image manipulations and image based captcha challenge (with Captcha module)."

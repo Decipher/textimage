@@ -1,0 +1,100 @@
+<?php
+// $Id$
+
+function textimage_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query('CREATE TABLE {textimage_preset} (
+        pid INT UNSIGNED NOT NULL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL DEFAULT \'\',
+        settings TEXT NOT NULL DEFAULT \'\' )
+        /*!40100 DEFAULT CHARACTER SET utf8 */'
+      );
+
+      break;
+
+    case 'pgsql':
+      db_query('CREATE TABLE {textimage_preset} (
+        pid INTEGER NOT NULL CHECK (presetid > 0),
+        name VARCHAR(255) NOT NULL DEFAULT \'\',
+        settings TEXT NOT NULL DEFAULT \'\'
+        PRIMARY KEY (presetid));'
+      );
+      db_query("CREATE SEQUENCE textimage_preset_presetid_seq INCREMENT 1 START 1;");
+      break;
+  }
+}
+
+function textimage_uninstall() {
+  include_once(drupal_get_path('module', 'textimage') .'/textimage.module');
+  
+  db_query('DROP TABLE {textimage_preset}');
+  _textimage_recursive_delete(realpath(file_directory_path() .'/textimage'));
+  
+  variable_del('textimage_fonts_path');
+  variable_del('textimage_images_path');
+  variable_del('textimage_captcha_fonts_path');
+  variable_del('textimage_captcha_images_path');
+  variable_del('textimage_captcha_font_size');
+  variable_del('textimage_captcha_char_spacing_max');
+  variable_del('textimage_captcha_char_jiggle_amount');
+  variable_del('textimage_captcha_char_rotate_amount');
+  variable_del('textimage_captcha_char_size_amount');
+  variable_del('textimage_captcha_use_only_upper');
+  variable_del('textimage_captcha_image_noise');
+  variable_del('textimage_captcha_image_lines');
+  variable_del('textimage_captcha_image_margin');
+}
+
+
+// Install the textimage tables and seperate variable names for captcha specific variables
+function textimage_update_1() {
+  $ret = array();
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $ret[] = update_sql('CREATE TABLE {textimage_preset} (
+        pid INT UNSIGNED NOT NULL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL DEFAULT \'\',
+        settings TEXT NOT NULL DEFAULT \'\' )
+        /*!40100 DEFAULT CHARACTER SET utf8 */'
+      );
+
+      break;
+
+    case 'pgsql':
+      $ret[] = update_sql('CREATE TABLE {textimage_preset} (
+        pid INTEGER NOT NULL CHECK (presetid > 0),
+        name VARCHAR(255) NOT NULL DEFAULT \'\',
+        settings TEXT NOT NULL DEFAULT \'\'
+        PRIMARY KEY (presetid));'
+      );
+      $ret[] = update_sql("CREATE SEQUENCE textimage_preset_presetid_seq INCREMENT 1 START 1;");
+      break;
+  }
+  
+  if (variable_get('textimage_fonts_path', '0')) variable_set('textimage_captcha_fonts_path', variable_get('textimage_fonts_path', ''));
+  if (variable_get('textimage_font_size', '0')) variable_set('textimage_captcha_font_size', variable_get('textimage_font_size', '24'));
+  if (variable_get('textimage_char_spacing_max', '0')) variable_set('textimage_captcha_char_spacing_max', variable_get('textimage_char_spacing_max', '10'));
+  if (variable_get('textimage_char_jiggle_amount', '0')) variable_set('textimage_captcha_char_jiggle_amount', variable_get('textimage_char_jiggle_amount', '5'));
+  if (variable_get('textimage_char_rotate_amount', '0')) variable_set('textimage_captcha_char_rotate_amount', variable_get('textimage_char_rotate_amount', '5'));
+  if (variable_get('textimage_char_size_amount', '0')) variable_set('textimage_captcha_char_size_amount', variable_get('textimage_char_size_amount', '2'));
+  if (variable_get('textimage_use_only_upper', '0')) variable_set('textimage_captcha_use_only_upper', variable_get('textimage_use_only_upper', '0'));
+  if (variable_get('textimage_images_path', '0')) variable_set('textimage_captcha_images_path', variable_get('textimage_images_path', ''));
+  if (variable_get('textimage_image_noise', '0')) variable_set('textimage_captcha_image_noise', variable_get('textimage_image_noise', '4'));
+  if (variable_get('textimage_image_lines', '0')) variable_set('textimage_captcha_image_lines', variable_get('textimage_image_lines', '4'));
+  if (variable_get('textimage_image_margin', '0')) variable_set('textimage_captcha_image_margin', variable_get('textimage_image_margin', '10'));
+  
+  variable_del('textimage_font_size');
+  variable_del('textimage_char_spacing_max');
+  variable_del('textimage_char_jiggle_amount');
+  variable_del('textimage_char_rotate_amount');
+  variable_del('textimage_char_size_amount');
+  variable_del('textimage_use_only_upper');
+  variable_del('textimage_image_noise');
+  variable_del('textimage_image_lines');
+  variable_del('textimage_image_margin');
+  
+  return $ret;
+}
