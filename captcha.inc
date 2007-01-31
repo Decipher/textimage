@@ -4,7 +4,7 @@
  * @file
  * Provides textimage captcha functions
  */
- 
+
 /**
 * Captcha settings form.
 */
@@ -27,7 +27,7 @@ function textimage_captcha_settings_form() {
     '#type' => 'fieldset', '#title' => t('Fonts settings'),
     '#collapsible' => TRUE, '#collapsed' => FALSE
   );
-              
+
   $form['fonts']['textimage_captcha_fonts_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Captcha TrueType Fonts Path'),
@@ -36,7 +36,7 @@ function textimage_captcha_settings_form() {
     '#maxlength' => 255,
     '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
   );
-  
+
   $form['fonts']['textimage_captcha_font_size'] = array(
     '#type' => 'textfield',
     '#title' => t('Font Size'),
@@ -46,7 +46,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Font size of Captcha text (in pixels).'),
     '#validate' => array("_textimage_number_validate" => array("textimage_font_size")),
   );
-  
+
   $form['fonts']['textimage_captcha_char_spacing_max'] = array(
     '#type' => 'textfield',
     '#title' => t('Character Spacing'),
@@ -56,7 +56,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Sets the kerning between letters in Captcha. Higher numbers indicate more spacing.'),
     '#validate' => array("_textimage_number_validate" => array("textimage_char_spacing_max")),
   );
-  
+
   $form['fonts']['textimage_captcha_char_jiggle_amount'] = array(
     '#type' => 'textfield',
     '#title' => t('Character Jiggle'),
@@ -66,7 +66,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Sets the amount of up and down movement in the Captcha letters. Higher numbers indicate more jiggling.'),
     '#validate' => array("_textimage_number_validate" => array("textimage_char_jiggle_amount")),
   );
-  
+
   $form['fonts']['textimage_captcha_char_rotate_amount'] = array(
     '#type' => 'textfield',
     '#title' => t('Character Rotation'),
@@ -76,7 +76,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Sets the amount of rotation in the Captcha letters (in degrees, only works with non-default fonts).'),
     '#validate' => array("_textimage_number_validate" => array("textimage_char_rotate_amount")),
   );
-  
+
   $form['fonts']['textimage_captcha_char_size_amount'] = array(
     '#type' => 'textfield',
     '#title' => t('Character Size Adjustment'),
@@ -86,7 +86,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Sets the amount of variation in size between the different letters in the Captcha (in pixels).'),
     '#validate' => array("_textimage_number_validate" => array("textimage_char_size_amount")),
   );
-              
+
   $form['fonts']['textimage_captcha_use_only_upper'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use only Uppercase'),
@@ -106,7 +106,7 @@ function textimage_captcha_settings_form() {
     '#maxlength' => 255,
     '#description' => t('Location of the directory where the background images are stored. If you do not provide a directory, solid colors will be used. Relative paths will be resolved relative to the Drupal installation directory.'),
   );
-                                
+
   $form['images']['textimage_captcha_image_noise'] = array(
     '#type' => 'textfield',
     '#title' => t('Image Noise (pixels)'),
@@ -116,7 +116,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Sets the amount of noise (random pixels) in the Captcha image. Higher numbers indicate more noise.'),
     '#validate' => array("_textimage_number_validate" => array("textimage_image_noise")),
   );
-                                
+
   $form['images']['textimage_captcha_image_lines'] = array(
     '#type' => 'textfield',
     '#title' => t('Image Noise (lines)'),
@@ -126,7 +126,7 @@ function textimage_captcha_settings_form() {
     '#description' => t('Sets the amount of noise (random lines) in the Captcha image. Higher numbers indicate more noise.'),
     '#validate' => array("_textimage_number_validate" => array("textimage_image_lines")),
   );
-                                
+
   $form['images']['textimage_captcha_image_margin'] = array(
     '#type' => 'textfield',
     '#title' => t('Image Margin'),
@@ -171,14 +171,14 @@ function textimage_captchachallenge(&$form) {
     '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
     '#prefix' => '<div class="textimage-challenge"><img src="' . url('_textimage/image/'.time()) . '" '.$imageSize[3].'  alt="'.t('Captcha Image: you will need to recognize the text in it.').'"/></div>',
   );
- 
+
   return $form;
 }
 
 function textimage_captchavalidate(&$captcha_word, &$correct) {
 
   $captcha_word = drupal_strtolower($captcha_word);
-  if ($captcha_word == $_SESSION['captcha']) {
+  if (($_SESSION['captcha'] != '') && $captcha_word == $_SESSION['captcha']) {
     $correct = true;
   }
   else {
@@ -216,9 +216,9 @@ function _textimage_captcha_image() {
   $charJiggleAmount = variable_get('textimage_captcha_char_jiggle_amount',5);  // Up and down randomization (pixels)
   $charRotateAmount = variable_get('textimage_captcha_char_rotate_amount',5);  // Character rotation amount (degrees)
   $charSizeAmount   = variable_get('textimage_captcha_char_size_amount',2);    // Character size amount (pixels)
-  
+
   // Static amounts:
-  $charInitialSize   = variable_get('textimage_captcha_font_size',24);      // Initial Font 
+  $charInitialSize   = variable_get('textimage_captcha_font_size',24);      // Initial Font
   $imageNoise        = variable_get('textimage_captcha_image_noise',4);    // Amount of noise added to image
   $imageLines        = variable_get('textimage_captcha_image_lines',4);    // Amount of noise added to image
   $imageMargin       = variable_get('textimage_captcha_image_margin',10);    // Margin around image (pixels)
@@ -227,10 +227,10 @@ function _textimage_captcha_image() {
 
   // write text using a truetype font
   if (function_exists(imagettftext) && count($fonts) > 0) {
-    
+
     // Initialize variables for the loop
     $characterDetails = array(); // contains the final info about each character
-          
+
     // Build a list of character settings for the captcha string
     for ($i=0;$i<drupal_strlen($string);$i++) {
       // Select our character
@@ -240,12 +240,12 @@ function _textimage_captcha_image() {
       $charAngle = rand(-$charRotateAmount,$charRotateAmount);
       $charSize  = $charInitialSize + rand(-$charSizeAmount,$charSizeAmount);
       $font = variable_get("textimage_captcha_fonts_path", "") . '/' . $fonts[rand(0,count($fonts)-1)];
-      
+
       // Find height and width of the character
       $bbox = imagettfbbox($charSize, $charAngle, $font, $char);
       $charWidth = max($bbox[0],$bbox[2],$bbox[4],$bbox[6]) - min($bbox[0],$bbox[2],$bbox[4],$bbox[6]);
       $charHeight = abs(max($bbox[1],$bbox[3])) - min($bbox[5],$bbox[7]);
-      
+
       // Define the x and y position
       $charSpacing = rand($charSpacingMin, $charSpacingMax);
       $x = $imageWidth + $charSpacing;
@@ -259,12 +259,12 @@ function _textimage_captcha_image() {
         "font"  => $font,
         "char"  => $char
       );
-      
+
       // Increment the image size
       $imageWidth  = $x + $charWidth;
       $imageHeight = max($imageHeight,$y+$charJiggleAmount);
     }
-    
+
     // Create the image based off the string length and margin
     if (count($images) > 0) {
       // We're going to be using an image, and need a tranparent background to start with
@@ -277,10 +277,10 @@ function _textimage_captcha_image() {
       $noisecolor = $background;
       imagefill($im, 0, 0, $background);
     }
-    
+
     // Specify colors to be used in the image
     $foreground = imagecolorallocate($im, rand(0, 80), rand(0, 80), rand(0, 80));
-    
+
     foreach($characterDetails as $char) {
       // draw character
       imagettftext($im,$char['size'],$char['angle'],$char['x']+$imageMargin,$char['y']+$imageMargin,$foreground,$char['font'],$char['char']);
@@ -307,18 +307,18 @@ function _textimage_captcha_image() {
       $noisecolor = $background;
       imagefill($im, 0, 0, $background);
     }
-    
+
     // Add the text
     for ($i=0;$i<drupal_strlen($string);$i++) {
       imagestring($im,max(2,5-rand(0,$charSizeAmount)),$x,$y,drupal_substr($string,$i,1),$foreground);
       $x += rand(10+$charSpacingMin,10+$charSpacingMax);
       $y = $imageMargin + rand(0,$charJiggleAmount);
     }
-    
+
     // Scale the image according to the user defined font size and add the margin
     $imageWidth  = imagesx($im) * ($charInitialSize * .08) + $imageMargin;
     $imageHeight = imagesy($im) * ($charInitialSize * .08) + $imageMargin;
-   
+
     if (count($images) > 0) {
       // Prepare a larger image with a background image
       $im2 = _textimage_create_transparent_image($imageWidth, $imageHeight);
@@ -327,7 +327,7 @@ function _textimage_captcha_image() {
       $im2 = imagecreatetruecolor($imageWidth, $imageHeight);
       imagefill($im2, 0, 0, $background);
     }
-    
+
     $result = imagecopyresampled ($im2, $im, $imageMargin, $imageMargin, 0, 0, $imageWidth, $imageHeight, imagesx($im), imagesy($im));
     $im = $im2;
   }
@@ -347,13 +347,13 @@ function _textimage_captcha_image() {
     imageline($im, rand(0, $imageWidth), rand(0, $imageHeight), rand(0, $imageWidth), rand(0, $imageHeight), $noisecolor);
     imageellipse($im, rand(0, $imageWidth), rand(0, $imageHeight), rand(0, $imageWidth), rand(0, $imageHeight), $noisecolor);
   }
-  
+
   // Fill image with a random background image if available
   if (count($images) > 0) {
     $image = $images[rand(0,count($images)-1)];
     _textimage_captcha_apply_background_image($im,$image);
   }
-  
+
   //output to browser
   imagepng($im);
   imagedestroy($im);
@@ -370,10 +370,10 @@ function _textimage_captcha_apply_background_image (&$imageResource, $imageFile)
   $backY = imagesy($backgroundResource);
   $textX = imagesx($imageResource);
   $textY = imagesy($imageResource);
-  
+
   $randomBackX = rand(0,$backX-$textX);
   $randomBackY = rand(0,$backY-$textY);
-  
+
   // Place the text onto a random location of the background image
   imagecopyresampled($backgroundResource,$imageResource,$randomBackX,$randomBackY,0,0,$textX,$textY,$textX,$textY);
   // Crop the background image to the original image size
