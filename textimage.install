@@ -30,7 +30,9 @@ function textimage_uninstall() {
   include_once(drupal_get_path('module', 'textimage') .'/textimage.module');
   
   db_query('DROP TABLE {textimage_preset}');
-  _textimage_recursive_delete(realpath(file_directory_path() .'/textimage'));
+  $path = realpath(file_directory_path() .'/textimage');
+  if($path != FALSE)
+    _textimage_recursive_delete($path);
   
   variable_del('textimage_fonts_path');
   variable_del('textimage_images_path');
