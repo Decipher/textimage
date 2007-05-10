@@ -1,6 +1,32 @@
 <?php
 // $Id$
 
+/**
+ * Matches all 'P' Unicode character classes (punctuation)
+ */
+define('PREG_CLASS_PUNCTUATION',
+'\x{21}-\x{23}\x{25}-\x{2a}\x{2c}-\x{2f}\x{3a}\x{3b}\x{3f}\x{40}\x{5b}-\x{5d}'.
+'\x{5f}\x{7b}\x{7d}\x{a1}\x{ab}\x{b7}\x{bb}\x{bf}\x{37e}\x{387}\x{55a}-\x{55f}'.
+'\x{589}\x{58a}\x{5be}\x{5c0}\x{5c3}\x{5f3}\x{5f4}\x{60c}\x{60d}\x{61b}\x{61f}'.
+'\x{66a}-\x{66d}\x{6d4}\x{700}-\x{70d}\x{964}\x{965}\x{970}\x{df4}\x{e4f}'.
+'\x{e5a}\x{e5b}\x{f04}-\x{f12}\x{f3a}-\x{f3d}\x{f85}\x{104a}-\x{104f}\x{10fb}'.
+'\x{1361}-\x{1368}\x{166d}\x{166e}\x{169b}\x{169c}\x{16eb}-\x{16ed}\x{1735}'.
+'\x{1736}\x{17d4}-\x{17d6}\x{17d8}-\x{17da}\x{1800}-\x{180a}\x{1944}\x{1945}'.
+'\x{2010}-\x{2027}\x{2030}-\x{2043}\x{2045}-\x{2051}\x{2053}\x{2054}\x{2057}'.
+'\x{207d}\x{207e}\x{208d}\x{208e}\x{2329}\x{232a}\x{23b4}-\x{23b6}\x{2768}-'.
+'\x{2775}\x{27e6}-\x{27eb}\x{2983}-\x{2998}\x{29d8}-\x{29db}\x{29fc}\x{29fd}'.
+'\x{3001}-\x{3003}\x{3008}-\x{3011}\x{3014}-\x{301f}\x{3030}\x{303d}\x{30a0}'.
+'\x{30fb}\x{fd3e}\x{fd3f}\x{fe30}-\x{fe52}\x{fe54}-\x{fe61}\x{fe63}\x{fe68}'.
+'\x{fe6a}\x{fe6b}\x{ff01}-\x{ff03}\x{ff05}-\x{ff0a}\x{ff0c}-\x{ff0f}\x{ff1a}'.
+'\x{ff1b}\x{ff1f}\x{ff20}\x{ff3b}-\x{ff3d}\x{ff3f}\x{ff5b}\x{ff5d}\x{ff5f}-'.
+'\x{ff65}');
+
+/**
+ * Matches all 'Z' Unicode character classes (separators)
+ */
+define('PREG_CLASS_SEPARATOR','\x{20}\x{a0}\x{1680}\x{180e}\x{2000}-\x{200a}\x{2028}\x{2029}\x{202f}\x{205f}\x{3000}');
+
+
 if (module_exists('captcha')) {
   include_once(drupal_get_path('module', 'textimage') .'/captcha.inc');
 }
@@ -339,6 +365,15 @@ function textimage_preset_edit($preset_id) {
     '#validate' => array('_textimage_hex_validate' => array('color')),
     '#required' => TRUE,
   );
+  $form['settings']['text']['maximum_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum width'),
+    '#field_suffix' => t('pixels'),
+    '#description' => t('Text lines wider than this will be wrapped. Leave blank to disable wrapping.'),
+    '#default_value' => $preset['settings']['text']['maximum_width'],
+    '#maxlength' => 4,
+    '#size' => 4,
+  );
   $form['settings']['text']['angle'] = array(
     '#type' => 'textfield',
     '#title' => t('Text Rotation'),
@@ -648,22 +683,38 @@ function textimage_image_from_preset($preset_id, $text, $additional_text) {
 
   $font = variable_get('textimage_fonts_path', '') . '/' . $preset['settings']['text']['font'];
 
-  $size = $preset['settings']['text']['size'];
-  $angle = $preset['settings']['text']['angle'] ? $preset['settings']['text']['angle'] : 0;
-  $color = $preset['settings']['text']['color'];
-  $case = $preset['settings']['text']['case'];
-  $stroke_width = $preset['settings']['text']['stroke_width'];
-  $stroke_color = $preset['settings']['text']['stroke_color'] ? $preset['settings']['text']['stroke_color'] : '#000000';
-  
-  $margin_top = $preset['settings']['text']['margin_top'] ? $preset['settings']['text']['margin_top'] : 0;
-  $margin_right = $preset['settings']['text']['margin_right'] ? $preset['settings']['text']['margin_right'] : 0;
-  $margin_bottom = $preset['settings']['text']['margin_bottom'] ? $preset['settings']['text']['margin_bottom'] : 0;
-  $margin_left = $preset['settings']['text']['margin_left'] ? $preset['settings']['text']['margin_left'] : 0;
+  // Fill in default preset settings.
+  $defaults = array(
+    'text' => array(
+      'size' => '',
+      'angle' => 0,
+      'color' => '',
+      'case' => '',
+      'stroke_width' => '',
+      'stroke_color' => '#000000',
+      'maximum_width' => 0,
+      'margin_top' => 0,
+      'margin_right' => 0,
+      'margin_bottom' => 0,
+      'margin_left' => 0,
+    ),
+    'background' => array(
+      'back_color' => '',
+      'back_image' => '',
+      'back_xoffset' => 0,
+      'back_yoffset' => 0,
+    ),
+  );
+  foreach ($defaults as $set => $values) {
+    $settings = $preset['settings'][$set];
+    foreach ($values as $key => $value) {
+      // Strip prefixes like 'back_' for array lookups.
+      $array_key = preg_replace('/^back_/', '', $key);
+      // Assign to variable and fill in default.
+      $$key = $settings[$array_key] ? $settings[$array_key] : $value;
+    }
+  }
 
-  $back_color = $preset['settings']['background']['color'];
-  $back_image = $preset['settings']['background']['image'];
-  $back_xoffset = $preset['settings']['background']['xoffset'] ? $preset['settings']['background']['xoffset'] : 0;
-  $back_yoffset = $preset['settings']['background']['yoffset'] ? $preset['settings']['background']['yoffset'] : 0;
   
   // Convert text case
   switch ($case) {
@@ -691,7 +742,7 @@ function textimage_image_from_preset($preset_id, $text, $additional_text) {
   }
   
   // Generate the text image
-  $img = textimage_text_to_image($text, $size, $font, $color, $back_color, $angle);
+  $img = textimage_text_to_image($text, $size, $font, $color, $back_color, $angle, $maximum_width);
   
   // Add margin
   if ($margin_top || $margin_right || $margin_bottom || $margin_left) {
@@ -806,7 +857,7 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
     $x_offset = round(cos($degrees) * $thickness);
     $y_offset = round(sin($degrees) * $thickness);
     
-    // Add the coordinates for the corresponding pixel in each 90¡ quadrant
+    // Add the coordinates for the corresponding pixel in each 90° quadrant
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x - $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y - $y_offset);
@@ -864,7 +915,80 @@ function textimage_directory_check($directory_path) {
   return true;
 }
 
-function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#000000', $background_color = NULL, $angle) {
+/**
+ * Helper function for wrapping text (measures width).
+ */
+function textimage_measure_text_width($text, $fontsize, $font) {
+  $box = imageTTFBbox($fontsize, $angle, $font, $text);
+  return abs($box[4] - $box[0]) + 4;
+}
+
+/**
+ * Wrap text for rendering at a given width.
+ */
+function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
+  // State variables for the search interval
+  $end = 0;
+  $begin = 0;
+  $fit = $begin;
+
+  // Note: we count in bytes for speed reasons, but maintain character boundaries.
+  while (true) {
+    // Find the next wrap point (always after trailing whitespace).
+    if (preg_match('/['. PREG_CLASS_PUNCTUATION .']['. PREG_CLASS_SEPARATOR .']*|['. PREG_CLASS_SEPARATOR .']+/u', $text, $match, PREG_OFFSET_CAPTURE, $end)) {
+      $end = $match[0][1] + strlen($match[0][0]);
+    }
+    else {
+      $end = strlen($text);
+    }
+    
+    // Fetch text, removing trailing white-space and measure it.
+    $line = preg_replace('/['. PREG_CLASS_SEPARATOR .']+$/u', '', substr($text, $begin, $end - $begin));
+    $width = textimage_measure_text_width($line, $fontsize, $font);
+
+    // See if $line extends past the available space.
+    if ($width > $maximum_width) {
+      // If this is the first word, we need to truncate it.
+      if ($fit == $begin) {
+        // Cut off letters until it fits.
+        while (strlen($line) > 0 && $width > $maximum_width) {
+          $line = drupal_substr($line, 0, -1);
+          $width = textimage_measure_text_width($line, $fontsize, $font);
+        }
+        // If no fit was found, the image is too narrow..
+        $fit = strlen($line) ? $begin + strlen($line) : $end;
+      }
+
+      // We have a valid fit for the next line. Insert a line-break and reset
+      // the search interval.
+      $text = substr($text, 0, $fit) ."\n". substr($text, $fit);
+      $end = $begin = ++$fit;
+    }
+    else {
+      // We can fit this text. Wait for now.
+      $fit = $end;
+    }
+
+    if ($end == strlen($text)) {
+      // All text fits. No more changes are needed.
+      break;
+    }
+  }
+  return $text;
+}
+
+/**
+ * Generate an image containing text with the given parameters.
+ *
+ * @return $image
+ *   A GD image resource.
+ */
+function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#000000', $background_color = NULL, $angle = 0, $maximum_width = 0) {
+  // Perform text wrapping, if necessary.
+  if ($maximum_width > 0) {
+    $text = textimage_wrap_text($text, $fontsize, $font, $maximum_width);
+  }
+
   // Get exact dimensions of text string
   $box = imageTTFBbox($fontsize, $angle, $font, $text);
   // Calculate text width and height
