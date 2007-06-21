@@ -8,7 +8,7 @@ function textimage_install() {
       db_query('CREATE TABLE {textimage_preset} (
         pid INT UNSIGNED NOT NULL PRIMARY KEY,
         name VARCHAR(255) NOT NULL DEFAULT \'\',
-        settings TEXT NOT NULL DEFAULT \'\' )
+        settings TEXT NOT NULL )
         /*!40100 DEFAULT CHARACTER SET utf8 */'
       );
 
