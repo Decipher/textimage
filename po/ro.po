@@ -4,15 +4,18 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: Drupal/textimage\n"
 "POT-Creation-Date: 2006-10-03 09:56-0300\n"
-"PO-Revision-Date: 2007-07-12 16:59+0200\n"
+"PO-Revision-Date: 2007-07-12 17:28+0200\n"
 "Last-Translator: Claudiu Cristea <claudiu@cristea.info>\n"
-"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Language-Team: Romanian <clau.cristea@gmail.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: Romanian\n"
+"X-Poedit-Country: ROMANIA\n"
+"X-Poedit-SourceCharset: utf-8\n"
 
 #: textimage.module:17
 msgid "Implements an image recognition captcha."
@@ -164,19 +167,19 @@ msgstr ""
 
 #: textimage.module:234
 msgid "Captcha Validation"
-msgstr ""
+msgstr "Validare anti-spam"
 
 #: textimage.module:238
 msgid "Please type in the letters/numbers that are shown in the image above."
-msgstr ""
+msgstr "Vă rugăm introduceţi literele sau cufrele care sunt afişate în imaginea de mai sus."
 
 #: textimage.module:239
 msgid "Captcha Image: you will need to recognize the text in it."
-msgstr ""
+msgstr "Imagine anti-spam: Trebuie să recunoaşteţi textul din imagine."
 
 #: textimage.module:253
 msgid "The image verification code you entered is incorrect."
-msgstr ""
+msgstr "Codul de verificare a imaginii pe care l-aţi introdus nu este corect."
 
 #: textimage.module:47
 msgid "access textimages"
