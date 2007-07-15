@@ -161,32 +161,6 @@ function textimage_captcha_settings_form_validate($form_id, $form_values) {
   textimage_settings_form_validate($form_id, $form_values);
 }
 
-function textimage_captchachallenge(&$form) {
-  $form['captcha_response'] = array (
-    '#type' => 'textfield',
-    '#title' => t('Captcha Validation'),
-    '#default_value' => '',
-    '#required' => TRUE,
-    '#validate' => array('_captcha_validate' => array()),
-    '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
-    '#prefix' => '<div class="textimage-challenge"><img src="' . url('_textimage/image/'.time()) . '" '.$imageSize[3].'  alt="'.t('Captcha Image: you will need to recognize the text in it.').'"/></div>',
-  );
-
-  return $form;
-}
-
-function textimage_captchavalidate(&$captcha_word, &$correct) {
-
-  $captcha_word = drupal_strtolower($captcha_word);
-  if (($_SESSION['captcha'] != '') && $captcha_word == $_SESSION['captcha']) {
-    $correct = true;
-  }
-  else {
-    $correct = false;
-    form_set_error('captcha_response', t('The image verification code you entered is incorrect.'));
-  }
-
-}
 
 /**
 * Prints an image containing a textimage code.
@@ -405,3 +379,55 @@ function _textimage_captcha_code() {
 
   return $string;
 }
+
+
+function textimage_captchachallenge(&$form) {
+
+  return $form;
+}
+
+function textimage_captchavalidate(&$captcha_word, &$correct) {
+
+  $captcha_word = drupal_strtolower($captcha_word);
+  if (($_SESSION['captcha'] != '') && $captcha_word == $_SESSION['captcha']) {
+    $correct = true;
+  }
+  else {
+    $correct = false;
+    form_set_error('captcha_response', t('The image verification code you entered is incorrect.'));
+  }
+
+}
+
+
+/**
+ * Implementation of hook_captcha
+ */
+function captcha_captcha() {
+  $args = func_get_args();
+  $op = array_shift($args); 
+  switch($op) {
+    case 'list':
+      return array("Image Captcha");
+    case 'generate':
+      $captcha_type = array_shift($args);
+      $result = array();
+      if($captcha_type == "Image Captcha") {
+ 
+        $result['value'] = _textimage_captcha_code();
+        $result['form']['captcha_challenge']  = array (
+          '#type' => 'textfield',
+          '#title' => t('Captcha Validation'),
+          '#default_value' => '',
+          '#required' => TRUE,
+          '#validate' => array('_captcha_validate' => array()),
+          '#description' => t('Please type in the letters/numbers that are shown in the image above.'),
+          '#prefix' => '<div class="textimage-challenge"><img src="' . url('_textimage/image/'.time()) . '" alt="'.t('Captcha Image: you will need to recognize the text in it.').'"/></div>',
+        );
+
+      }
+      return $result;
+  }
+}
+
+
