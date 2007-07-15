@@ -202,11 +202,11 @@ function textimage_settings_form() {
     drupal_set_message(t('Textimage requires <a href="!path">clean URLs</a> be enabled. Without clean URL support Textimage is unable to cache images and can cause serious performance problems.', array('!path' => url('admin/settings/clean-urls'))), 'error');
   }
   //check for valid font path
-  if ($fonts_path != '' && !file_check_directory($fonts_path)) {
+  if ($fonts_path != '' && !is_dir(rtrim($fonts_path, '\\/'))) {
     drupal_set_message(t('The current font path is invalid. The default font will be used.'), 'error');
   }
   //check for valid image path
-  if ($images_path != '' && !file_check_directory($images_path)) {
+  if ($images_path != '' && !is_dir(rtrim($images_path, '\\/'))) {
     drupal_set_message(t('The current images path is invalid. No images will be used.'), 'error');
   }
 
@@ -271,10 +271,10 @@ function textimage_settings_form() {
 
 function textimage_settings_form_validate($form_id, $form_values) {
   //check for valid font path
-  if ($form_values['textimage_fonts_path'] !="" && !file_check_directory($form_values['textimage_fonts_path']))
+  if ($form_values['textimage_fonts_path'] !="" && !is_dir(rtrim($form_values['textimage_fonts_path'], '\\/')))
     form_set_error('textimage_fonts_path', t('The entered font path is invalid'));
   //check for valid image path
-  if ($form_values['textimage_images_path'] !="" && !file_check_directory($form_values['textimage_images_path']))
+  if ($form_values['textimage_images_path'] !="" && !is_dir(rtrim($form_values['textimage_images_path'], '\\/')))
     form_set_error('textimage_images_path', t('The entered image path is invalid'));
 }
 
