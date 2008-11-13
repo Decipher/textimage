@@ -2,122 +2,162 @@
 // $Id$
 
 /**
+ * @file
+ */
+
+/**
  * Matches all 'P' Unicode character classes (punctuation)
  */
-define('PREG_CLASS_PUNCTUATION',
-'\x{21}-\x{23}\x{25}-\x{2a}\x{2c}-\x{2f}\x{3a}\x{3b}\x{3f}\x{40}\x{5b}-\x{5d}'.
-'\x{5f}\x{7b}\x{7d}\x{a1}\x{ab}\x{b7}\x{bb}\x{bf}\x{37e}\x{387}\x{55a}-\x{55f}'.
-'\x{589}\x{58a}\x{5be}\x{5c0}\x{5c3}\x{5f3}\x{5f4}\x{60c}\x{60d}\x{61b}\x{61f}'.
-'\x{66a}-\x{66d}\x{6d4}\x{700}-\x{70d}\x{964}\x{965}\x{970}\x{df4}\x{e4f}'.
-'\x{e5a}\x{e5b}\x{f04}-\x{f12}\x{f3a}-\x{f3d}\x{f85}\x{104a}-\x{104f}\x{10fb}'.
-'\x{1361}-\x{1368}\x{166d}\x{166e}\x{169b}\x{169c}\x{16eb}-\x{16ed}\x{1735}'.
-'\x{1736}\x{17d4}-\x{17d6}\x{17d8}-\x{17da}\x{1800}-\x{180a}\x{1944}\x{1945}'.
-'\x{2010}-\x{2027}\x{2030}-\x{2043}\x{2045}-\x{2051}\x{2053}\x{2054}\x{2057}'.
-'\x{207d}\x{207e}\x{208d}\x{208e}\x{2329}\x{232a}\x{23b4}-\x{23b6}\x{2768}-'.
-'\x{2775}\x{27e6}-\x{27eb}\x{2983}-\x{2998}\x{29d8}-\x{29db}\x{29fc}\x{29fd}'.
-'\x{3001}-\x{3003}\x{3008}-\x{3011}\x{3014}-\x{301f}\x{3030}\x{303d}\x{30a0}'.
-'\x{30fb}\x{fd3e}\x{fd3f}\x{fe30}-\x{fe52}\x{fe54}-\x{fe61}\x{fe63}\x{fe68}'.
-'\x{fe6a}\x{fe6b}\x{ff01}-\x{ff03}\x{ff05}-\x{ff0a}\x{ff0c}-\x{ff0f}\x{ff1a}'.
-'\x{ff1b}\x{ff1f}\x{ff20}\x{ff3b}-\x{ff3d}\x{ff3f}\x{ff5b}\x{ff5d}\x{ff5f}-'.
-'\x{ff65}');
+define(
+  'PREG_CLASS_PUNCTUATION',
+  '\x{21}-\x{23}\x{25}-\x{2a}\x{2c}-\x{2f}\x{3a}\x{3b}\x{3f}\x{40}\x{5b}-\x{5d}'.
+  '\x{5f}\x{7b}\x{7d}\x{a1}\x{ab}\x{b7}\x{bb}\x{bf}\x{37e}\x{387}\x{55a}-\x{55f}'.
+  '\x{589}\x{58a}\x{5be}\x{5c0}\x{5c3}\x{5f3}\x{5f4}\x{60c}\x{60d}\x{61b}\x{61f}'.
+  '\x{66a}-\x{66d}\x{6d4}\x{700}-\x{70d}\x{964}\x{965}\x{970}\x{df4}\x{e4f}'.
+  '\x{e5a}\x{e5b}\x{f04}-\x{f12}\x{f3a}-\x{f3d}\x{f85}\x{104a}-\x{104f}\x{10fb}'.
+  '\x{1361}-\x{1368}\x{166d}\x{166e}\x{169b}\x{169c}\x{16eb}-\x{16ed}\x{1735}'.
+  '\x{1736}\x{17d4}-\x{17d6}\x{17d8}-\x{17da}\x{1800}-\x{180a}\x{1944}\x{1945}'.
+  '\x{2010}-\x{2027}\x{2030}-\x{2043}\x{2045}-\x{2051}\x{2053}\x{2054}\x{2057}'.
+  '\x{207d}\x{207e}\x{208d}\x{208e}\x{2329}\x{232a}\x{23b4}-\x{23b6}\x{2768}-'.
+  '\x{2775}\x{27e6}-\x{27eb}\x{2983}-\x{2998}\x{29d8}-\x{29db}\x{29fc}\x{29fd}'.
+  '\x{3001}-\x{3003}\x{3008}-\x{3011}\x{3014}-\x{301f}\x{3030}\x{303d}\x{30a0}'.
+  '\x{30fb}\x{fd3e}\x{fd3f}\x{fe30}-\x{fe52}\x{fe54}-\x{fe61}\x{fe63}\x{fe68}'.
+  '\x{fe6a}\x{fe6b}\x{ff01}-\x{ff03}\x{ff05}-\x{ff0a}\x{ff0c}-\x{ff0f}\x{ff1a}'.
+  '\x{ff1b}\x{ff1f}\x{ff20}\x{ff3b}-\x{ff3d}\x{ff3f}\x{ff5b}\x{ff5d}\x{ff5f}-'.
+  '\x{ff65}'
+);
 
 /**
  * Matches all 'Z' Unicode character classes (separators)
  */
-define('PREG_CLASS_SEPARATOR','\x{20}\x{a0}\x{1680}\x{180e}\x{2000}-\x{200a}\x{2028}\x{2029}\x{202f}\x{205f}\x{3000}');
+define('PREG_CLASS_SEPARATOR', '\x{20}\x{a0}\x{1680}\x{180e}\x{2000}-\x{200a}\x{2028}\x{2029}\x{202f}\x{205f}\x{3000}');
 
-
-if (module_exists('captcha')) {
-  include_once(drupal_get_path('module', 'textimage') .'/captcha.inc');
-}
-
-define('ALIGN_LEFT',1);
-define('ALIGN_CENTER',2);
-define('ALIGN_RIGHT',3);
+define('ALIGN_LEFT', 1);
+define('ALIGN_CENTER', 2);
+define('ALIGN_RIGHT', 3);
 
 /**
-* Implementation of hook_help().
-*/
+ * Implementation of hook_help().
+ */
 function textimage_help($section) {
   $output = "";
 
   switch ($section) {
     case 'admin/help#textimage':
-      $output .= '<h2 id="textimage-introduction">The dynamic text to image generator!</h2>';
-      $output .= '<p>Text image is a module which allows you to create dynamic images using any font installed on the server.</p>';
-      $output .= '<p>Creating images from text has several important advantages and disadvantages. The greatest advantage is it allows you to use any font you wish for headlines and titles without the user needing to install the font. Another advantage is the wide browser support for images and available accessibility features (alt and title tags for instance), so screen readers should be able to handle your images without problem. You might also prefer text images over the <a href="http://www.mikeindustries.com/sifr/">sIFR approach</a> because generated images are not disabled by many ad-blocking tools. However, an important limitation of Text Image module is wrapping of text, which it does not currently support and cannot compete with the dynamic abilities of a Flash based solution. If you need to create images with wrapped text, sIFR may be a better solution.</p>';
-      $output .= '<h2>Installing Fonts</h2>';
-      $output .= '<p>Text image is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Text Image configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType font to the server and tell Text Image where you uploaded it. All fonts must have the .tff extension to be seen by Text Image. If you do not have any TTF fonts to start using Text Image, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>. If you are using Text Image with the Captcha module, you\'ll also need to set a seperate directory on the <a href="!captcha">Text Image Captcha Settings</a> for fonts to be used at random.</p>';
-      $output .= '<h2 id="textimage-configuration">Configuration</h2>';
-      $output .= '<p>The basis of Text Image is made of configuration options called <em>presets</em>. A preset defines what font, size, color, etc. should be used in the generated image. You can create a new preset by clicking on the tab by the same name from the <a href="!config">configuration page</a>. Most options are pretty self explanatory, but background images can get pretty complicated if you begin to use other presets as backgrounds. Let\'s run through an example.';
-      $output .= '<p>If you specified a backgrounds directory on the main configuration page, a list of backgrounds is automatically popuplated into the Background Image select list. Let\'s say there\'s a image called &quot;header.png&quot; in the image list that looks like this:<p>';
-      $output .= '<p><img src="!example1" alt="example1" /></p>';
-      $output .= '<p>Now we\'ll create a preset called &quot;preset1&quot;. In this preset, set the font to braggadacio.ttf (not included), 54px, #FFFFFF (white) color. Select header.png from the background list and position the text at x-offset 14 and y-offset 22 (in pixels). After the preset is saved, Text Image is now ready to automatically generate images based on text strings. You could directly visit the image at {files}/textimage/preset1/Hello.png (where {files} is your sites file directory) and get the following result:</p>'; 
-      $output .= '<p><img src="!example2" alt="example2" /></p>';
-      $output .= '<p>To get crazy now, create a new preset called &quot;preset2&quot;. In this preset, set the font to century.ttf (also not included), 20px, #000000 (black) color. Select <em>preset1</em> from the background list and position the text at x-offset 14 and y-offset 94. Save the preset then visit {files}/textimage/preset2/Hello/world!.png and get the following result:</p>';
-      $output .= '<p><img src="!example3" alt="example3" /></p>';
-      $output .= '<p>The entire preset1 is generated using the first argument <em>Hello</em>. Then preset2 is generated using the name of the file <em>world!.png</em>. You could continue chaining presets together over and over again, but be sure not to create a loop.</p>';
-      $output .= '<h2>File Names and Storage</h2>';
-      $output .= '<p>Text Image supports .png, .gif, and .jpg input and output files. You can change the output format of the image simply by changing the extension of the last file. In the above example we made PNG images. If we had appended it with .jpg, a JPG image would have been created. Only PNG and GIF files support transparent backgrounds.</p>';
-      $output .= '<p>When directly calling URLs for text images, underscores (_) may be used in the place of spaces.</p>';
+      $output = '
+        <h2 id="textimage-introduction">The dynamic text to image generator!</h2>
+        <p>
+          Text image is a module which allows you to create dynamic images using any font installed on the server.
+        </p>
+        <p>
+          Creating images from text has several important advantages and disadvantages. The greatest advantage is it allows you to use any font you wish for headlines and titles without the user needing to install the font. Another advantage is the wide browser support for images and available accessibility features (alt and title tags for instance), so screen readers should be able to handle your images without problem. You might also prefer text images over the <a href="http://www.mikeindustries.com/sifr/">sIFR approach</a> because generated images are not disabled by many ad-blocking tools. However, an important limitation of Text Image module is wrapping of text, which it does not currently support and cannot compete with the dynamic abilities of a Flash based solution. If you need to create images with wrapped text, sIFR may be a better solution.
+        </p>
+        <h2>Installing Fonts</h2>
+        <p>
+          Text image is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Text Image configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType font to the server and tell Text Image where you uploaded it. All fonts must have the .tff extension to be seen by Text Image. If you do not have any TTF fonts to start using Text Image, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>. If you are using Text Image with the Captcha module, you\'ll also need to set a seperate directory on the <a href="!captcha">Text Image Captcha Settings</a> for fonts to be used at random.
+        </p>
+        <h2 id="textimage-configuration">Configuration</h2>
+        <p>
+          The basis of Text Image is made of configuration options called <em>presets</em>. A preset defines what font, size, color, etc. should be used in the generated image. You can create a new preset by clicking on the tab by the same name from the <a href="!config">configuration page</a>. Most options are pretty self explanatory, but background images can get pretty complicated if you begin to use other presets as backgrounds. Let\'s run through an example.
+        </p>
+        <p>
+          If you specified a backgrounds directory on the main configuration page, a list of backgrounds is automatically popuplated into the Background Image select list. Let\'s say there\'s a image called &quot;header.png&quot; in the image list that looks like this:
+        </p>
+        <p>
+          <img src="!example1" alt="example1" />
+        </p>
+        <p>
+          Now we\'ll create a preset called &quot;preset1&quot;. In this preset, set the font to braggadacio.ttf (not included), 54px, #FFFFFF (white) color. Select header.png from the background list and position the text at x-offset 14 and y-offset 22 (in pixels). After the preset is saved, Text Image is now ready to automatically generate images based on text strings. You could directly visit the image at {files}/textimage/preset1/Hello.png (where {files} is your sites file directory) and get the following result:
+        </p>
+        <p>
+          <img src="!example2" alt="example2" />
+        </p>
+        <p>
+          To get crazy now, create a new preset called &quot;preset2&quot;. In this preset, set the font to century.ttf (also not included), 20px, #000000 (black) color. Select <em>preset1</em> from the background list and position the text at x-offset 14 and y-offset 94. Save the preset then visit {files}/textimage/preset2/Hello/world!.png and get the following result:
+        </p>
+        <p>
+          <img src="!example3" alt="example3" />
+        </p>
+        <p>
+          The entire preset1 is generated using the first argument <em>Hello</em>. Then preset2 is generated using the name of the file <em>world!.png</em>. You could continue chaining presets together over and over again, but be sure not to create a loop.
+        </p>
+        <h2>File Names and Storage</h2>
+        <p>
+          Text Image supports .png, .gif, and .jpg input and output files. You can change the output format of the image simply by changing the extension of the last file. In the above example we made PNG images. If we had appended it with .jpg, a JPG image would have been created. Only PNG and GIF files support transparent backgrounds.
+        </p>
+        <p>
+          When directly calling URLs for text images, underscores (_) may be used in the place of spaces.
+        </p>
+      ';
+
       $output = t($output, array(
         '!config' => url('admin/settings/textimage'),
         '!captcha' => url('admin/settings/textimage/captcha'),
-        '!example1' => base_path() . drupal_get_path('module', 'textimage') . '/misc/example1.png',
-        '!example2' => base_path() . drupal_get_path('module', 'textimage') . '/misc/example2.png',
-        '!example3' => base_path() . drupal_get_path('module', 'textimage') . '/misc/example3.png',
+        '!example1' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example1.png',
+        '!example2' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example2.png',
+        '!example3' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example3.png',
       ));
       break;
+
     case 'admin/build/modules#description':
     case 'admin/build/modules/textimage':
     case 'admin/settings/textimage':
-      $output = t('Provides text to image manipulations and image based captcha challenge (with Captcha module).');
+      $output = t('Provides text to image manipulations.');
       break;
   }
   return $output;
 }
 
 /**
-* Implementation of hook_menu().
-*/
+ * Implementation of hook_menu().
+ */
 function textimage_menu($may_cache) {
   $items = array();
-  
+
+  if (!$may_cache) {
+    // Only include administrative callbacks if we are viewing an admin page.
+    if (arg(0) == 'admin') {
+      include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+    }
+  }
+
   if ($may_cache) {
     $items[] = array(
-      'path' => file_directory_path() . '/textimage',
+      'path' => file_directory_path() .'/textimage',
       'callback' => 'textimage_image',
-      'access' => true,
+      'access' => TRUE,
       'type' => MENU_CALLBACK,
     );
-    
+
     $items[] = array(
       'path' => 'admin/settings/textimage',
       'title' => t('Text Image'),
-      'description' => t('Configure text to image preset functions.') . (module_exists('captcha') ? ' ' . t('Set the options for image based captchas.') : ''),
+      'description' => t('Configure text to image preset functions.'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('textimage_settings_form'),
       'access' => user_access('administer site configuration'),
       'type' => MENU_NORMAL_ITEM
     );
-    
+
     $items[] = array(
       'path' => 'admin/settings/textimage/settings',
       'title' => t('Settings'),
-      'callback' => 'drupal_get_form', 
+      'callback' => 'drupal_get_form',
       'callback arguments' => array('textimage_settings_form'),
       'access' => user_access('administer site configuration'),
       'weight' => 0,
       'type' => MENU_DEFAULT_LOCAL_TASK
     );
+
     $items[] = array(
       'path' => 'admin/settings/textimage/list',
       'title' => t('List presets'),
-      'callback' => 'textimage_preset_list', 
+      'callback' => 'textimage_preset_list',
       'access' => user_access('administer site configuration'),
       'weight' => 1,
       'type' => MENU_LOCAL_TASK
     );
+
     $items[] = array(
       'path' => 'admin/settings/textimage/new',
       'title' => t('New preset'),
@@ -127,6 +167,7 @@ function textimage_menu($may_cache) {
       'weight' => 2,
       'type' => MENU_LOCAL_TASK
     );
+
     $items[] = array(
       'path' => 'admin/settings/textimage/preset',
       'title' => t('Edit Preset'),
@@ -135,37 +176,22 @@ function textimage_menu($may_cache) {
       'access' => user_access('administer site configuration'),
       'type' => MENU_CALLBACK,
     );
-    
-    if (module_exists('captcha')) {
-      $items[] = array(
-        'path' => 'admin/settings/textimage/captcha',
-        'title' => t('Captcha display'),
-        'callback' => 'drupal_get_form',
-        'callback arguments' => array('textimage_captcha_settings_form'),
-        'access' => user_access('administer site configuration'),
-        'weight' => 5,
-        'type' => MENU_LOCAL_TASK
-      );
-    }
   }
+
   else {
-    $suffix = arg(2) != null ? '/' . arg(2) : '';
+    $suffix = arg(2) != NULL ? '/'. arg(2) : '';
+
     $items[] = array(
-      'path' => '_textimage/image'.$suffix, 'title' => t('textimage'),
-      'callback' => '_textimage_captcha_image', 
-      'access' => user_access('access textimages'),
-      'type' => MENU_CALLBACK
-    );
-    $items[] = array(
-      'path' => 'admin/settings/textimage/preset/' . arg(4) . '/delete',
+      'path' => 'admin/settings/textimage/preset/'. arg(4) .'/delete',
       'title' => t('Edit Preset'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('textimage_preset_delete_confirm', arg(4)),
       'access' => user_access('administer site configuration'),
       'type' => MENU_CALLBACK,
     );
+
     $items[] = array(
-      'path' => 'admin/settings/textimage/preset/' . arg(4) . '/flush',
+      'path' => 'admin/settings/textimage/preset/'. arg(4) .'/flush',
       'title' => t('Flush Preset Cache'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('textimage_preset_flush_confirm', arg(4)),
@@ -173,444 +199,15 @@ function textimage_menu($may_cache) {
       'type' => MENU_CALLBACK,
     );
   }
+
   return $items;
 }
 
 /**
-* Implementation of hook_perm().
-*/
+ * Implementation of hook_perm().
+ */
 function textimage_perm() {
   return array('access textimages');
-}
-
-function textimage_settings_form() {
-  $form = array();
-
-  $fonts_path = variable_get("textimage_fonts_path", "");
-  $images_path = variable_get("textimage_images_path", "");
-
-  //check for GD
-  if (!function_exists(imagecreate)) {
-    drupal_set_message(t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'), 'error');
-  }
-  //check for TTF support
-  if (!function_exists(imagettftext)) {
-    drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'), 'error');
-  }
-  //check for clean URL support
-  if (!variable_get('clean_url', false)) {
-    drupal_set_message(t('Textimage requires <a href="!path">clean URLs</a> be enabled. Without clean URL support Textimage is unable to cache images and can cause serious performance problems.', array('!path' => url('admin/settings/clean-urls'))), 'error');
-  }
-  //check for valid font path
-  if ($fonts_path != '' && !is_dir(rtrim($fonts_path, '\\/'))) {
-    drupal_set_message(t('The current font path is invalid. The default font will be used.'), 'error');
-  }
-  //check for valid image path
-  if ($images_path != '' && !is_dir(rtrim($images_path, '\\/'))) {
-    drupal_set_message(t('The current images path is invalid. No images will be used.'), 'error');
-  }
-
-
-  if (isset($fonts_path)) {
-    $imagefontinfo .= t('Number of fonts found: ').count(_textimage_font_list($fonts_path));
-  }
-  if (isset($images_path)) {
-    $imagefontinfo .= '<br />'.t('Number of background images found: ').count(_textimage_image_list($images_path));
-  }
-
-  $gdinfo = gd_info();
-  $imagefontinfo .= '<br />'.t('GD Version: ').$gdinfo["GD Version"];
-  $imagefontinfo .= '<br />'.t(' FreeType Support: ');
-  $imagefontinfo .= ($gdinfo["FreeType Support"] == true) ? t('True') : t('False');
-  $imagefontinfo .= '<br />';
-  
-  if (!$gdinfo["FreeType Support"]) {
-    drupal_set_message(t("This server's installation of GD does not have FreeType support. Textimage requires FreeType support for proper functionality."), 'error');
-  }
-  
-  $form['info'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Image and font information'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE
-  );
-  
-  $form['info']['textimage_info'] = array (
-   '#type' => 'item',
-   '#value' => $imagefontinfo,
-  );
-
-  //Fonts settings
-  $form['settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Text image settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE
-  );
-
-  $form['settings']['textimage_fonts_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('TrueType Fonts Path'),
-    '#default_value' => $fonts_path,
-    '#size' => 30,
-    '#maxlength' => 255,
-    '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
-  );
-
-  $form['settings']['textimage_images_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Background Image Path'),
-    '#default_value' => $images_path,
-    '#size' => 30,
-    '#maxlength' => 255,
-    '#description' => t('Location of the directory where the background images are stored. Images in this directory can be overlaid with dynamic text in a preset. Relative paths will be resolved relative to the Drupal installation directory.'),
-  );
-
-  return system_settings_form($form);
-}
-
-function textimage_settings_form_validate($form_id, $form_values) {
-  //check for valid font path
-  if ($form_values['textimage_fonts_path'] !="" && !is_dir(rtrim($form_values['textimage_fonts_path'], '\\/')))
-    form_set_error('textimage_fonts_path', t('The entered font path is invalid'));
-  //check for valid image path
-  if ($form_values['textimage_images_path'] !="" && !is_dir(rtrim($form_values['textimage_images_path'], '\\/')))
-    form_set_error('textimage_images_path', t('The entered image path is invalid'));
-}
-
-function textimage_settings_page() {
-  $output = 'hello';
-  return $output;
-}
-
-function textimage_preset_edit($preset_id) {
-  if (is_numeric($preset_id)) {
-    $preset = _textimage_preset_load($preset_id);
-  }
-  else {
-    $preset = array();
-  }
-  
-  $fonts_path = variable_get('textimage_fonts_path', '');
-  $font_options = drupal_map_assoc(_textimage_font_list($fonts_path));
-  
-  $images_path = variable_get('textimage_images_path', '');
-  $image_files = drupal_map_assoc(_textimage_image_list($images_path));
-  
-  $image_presets = array();
-  $presets = textimage_get_presets();
-  foreach ($presets as $p) {
-    if ($p['pid'] != $preset_id) {
-      $image_presets[$p['pid']] = $p['name'];
-    }
-  }
-  
-  $image_options = array(
-    t('Default:') => array('' => t('Default (use background color)')),
-    t('Use the result of Text Image Preset:') => $image_presets,
-    t('Use a Background Image:') => $image_files,
-  );
-
-  $form = array();
-  $form['#tree'] = TRUE;
-  
-  $form['preset_id'] = array(
-    '#type' => 'value',
-    '#value' => $preset_id,
-  );
-  
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Preset Name'),
-    '#description' => t('Preset names should be short and only use alphanumeric characters. This name will be used in the image path for all generated images.'),
-    '#default_value' => $preset['name'],
-    '#required' => TRUE,
-  );
-  
-  $form['settings']['description'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Description'),
-    '#description' => t('A short description displayed in the list of presets.'),
-    '#default_value' => $preset['settings']['description'],
-    '#rows' => 1,
-  );
-  
-  $form['settings']['text'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Text Settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-  $form['settings']['text']['font'] = array(
-    '#type' => 'select',
-    '#title' => t('Font'),
-    '#options' => $font_options,
-    '#default_value' => $preset['settings']['text']['font'],
-    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for TrueType Fonts Path</a>.', array('!path' => url('admin/settings/textimage'))),
-    '#required' => TRUE,
-  );
-  $form['settings']['text']['size'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Font Size'),
-    '#description' => t('Enter the size in pixels of the text to be generated.'),
-    '#default_value' => $preset['settings']['text']['size'] ? $preset['settings']['text']['size'] : 16,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#required' => TRUE,
-    '#validate' => array('_textimage_number_validate' => array('size')),
-  );
-
-  $form['settings']['text']['color'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Color'),
-    '#description' => t('Enter the hex color code you wish to use for the generated text (i.e. #000000).'),
-    '#default_value' => $preset['settings']['text']['color'],
-    '#maxlength' => 7,
-    '#size' => 7,
-    '#validate' => array('_textimage_hex_validate' => array('color')),
-    '#required' => TRUE,
-  );
-  $form['settings']['text']['maximum_width'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Maximum width'),
-    '#field_suffix' => t('pixels'),
-    '#description' => t('Text lines wider than this will be wrapped. Leave blank to disable wrapping.'),
-    '#default_value' => $preset['settings']['text']['maximum_width'],
-    '#maxlength' => 4,
-    '#size' => 4,
-  );
-  $form['settings']['text']['fixed_width'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Fixed width?'),
-    '#description' => t('If checked the size of generated image will always be equal to the max width.'),
-    '#default_value' => $preset['settings']['text']['fixed_width'],
-  );
-  $form['settings']['text']['align'] = array(
-    '#type' => 'select',
-    '#title' => t('Text Align'),
-    '#description' => t('Only works when fixed width is enabled.'),
-    '#options' => array(ALIGN_LEFT => t('Left'), ALIGN_CENTER => t('Center'), ALIGN_RIGHT => t('Right')),
-    '#default_value' => $preset['settings']['text']['align'],
-  );
-  $form['settings']['text']['angle'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Rotation'),
-    '#description' => t('Enter the angle in degrees at which the text will be displayed. Positive numbers rotate the text clockwise, negative numbers counter-clockwise.'),
-    '#default_value' => $preset['settings']['text']['angle'] ? $preset['settings']['text']['angle'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('angle')),
-  );
-  $form['settings']['text']['case'] = array(
-    '#type' => 'radios',
-    '#title' => t('Convert to case'),
-    '#options' => array('' => t('Default'), 'upper' => t('UPPERCASE'), 'lower' => t('lowercase'), 'ucwords' => t('Uppercase Words'), 'ucfirst' => t('Uppercase first')),
-    '#description' => t('Covert the input text to a consistent format. The default makes no changes to input text.'),
-    '#default_value' => $preset['settings']['text']['case'],
-  );
-  $form['settings']['text']['stroke_width'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Outline Width'),
-    '#description' => t('Optionally add a stroke outline around the text. Enter the stroke width in pixels.'),
-    '#default_value' => $preset['settings']['text']['stroke_width'],
-    '#maxlength' => 1,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('stroke_width')),
-  );
-  $form['settings']['text']['stroke_color'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Outline Color'),
-    '#description' => t('Enter the hex color code you wish to use for the stroke outline (i.e. #000000).'),
-    '#default_value' => $preset['settings']['text']['stroke_color'],
-    '#maxlength' => 7,
-    '#size' => 7,
-    '#validate' => array('_textimage_hex_validate' => array('color')),
-  );
-  $form['settings']['text']['margin_top'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Margin Top'),
-    '#default_value' => $preset['settings']['text']['margin_top'] ? $preset['settings']['text']['margin_top'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('margin_top')),
-  );
-  $form['settings']['text']['margin_right'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Margin Right'),
-    '#default_value' => $preset['settings']['text']['margin_right'] ? $preset['settings']['text']['margin_right'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('margin_top')),
-  );
-  $form['settings']['text']['margin_bottom'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Margin Bottom'),
-    '#default_value' => $preset['settings']['text']['margin_bottom'] ? $preset['settings']['text']['margin_bottom'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('margin_bottom')),
-  );
-  $form['settings']['text']['margin_left'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Margin Left'),
-    '#description' => t('Specify the margin in pixels to be added around the generated text.'),
-    '#default_value' => $preset['settings']['text']['margin_left'] ? $preset['settings']['text']['margin_left'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('margin_left')),
-  );
-  
-  $form['settings']['background'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Background'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-  $form['settings']['background']['color'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Background Color'),
-    '#description' => t('Enter the hex color code you wish to use for the background of the generated image (i.e. #FFFFFF). Leave blank for transparent.'),
-    '#default_value' => $preset['settings']['background']['color'],
-    '#maxlength' => 7,
-    '#size' => 7,
-    '#validate' => array('_textimage_hex_validate' => array('color')),
-  );
-  $form['settings']['background']['image'] = array(
-    '#type' => 'select',
-    '#title' => t('Background Image'),
-    '#options' => $image_options,
-    '#default_value' => $preset['settings']['background']['image'],
-    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for TrueType Fonts Path</a>.', array('!path' => url('admin/settings/textimage'))),
-  );
-  $form['settings']['background']['xoffset'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text X-Offset'),
-    '#default_value' => $preset['settings']['background']['xoffset'] ? $preset['settings']['background']['xoffset'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('xoffset')),
-  );
-  $form['settings']['background']['yoffset'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Y-Offset'),
-    '#description' => t('Specify the x and y coordinates on the image you where the top-left corner of the dynamic text should be positioned.'),
-    '#default_value' => $preset['settings']['background']['yoffset'] ? $preset['settings']['background']['yoffset'] : 0,
-    '#maxlength' => 4,
-    '#size' => 4,
-    '#validate' => array('_textimage_number_validate' => array('yoffset')),
-  );
-  
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-  
-  return $form;
-}
-
-function textimage_preset_edit_validate($form_id, $form_values) {
-  // Check for illegal characters in preset names
-  if (preg_match('/[^0-9a-zA-Z_\-]/',$form_values['name'])) {
-    form_set_error('name',t('Please only use alphanumic characters, underscores (_), and hyphens (-) for preset names.'));
-  }
-  
-  if ($form_values['preset_id'] == 'new') {
-    // Check for duplicate preset names
-    $preset = _textimage_preset_load_by_name($form_values['name']);
-    if ($preset['name']) {
-      form_set_error('name', t('The name %name is already in use by another preset.', array('%name' => $form_values['name'])));
-    }
-  }
-}
-
-function textimage_preset_edit_submit($form_id, $form_values) {
-  if ($form_values['preset_id'] == 'new') {
-    $return = _textimage_preset_create($form_values['name'], $form_values['settings']);
-  }
-  elseif (is_numeric($form_values['preset_id'])) {
-    $return = _textimage_preset_update($form_values['preset_id'], $form_values['name'], $form_values['settings']);
-  }
-  
-  if ($return) {
-    drupal_set_message(t('Updated preset %name', array('%name' => $form_values['name'])));
-    drupal_goto('admin/settings/textimage/list');
-  }
-  else {
-    drupal_set_message(t('The preset was unable to be updated.', 'error'));
-  }
-}
-
-function textimage_preset_list() {
-  $presets = textimage_get_presets();
-  $header = array(t('Name'), t('Summary'), t('Description'), array('data' => t('Operations'), 'colspan' => '2'));
-  $rows = array();
-
-  foreach ($presets as $name => $preset) {
-    $row = array();
-    $row[] = $name;
-    $row[] = $preset['settings']['text']['font'] . ' ' . $preset['settings']['text']['size'] . t('px');
-    $row[] = $preset['settings']['description'];
-    $row[] = l(t('edit'), 'admin/settings/textimage/preset/'. $preset['pid']);
-    $row[] = l(t('delete'), 'admin/settings/textimage/preset/'. $preset['pid'] . '/delete');
-    $row[] = l(t('flush cache'), 'admin/settings/textimage/preset/'. $preset['pid'] . '/flush');
-  
-    $rows[] = $row;
-  }
-
-  if (empty($rows)) {
-    $rows[] = array(array('data' => t('No presets defined. <a href="!url">Create a new preset</a>.', array('!url' => url('admin/settings/textimage/new'))), 'colspan' => '5', 'class' => 'message'));
-  }
-
-  return theme('table', $header, $rows);
-}
-
-function textimage_preset_delete_confirm($preset_id) {
-  $preset = _textimage_preset_load($preset_id);
-  
-  $form['pid'] = array('#type' => 'value', '#value' => $preset_id);
-  $form['name'] = array('#type' => 'value', '#value' => $preset['name']);
-  
-  return confirm_form($form,
-    t('Are you sure you want to delete the preset %name?', array('%name' => $preset['name'])),
-    $_GET['destination'] ? $_GET['destination'] : 'admin/settings/textimage/list',
-    t('This action cannot be undone.'),
-    t('Delete'), t('Cancel')
- );
-}
-
-function textimage_preset_delete_confirm_submit($form_id, $form_values) {
-  _textimage_preset_delete($form_values['pid']);
-  drupal_set_message(t('Deleted preset %name', array('%name' => $form_values['name'])));
-  drupal_goto('admin/settings/textimage/list');
-}
-
-function textimage_preset_flush_confirm($preset_id) {
-  $preset = _textimage_preset_load($preset_id);
-  
-  $form['pid'] = array('#type' => 'value', '#value' => $preset_id);
-  $form['name'] = array('#type' => 'value', '#value' => $preset['name']);
-  
-  return confirm_form($form,
-    t('Are you sure you want to flush the image cache for preset %name?', array('%name' => $preset['name'])),
-    $_GET['destination'] ? $_GET['destination'] : 'admin/settings/textimage/list',
-    t('This action cannot be undone.'),
-    t('Flush Cache'), t('Cancel')
- );
-}
-
-function textimage_preset_flush_confirm_submit($form_id, $form_values) {
-  _textimage_preset_flush($form_values['pid']);
-  drupal_goto('admin/settings/textimage/list');
-}
-
-function textimage_get_presets() {
-  $result = db_query('SELECT pid, name, settings FROM {textimage_preset}');
-  $presets = array();
-  while ($preset = db_fetch_array($result)) {
-    $preset['settings'] = unserialize($preset['settings']);
-    $presets[$preset['name']] = $preset;
-  }
-  return $presets;
 }
 
 /**
@@ -618,9 +215,9 @@ function textimage_get_presets() {
  * first request, the image is returned to the browser from Drupal and then
  * saved to the disk. On subsequent requests (with Clean URLs enabled), the
  * cached image is loaded directly.
- * 
+ *
  * This function takes a dynamic number of arguments.
- * 
+ *
  * @param $preset_name
  *   The name of the preset to be used in this text image
  * @param ...
@@ -634,34 +231,33 @@ function textimage_get_presets() {
  *   appended as the file extension. For example, 'sample.png' will output a
  *   PNG with the text 'sample'. 'sample.jpg' will output the same image but
  *   in JPG format.
- * 
+ *
  */
 function textimage_image() {
   $args = func_get_args();
-  
+
   $preset_name = array_shift($args);
   $filename = array_pop($args);
-  $additional_text = $args; 
-  
-  
+  $additional_text = $args;
+
   // Determine our output format
   preg_match('/\.([a-z]+)$/i', $filename, $matches);
   $format = $matches[1];
   if ($format == 'jpg') {
     $format = 'jpeg';
   }
-  
+
   // Determine the text to display
   $text = preg_replace('/\.([a-z]+)$/i', '', $filename);
-  
+
   // Integrety check
-  $output_function = 'image' . $format;
+  $output_function = 'image'. $format;
   if (!function_exists($output_function)) {
     $message = t('Unable to generate Text Image %text because the file extension is unsupported on this system. Files must have a .png, .jpg, or .gif extension.', array('%text' => $filename));
     watchdog('textimage', $message, WATCHDOG_ERROR);
     return $message;
   }
-  
+
   // Generate the image resource
   $preset = _textimage_preset_load_by_name($preset_name);
   // Check that it exists
@@ -670,13 +266,13 @@ function textimage_image() {
     watchdog('textimage', $message, WATCHDOG_ERROR);
     return $message;
   }
-  
+
   $img = textimage_image_from_preset($preset['pid'], $text, $additional_text);
-  
+
   // Display the image to be browser
-  header('Content-type: image/'.$format);
+  header('Content-type: image/'. $format);
   $output_function($img);
-  
+
   // Save the result so we don't have to recreate
   textimage_directory_check(str_replace('/'. $filename, '', $_GET['q']));
   $output_function($img, $_GET['q']);
@@ -686,7 +282,7 @@ function textimage_image() {
 
 /**
  * Loads the Text Image preset and generates the GD image resource.
- * 
+ *
  * @param $preset_id
  *   The id of the preset to be used in this text image
  * @param $text
@@ -699,7 +295,7 @@ function textimage_image_from_preset($preset_id, $text, $additional_text) {
   $preset = _textimage_preset_load($preset_id);
   $text = str_replace('_', ' ', $text);
 
-  $font = variable_get('textimage_fonts_path', '') . '/' . $preset['settings']['text']['font'];
+  $font = variable_get('textimage_fonts_path', '') .'/'. $preset['settings']['text']['font'];
 
   // Fill in default preset settings.
   $defaults = array(
@@ -735,35 +331,40 @@ function textimage_image_from_preset($preset_id, $text, $additional_text) {
     }
   }
 
-  
   // Convert text case
   switch ($case) {
     case 'upper':
       $text = drupal_strtoupper($text);
       break;
+
     case 'lower':
       $text = drupal_strtolower($text);
       break;
+
     case 'ucfirst':
       $text = drupal_ucfirst($text);
       break;
+
     case 'ucwords':
       $text = drupal_strtolower($text);
       $words = explode(' ', $text);
+
       foreach ($words as $key => $word) {
         $words[$key] = drupal_ucfirst($word);
       }
+
       $text = implode(' ', $words);
       break;
-    
+
   }
-  if (function_exists('drupal_' . $case)) {
+
+  if (function_exists('drupal_'. $case)) {
     $text = drupal_strtoupper($text);
   }
-  
+
   // Generate the text image
   $img = textimage_text_to_image($text, $size, $font, $color, $back_color, $angle, $maximum_width, $fixed_width, $align);
-  
+
   // Add margin
   if ($margin_top || $margin_right || $margin_bottom || $margin_left) {
     $img = textimage_image_add_margin($img, $margin_top, $margin_right, $margin_bottom, $margin_left, $back_color);
@@ -773,30 +374,31 @@ function textimage_image_from_preset($preset_id, $text, $additional_text) {
   if ($stroke_width && $stroke_color) {
     $img = textimage_image_add_stroke($img, $stroke_width, $stroke_color);
   }
-  
+
   // Place result on top of another preset's result
   if (is_numeric($back_image) && _textimage_preset_load($back_image)) {
     $next_preset = $back_image;
     $next_text = array_pop($additional_text);
     $background_resource = textimage_image_from_preset($next_preset, $next_text, $additional_text);
-    
+
     $text_width = imagesx($img);
     $text_height = imagesy($img);
-    imagealphablending($background_resource, true);
+    imagealphablending($background_resource, TRUE);
     imagecopy($background_resource, $img, $back_xoffset, $back_yoffset, 0, 0, $text_width,  $text_height);
     $img = $background_resource;
   }
+
   // Place result on background image if available
   elseif (is_file($back_image)) {
     $info = image_get_info($back_image);
     $background_resource = image_gd_open($back_image, $info['extension']);
-    
+
     $text_width = imagesx($img);
     $text_height = imagesy($img);
     imagecopy($background_resource, $img, $back_xoffset, $back_yoffset, 0, 0, $text_width,  $text_height);
     $img = $background_resource;
   }
-  
+
   return $img;
 }
 
@@ -817,7 +419,7 @@ function textimage_image_add_margin($img, $top, $right, $bottom, $left, $backgro
     $back = imagecolorallocate($back_img, $r, $g, $b);
     imagefill($back_img, 0, 0, $back);
   }
-  
+
   // Apply the source image ontop the background with the new margin
   imagecopy($back_img, $img, $left, $top, 0, 0, $iw,  $ih);
   return $back_img;
@@ -826,14 +428,14 @@ function textimage_image_add_margin($img, $top, $right, $bottom, $left, $backgro
 /**
  * Stroke function adds a solid color stroke around an image with a transparent
  * background.
- * 
+ *
  * @param $img
  *   The gd image resource of the image to modify
  * @param $thickness
  *   The width of the stroke to apply
  * @param $color
  *   The color of the stroke to apply
- * 
+ *
  * @todo Add $position parameter to allow the stroke to be applied 'inside',
  * 'middle', or 'outside'. outside is the only current behavior.
  */
@@ -841,7 +443,7 @@ function textimage_image_add_stroke($img, $thickness, $color) {
   if ($thickness > 0) {
     $width  = imagesx($img);
     $height = imagesy($img);
-  
+
     // Create a new image which we'll lay over the original
     $border_img = _textimage_create_transparent_image($width, $height);
     for ($x=0; $x < $width; $x++) {
@@ -853,11 +455,12 @@ function textimage_image_add_stroke($img, $thickness, $color) {
         }
       }
     }
+
     // Merge the images
-    imagealphablending($img, true);
+    imagealphablending($img, TRUE);
     imagecopy($img, $border_img, 0, 0, 0, 0, $width,  $height);
   }
-  
+
   return $img;
 }
 
@@ -869,36 +472,39 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
   list($r, $g, $b) = _textimage_hex2rgb($color);
 
   $pixel = imagecolorsforindex($img, imagecolorat($img, $x, $y));
-  
+
   // Preform a radial analysis of all pixels within the radius of $thickness pixels
   $degree_increment = (90/$thickness);
   $radial_coords = array();
+
   for ($degrees = 0; $degrees <= 90; $degrees += $degree_increment) {
     $x_offset = round(cos($degrees) * $thickness);
     $y_offset = round(sin($degrees) * $thickness);
-    
+
     // Add the coordinates for the corresponding pixel in each 90° quadrant
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x - $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y - $y_offset);
     $radial_coords[] = array('x' => $x - $x_offset, 'y' => $y - $y_offset);
   }
-  
+
   // Generate a total alpha level for all analyzed pixels
   $total_alpha = 0;
   $total_colors = 0;
-  foreach($radial_coords as $coords) {
+
+  foreach ($radial_coords as $coords) {
     if ($coords['x'] >= 0 && $coords['y'] >= 0 && $coords['x'] < $width && $coords['y'] < $height) {
-       $xy_color = imagecolorsforindex($img, imagecolorat($img, $coords['x'], $coords['y']));
+      $xy_color = imagecolorsforindex($img, imagecolorat($img, $coords['x'], $coords['y']));
     }
     else {
       // This analized pixel is outside the dimensions of the image, record as transparent
       $xy_color = array('alpha' => '127');
     }
+
     $total_alpha += $xy_color['alpha'];
     $total_colors++;
   }
-  
+
   // Check that we're not in the middle of the image or in a blonk area
   if ($total_alpha < (127 * $total_colors) && $total_alpha > 0) {
     // If we're on a semi-transparent pixel, blend the remaining amount with our border color
@@ -920,26 +526,26 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
 /**
  * Create the image directory relative to the 'files' dir - if user specified one
  * Won't allow form submit unless the directory exists & is writable
- * 
+ *
  * @param $directory_path
  *   String containing the path of the directory to check.
- */ 
+ */
 function textimage_directory_check($directory_path) {
   // create each directory necessary if it doesn't exist
-  foreach(explode('/', $directory_path) as $dir) {
+  foreach (explode('/', $directory_path) as $dir) {
     $dirs[] = $dir;
-    if (!file_check_directory(implode($dirs,'/'), FILE_CREATE_DIRECTORY)) {
-      return false;
+    if (!file_check_directory(implode($dirs, '/'), FILE_CREATE_DIRECTORY)) {
+      return FALSE;
     }
   }
-  return true;
+  return TRUE;
 }
 
 /**
  * Helper function for wrapping text (measures width).
  */
 function textimage_measure_text_width($text, $fontsize, $font) {
-  $box = imageTTFBbox($fontsize, $angle, $font, $text);
+  $box = imagettfbbox($fontsize, $angle, $font, $text);
   return abs($box[4] - $box[0]) + 4;
 }
 
@@ -956,14 +562,14 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
   while (true) {
     // Find the next wrap point (always after trailing whitespace).
     if (preg_match('/['. PREG_CLASS_PUNCTUATION .']['. PREG_CLASS_SEPARATOR .']*|['. PREG_CLASS_SEPARATOR .']+/u', $text, $match, PREG_OFFSET_CAPTURE, $end)) {
-      $end = $match[0][1] + strlen($match[0][0]);
+      $end = $match[0][1] + drupal_strlen($match[0][0]);
     }
     else {
-      $end = strlen($text);
+      $end = drupal_strlen($text);
     }
-    
+
     // Fetch text, removing trailing white-space and measure it.
-    $line = preg_replace('/['. PREG_CLASS_SEPARATOR .']+$/u', '', substr($text, $begin, $end - $begin));
+    $line = preg_replace('/['. PREG_CLASS_SEPARATOR .']+$/u', '', drupal_substr($text, $begin, $end - $begin));
     $width = textimage_measure_text_width($line, $fontsize, $font);
 
     // See if $line extends past the available space.
@@ -971,17 +577,17 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
       // If this is the first word, we need to truncate it.
       if ($fit == $begin) {
         // Cut off letters until it fits.
-        while (strlen($line) > 0 && $width > $maximum_width) {
+        while (drupal_strlen($line) > 0 && $width > $maximum_width) {
           $line = drupal_substr($line, 0, -1);
           $width = textimage_measure_text_width($line, $fontsize, $font);
         }
         // If no fit was found, the image is too narrow..
-        $fit = strlen($line) ? $begin + strlen($line) : $end;
+        $fit = drupal_strlen($line) ? $begin + drupal_strlen($line) : $end;
       }
 
       // We have a valid fit for the next line. Insert a line-break and reset
       // the search interval.
-      $text = substr($text, 0, $fit) ."\n". substr($text, $fit);
+      $text = drupal_substr($text, 0, $fit) ."\n". drupal_substr($text, $fit);
       $end = $begin = ++$fit;
     }
     else {
@@ -989,7 +595,7 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
       $fit = $end;
     }
 
-    if ($end == strlen($text)) {
+    if ($end == drupal_strlen($text)) {
       // All text fits. No more changes are needed.
       break;
     }
@@ -1004,59 +610,89 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
  *   A GD image resource.
  */
 function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#000000', $background_color = NULL, $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT) {
+  $rad = deg2rad($angle);
+  $sin = sin($rad);
+  $cos = cos($rad);
+
   // Perform text wrapping, if necessary.
   if ($maximum_width > 0) {
     $text = textimage_wrap_text($text, $fontsize, $font, $maximum_width);
   }
 
   // Get exact dimensions of text string
-  $box = imageTTFBbox($fontsize, $angle, $font, $text);
+  $bbox = imagettfbbox($fontsize, 0, $font, $text);
+
   // Calculate text width and height
-  $iw = abs($box[4] - $box[0]) + 4;
-  $ih = abs($box[5] - $box[1]) + 4;
-  
-  if($fixed_width) {
-    $background_width = $maximum_width;
+  if ($angle == 0) {
+    $width = ($fixed_width)
+      ? $maximum_width
+      : $bbox[2] - $bbox[0];
+
+    $height = $bbox[1] - $bbox[7];
   }
+
   else {
-    $background_width = $iw;
+    $width = ($fixed_width)
+      ? round(abs($maximum_width * $cos) + abs(($bbox[1] - $bbox[7]) * $sin))
+      : round(abs(($bbox[2] - $bbox[0]) * $cos) + abs(($bbox[1] - $bbox[7]) * $sin));
+
+    $height = ($fixed_width)
+      ? round(abs(($bbox[1] - $bbox[7]) * $cos) + abs($maximum_width * $sin))
+      : round(abs(($bbox[1] - $bbox[7]) * $cos) + abs(($bbox[2] - $bbox[0]) * $sin));
   }
 
   // Use a transparent background color
   if (empty($background_color)) {
-    $img = _textimage_create_transparent_image($background_width, $ih);
+    $image = _textimage_create_transparent_image($width, $height);
   }
+
   // Use a solid background color
   else {
-    $img = imagecreatetruecolor($background_width, $ih);
+    $image = imagecreatetruecolor($width, $height);
+
     list($r, $g, $b) = _textimage_hex2rgb($background_color);
-    $back = imagecolorallocate($img, $r, $g, $b);
-    imagefill($img, 0, 0, $back);
+    $back = imagecolorallocate($image, $r, $g, $b);
+
+    imagefill($image, 0, 0, $back);
   }
-  
+
   // Create the text image
   list($r, $g, $b) = _textimage_hex2rgb($foreground_color);
-  $fore = imagecolorallocate($img, $r, $g, $b);
+  $fore = imagecolorallocate($image, $r, $g, $b);
 
-  switch($align) {
+  // Calculate text alignment
+  switch ($align) {
     case ALIGN_RIGHT:
-      $x = $maximum_width - $iw;
+      $tx = ($fixed_width)
+        ? $bbox[6] + ($maximum_width / 2) - ($bbox[0] + $bbox[2])
+        : $bbox[6] + (($bbox[0] + $bbox[2]) / 2) - ($bbox[0] + $bbox[2]);
       break;
+
     case ALIGN_CENTER:
-      $x = ($maximum_width - $iw) / 2;
+      $tx = $bbox[6] - (($bbox[0] + $bbox[2]) / 2);
       break;
+
     case ALIGN_LEFT:
     default:
-      $x = 0;
+      $tx = ($fixed_width)
+        ? -($bbox[6] + ($maximum_width / 2))
+        : -($bbox[6] + (($bbox[0] + $bbox[2]) / 2));
       break;
   }
 
-  imagettftext($img, $fontsize, $angle, $x, abs($box[5]), $fore, $font, $text);
-  
-  return $img;
+  $ty = -$bbox[7] - ((-$bbox[7] + $bbox[3]) / 2);
+  $py = imagesy($image) / 2;
+  $px = imagesx($image) / 2;
+
+  $x = intval($tx * $cos + $ty * $sin + $px);
+  $y = intval(-$tx * $sin + $ty * $cos + $py);
+
+  imagettftext($image, $fontsize, $angle, $x, $y, $fore, $font, $text);
+
+  return $image;
 }
 
-/** 
+/**
  * load a preset by id.
  * @param id
  *    preset id.
@@ -1064,26 +700,25 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
 function _textimage_preset_load($id) {
   $result = db_query('SELECT pid, name, settings FROM {textimage_preset} WHERE pid = %d', $id);
   $preset = db_fetch_array($result);
-  
+
   if ($preset['pid']) {
     $preset['settings'] = unserialize($preset['settings']);
     return $preset;
   }
   else {
-    return false;
+    return FALSE;
   }
 }
 
-/** 
+/**
  * load a preset by name
  *  @param name
  *    preset name
  */
-
 function _textimage_preset_load_by_name($name) {
   $result = db_query("SELECT pid, name, settings FROM {textimage_preset} WHERE name = '%s'", $name);
   if (db_num_rows($result) == 0) {
-    return false;
+    return FALSE;
   }
   else {
     $preset = db_fetch_array($result);
@@ -1092,127 +727,18 @@ function _textimage_preset_load_by_name($name) {
   }
 }
 
-/** 
- * create a preset 
- * @param name
- *    name of the preset to be created.
+/**
+ * Creates transparent image resources for images with graphic backgrounds
  */
-function _textimage_preset_create($name, $settings) {
-  $next_id = db_next_id('{textimage_preset}_pid');
-  return db_query('INSERT INTO {textimage_preset} (pid, name, settings) VALUES (%d, \'%s\', \'%s\')', $next_id, $name, serialize($settings));
-}
-
-/**
- * update a preset
- * @param id
- *    preset id 
- * @param name
- *    new name for the preset
- */
-function _textimage_preset_update($id, $name, $settings) {
-  $name = check_plain($name);
-  _textimage_preset_flush($id);
-  return db_query('UPDATE {textimage_preset} SET name =\'%s\', settings =\'%s\' WHERE pid = %d', $name, serialize($settings), $id);
-}
-
-function _textimage_preset_delete($id) {
-  _textimage_preset_flush($id);
-  return db_query('DELETE FROM {textimage_preset} where pid = %d', $id);
-}
-
-/**
- * flush cached media for a preset.
- * @param id
- *   a preset id.
- */
-function _textimage_preset_flush($id) {
-    drupal_set_message(t('Flushed Preset Images (ID: @id)', array('@id' => $id)));
-    $preset = _textimage_preset_load($id);
-    $presetdir = realpath(file_directory_path() .'/textimage/'. $preset['name']);
-    if (is_dir($presetdir)) {
-      _textimage_recursive_delete($presetdir);
-      @unlink($presetdir);
-    }
-}
-
-/**
- * Recursively delete all files and folders in the specified filepath, then
- * delete the containing folder Note that this only deletes visible files with
- * write permission
- *
- * @param string $path
- *   An absolute filepath (relative to the filesystem) to delete
- */
-function _textimage_recursive_delete($path) {
-  $listing = $path . "/*";
-  foreach(glob($listing) as $file) {
-    if(is_file($file) === true) {
-      @unlink($file);
-    }
-    elseif(is_dir($file) === true) {
-      _textimage_recursive_delete($file);
-      @rmdir($file);
-    }
-  }
-  @rmdir($path);
-}
-
-/**
-* Returns an array of files with TTF extensions in the specified directory.
-*/
-function _textimage_font_list($fontdir) {
-  $filelist = array();
-  if (is_dir($fontdir) && $handle = opendir($fontdir)) {
-    while ($file = readdir($handle)) {
-      if (preg_match("/\.ttf$/i",$file) == 1)
-        $filelist[] = $file;
-    }
-    closedir($handle);
-  }
-
-  return $filelist;
-}
-
-function _textimage_number_validate($field, $field_name) {
-  if (!empty($field['#value']) && !is_numeric($field['#value'])) {
-    form_set_error($field_name, t('The value for %field must be a number.', array('%field' => $field['#title'])));
-  }
-}
-
-function _textimage_hex_validate($field, $field_name) {
-  if (!empty($field['#value']) && !preg_match('/^#[0123456789ABCDEF]{1,6}$/i', $field['#value'])) {
-    form_set_error($field_name, t('The value for %field must be in a hexidecimal format (i.e. #FFFFFF is white).', array('%field' => $field['#title'])));
-  }
-}
-
-/**
-* Returns an array of files with jpg, png, and gif extensions in the specified directory.
-*/
-function _textimage_image_list($imagesdir) {
-  $filelist = array();
-  if (is_dir($imagesdir) && $handle = opendir($imagesdir)) {
-    while ($file = readdir($handle)) {
-      if (preg_match("/\.gif|\.png|\.jpg$/i",$file) == 1)
-        $filelist[] = $imagesdir.'/'.$file;
-    }
-    closedir($handle);
-  }
-
-  return $filelist;
-}
-
-/**
-* Creates transparent image resources for images with graphic backgrounds
-*/
 function _textimage_create_transparent_image($x, $y) {
   $i = imagecreatetruecolor($x, $y);
   $b = imagecreatefromstring(base64_decode(_textimage_blankpng()));
-  imagealphablending($i, false);
-  imagesavealpha($i, true);
-  imagecopyresized($i, $b ,0 ,0 ,0 ,0 ,$x, $y, imagesx($b), imagesy($b));
+  imagealphablending($i, FALSE);
+  imagesavealpha($i, TRUE);
+  imagecopyresized($i, $b, 0, 0, 0, 0, $x, $y, imagesx($b), imagesy($b));
   return $i;
 }
- 
+
 function _textimage_blankpng() {
   $c  = "iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29m";
   $c .= "dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADqSURBVHjaYvz//z/DYAYAAcTEMMgBQAANegcCBNCg";
@@ -1226,21 +752,20 @@ function _textimage_blankpng() {
 /**
  * Convert a hex string to it's rgb integer components
  * $hex can be in the formats: '#ABC','ABC','#AABBCC','AABBCC'
- *
  */
 function _textimage_hex2rgb($hex) {
-  $hex = ltrim($hex,'#');
-  if (preg_match('/^[0-9a-f]{3}$/i',$hex)) {
+  $hex = ltrim($hex, '#');
+  if (preg_match('/^[0-9a-f]{3}$/i', $hex)) {
     // 'FA3' is the same as 'FFAA33' so r=FF, g=AA, b=33
-    $r = str_repeat($hex{0},2);
-    $g = str_repeat($hex{1},2);
-    $b = str_repeat($hex{2},2);
+    $r = str_repeat($hex{0}, 2);
+    $g = str_repeat($hex{1}, 2);
+    $b = str_repeat($hex{2}, 2);
   }
-  elseif (preg_match('/^[0-9a-f]{6}$/i',$hex)) {
+  elseif (preg_match('/^[0-9a-f]{6}$/i', $hex)) {
     // #FFAA33 or r=FF, g=AA, b=33
-    $r = substr($hex, 0, 2);
-    $g = substr($hex, 2, 2);
-    $b = substr($hex, 4, 2);
+    $r = drupal_substr($hex, 0, 2);
+    $g = drupal_substr($hex, 2, 2);
+    $b = drupal_substr($hex, 4, 2);
   }
 
   $r = hexdec($r);
@@ -1255,7 +780,7 @@ function _textimage_hex2rgb($hex) {
  */
 function textimage_path($preset, $text, $additional_text = array(), $format = 'png') {
   $additional_text = array_reverse($additional_text);
-  $path = file_directory_path() . '/textimage/' . $preset . '/' . (empty($additional_text) ? '' : implode('/', $additional_text) . '/') . $text . '.' . $format;
+  $path = file_directory_path() .'/textimage/'. $preset .'/'. (empty($additional_text) ? '' : implode('/', $additional_text) .'/') . $text .'.'. $format;
   return drupal_urlencode(str_replace(' ', '_', $path));
 }
 
