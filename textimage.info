@@ -1,3 +1,4 @@
 ; $Id$
 name = Textimage
 description = Provides text to image manipulations.
+core = 6.x

@@ -6,40 +6,35 @@
  */
 
 /**
+ * Implementation of hook_schema().
+ */
+function textimage_schema() {
+  $schema['textimage_preset'] = array(
+    'fields' => array(
+      'pid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'settings' => array('type' => 'text', 'not null' => TRUE),
+    ),
+    'primary key' => array('pid'),
+  );
+
+  return $schema;
+}
+
+/**
  * Implementation of hook_install().
  */
 function textimage_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {textimage_preset} (
-        pid INT UNSIGNED NOT NULL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL DEFAULT '',
-        settings TEXT NOT NULL)
-        /*!40100 DEFAULT CHARACTER SET utf8 */"
-      );
-
-      break;
-
-    case 'pgsql':
-      db_query("CREATE TABLE {textimage_preset} (
-        pid INTEGER NOT NULL CHECK (pid > 0),
-        name VARCHAR(255) NOT NULL DEFAULT '',
-        settings TEXT NOT NULL DEFAULT ''
-        PRIMARY KEY (pid));"
-      );
-      db_query("CREATE SEQUENCE textimage_preset_pid_seq INCREMENT 1 START 1;");
-      break;
-  }
+  drupal_install_schema('textimage');
 }
 
 /**
  * Implementation of hook_uninstall().
  */
 function textimage_uninstall() {
-  include_once(drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+  drupal_uninstall_schema('textimage');
 
-  db_query('DROP TABLE {textimage_preset}');
+  include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
 
   $path = realpath(file_directory_path() .'/textimage');
   if ($path != FALSE) {
@@ -69,27 +64,16 @@ function textimage_uninstall() {
 function textimage_update_1() {
   $ret = array();
 
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      $ret[] = update_sql("CREATE TABLE {textimage_preset} (
-        pid INT UNSIGNED NOT NULL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL DEFAULT '',
-        settings TEXT NOT NULL DEFAULT '' )
-        /*!40100 DEFAULT CHARACTER SET utf8 */"
-      );
-      break;
+  $schema['textimage_preset'] = array(
+    'fields' => array(
+      'pid' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'settings' => array('type' => 'text', 'not null' => TRUE),
+    ),
+    'primary key' => array('pid'),
+  );
 
-    case 'pgsql':
-      $ret[] = update_sql("CREATE TABLE {textimage_preset} (
-        pid INTEGER NOT NULL CHECK (presetid > 0),
-        name VARCHAR(255) NOT NULL DEFAULT '',
-        settings TEXT NOT NULL DEFAULT ''
-        PRIMARY KEY (pid));"
-      );
-      $ret[] = update_sql("CREATE SEQUENCE textimage_preset_pid_seq INCREMENT 1 START 1;");
-      break;
-  }
+  db_create_table($ret, 'textimage_preset', $schema['textimage_preset']);
 
   if (variable_get('textimage_fonts_path', '0')) variable_set('textimage_captcha_fonts_path', variable_get('textimage_fonts_path', ''));
   if (variable_get('textimage_font_size', '0')) variable_set('textimage_captcha_font_size', variable_get('textimage_font_size', '24'));

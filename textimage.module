@@ -39,10 +39,10 @@ define('ALIGN_RIGHT', 3);
 /**
  * Implementation of hook_help().
  */
-function textimage_help($section) {
+function textimage_help($path, $arg) {
   $output = "";
 
-  switch ($section) {
+  switch ($path) {
     case 'admin/help#textimage':
       $output = '
         <h2 id="textimage-introduction">The dynamic text to image generator!</h2>
@@ -54,7 +54,7 @@ function textimage_help($section) {
         </p>
         <h2>Installing Fonts</h2>
         <p>
-          Text image is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Text Image configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType or OpenType font to the server and tell Text Image where you uploaded it. All fonts must have the .tff or .otf extension to be seen by Text Image. If you do not have any TrueType or OpenType fonts to start using Text Image, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>. If you are using Text Image with the Captcha module, you\'ll also need to set a seperate directory on the <a href="!captcha">Text Image Captcha Settings</a> for fonts to be used at random.
+          Text image is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Text Image configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType font to the server and tell Text Image where you uploaded it. All fonts must have the .tff extension to be seen by Text Image. If you do not have any TTF fonts to start using Text Image, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>. If you are using Text Image with the Captcha module, you\'ll also need to set a seperate directory on the <a href="!captcha">Text Image Captcha Settings</a> for fonts to be used at random.
         </p>
         <h2 id="textimage-configuration">Configuration</h2>
         <p>
@@ -109,94 +109,114 @@ function textimage_help($section) {
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function textimage_theme() {
+  $theme = array(
+    'textimage_image' => array(
+      'arguments' => array(
+        'preset',
+        'text',
+        'additional_text' => array(),
+        'format' => 'png',
+        'alt' => '',
+        'title' => '',
+        'attributes' => array(),
+        'getsize' => TRUE,
+      ),
+    ),
+  );
+
+  include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+  foreach (textimage_get_presets() as $preset) {
+    $theme['textimage_formatter_'. $preset['name']] = array(
+      'arguments' => array('element' => NULL),
+      'function' => 'theme_textimage_formatter',
+    );
+  }
+
+  return $theme;
+}
+
+/**
  * Implementation of hook_menu().
  */
-function textimage_menu($may_cache) {
+function textimage_menu() {
   $items = array();
 
-  if (!$may_cache) {
-    // Only include administrative callbacks if we are viewing an admin page.
-    if (arg(0) == 'admin') {
-      include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
-    }
-  }
+  $items[file_directory_path() .'/textimage'] = array(
+    'page callback' => 'textimage_image',
+    'access arguments' => array('access textimages'),
+    'type' => MENU_CALLBACK,
+  );
 
-  if ($may_cache) {
-    $items[] = array(
-      'path' => file_directory_path() .'/textimage',
-      'callback' => 'textimage_image',
-      'access' => TRUE,
-      'type' => MENU_CALLBACK,
-    );
+  $items['admin/settings/textimage'] = array(
+    'title' => 'Text Image',
+    'description' => 'Configure text to image preset functions.'. (module_exists('captcha') ? ' Set the options for image based captchas.' : ''),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('textimage_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'type' => MENU_NORMAL_ITEM
+  );
 
-    $items[] = array(
-      'path' => 'admin/settings/textimage',
-      'title' => t('Text Image'),
-      'description' => t('Configure text to image preset functions.'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('textimage_settings_form'),
-      'access' => user_access('administer site configuration'),
-      'type' => MENU_NORMAL_ITEM
-    );
+  $items['admin/settings/textimage/settings'] = array(
+    'title' => 'Settings',
+    'page callback' => 'drupal_get_form', 
+    'page arguments' => array('textimage_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'weight' => 0,
+    'type' => MENU_DEFAULT_LOCAL_TASK
+  );
 
-    $items[] = array(
-      'path' => 'admin/settings/textimage/settings',
-      'title' => t('Settings'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('textimage_settings_form'),
-      'access' => user_access('administer site configuration'),
-      'weight' => 0,
-      'type' => MENU_DEFAULT_LOCAL_TASK
-    );
+  $items['admin/settings/textimage/list'] = array(
+    'title' => 'List presets',
+    'page callback' => 'textimage_preset_list', 
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK
+  );
 
-    $items[] = array(
-      'path' => 'admin/settings/textimage/list',
-      'title' => t('List presets'),
-      'callback' => 'textimage_preset_list',
-      'access' => user_access('administer site configuration'),
-      'weight' => 1,
-      'type' => MENU_LOCAL_TASK
-    );
+  $items['admin/settings/textimage/new'] = array(
+    'title' => 'New preset',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('textimage_preset_edit', 'new'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK
+  );
 
-    $items[] = array(
-      'path' => 'admin/settings/textimage/new',
-      'title' => t('New preset'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('textimage_preset_edit', 'new'),
-      'access' => user_access('administer site configuration'),
-      'weight' => 2,
-      'type' => MENU_LOCAL_TASK
-    );
+  $items['admin/settings/textimage/preset'] = array(
+    'title' => 'Edit Preset',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('textimage_preset_edit'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'type' => MENU_CALLBACK,
+  );
 
-    $items[] = array(
-      'path' => 'admin/settings/textimage/preset',
-      'title' => t('Edit Preset'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('textimage_preset_edit'),
-      'access' => user_access('administer site configuration'),
-      'type' => MENU_CALLBACK,
-    );
-  }
+  $items['admin/settings/textimage/preset/%/delete'] = array(
+    'title' => 'Edit Preset',
+    'load arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('textimage_preset_delete_confirm', 4),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'type' => MENU_CALLBACK,
+  );
 
-  else {
-    $items[] = array(
-      'path' => 'admin/settings/textimage/preset/'. arg(4) .'/delete',
-      'title' => t('Edit Preset'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('textimage_preset_delete_confirm', arg(4)),
-      'access' => user_access('administer site configuration'),
-      'type' => MENU_CALLBACK,
-    );
-
-    $items[] = array(
-      'path' => 'admin/settings/textimage/preset/'. arg(4) .'/flush',
-      'title' => t('Flush Preset Cache'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('textimage_preset_flush_confirm', arg(4)),
-      'access' => user_access('administer site configuration'),
-      'type' => MENU_CALLBACK,
-    );
-  }
+  $items['admin/settings/textimage/preset/%/flush'] = array(
+    'title' => 'Flush Preset Cache',
+    'load arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('textimage_preset_flush_confirm', 4),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'textimage_admin.inc',
+    'type' => MENU_CALLBACK,
+  );
 
   return $items;
 }
@@ -530,9 +550,11 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
  */
 function textimage_directory_check($directory_path) {
   // create each directory necessary if it doesn't exist
+  $directory_path = drupal_substr($directory_path, drupal_strlen(file_directory_path())+1);
   foreach (explode('/', $directory_path) as $dir) {
     $dirs[] = $dir;
-    if (!file_check_directory(implode($dirs, '/'), FILE_CREATE_DIRECTORY)) {
+    $dir = file_directory_path() .'/'. implode($dirs, '/');
+    if (!file_check_directory($dir, FILE_CREATE_DIRECTORY)) {
       return FALSE;
     }
   }
@@ -714,12 +736,11 @@ function _textimage_preset_load($id) {
  *    preset name
  */
 function _textimage_preset_load_by_name($name) {
-  $result = db_query("SELECT pid, name, settings FROM {textimage_preset} WHERE name = '%s'", $name);
-  if (db_num_rows($result) == 0) {
+  if (db_query("SELECT COUNT(*) FROM {textimage_preset} WHERE name = '%s'", $name) == 0) {
     return FALSE;
   }
   else {
-    $preset = db_fetch_array($result);
+    $preset = db_fetch_array(db_query("SELECT * FROM {textimage_preset} WHERE name = '%s'", $name));
     $preset['settings'] = unserialize($preset['settings']);
     return $preset;
   }
@@ -816,11 +837,8 @@ function textimage_field_formatter_info() {
   return $formatters;
 }
 
-/**
- * Implementation of hook_field_formatter().
- */
-function textimage_field_formatter($field, $item, $formatter, $node) {
-  return theme('textimage_image', $formatter, $item['value']);
+function theme_textimage_formatter($element) {
+  return theme('textimage_image', $element['#formatter'], $element['#item']['safe']);
 }
 
 /**

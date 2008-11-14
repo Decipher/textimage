@@ -96,19 +96,19 @@ function textimage_settings_form() {
   return system_settings_form($form);
 }
 
-function textimage_settings_form_validate($form_id, $form_values) {
+function textimage_settings_form_validate($form, &$form_state) {
   //check for valid font path
-  if ($form_values['textimage_fonts_path'] != "" && !is_dir(rtrim($form_values['textimage_fonts_path'], '\\/'))) {
+  if ($form_state['values']['textimage_fonts_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_fonts_path'], '\\/'))) {
     form_set_error('textimage_fonts_path', t('The entered font path is invalid'));
   }
 
   //check for valid image path
-  if ($form_values['textimage_images_path'] != "" && !is_dir(rtrim($form_values['textimage_images_path'], '\\/'))) {
+  if ($form_state['values']['textimage_images_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_images_path'], '\\/'))) {
     form_set_error('textimage_images_path', t('The entered image path is invalid'));
   }
 }
 
-function textimage_preset_edit($preset_id) {
+function textimage_preset_edit(&$form_state, $preset_id) {
   if (is_numeric($preset_id)) {
     $preset = _textimage_preset_load($preset_id);
   }
@@ -117,7 +117,7 @@ function textimage_preset_edit($preset_id) {
   }
 
   $fonts_path = variable_get('textimage_fonts_path', '');
-  $font_options = _textimage_font_list($fonts_path);
+  $font_options = drupal_map_assoc(_textimage_font_list($fonts_path));
 
   $images_path = variable_get('textimage_images_path', '');
   $image_files = drupal_map_assoc(_textimage_image_list($images_path));
@@ -350,31 +350,31 @@ function textimage_preset_edit($preset_id) {
   return $form;
 }
 
-function textimage_preset_edit_validate($form_id, $form_values) {
+function textimage_preset_edit_validate($form, &$form_state) {
   // Check for illegal characters in preset names
-  if (preg_match('/[^0-9a-zA-Z_\-]/', $form_values['name'])) {
+  if (preg_match('/[^0-9a-zA-Z_\-]/', $form_state['values']['name'])) {
     form_set_error('name', t('Please only use alphanumic characters, underscores (_), and hyphens (-) for preset names.'));
   }
 
-  if ($form_values['preset_id'] == 'new') {
+  if ($form_state['values']['preset_id'] == 'new') {
     // Check for duplicate preset names
-    $preset = _textimage_preset_load_by_name($form_values['name']);
+    $preset = _textimage_preset_load_by_name($form_state['values']['name']);
     if ($preset['name']) {
-      form_set_error('name', t('The name %name is already in use by another preset.', array('%name' => $form_values['name'])));
+      form_set_error('name', t('The name %name is already in use by another preset.', array('%name' => $form_state['values']['name'])));
     }
   }
 }
 
-function textimage_preset_edit_submit($form_id, $form_values) {
-  if ($form_values['preset_id'] == 'new') {
-    $return = _textimage_preset_create($form_values['name'], $form_values['settings']);
+function textimage_preset_edit_submit($form, &$form_state) {
+  if ($form_state['values']['preset_id'] == 'new') {
+    $return = _textimage_preset_create($form_state['values']['name'], $form_state['values']['settings']);
   }
-  elseif (is_numeric($form_values['preset_id'])) {
-    $return = _textimage_preset_update($form_values['preset_id'], $form_values['name'], $form_values['settings']);
+  elseif (is_numeric($form_state['values']['preset_id'])) {
+    $return = _textimage_preset_update($form_state['values']['preset_id'], $form_state['values']['name'], $form_state['values']['settings']);
   }
 
   if ($return) {
-    drupal_set_message(t('Updated preset %name', array('%name' => $form_values['name'])));
+    drupal_set_message(t('Updated preset %name', array('%name' => $form_state['values']['name'])));
     drupal_goto('admin/settings/textimage/list');
   }
   else {
@@ -408,7 +408,7 @@ function textimage_preset_list() {
   return theme('table', $header, $rows);
 }
 
-function textimage_preset_delete_confirm($preset_id) {
+function textimage_preset_delete_confirm(&$form_state, $preset_id) {
   $preset = _textimage_preset_load($preset_id);
 
   $form['pid'] = array('#type' => 'value', '#value' => $preset_id);
@@ -422,13 +422,13 @@ function textimage_preset_delete_confirm($preset_id) {
   );
 }
 
-function textimage_preset_delete_confirm_submit($form_id, $form_values) {
-  _textimage_preset_delete($form_values['pid']);
-  drupal_set_message(t('Deleted preset %name', array('%name' => $form_values['name'])));
+function textimage_preset_delete_confirm_submit($form, &$form_state) {
+  _textimage_preset_delete($form_state['values']['pid']);
+  drupal_set_message(t('Deleted preset %name', array('%name' => $form_state['values']['name'])));
   drupal_goto('admin/settings/textimage/list');
 }
 
-function textimage_preset_flush_confirm($preset_id) {
+function textimage_preset_flush_confirm(&$form_state, $preset_id) {
   $preset = _textimage_preset_load($preset_id);
 
   $form['pid'] = array('#type' => 'value', '#value' => $preset_id);
@@ -442,8 +442,8 @@ function textimage_preset_flush_confirm($preset_id) {
   );
 }
 
-function textimage_preset_flush_confirm_submit($form_id, $form_values) {
-  _textimage_preset_flush($form_values['pid']);
+function textimage_preset_flush_confirm_submit($form, &$form_state) {
+  _textimage_preset_flush($form_state['values']['pid']);
   drupal_goto('admin/settings/textimage/list');
 }
 
@@ -463,8 +463,7 @@ function textimage_get_presets() {
  *    name of the preset to be created.
  */
 function _textimage_preset_create($name, $settings) {
-  $next_id = db_next_id('{textimage_preset}_pid');
-  return db_query('INSERT INTO {textimage_preset} (pid, name, settings) VALUES (%d, \'%s\', \'%s\')', $next_id, $name, serialize($settings));
+  return db_query('INSERT INTO {textimage_preset} (name, settings) VALUES (\'%s\', \'%s\')', $name, serialize($settings));
 }
 
 /**
