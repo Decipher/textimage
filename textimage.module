@@ -54,7 +54,7 @@ function textimage_help($section) {
         </p>
         <h2>Installing Fonts</h2>
         <p>
-          Text image is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Text Image configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType font to the server and tell Text Image where you uploaded it. All fonts must have the .tff extension to be seen by Text Image. If you do not have any TTF fonts to start using Text Image, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>. If you are using Text Image with the Captcha module, you\'ll also need to set a seperate directory on the <a href="!captcha">Text Image Captcha Settings</a> for fonts to be used at random.
+          Text image is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Text Image configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType or OpenType font to the server and tell Text Image where you uploaded it. All fonts must have the .tff or .otf extension to be seen by Text Image. If you do not have any TrueType or OpenType fonts to start using Text Image, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>. If you are using Text Image with the Captcha module, you\'ll also need to set a seperate directory on the <a href="!captcha">Text Image Captcha Settings</a> for fonts to be used at random.
         </p>
         <h2 id="textimage-configuration">Configuration</h2>
         <p>
@@ -179,8 +179,6 @@ function textimage_menu($may_cache) {
   }
 
   else {
-    $suffix = arg(2) != NULL ? '/'. arg(2) : '';
-
     $items[] = array(
       'path' => 'admin/settings/textimage/preset/'. arg(4) .'/delete',
       'title' => t('Edit Preset'),
@@ -728,7 +726,14 @@ function _textimage_preset_load_by_name($name) {
 }
 
 /**
- * Creates transparent image resources for images with graphic backgrounds
+ * Create transparent image resource.
+ * 
+ * @param $x
+ *   Image width.
+ * @param $y
+ *   Image height.
+ * @return
+ *   Image identifier of the transparent image resource.
  */
 function _textimage_create_transparent_image($x, $y) {
   $i = imagecreatetruecolor($x, $y);
@@ -739,6 +744,12 @@ function _textimage_create_transparent_image($x, $y) {
   return $i;
 }
 
+/**
+ *  Get a string reprenstation of a blank PNG image.
+ *
+ *  @return
+ *    String representing a blank image in PNG format.
+ */
 function _textimage_blankpng() {
   $c  = "iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29m";
   $c .= "dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADqSURBVHjaYvz//z/DYAYAAcTEMMgBQAANegcCBNCg";
@@ -750,8 +761,13 @@ function _textimage_blankpng() {
 }
 
 /**
- * Convert a hex string to it's rgb integer components
- * $hex can be in the formats: '#ABC','ABC','#AABBCC','AABBCC'
+ *  Convert a hex color representation to it's rgb integer components.
+ * 
+ *  @param $hex
+ *    Hex representation of the color.
+ *    Can be in the formats: '#ABC','ABC','#AABBCC','AABBCC'
+ *  @return
+ *    Array with three components RGB.
  */
 function _textimage_hex2rgb($hex) {
   $hex = ltrim($hex, '#');
@@ -782,6 +798,29 @@ function textimage_path($preset, $text, $additional_text = array(), $format = 'p
   $additional_text = array_reverse($additional_text);
   $path = file_directory_path() .'/textimage/'. $preset .'/'. (empty($additional_text) ? '' : implode('/', $additional_text) .'/') . $text .'.'. $format;
   return drupal_urlencode(str_replace(' ', '_', $path));
+}
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function textimage_field_formatter_info() {
+  include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+
+  foreach (textimage_get_presets() as $preset) {
+    $formatters[$preset['name']] = array(
+      'label' => t('Textimage:'). ' '. $preset['name'],
+      'field types' => array('text'),
+    );
+  }
+
+  return $formatters;
+}
+
+/**
+ * Implementation of hook_field_formatter().
+ */
+function textimage_field_formatter($field, $item, $formatter, $node) {
+  return theme('textimage_image', $formatter, $item['value']);
 }
 
 /**

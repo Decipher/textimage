@@ -117,7 +117,7 @@ function textimage_preset_edit($preset_id) {
   }
 
   $fonts_path = variable_get('textimage_fonts_path', '');
-  $font_options = drupal_map_assoc(_textimage_font_list($fonts_path));
+  $font_options = _textimage_font_list($fonts_path);
 
   $images_path = variable_get('textimage_images_path', '');
   $image_files = drupal_map_assoc(_textimage_image_list($images_path));
@@ -383,14 +383,16 @@ function textimage_preset_edit_submit($form_id, $form_values) {
 }
 
 function textimage_preset_list() {
+  $fonts_path = variable_get("textimage_fonts_path", "");
   $presets = textimage_get_presets();
   $header = array(t('Name'), t('Summary'), t('Description'), array('data' => t('Operations'), 'colspan' => '2'));
   $rows = array();
 
   foreach ($presets as $name => $preset) {
+    $font = _textimage_font_name($fonts_path .'/'. $preset['settings']['text']['font']);
     $row = array();
     $row[] = $name;
-    $row[] = $preset['settings']['text']['font'] .' '. $preset['settings']['text']['size'] . t('px');
+    $row[] = $font['name'] .' '. $preset['settings']['text']['size'] . t('px');
     $row[] = $preset['settings']['description'];
     $row[] = l(t('edit'), 'admin/settings/textimage/preset/'. $preset['pid']);
     $row[] = l(t('delete'), 'admin/settings/textimage/preset/'. $preset['pid'] .'/delete');
@@ -523,20 +525,96 @@ function _textimage_recursive_delete($path) {
 }
 
 /**
- * Returns an array of files with TTF extensions in the specified directory.
+ * Returns an array of files with .otf/.ttf extensions in the specified directory.
+ *
+ * @param $fontdir
+ *   Full path of the font directory.
+ * @return
+ *   Array of font files.
  */
 function _textimage_font_list($fontdir) {
   $filelist = array();
   if (is_dir($fontdir) && $handle = opendir($fontdir)) {
     while ($file = readdir($handle)) {
-      if (preg_match("/\.ttf$/i", $file) == 1) {
-        $filelist[] = $file;
+      if (preg_match("/\.[ot]tf$/i", $file) == 1) {
+        $font = _textimage_font_name($fontdir .'/'. $file);
+        $filelist[$file] = $font['name'];
       }
     }
     closedir($handle);
   }
 
+  asort($filelist);
   return $filelist;
+}
+
+function _textimage_font_name($filename) {
+  $fd = fopen($filename, "r");
+  $text = fread($fd, filesize ($filename));
+  fclose($fd);
+
+  $number_of_tabs = _textimage_dec2hex(ord($text[4])) . _textimage_dec2hex(ord($text[5]));
+  for ($i=0; $i < hexdec($number_of_tabs); $i++){
+    $tag = $text[12 + $i *16] . $text[12 + $i * 16 + 1] . $text[12 + $i * 16 + 2] . $text[12 + $i * 16 + 3];
+    if ($tag == "name") {
+      $offset_name_table_hex = _textimage_dec2hex(ord($text[12 + $i * 16 + 8])) . _textimage_dec2hex(ord($text[12 + $i * 16 + 8 + 1])) . _textimage_dec2hex(ord($text[12 + $i * 16 + 8 + 2])) . _textimage_dec2hex(ord($text[12 + $i * 16 + 8 + 3]));
+      $offset_name_table_dec = hexdec($offset_name_table_hex);
+      $offset_storage_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec+4])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 5]));
+      $offset_storage_dec = hexdec($offset_storage_hex);
+      $number_name_records_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 2])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 3]));
+      $number_name_records_dec = hexdec($number_name_records_hex);
+      break;
+    }
+  }
+
+  $storage_dec = $offset_storage_dec + $offset_name_table_dec;
+  $storage_hex = strtoupper(dechex($storage_dec));
+
+  for ($j = 0; $j < $number_name_records_dec; $j++) {
+    $platform_id_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 0])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 1]));
+    $platform_id_dec = hexdec($platform_id_hex);
+    $name_id_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 6])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 7]));
+    $name_id_dec = hexdec($name_id_hex);
+    $string_length_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 8])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 9]));
+    $string_length_dec = hexdec($string_length_hex);
+    $string_offset_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 10])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 11]));
+    $string_offset_dec = hexdec($string_offset_hex);
+
+    if ($name_id_dec == 0 && $font['copyright'] == "") {
+      for ($l = 0; $l < $string_length_dec; $l++) {
+        $font['copyright'] .= $text[$storage_dec + $string_offset_dec + $l];
+      }
+    }
+
+    if ($name_id_dec == 1 && $font['family'] == "") {
+      for ($l = 0; $l < $string_length_dec; $l++) {
+        $font['family'] .= $text[$storage_dec + $string_offset_dec + $l];
+      }
+    }
+
+    if ($name_id_dec == 2 && $font['subfamily'] == "") {
+      for ($l = 0; $l < $string_length_dec; $l++) {
+        $font['subfamily'] .= $text[$storage_dec + $string_offset_dec + $l];
+      }
+    }
+
+    if ($name_id_dec == 4 && $font['name'] == "") {
+      for ($l=0; $l < $string_length_dec; $l++) {
+        $font['name'] .= $text[$storage_dec + $string_offset_dec + $l];
+      }
+    }
+
+    if ($font['copyright'] != "" && $font['family'] != "" && $font['subfamily'] != "" && $font['name'] != "") {
+      break;
+    }
+  }
+
+  return $font;
+}
+
+function _textimage_dec2hex($dec){
+  $hex = dechex($dec);
+  return str_repeat("0", 2 - drupal_strlen($hex)) . drupal_strtoupper($hex);
 }
 
 function _textimage_number_validate($field, $field_name) {
@@ -553,6 +631,11 @@ function _textimage_hex_validate($field, $field_name) {
 
 /**
  * Returns an array of files with jpg, png, and gif extensions in the specified directory.
+ * 
+ * @param $imagesdir
+ *   Full path of the images directory.
+ * @return
+ *   Array of image files.
  */
 function _textimage_image_list($imagesdir) {
   $filelist = array();
