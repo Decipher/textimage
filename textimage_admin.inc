@@ -9,15 +9,15 @@
 function textimage_settings_form() {
   $form = array();
 
-  $fonts_path = variable_get("textimage_fonts_path", "");
-  $images_path = variable_get("textimage_images_path", "");
+  $fonts_path = variable_get("textimage_fonts_path", drupal_get_path('module', 'textimage') .'/fonts');
+  $images_path = variable_get("textimage_images_path", drupal_get_path('module', 'textimage') .'/backgrounds');
 
   //check for GD
   if (!function_exists(imagecreate)) {
     drupal_set_message(t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'), 'error');
   }
 
-  //check for TTF support
+  //check for FreeType support
   if (!function_exists(imagettftext)) {
     drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'), 'error');
   }
@@ -70,25 +70,23 @@ function textimage_settings_form() {
   //Fonts settings
   $form['settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Text image settings'),
+    '#title' => t('Textimage settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE
   );
 
   $form['settings']['textimage_fonts_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('TrueType Fonts Path'),
+    '#title' => t('Fonts Path'),
     '#default_value' => $fonts_path,
-    '#size' => 30,
     '#maxlength' => 255,
-    '#description' => t('Location of the directory where the Truetype (.ttf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
+    '#description' => t('Location of the directory where the Truetype (.ttf) or OpenType (.otf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
   );
 
   $form['settings']['textimage_images_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Background Image Path'),
     '#default_value' => $images_path,
-    '#size' => 30,
     '#maxlength' => 255,
     '#description' => t('Location of the directory where the background images are stored. Images in this directory can be overlaid with dynamic text in a preset. Relative paths will be resolved relative to the Drupal installation directory.'),
   );
@@ -108,41 +106,42 @@ function textimage_settings_form_validate($form, &$form_state) {
   }
 }
 
-function textimage_preset_edit(&$form_state, $preset_id) {
-  if (is_numeric($preset_id)) {
-    $preset = _textimage_preset_load($preset_id);
-  }
-  else {
-    $preset = array();
+function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
+  $preset = array();
+  $image_presets = array();
+
+  if ($op == 'edit' && is_numeric($pid)) {
+    $preset = _textimage_preset_load($pid);
   }
 
-  $fonts_path = variable_get('textimage_fonts_path', '');
-  $font_options = drupal_map_assoc(_textimage_font_list($fonts_path));
+  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') .'/fonts');
+  $font_options = _textimage_font_list($fonts_path);
 
-  $images_path = variable_get('textimage_images_path', '');
+  $images_path = variable_get('textimage_images_path', drupal_get_path('module', 'textimage') .'/backgrounds');
   $image_files = drupal_map_assoc(_textimage_image_list($images_path));
 
-  $image_presets = array();
   $presets = textimage_get_presets();
   foreach ($presets as $p) {
-    if ($p['pid'] != $preset_id) {
+    if ($p['pid'] != $pid) {
       $image_presets[$p['pid']] = $p['name'];
     }
   }
 
   $image_options = array(
     t('Default:') => array('' => t('Default (use background color)')),
-    t('Use the result of Text Image Preset:') => $image_presets,
+    t('Use the result of a Textimage Preset:') => $image_presets,
     t('Use a Background Image:') => $image_files,
   );
 
   $form = array();
   $form['#tree'] = TRUE;
 
-  $form['preset_id'] = array(
-    '#type' => 'value',
-    '#value' => $preset_id,
-  );
+  if ($op == 'edit') {
+    $form['pid'] = array(
+      '#type' => 'hidden',
+      '#value' => $pid,
+    );
+  }
 
   $form['name'] = array(
     '#type' => 'textfield',
@@ -172,7 +171,7 @@ function textimage_preset_edit(&$form_state, $preset_id) {
     '#title' => t('Font'),
     '#options' => $font_options,
     '#default_value' => $preset['settings']['text']['font'],
-    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for TrueType Fonts Path</a>.', array('!path' => url('admin/settings/textimage'))),
+    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for Fonts Path</a>.', array('!path' => url('admin/settings/textimage'))),
     '#required' => TRUE,
   );
 
@@ -234,7 +233,7 @@ function textimage_preset_edit(&$form_state, $preset_id) {
   );
 
   $form['settings']['text']['case'] = array(
-    '#type' => 'radios',
+    '#type' => 'select',
     '#title' => t('Convert to case'),
     '#options' => array('' => t('Default'), 'upper' => t('UPPERCASE'), 'lower' => t('lowercase'), 'ucwords' => t('Uppercase Words'), 'ucfirst' => t('Uppercase first')),
     '#description' => t('Covert the input text to a consistent format. The default makes no changes to input text.'),
@@ -300,7 +299,7 @@ function textimage_preset_edit(&$form_state, $preset_id) {
 
   $form['settings']['background'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Background'),
+    '#title' => t('Background settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -317,10 +316,10 @@ function textimage_preset_edit(&$form_state, $preset_id) {
 
   $form['settings']['background']['image'] = array(
     '#type' => 'select',
-    '#title' => t('Background Image'),
+    '#title' => t('Background Type'),
     '#options' => $image_options,
     '#default_value' => $preset['settings']['background']['image'],
-    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for TrueType Fonts Path</a>.', array('!path' => url('admin/settings/textimage'))),
+    '#description' => t('Select the background type to be used in this image.'),
   );
 
   $form['settings']['background']['xoffset'] = array(
@@ -356,26 +355,29 @@ function textimage_preset_edit_validate($form, &$form_state) {
     form_set_error('name', t('Please only use alphanumic characters, underscores (_), and hyphens (-) for preset names.'));
   }
 
-  if ($form_state['values']['preset_id'] == 'new') {
-    // Check for duplicate preset names
-    $preset = _textimage_preset_load_by_name($form_state['values']['name']);
-    if ($preset['name']) {
-      form_set_error('name', t('The name %name is already in use by another preset.', array('%name' => $form_state['values']['name'])));
-    }
+  // Check for numbers at beginning of preset names
+  if (preg_match('/^[0-9]/', $form_state['values']['name'])) {
+    form_set_error('name', t('Preset names can\'t begin with a number.'));
+  }
+
+  // Check for duplicate preset names
+  $preset = _textimage_preset_load($form_state['values']['name']);
+  if ($preset['name'] && (!isset($form_state['values']['pid']) || $form_state['values']['pid'] != $preset['pid'])) {
+    form_set_error('name', t('The name %name is already in use by another preset.', array('%name' => $form_state['values']['name'])));
   }
 }
 
 function textimage_preset_edit_submit($form, &$form_state) {
-  if ($form_state['values']['preset_id'] == 'new') {
+  if (!isset($form_state['values']['pid'])) {
     $return = _textimage_preset_create($form_state['values']['name'], $form_state['values']['settings']);
   }
-  elseif (is_numeric($form_state['values']['preset_id'])) {
-    $return = _textimage_preset_update($form_state['values']['preset_id'], $form_state['values']['name'], $form_state['values']['settings']);
+  elseif (is_numeric($form_state['values']['pid'])) {
+    $return = _textimage_preset_update($form_state['values']['pid'], $form_state['values']['name'], $form_state['values']['settings']);
   }
 
   if ($return) {
     drupal_set_message(t('Updated preset %name', array('%name' => $form_state['values']['name'])));
-    drupal_goto('admin/settings/textimage/list');
+    drupal_goto('admin/settings/textimage/preset/list');
   }
   else {
     drupal_set_message(t('The preset was unable to be updated.', 'error'));
@@ -383,18 +385,20 @@ function textimage_preset_edit_submit($form, &$form_state) {
 }
 
 function textimage_preset_list() {
-  $fonts_path = variable_get("textimage_fonts_path", "");
+  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') .'/fonts');
   $presets = textimage_get_presets();
-  $header = array(t('Name'), t('Summary'), t('Description'), array('data' => t('Operations'), 'colspan' => '2'));
+
+  $header = array(t('Name'), t('Summary'), t('Description'), array('data' => t('Operations'), 'colspan' => '3'));
   $rows = array();
 
   foreach ($presets as $name => $preset) {
     $font = _textimage_font_name($fonts_path .'/'. $preset['settings']['text']['font']);
+
     $row = array();
     $row[] = $name;
     $row[] = $font['name'] .' '. $preset['settings']['text']['size'] . t('px');
     $row[] = $preset['settings']['description'];
-    $row[] = l(t('edit'), 'admin/settings/textimage/preset/'. $preset['pid']);
+    $row[] = l(t('edit'), 'admin/settings/textimage/preset/'. $preset['pid'] .'/edit');
     $row[] = l(t('delete'), 'admin/settings/textimage/preset/'. $preset['pid'] .'/delete');
     $row[] = l(t('flush cache'), 'admin/settings/textimage/preset/'. $preset['pid'] .'/flush');
 
@@ -402,21 +406,21 @@ function textimage_preset_list() {
   }
 
   if (empty($rows)) {
-    $rows[] = array(array('data' => t('No presets defined. <a href="!url">Create a new preset</a>.', array('!url' => url('admin/settings/textimage/new'))), 'colspan' => '5', 'class' => 'message'));
+    $rows[] = array(array('data' => t('No presets defined. <a href="!url">Create a new preset</a>.', array('!url' => url('admin/settings/textimage/preset/new'))), 'colspan' => '6', 'class' => 'message'));
   }
 
   return theme('table', $header, $rows);
 }
 
-function textimage_preset_delete_confirm(&$form_state, $preset_id) {
-  $preset = _textimage_preset_load($preset_id);
+function textimage_preset_delete_confirm(&$form_state, $pid) {
+  $preset = _textimage_preset_load($pid);
 
-  $form['pid'] = array('#type' => 'value', '#value' => $preset_id);
+  $form['pid'] = array('#type' => 'value', '#value' => $preset['pid']);
   $form['name'] = array('#type' => 'value', '#value' => $preset['name']);
 
   return confirm_form($form,
     t('Are you sure you want to delete the preset %name?', array('%name' => $preset['name'])),
-    $_GET['destination'] ? $_GET['destination'] : 'admin/settings/textimage/list',
+    $_GET['destination'] ? $_GET['destination'] : 'admin/settings/textimage/preset/list',
     t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
   );
@@ -425,18 +429,18 @@ function textimage_preset_delete_confirm(&$form_state, $preset_id) {
 function textimage_preset_delete_confirm_submit($form, &$form_state) {
   _textimage_preset_delete($form_state['values']['pid']);
   drupal_set_message(t('Deleted preset %name', array('%name' => $form_state['values']['name'])));
-  drupal_goto('admin/settings/textimage/list');
+  drupal_goto('admin/settings/textimage/preset/list');
 }
 
-function textimage_preset_flush_confirm(&$form_state, $preset_id) {
-  $preset = _textimage_preset_load($preset_id);
+function textimage_preset_flush_confirm(&$form_state, $pid) {
+  $preset = _textimage_preset_load($pid);
 
-  $form['pid'] = array('#type' => 'value', '#value' => $preset_id);
+  $form['pid'] = array('#type' => 'value', '#value' => $preset['pid']);
   $form['name'] = array('#type' => 'value', '#value' => $preset['name']);
 
   return confirm_form($form,
     t('Are you sure you want to flush the image cache for preset %name?', array('%name' => $preset['name'])),
-    $_GET['destination'] ? $_GET['destination'] : 'admin/settings/textimage/list',
+    $_GET['destination'] ? $_GET['destination'] : 'admin/settings/textimage/preset/list',
     t('This action cannot be undone.'),
     t('Flush Cache'), t('Cancel')
   );
@@ -444,7 +448,7 @@ function textimage_preset_flush_confirm(&$form_state, $preset_id) {
 
 function textimage_preset_flush_confirm_submit($form, &$form_state) {
   _textimage_preset_flush($form_state['values']['pid']);
-  drupal_goto('admin/settings/textimage/list');
+  drupal_goto('admin/settings/textimage/preset/list');
 }
 
 function textimage_get_presets() {
@@ -486,17 +490,29 @@ function _textimage_preset_delete($id) {
 
 /**
  * flush cached media for a preset.
- * @param id
+ * @param pid
  *   a preset id.
  */
-function _textimage_preset_flush($id) {
-    drupal_set_message(t('Flushed Preset Images (ID: @id)', array('@id' => $id)));
-    $preset = _textimage_preset_load($id);
-    $presetdir = realpath(file_directory_path() .'/textimage/'. $preset['name']);
-    if (is_dir($presetdir)) {
-      _textimage_recursive_delete($presetdir);
-      @unlink($presetdir);
-    }
+function _textimage_preset_flush($pid) {
+  drupal_set_message(t('Flushed Preset Images (ID: @pid)', array('@pid' => $pid)));
+
+  $preset = _textimage_preset_load($pid);
+  $presetdir = realpath(file_directory_path() .'/textimage/'. $preset['pid']);
+
+  if (is_dir($presetdir)) {
+    _textimage_recursive_delete($presetdir);
+    @unlink($presetdir);
+  }
+
+  // Flush Legacy directory
+  $legacydir = realpath(file_directory_path() .'/textimage/'. $preset['name']);
+
+  if (is_dir($legacydir)) {
+    _textimage_recursive_delete($legacydir);
+    @unlink($legacydir);
+  }
+
+  db_query('DELETE FROM {textimage_image} where pid = %d', $pid);
 }
 
 /**
@@ -549,11 +565,11 @@ function _textimage_font_list($fontdir) {
 
 function _textimage_font_name($filename) {
   $fd = fopen($filename, "r");
-  $text = fread($fd, filesize ($filename));
+  $text = fread($fd, filesize($filename));
   fclose($fd);
 
   $number_of_tabs = _textimage_dec2hex(ord($text[4])) . _textimage_dec2hex(ord($text[5]));
-  for ($i=0; $i < hexdec($number_of_tabs); $i++){
+  for ($i=0; $i < hexdec($number_of_tabs); $i++) {
     $tag = $text[12 + $i *16] . $text[12 + $i * 16 + 1] . $text[12 + $i * 16 + 2] . $text[12 + $i * 16 + 3];
     if ($tag == "name") {
       $offset_name_table_hex = _textimage_dec2hex(ord($text[12 + $i * 16 + 8])) . _textimage_dec2hex(ord($text[12 + $i * 16 + 8 + 1])) . _textimage_dec2hex(ord($text[12 + $i * 16 + 8 + 2])) . _textimage_dec2hex(ord($text[12 + $i * 16 + 8 + 3]));
@@ -567,7 +583,7 @@ function _textimage_font_name($filename) {
   }
 
   $storage_dec = $offset_storage_dec + $offset_name_table_dec;
-  $storage_hex = strtoupper(dechex($storage_dec));
+  $storage_hex = drupal_strtoupper(dechex($storage_dec));
 
   for ($j = 0; $j < $number_name_records_dec; $j++) {
     $platform_id_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 0])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 1]));
@@ -611,7 +627,7 @@ function _textimage_font_name($filename) {
   return $font;
 }
 
-function _textimage_dec2hex($dec){
+function _textimage_dec2hex($dec) {
   $hex = dechex($dec);
   return str_repeat("0", 2 - drupal_strlen($hex)) . drupal_strtoupper($hex);
 }
@@ -630,7 +646,7 @@ function _textimage_hex_validate($field, $field_name) {
 
 /**
  * Returns an array of files with jpg, png, and gif extensions in the specified directory.
- * 
+ *
  * @param $imagesdir
  *   Full path of the images directory.
  * @return

@@ -18,6 +18,15 @@ function textimage_schema() {
     'primary key' => array('pid'),
   );
 
+  $schema['textimage_image'] = array(
+    'fields' => array(
+      'pid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'file' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'data' => array('type' => 'text', 'not null' => TRUE),
+    ),
+    'primary key' => array('file'),
+  );
+
   return $schema;
 }
 
@@ -32,9 +41,9 @@ function textimage_install() {
  * Implementation of hook_uninstall().
  */
 function textimage_uninstall() {
-  drupal_uninstall_schema('textimage');
+  include_once(drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
 
-  include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+  drupal_uninstall_schema('textimage');
 
   $path = realpath(file_directory_path() .'/textimage');
   if ($path != FALSE) {
@@ -72,7 +81,6 @@ function textimage_update_1() {
     ),
     'primary key' => array('pid'),
   );
-
   db_create_table($ret, 'textimage_preset', $schema['textimage_preset']);
 
   if (variable_get('textimage_fonts_path', '0')) variable_set('textimage_captcha_fonts_path', variable_get('textimage_fonts_path', ''));
@@ -96,6 +104,52 @@ function textimage_update_1() {
   variable_del('textimage_image_noise');
   variable_del('textimage_image_lines');
   variable_del('textimage_image_margin');
+
+  return $ret;
+}
+
+function textimage_update_2() {
+  $ret = array();
+
+  $schema['textimage_image'] = array(
+    'fields' => array(
+      'pid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'file' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'data' => array('type' => 'text', 'not null' => TRUE),
+    ),
+    'primary key' => array('file'),
+  );
+  db_create_table($ret, 'textimage_image', $schema['textimage_image']);
+
+  include_once(drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+  foreach (textimage_get_presets() as $preset) {
+    $path = realpath(file_directory_path() .'/textimage/'. $preset['name']);
+
+    if (is_dir($path)) {
+      $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
+      foreach ($files as $file => $object) {
+        $file = str_replace($path .'/', '', $file);
+        $args = explode('/', $file);
+
+        $filename = urldecode(array_pop($args));
+        $additional_text = $args;
+
+        preg_match('/\.([a-z]+)$/i', $filename, $matches);
+        $format = $matches[1];
+        if ($format == 'jpg') {
+          $format = 'jpeg';
+        }
+
+        $text = preg_replace('/\.([a-z]+)$/i', '', $filename);
+
+        db_query(
+          "INSERT {textimage_image} (pid, file, data) VALUES (%d, '%s', '%s')",
+          $preset['pid'], file_directory_path() .'/textimage/'. $preset['name'] .'/'. $file,
+          serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text))
+        );
+      }
+    }
+  }
 
   return $ret;
 }
