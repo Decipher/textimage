@@ -252,6 +252,7 @@ function textimage_image() {
   $preset = array_shift($args);
   if (is_numeric($preset)) {
     drupal_not_found();
+    exit;
   }
 
   $filename = urldecode(array_pop($args));
@@ -301,7 +302,7 @@ function textimage_build_image($preset, $text, $additional_text = array(), $form
     // Generate the image resource
     $img = textimage_image_from_preset($preset['pid'], $text, $additional_text);
 
-    $filename = time() .'.'. $format;
+    $filename = time() . rand(1000, 9999) .'.'. $format;
     $directory = file_directory_path() .'/textimage/'. $preset['pid'];
 
     // Save the result so we don't have to recreate
@@ -423,7 +424,7 @@ function textimage_image_from_preset($pid, $text, $additional_text) {
   // Place result on background image if available
   elseif (is_file($back_image)) {
     $info = image_get_info($back_image);
-    $background_resource = image_gd_open($back_image, $info['extension']);
+    $background_resource = image_toolkit_invoke('open', array($back_image, $info['extension']));
 
     $text_width = imagesx($img);
     $text_height = imagesy($img);
