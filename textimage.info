@@ -1,4 +1,7 @@
 ; $Id$
 name = Textimage
 description = Provides text to image manipulations.
-core = 6.x
+core = 7.x
+files[] = textimage.install
+files[] = textimage.module
+files[] = textimage_admin.inc

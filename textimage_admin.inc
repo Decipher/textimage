@@ -13,12 +13,12 @@ function textimage_settings_form() {
   $images_path = variable_get("textimage_images_path", drupal_get_path('module', 'textimage') .'/backgrounds');
 
   //check for GD
-  if (!function_exists('imagecreate')) {
+  if (!drupal_function_exists('imagecreate')) {
     drupal_set_message(t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'), 'error');
   }
 
   //check for FreeType support
-  if (!function_exists('imagettftext')) {
+  if (!drupal_function_exists('imagettftext')) {
     drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'), 'error');
   }
 
@@ -64,7 +64,7 @@ function textimage_settings_form() {
 
   $form['info']['textimage_info'] = array(
    '#type' => 'item',
-   '#value' => $imagefontinfo,
+   '#markup' => $imagefontinfo,
   );
 
   //Fonts settings
@@ -459,7 +459,7 @@ function textimage_get_presets() {
   if (empty($presets)) {
     $result = db_query('SELECT pid, name, settings FROM {textimage_preset} ORDER BY name');
     $presets = array();
-    while ($preset = db_fetch_object($result)) {
+    foreach ($result as $preset) {
       $preset->settings = unserialize($preset->settings);
       $presets[$preset->name] = $preset;
     }
@@ -474,7 +474,9 @@ function textimage_get_presets() {
  *    name of the preset to be created.
  */
 function _textimage_preset_create($name, $settings) {
-  return db_query('INSERT INTO {textimage_preset} (name, settings) VALUES (\'%s\', \'%s\')', $name, serialize($settings));
+  return db_insert('textimage_preset')
+    ->fields(array('name' => $name, 'settings' => serialize($settings)))
+    ->execute();
 }
 
 /**
@@ -487,12 +489,17 @@ function _textimage_preset_create($name, $settings) {
 function _textimage_preset_update($id, $name, $settings) {
   $name = check_plain($name);
   _textimage_preset_flush($id);
-  return db_query('UPDATE {textimage_preset} SET name =\'%s\', settings =\'%s\' WHERE pid = %d', $name, serialize($settings), $id);
+  return db_update('textimage_preset')
+    ->fields(array('name' => $name, 'settings' => serialize($settings)))
+    ->condition('pid', $id)
+    ->execute();
 }
 
 function _textimage_preset_delete($id) {
   _textimage_preset_flush($id);
-  return db_query('DELETE FROM {textimage_preset} where pid = %d', $id);
+  return db_delete('textimage_preset')
+    ->condition('pid', $id)
+    ->execute();
 }
 
 /**
@@ -519,7 +526,9 @@ function _textimage_preset_flush($pid) {
     @unlink($legacydir);
   }
 
-  db_query('DELETE FROM {textimage_image} where pid = %d', $pid);
+  db_delete('textimage_image')
+    ->condition('pid', $pid)
+    ->execute();
 }
 
 /**

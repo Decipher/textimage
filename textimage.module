@@ -152,7 +152,6 @@ function textimage_menu() {
     'description' => 'Configure text to image preset functions.',
     'page callback' => 'textimage_preset_list', 
     'access arguments' => array('administer site configuration'),
-    'file' => 'textimage_admin.inc',
     'type' => MENU_NORMAL_ITEM
   );
   $items['admin/settings/textimage/preset'] = array(
@@ -169,7 +168,6 @@ function textimage_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('textimage_preset_edit', 'new'),
     'access arguments' => array('administer site configuration'),
-    'file' => 'textimage_admin.inc',
     'weight' => 1,
     'type' => MENU_LOCAL_TASK
   );
@@ -179,7 +177,6 @@ function textimage_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('textimage_preset_edit', 'edit', 4),
     'access arguments' => array('administer site configuration'),
-    'file' => 'textimage_admin.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -189,7 +186,6 @@ function textimage_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('textimage_preset_delete_confirm', 4),
     'access arguments' => array('administer site configuration'),
-    'file' => 'textimage_admin.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -199,7 +195,6 @@ function textimage_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('textimage_preset_flush_confirm', 4),
     'access arguments' => array('administer site configuration'),
-    'file' => 'textimage_admin.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -208,7 +203,6 @@ function textimage_menu() {
     'page callback' => 'drupal_get_form', 
     'page arguments' => array('textimage_settings_form'),
     'access arguments' => array('administer site configuration'),
-    'file' => 'textimage_admin.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK
   );
@@ -220,7 +214,12 @@ function textimage_menu() {
  * Implementation of hook_perm().
  */
 function textimage_perm() {
-  return array('access textimages');
+  return array(
+    'access textimages' => array(
+      'title' => t('Access Textimages'),
+      'description' => t('Access Textimages'),
+    )
+  );
 }
 
 /**
@@ -279,7 +278,7 @@ function textimage_image() {
 function textimage_build_image($preset, $text, $additional_text = array(), $format) {
   // Integrety check
   $output_function = 'image'. $format;
-  if (!function_exists($output_function)) {
+  if (!drupal_function_exists($output_function)) {
     $message = t('Unable to generate Textimage as the file extension is unsupported on this system. Files must have a .png, .jpg, or .gif extension.');
     watchdog('textimage', $message, WATCHDOG_ERROR);
     drupal_set_message($message, 'error');
@@ -295,15 +294,18 @@ function textimage_build_image($preset, $text, $additional_text = array(), $form
   }
 
   $result = db_query(
-    "SELECT file FROM {textimage_image} WHERE pid = %d AND data = '%s'",
-    $preset['pid'], serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text))
+    "SELECT file FROM {textimage_image} WHERE pid = :pid AND data = :data",
+    array(
+      ':pid' => $preset['pid'],
+      ':data' => serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text))
+    )
   );
 
   if (!$result = db_fetch_object($result)) {
     // Generate the image resource
     $img = textimage_image_from_preset($preset['pid'], $text, $additional_text);
 
-    $filename = time() . rand(1000, 9999) .'.'. $format;
+    $filename = REQUEST_TIME . rand(1000, 9999) .'.'. $format;
     $directory = file_directory_path() .'/textimage/'. $preset['pid'];
 
     // Save the result so we don't have to recreate
