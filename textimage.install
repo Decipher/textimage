@@ -153,3 +153,18 @@ function textimage_update_2() {
 
   return $ret;
 }
+
+function textimage_update_3() {
+  $ret = array();
+
+  include_once(drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+  $presets = textimage_get_presets();
+  foreach ($presets as $preset) {
+    if ($preset->settings['text']['angle'] != 0) {
+      $preset->settings['text']['angle'] = -$preset->settings['text']['angle'];
+      _textimage_preset_update($preset->pid, $preset->name, $preset->settings);
+    }
+  }
+
+  return $ret;
+}

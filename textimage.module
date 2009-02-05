@@ -126,7 +126,7 @@ function textimage_theme() {
 
   include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
   foreach (textimage_get_presets() as $preset) {
-    $theme['textimage_formatter_'. $preset['name']] = array(
+    $theme['textimage_formatter_'. $preset->name] = array(
       'arguments' => array('element' => NULL),
       'function' => 'theme_textimage_formatter',
     );
@@ -247,7 +247,8 @@ function textimage_perm() {
  *
  */
 function textimage_image() {
-  $args = explode('/', str_replace(base_path() . file_directory_path() .'/textimage/', '', $_SERVER[REQUEST_URI]));
+  $args = explode('/', str_replace(base_path() . file_directory_path() .'/textimage/', '', request_uri()));
+  // @TODO - Add support for non-clean urls.
 
   $preset = array_shift($args);
   if (is_numeric($preset)) {
@@ -565,7 +566,7 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
  */
 function textimage_directory_check($directory_path) {
   // create each directory necessary if it doesn't exist
-  $directory_path = drupal_substr($directory_path, drupal_strlen(file_directory_path())+1);
+  $directory_path = drupal_substr($directory_path, drupal_strlen(file_directory_path()) + 1);
   foreach (explode('/', $directory_path) as $dir) {
     $dirs[] = $dir;
     $dir = file_directory_path() .'/'. implode($dirs, '/');
@@ -645,45 +646,40 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
  *   A GD image resource.
  */
 function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#000000', $background_color = NULL, $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT) {
-  $rad = deg2rad($angle);
-  $sin = sin($rad);
-  $cos = cos($rad);
+  // Set rotation angle.
+  $q_angle = -$angle;
+  while ($q_angle > 0 || $q_angle <= -90) {
+    $q_angle -= $q_angle > 0 ? 90 : -90;
+  }
+  while ($angle < 0 || $angle >= 360) {
+    $angle += $angle < 0 ? 360 : -360;
+  }
+  $rotation = -(floor($angle / 90) * 90);
+
+  $rad = deg2rad($q_angle);
+  $sin = abs(sin($rad));
+  $cos = abs(cos($rad));
 
   // Perform text wrapping, if necessary.
   if ($maximum_width > 0) {
     $text = textimage_wrap_text($text, $fontsize, $font, $maximum_width);
   }
 
-  // Get exact dimensions of text string
-  $bbox = imagettfbbox($fontsize, 0, $font, $text);
+  // Get dimensions of text string and boundry box.
+  $bbox = imagettfbbox($fontsize, $q_angle, $font, $text);
+  $bwidth = max(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) - min(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) + 1;
+  $bheight = max(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) - min(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) + 1;
+  $width = sqrt(pow(max($bbox[0], $bbox[2]) - min($bbox[0], $bbox[2]), 2) + pow(max($bbox[1], $bbox[3]) - min($bbox[1], $bbox[3]), 2));
+  $height = sqrt(pow(max($bbox[0], $bbox[6]) - min($bbox[0], $bbox[6]), 2) + pow(max($bbox[1], $bbox[7]) - min($bbox[1], $bbox[7]), 2));
 
-  // Calculate text width and height
-  if ($angle == 0) {
-    $width = ($fixed_width)
-      ? $maximum_width
-      : $bbox[2] - $bbox[0];
-
-    $height = $bbox[1] - $bbox[7];
-  }
-
-  else {
-    $width = ($fixed_width)
-      ? round(abs($maximum_width * $cos) + abs(($bbox[1] - $bbox[7]) * $sin))
-      : round(abs(($bbox[2] - $bbox[0]) * $cos) + abs(($bbox[1] - $bbox[7]) * $sin));
-
-    $height = ($fixed_width)
-      ? round(abs(($bbox[1] - $bbox[7]) * $cos) + abs($maximum_width * $sin))
-      : round(abs(($bbox[1] - $bbox[7]) * $cos) + abs(($bbox[2] - $bbox[0]) * $sin));
-  }
-
-  // Use a transparent background color
+  // Use a transparent background color.
   if (empty($background_color)) {
-    $image = _textimage_create_transparent_image($width, $height);
+    $image = _textimage_create_transparent_image($bwidth, $bheight);
   }
 
-  // Use a solid background color
+  // Use a solid background color.
   else {
-    $image = imagecreatetruecolor($width, $height);
+    $image = imagecreatetruecolor($bwidth, $bheight);
 
     list($r, $g, $b) = _textimage_hex2rgb($background_color);
     $back = imagecolorallocate($image, $r, $g, $b);
@@ -691,38 +687,19 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
     imagefill($image, 0, 0, $back);
   }
 
-  // Create the textimage
+  // Create the textimage.
   list($r, $g, $b) = _textimage_hex2rgb($foreground_color);
   $fore = imagecolorallocate($image, $r, $g, $b);
 
-  // Calculate text alignment
-  switch ($align) {
-    case ALIGN_RIGHT:
-      $tx = ($fixed_width)
-        ? $bbox[6] + ($maximum_width / 2) - ($bbox[0] + $bbox[2])
-        : $bbox[6] + (($bbox[0] + $bbox[2]) / 2) - ($bbox[0] + $bbox[2]);
-      break;
-
-    case ALIGN_CENTER:
-      $tx = $bbox[6] - (($bbox[0] + $bbox[2]) / 2);
-      break;
-
-    case ALIGN_LEFT:
-    default:
-      $tx = ($fixed_width)
-        ? -($bbox[6] + ($maximum_width / 2))
-        : -($bbox[6] + (($bbox[0] + $bbox[2]) / 2));
-      break;
+  imagettftext($image, $fontsize, $q_angle, ($height - $fontsize) * $sin, $fontsize * $cos, $fore, $font, $text);
+  if ($rotation !== 0) {
+    $image = imagerotate($image, $rotation, 0);
   }
 
-  $ty = -$bbox[7] - ((-$bbox[7] + $bbox[3]) / 2);
-  $py = imagesy($image) / 2;
-  $px = imagesx($image) / 2;
-
-  $x = intval($tx * $cos + $ty * $sin + $px);
-  $y = intval(-$tx * $sin + $ty * $cos + $py);
-
-  imagettftext($image, $fontsize, $angle, $x, $y, $fore, $font, $text);
+  if (empty($background_color)) {
+    imagealphablending($image, TRUE);
+    imagesavealpha($image, TRUE);
+  }
 
   return $image;
 }
@@ -783,13 +760,12 @@ function _textimage_create_transparent_image($x, $y) {
  *    String representing a blank image in PNG format.
  */
 function _textimage_blankpng() {
-  $c  = "iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29m";
-  $c .= "dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADqSURBVHjaYvz//z/DYAYAAcTEMMgBQAANegcCBNCg";
-  $c .= "dyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAAN";
-  $c .= "egcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQ";
-  $c .= "oHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAA";
-  $c .= "DXoHAgTQoHcgQAANegcCBNCgdyBAgAEAMpcDTTQWJVEAAAAASUVORK5CYII=";
-  return $c;
+  return "iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29m"
+        ."dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADqSURBVHjaYvz//z/DYAYAAcTEMMgBQAANegcCBNCg"
+        ."dyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAAN"
+        ."egcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQ"
+        ."oHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAADXoHAgTQoHcgQAANegcCBNCgdyBAAA16BwIE0KB3IEAA"
+        ."DXoHAgTQoHcgQAANegcCBNCgdyBAgAEAMpcDTTQWJVEAAAAASUVORK5CYII=";
 }
 
 /**
@@ -839,8 +815,8 @@ function textimage_field_formatter_info() {
   include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
 
   foreach (textimage_get_presets() as $preset) {
-    $formatters[$preset['name']] = array(
-      'label' => t('Textimage:') .' '. $preset['name'],
+    $formatters[$preset->name] = array(
+      'label' => t('Textimage:') .' '. $preset->name,
       'field types' => array('text'),
     );
   }
