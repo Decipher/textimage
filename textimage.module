@@ -275,7 +275,7 @@ function textimage_image() {
   drupal_goto($img);
 }
 
-function textimage_build_image($preset, $text, $additional_text = array(), $format) {
+function textimage_build_image($preset, $text, $additional_text = array(), $format = 'png') {
   // Integrety check
   $output_function = 'image'. $format;
   if (!drupal_function_exists($output_function)) {
@@ -819,7 +819,7 @@ function textimage_field_formatter_info() {
   foreach (textimage_get_presets() as $preset) {
     $formatters[$preset->name] = array(
       'label' => t('Textimage:') .' '. $preset->name,
-      'field types' => array('text'),
+      'field types' => array('text', 'email'),
     );
   }
 

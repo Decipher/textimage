@@ -382,7 +382,7 @@ function textimage_preset_edit_submit($form, &$form_state) {
     drupal_goto('admin/settings/textimage/preset/list');
   }
   else {
-    drupal_set_message(t('The preset was unable to be updated.', 'error'));
+    drupal_set_message(t('The preset was unable to be updated.'), 'error');
   }
 }
 
