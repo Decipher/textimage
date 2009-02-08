@@ -669,10 +669,18 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
 
   // Get dimensions of text string and boundry box.
   $bbox = imagettfbbox($fontsize, $q_angle, $font, $text);
-  $bwidth = max(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) - min(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) + 1;
-  $bheight = max(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) - min(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) + 1;
-  $width = sqrt(pow(max($bbox[0], $bbox[2]) - min($bbox[0], $bbox[2]), 2) + pow(max($bbox[1], $bbox[3]) - min($bbox[1], $bbox[3]), 2));
+
+  $twidth = sqrt(pow(max($bbox[0], $bbox[2]) - min($bbox[0], $bbox[2]), 2) + pow(max($bbox[1], $bbox[3]) - min($bbox[1], $bbox[3]), 2));
+
+  $width = ($fixed_width) ? $maximum_width : $twidth;
   $height = sqrt(pow(max($bbox[0], $bbox[6]) - min($bbox[0], $bbox[6]), 2) + pow(max($bbox[1], $bbox[7]) - min($bbox[1], $bbox[7]), 2));
+
+  $bwidth = ($fixed_width)
+    ? (($width + 1) * $cos) + (($height + 1) * $sin)
+    : max(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) - min(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) + 1;
+  $bheight = ($fixed_width)
+    ? (($height + 1) * $cos) + (($width + 1) * $sin)
+    : max(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) - min(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) + 1;
 
   // Use a transparent background color.
   if (empty($background_color)) {
@@ -689,11 +697,28 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
     imagefill($image, 0, 0, $back);
   }
 
+  // Set text alignment
+  $x = ($height - $fontsize) * $sin;
+  $y = $fontsize * $cos;
+  if ($fixed_width && $align !== ALIGN_LEFT) {
+    switch ($align) {
+      case ALIGN_CENTER:
+        $x = ($height - $fontsize) * $sin + (($width / 2) - ($twidth / 2)) * $cos;
+        $y = $fontsize * $cos + (($width / 2) - ($twidth / 2)) * $sin;
+        break;
+
+      case ALIGN_RIGHT:
+        $x = ($height - $fontsize) * $sin + ($width - $twidth) * $cos;
+        $y = $fontsize * $cos + ($width - $twidth) * $sin;
+        break;
+    }
+  }
+
   // Create the textimage.
   list($r, $g, $b) = _textimage_hex2rgb($foreground_color);
   $fore = imagecolorallocate($image, $r, $g, $b);
 
-  imagettftext($image, $fontsize, $q_angle, ($height - $fontsize) * $sin, $fontsize * $cos, $fore, $font, $text);
+  imagettftext($image, $fontsize, $q_angle, $x, $y, $fore, $font, $text);
   if ($rotation !== 0) {
     $image = imagerotate($image, $rotation, 0);
   }

@@ -210,18 +210,16 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
   $form['settings']['text']['fixed_width'] = array(
     '#type' => 'checkbox',
     '#title' => t('Fixed width?'),
-    '#description' => t('If checked the size of generated image will always be equal to the max width') .'.<br /><strong style="color: #FF0000;">'. t('Feature currently disabled in dev build') .'.</strong>',
+    '#description' => t('If checked the size of generated image will always be equal to the max width') .'.',
     '#default_value' => isset($preset['settings']['text']['fixed_width']) ? $preset['settings']['text']['fixed_width'] : '',
-    '#disabled' => TRUE,
   );
 
   $form['settings']['text']['align'] = array(
     '#type' => 'select',
     '#title' => t('Text Align'),
-    '#description' => t('Only works when fixed width is enabled') .'.<br /><strong style="color: #FF0000;">'. t('Feature currently disabled in dev build') .'.</strong>',
+    '#description' => t('Only works when fixed width is enabled') .'.',
     '#options' => array(ALIGN_LEFT => t('Left'), ALIGN_CENTER => t('Center'), ALIGN_RIGHT => t('Right')),
     '#default_value' => isset($preset['settings']['text']['align']) ? $preset['settings']['text']['align'] : '',
-    '#disabled' => TRUE,
   );
 
   $form['settings']['text']['angle'] = array(
