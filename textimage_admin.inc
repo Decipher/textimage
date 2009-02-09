@@ -612,25 +612,33 @@ function _textimage_font_name($filename) {
 
     if ($name_id_dec == 0 && empty($font['copyright'])) {
       for ($l = 0; $l < $string_length_dec; $l++) {
-        $font['copyright'] .= $text[$storage_dec + $string_offset_dec + $l];
+        if (ord($text[$storage_dec + $string_offset_dec + $l]) >= 32) {
+          $font['copyright'] .= $text[$storage_dec + $string_offset_dec + $l];
+        }
       }
     }
 
     if ($name_id_dec == 1 && empty($font['family'])) {
       for ($l = 0; $l < $string_length_dec; $l++) {
-        $font['family'] .= $text[$storage_dec + $string_offset_dec + $l];
+        if (ord($text[$storage_dec + $string_offset_dec + $l]) >= 32) {
+          $font['family'] .= $text[$storage_dec + $string_offset_dec + $l];
+        }
       }
     }
 
     if ($name_id_dec == 2 && empty($font['subfamily'])) {
       for ($l = 0; $l < $string_length_dec; $l++) {
-        $font['subfamily'] .= $text[$storage_dec + $string_offset_dec + $l];
+        if (ord($text[$storage_dec + $string_offset_dec + $l]) >= 32) {
+          $font['subfamily'] .= $text[$storage_dec + $string_offset_dec + $l];
+        }
       }
     }
 
     if ($name_id_dec == 4 && empty($font['name'])) {
-      for ($l=0; $l < $string_length_dec; $l++) {
-        $font['name'] .= $text[$storage_dec + $string_offset_dec + $l];
+      for ($l = 0; $l < $string_length_dec; $l++) {
+        if (ord($text[$storage_dec + $string_offset_dec + $l]) >= 32) {
+          $font['name'] .= $text[$storage_dec + $string_offset_dec + $l];
+        }
       }
     }
 

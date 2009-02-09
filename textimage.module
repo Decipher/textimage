@@ -583,7 +583,7 @@ function textimage_directory_check($directory_path) {
  * Helper function for wrapping text (measures width).
  */
 function textimage_measure_text_width($text, $fontsize, $font) {
-  $box = imagettfbbox($fontsize, $angle, $font, $text);
+  $box = imagettfbbox($fontsize, 0, $font, $text);
   return abs($box[4] - $box[0]) + 4;
 }
 
@@ -663,8 +663,8 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
   $cos = abs(cos($rad));
 
   // Perform text wrapping, if necessary.
-  if ($maximum_width > 0) {
-    $text = textimage_wrap_text($text, $fontsize, $font, $maximum_width);
+  if ($maximum_width - 1 > 0) {
+    $text = textimage_wrap_text($text, $fontsize, $font, $maximum_width - 1);
   }
 
   // Get dimensions of text string and boundry box.
@@ -672,7 +672,7 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
 
   $twidth = sqrt(pow(max($bbox[0], $bbox[2]) - min($bbox[0], $bbox[2]), 2) + pow(max($bbox[1], $bbox[3]) - min($bbox[1], $bbox[3]), 2));
 
-  $width = ($fixed_width) ? $maximum_width : $twidth;
+  $width = ($fixed_width) ? $maximum_width - 1 : $twidth;
   $height = sqrt(pow(max($bbox[0], $bbox[6]) - min($bbox[0], $bbox[6]), 2) + pow(max($bbox[1], $bbox[7]) - min($bbox[1], $bbox[7]), 2));
 
   $bwidth = ($fixed_width)
