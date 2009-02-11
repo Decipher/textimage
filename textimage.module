@@ -431,7 +431,9 @@ function textimage_image_from_preset($pid, $text, $additional_text) {
 
     $text_width = imagesx($img);
     $text_height = imagesy($img);
+    imagealphablending($background_resource, TRUE);
     imagecopy($background_resource, $img, $back_xoffset, $back_yoffset, 0, 0, $text_width,  $text_height);
+    imagesavealpha($background_resource, TRUE);
     $img = $background_resource;
   }
 
