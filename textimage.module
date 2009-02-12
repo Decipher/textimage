@@ -315,7 +315,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
     imagedestroy($img);
 
     db_query(
-      "INSERT {textimage_image} (pid, file, data) VALUES ('%s', '%s', '%s')",
+      "INSERT INTO {textimage_image} (pid, file, data) VALUES ('%s', '%s', '%s')",
       $preset['pid'], $directory .'/'. $filename,
       serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text))
     );
