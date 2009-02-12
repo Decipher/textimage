@@ -143,7 +143,7 @@ function textimage_menu() {
 
   $items[file_directory_path() .'/textimage'] = array(
     'page callback' => 'textimage_image',
-    'access arguments' => array('access textimages'),
+    'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
 
@@ -215,9 +215,9 @@ function textimage_menu() {
  */
 function textimage_perm() {
   return array(
-    'access textimages' => array(
-      'title' => t('Access Textimages'),
-      'description' => t('Access Textimages'),
+    'create textimages' => array(
+      'title' => t('Create Textimages'),
+      'description' => t('Create Textimages'),
     )
   );
 }
@@ -268,14 +268,14 @@ function textimage_image() {
   // Determine the text to display
   $text = preg_replace('/\.([a-z]+)$/i', '', $filename);
 
-  if (!$img = textimage_build_image($preset, $text, $additional_text, $format)) {
+  if (!$img = textimage_build_image('url', $preset, $text, $additional_text, $format)) {
     return FALSE;
   }
 
   drupal_goto($img);
 }
 
-function textimage_build_image($preset, $text, $additional_text = array(), $format = 'png') {
+function textimage_build_image($method, $preset, $text, $additional_text = array(), $format = 'png') {
   // Integrety check
   $output_function = 'image'. $format;
   if (!drupal_function_exists($output_function)) {
@@ -301,7 +301,8 @@ function textimage_build_image($preset, $text, $additional_text = array(), $form
     )
   );
 
-  if (!$result = db_fetch_object($result)) {
+  $result = db_fetch_object($result);
+  if (!$result && (user_access('create textimages') || $method == 'theme')) {
     // Generate the image resource
     $img = textimage_image_from_preset($preset['pid'], $text, $additional_text);
 
@@ -320,6 +321,11 @@ function textimage_build_image($preset, $text, $additional_text = array(), $form
     );
 
     return $directory .'/'. $filename;
+  }
+
+  elseif (!$result) {
+    drupal_access_denied();
+    return FALSE;
   }
 
   else {
@@ -861,7 +867,7 @@ function theme_textimage_formatter($element) {
  * Theme function for displaying textimages
  */
 function theme_textimage_image($preset, $text, $additional_text = array(), $format = 'png', $alt = '', $title = '', $attributes = array(), $getsize = TRUE) {
-  if (!$path = textimage_build_image($preset, $text, $additional_text, $format)) {
+  if (!$path = textimage_build_image('theme', $preset, $text, $additional_text, $format)) {
     return FALSE;
   }
   return theme('image', $path, $alt, $title, $attributes, $getsize);
