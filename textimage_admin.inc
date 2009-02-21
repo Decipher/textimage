@@ -190,9 +190,11 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#type' => 'textfield',
     '#title' => t('Text Color'),
     '#description' => t('Enter the hex color code you wish to use for the generated text (i.e. #000000).'),
-    '#default_value' => isset($preset['settings']['text']['color']) ? $preset['settings']['text']['color'] : '',
+    '#default_value' => isset($preset['settings']['text']['color'])
+      ? $preset['settings']['text']['color']
+      : '#000000',
     '#maxlength' => 7,
-    '#size' => 7,
+    '#size' => 8,
     '#validate' => array('_textimage_hex_validate' => array('color')),
     '#required' => TRUE,
   );
@@ -254,9 +256,11 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#type' => 'textfield',
     '#title' => t('Outline Color'),
     '#description' => t('Enter the hex color code you wish to use for the stroke outline (i.e. #000000).'),
-    '#default_value' => isset($preset['settings']['text']['stroke_color']) ? $preset['settings']['text']['stroke_color'] : '',
+    '#default_value' => isset($preset['settings']['text']['stroke_color'])
+      ? $preset['settings']['text']['stroke_color']
+      : '',
     '#maxlength' => 7,
-    '#size' => 7,
+    '#size' => 8,
     '#validate' => array('_textimage_hex_validate' => array('color')),
   );
 
@@ -308,9 +312,11 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#type' => 'textfield',
     '#title' => t('Background Color'),
     '#description' => t('Enter the hex color code you wish to use for the background of the generated image (i.e. #FFFFFF). Leave blank for transparent.'),
-    '#default_value' => isset($preset['settings']['background']['color']) ? $preset['settings']['background']['color'] : '',
+    '#default_value' => isset($preset['settings']['background']['color'])
+      ? $preset['settings']['background']['color']
+      : '',
     '#maxlength' => 7,
-    '#size' => 7,
+    '#size' => 8,
     '#validate' => array('_textimage_hex_validate' => array('color')),
   );
 
@@ -341,12 +347,42 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#validate' => array('_textimage_number_validate' => array('yoffset')),
   );
 
+  $form['settings']['preview'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Preview'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => '<div id="textimage-preview"></div>',
+    '#attributes' => array(
+      'class' => 'textimage-preview-wrapper'
+    ),
+  );
+
+  $form['settings']['preview']['text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Preview text'),
+    '#default_value' => t('Preview'),
+  );
+
+  $form['settings']['preview']['button'] = array(
+    '#type' => 'button',
+    '#value' => t('Preview'),
+    '#ahah' => array(
+      'path' => 'admin/settings/textimage/json/preview',
+      'wrapper' => 'textimage-preview'
+    ),
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
 
   return $form;
+}
+
+function theme_textimage_preset_edit(&$form) {
+  drupal_add_css(drupal_get_path('module', 'textimage') .'/misc/css/textimage_admin.css');
 }
 
 function textimage_preset_edit_validate($form, &$form_state) {
@@ -368,6 +404,8 @@ function textimage_preset_edit_validate($form, &$form_state) {
 }
 
 function textimage_preset_edit_submit($form, &$form_state) {
+  _textimage_preset_flush(0);
+
   if (!isset($form_state['values']['pid'])) {
     $return = _textimage_preset_create($form_state['values']['name'], $form_state['values']['settings']);
   }
@@ -506,7 +544,9 @@ function _textimage_preset_delete($id) {
  *   a preset id.
  */
 function _textimage_preset_flush($pid) {
-  drupal_set_message(t('Flushed Preset Images (ID: @pid)', array('@pid' => $pid)));
+  if ($pid !== 0) {
+    drupal_set_message(t('Flushed Preset Images (ID: @pid)', array('@pid' => $pid)));
+  }
 
   $preset = _textimage_preset_load($pid);
   $presetdir = realpath(file_directory_path() .'/textimage/'. $preset['pid']);

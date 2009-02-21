@@ -1,0 +1,20 @@
+/* $Id$ */
+
+html.js fieldset.collapsible.textimage-preview-wrapper .fieldset-wrapper
+{
+  overflow: visible;
+}
+
+#textimage-preview
+{
+  background-image: url('../images/transparent.png');
+  border: 1px solid #999999;
+  padding: 25px 25px 21px;
+  text-align: center;
+}
+
+#textimage-preview IMG
+{
+  padding: 0;
+  margin: 0;
+}
