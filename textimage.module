@@ -420,18 +420,18 @@ function textimage_image_from_preset($preset, $text, $additional_text) {
   // Generate the textimage
   $img = textimage_text_to_image($text, $size, $font, $color, $back_color, $angle, $maximum_width, $fixed_width, $align);
 
-  // Add margin
-  if ($margin_top || $margin_right || $margin_bottom || $margin_left) {
-    $img = textimage_image_add_margin($img, $margin_top, $margin_right, $margin_bottom, $margin_left, $back_color);
-  }
-
   // Add a border
   if ($stroke_width && $stroke_color) {
     $img = textimage_image_add_stroke($img, $stroke_width, $stroke_color);
   }
 
+  // Add margin
+  if ($margin_top || $margin_right || $margin_bottom || $margin_left) {
+    $img = textimage_image_add_margin($img, $margin_top, $margin_right, $margin_bottom, $margin_left);
+  }
+
   // Place result on top of another preset's result
-  if (is_numeric($back_image) && _textimage_preset_load($back_image)) {
+  if (is_numeric($back_image) && $back_image = _textimage_preset_load($back_image)) {
     $next_preset = $back_image;
     $next_text = array_pop($additional_text);
     $background_resource = textimage_image_from_preset($next_preset, $next_text, $additional_text);
@@ -440,6 +440,7 @@ function textimage_image_from_preset($preset, $text, $additional_text) {
     $text_height = imagesy($img);
     imagealphablending($background_resource, TRUE);
     imagecopy($background_resource, $img, $back_xoffset, $back_yoffset, 0, 0, $text_width,  $text_height);
+    imagesavealpha($background_resource, TRUE);
     $img = $background_resource;
   }
 
@@ -456,28 +457,38 @@ function textimage_image_from_preset($preset, $text, $additional_text) {
     $img = $background_resource;
   }
 
+  else {
+    $background_resource = imagecreatetruecolor(imagesx($img), imagesy($img));
+
+    $alpha = 0;
+    if (!$back_color) {
+      $alpha = 127;
+      $back_color = '#FFFFFF';
+    }
+
+    list($r, $g, $b) = _textimage_hex2rgb($back_color);
+    $back = imagecolorallocatealpha($background_resource, $r, $g, $b, $alpha);
+    imagefill($background_resource, 0, 0, $back);
+
+    imagealphablending($background_resource, TRUE);
+    imagecopy($background_resource, $img, 0, 0, 0, 0, imagesx($img), imagesy($img));
+    imagesavealpha($background_resource, TRUE);
+    $img = $background_resource;
+  }
+
   return $img;
 }
 
 /**
  * This function adds a margin (or border) around an existing image resource
  */
-function textimage_image_add_margin($img, $top, $right, $bottom, $left, $background_color = NULL) {
+function textimage_image_add_margin($img, $top, $right, $bottom, $left) {
   $iw = imagesx($img);
   $ih = imagesy($img);
 
   // Create a new image for the background
-  $background_alpha = 0;
-  if (empty($background_color)) {
-    $background_color = '#FFFFFF';
-    $background_alpha = 127;
-  }
-
   $back_img = imagecreatetruecolor($iw + $right + $left, $ih + $top + $bottom);
-
-  list($r, $g, $b) = _textimage_hex2rgb($background_color);
-  $back = imagecolorallocatealpha($back_img, $r, $g, $b, $background_alpha);
-
+  $back = imagecolorallocatealpha($back_img, 0, 0, 0, 127);
   imagefill($back_img, 0, 0, $back);
 
   // Apply the source image ontop the background with the new margin
@@ -540,7 +551,7 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
   $pixel = imagecolorsforindex($img, imagecolorat($img, $x, $y));
 
   // Preform a radial analysis of all pixels within the radius of $thickness pixels
-  $degree_increment = (90/$thickness);
+  $degree_increment = (90 / $thickness);
   $radial_coords = array();
 
   for ($degrees = 0; $degrees <= 90; $degrees += $degree_increment) {
@@ -677,7 +688,7 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width) {
  * @return $image
  *   A GD image resource.
  */
-function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#000000', $background_color = NULL, $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT) {
+function textimage_text_to_image($text, $fontsize, $font, $color = '#000000', $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT) {
   // Set rotation angle.
   $q_angle = -$angle;
   while ($q_angle > 0 || $q_angle <= -90) {
@@ -714,17 +725,7 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
 
   // Create Image.
   $image = imagecreatetruecolor($bwidth, $bheight);
-
-  // Set background.
-  $background_alpha = 0;
-  if (empty($background_color)) {
-    $background_color = '#FFFFFF';
-    $background_alpha = 127;
-  }
-
-  list($r, $g, $b) = _textimage_hex2rgb($background_color);
-  $back = imagecolorallocatealpha($image, $r, $g, $b, $background_alpha);
-
+  $back = imagecolorallocatealpha($image, 0, 0, 0, 127);
   imagefill($image, 0, 0, $back);
 
   // Set text alignment
@@ -745,7 +746,7 @@ function textimage_text_to_image($text, $fontsize, $font, $foreground_color = '#
   }
 
   // Create the textimage.
-  list($r, $g, $b) = _textimage_hex2rgb($foreground_color);
+  list($r, $g, $b) = _textimage_hex2rgb($color);
   $fore = imagecolorallocatealpha($image, $r, $g, $b, 0);
 
   imagettftext($image, $fontsize, $q_angle, $x, $y, $fore, $font, $text);
@@ -791,7 +792,7 @@ function _textimage_preset_load($preset) {
 
 /**
  *  Convert a hex color representation to it's rgb integer components.
- * 
+ *
  *  @param $hex
  *    Hex representation of the color.
  *    Can be in the formats: '#ABC','ABC','#AABBCC','AABBCC'
@@ -799,6 +800,8 @@ function _textimage_preset_load($preset) {
  *    Array with three components RGB.
  */
 function _textimage_hex2rgb($hex) {
+  $r = $g = $b = '';
+
   $hex = ltrim($hex, '#');
   if (preg_match('/^[0-9a-f]{3}$/i', $hex)) {
     // 'FA3' is the same as 'FFAA33' so r=FF, g=AA, b=33
