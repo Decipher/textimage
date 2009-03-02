@@ -418,7 +418,7 @@ function textimage_image_from_preset($preset, $text, $additional_text) {
   }
 
   // Generate the textimage
-  $img = textimage_text_to_image($text, $size, $font, $color, $back_color, $angle, $maximum_width, $fixed_width, $align);
+  $img = textimage_text_to_image($text, $size, $font, $color, $angle, $maximum_width, $fixed_width, $align);
 
   // Add a border
   if ($stroke_width && $stroke_color) {
