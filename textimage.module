@@ -130,9 +130,9 @@ function textimage_theme() {
     )
   );
 
-  include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
+  module_load_include('inc', 'textimage', 'textimage_admin');
   foreach (textimage_get_presets() as $preset) {
-    $theme['textimage_formatter_'. $preset->name] = array(
+    $theme['textimage_formatter_textimage_'. $preset->name] = array(
       'arguments' => array('element' => NULL),
       'function' => 'theme_textimage_formatter',
     );
@@ -156,7 +156,7 @@ function textimage_menu() {
   $items['admin/settings/textimage'] = array(
     'title' => 'Textimage',
     'description' => 'Configure text to image preset functions.',
-    'page callback' => 'textimage_preset_list', 
+    'page callback' => 'textimage_preset_list',
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM
   );
@@ -206,7 +206,7 @@ function textimage_menu() {
 
   $items['admin/settings/textimage/settings'] = array(
     'title' => 'Settings',
-    'page callback' => 'drupal_get_form', 
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('textimage_settings_form'),
     'access arguments' => array('administer site configuration'),
     'weight' => 0,
@@ -837,10 +837,10 @@ function textimage_path($preset, $text, $additional_text = array(), $format = 'p
  */
 function textimage_field_formatter_info() {
   $formatters = array();
-  include_once('./'. drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
 
+  module_load_include('inc', 'textimage', 'textimage_admin');
   foreach (textimage_get_presets() as $preset) {
-    $formatters[$preset->name] = array(
+    $formatters['textimage_'. $preset->name] = array(
       'label' => t('Textimage:') .' '. $preset->name,
       'field types' => array('text', 'email'),
     );
@@ -850,7 +850,7 @@ function textimage_field_formatter_info() {
 }
 
 function theme_textimage_formatter($element) {
-  return theme('textimage_image', $element['#formatter'], $element['#item']['safe'], array(), 'png', $element['#item']['safe'], $element['#item']['safe']);
+  return theme('textimage_image', drupal_substr($element['#formatter'], 10), $element['#item']['safe'], array(), 'png', $element['#item']['safe'], $element['#item']['safe']);
 }
 
 /**

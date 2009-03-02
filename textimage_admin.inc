@@ -387,9 +387,6 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#description' => '<div id="textimage-preview"></div>',
-    '#attributes' => array(
-      'class' => 'textimage-preview-wrapper'
-    ),
   );
 
   $form['settings']['preview']['text'] = array(
@@ -418,7 +415,7 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
 function theme_textimage_preset_edit(&$form) {
   drupal_add_css(drupal_get_path('module', 'textimage') .'/misc/css/textimage_admin.css');
 
-  drupal_render($form);
+  drupal_render_children($form);
 }
 
 function textimage_preset_edit_validate($form, &$form_state) {
@@ -450,6 +447,7 @@ function textimage_preset_edit_submit($form, &$form_state) {
   }
 
   if ($return) {
+    _textimage_flush_cache();
     drupal_set_message(t('Updated preset %name', array('%name' => $form_state['values']['name'])));
     drupal_goto('admin/settings/textimage/preset/list');
   }
@@ -502,6 +500,7 @@ function textimage_preset_delete_confirm(&$form_state, $pid) {
 
 function textimage_preset_delete_confirm_submit($form, &$form_state) {
   _textimage_preset_delete($form_state['values']['pid']);
+  _textimage_flush_cache();
   drupal_set_message(t('Deleted preset %name', array('%name' => $form_state['values']['name'])));
   drupal_goto('admin/settings/textimage/preset/list');
 }
@@ -603,6 +602,12 @@ function _textimage_preset_flush($pid) {
   db_delete('textimage_image')
     ->condition('pid', $pid)
     ->execute();
+}
+
+function _textimage_flush_cache() {
+  if (module_exists('content')) {
+    cache_clear_all('*', 'cache_content', TRUE);
+  }
 }
 
 /**
