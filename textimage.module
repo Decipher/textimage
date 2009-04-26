@@ -700,47 +700,62 @@ function textimage_text_to_image($text, $fontsize, $font, $color = '#000000', $a
   $rotation = -(floor($angle / 90) * 90);
 
   $rad = deg2rad($q_angle);
-  $sin = abs(sin($rad));
-  $cos = abs(cos($rad));
+  $sin = -sin($rad);
+  $cos = cos($rad);
 
   // Perform text wrapping, if necessary.
   if ($maximum_width - 1 > 0) {
     $text = textimage_wrap_text($text, $fontsize, $font, $maximum_width - 1);
   }
 
-  // Get dimensions of text string and boundry box.
-  $bbox = imagettfbbox($fontsize, $q_angle, $font, $text);
+  // Get co-ordinates of text string and boundry box.
+  $coords = imagettfbbox($fontsize, 0, $font, $text);
 
-  $twidth = sqrt(pow(max($bbox[0], $bbox[2]) - min($bbox[0], $bbox[2]), 2) + pow(max($bbox[1], $bbox[3]) - min($bbox[1], $bbox[3]), 2));
+  // Fix boundary box.
+  $bbox = array();
+  for($i = 0; $i < 7; $i += 2){
+    $bbox[$i] = round($coords[$i] * $cos + $coords[$i + 1] * -$sin);
+    $bbox[$i + 1] = round($coords[$i + 1] * $cos - $coords[$i] * -$sin);
+  }
 
-  $width = ($fixed_width) ? $maximum_width - 1 : $twidth;
-  $height = sqrt(pow(max($bbox[0], $bbox[6]) - min($bbox[0], $bbox[6]), 2) + pow(max($bbox[1], $bbox[7]) - min($bbox[1], $bbox[7]), 2));
+  // Calculate dimensions of text box.
+  $text_width = sqrt(pow(abs($bbox[0] - $bbox[2]), 2) + pow(abs($bbox[1] - $bbox[3]), 2));
+  $text_height = sqrt(pow(abs($bbox[0] - $bbox[6]), 2) + pow(abs($bbox[1] - $bbox[7]), 2)); // Not used.
 
-  $bwidth = ($fixed_width)
-    ? (($width + 1) * $cos) + (($height + 1) * $sin)
-    : max(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) - min(array($bbox[0], $bbox[2], $bbox[4], $bbox[6])) + 1;
-  $bheight = ($fixed_width)
-    ? (($height + 1) * $cos) + (($width + 1) * $sin)
-    : max(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) - min(array($bbox[1], $bbox[3], $bbox[5], $bbox[7])) + 1;
+  // Calculate dimensions of box from text box.
+  $box_width = max($bbox[0], $bbox[2], $bbox[4], $bbox[6]) - min($bbox[0], $bbox[2], $bbox[4], $bbox[6]);
+  $box_height = max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7]);
+
+  // Calculate dimensions of image.
+  $image_width = ($fixed_width)
+    ? ($maximum_width - 1) * $cos + $text_height * $sin
+    : $box_width;
+  $image_height = ($fixed_width)
+    ? ($maximum_width - 1) * $sin + $text_height * $cos
+    : $box_height;
 
   // Create Image.
-  $image = imagecreatetruecolor($bwidth, $bheight);
+  $image = imagecreatetruecolor($image_width + 1, $image_height + 1);
   $back = imagecolorallocatealpha($image, 0, 0, 0, 127);
   imagefill($image, 0, 0, $back);
 
-  // Set text alignment
-  $x = ($height - $fontsize) * $sin;
-  $y = $fontsize * $cos;
+  // Set text alignment left
+  $x = -$bbox[0];
+  $y = $box_height - $bbox[3];
+
   if ($fixed_width && $align !== ALIGN_LEFT) {
     switch ($align) {
+
+      // Set text alignment center
       case ALIGN_CENTER:
-        $x = ($height - $fontsize) * $sin + (($width / 2) - ($twidth / 2)) * $cos;
-        $y = $fontsize * $cos + (($width / 2) - ($twidth / 2)) * $sin;
+        $x += ($image_width - $box_width) / 2;
+        $y += ($image_height - $box_height) / 2;
         break;
 
+      // Set text alignment right
       case ALIGN_RIGHT:
-        $x = ($height - $fontsize) * $sin + ($width - $twidth) * $cos;
-        $y = $fontsize * $cos + ($width - $twidth) * $sin;
+        $x += $image_width - $box_width;
+        $y += $image_height - $box_height;
         break;
     }
   }
@@ -820,16 +835,6 @@ function _textimage_hex2rgb($hex) {
   $g = hexdec($g);
   $b = hexdec($b);
   return array($r, $g, $b);
-}
-
-/**
- * Function for creation of textimage URLs, automatically replaces spaces with
- * underscores and url encodes for safe use in HTML
- */
-function textimage_path($preset, $text, $additional_text = array(), $format = 'png') {
-  $additional_text = array_reverse($additional_text);
-  $path = file_directory_path() .'/textimage/'. $preset .'/'. (empty($additional_text) ? '' : implode('/', $additional_text) .'/') . $text .'.'. $format;
-  return drupal_urlencode(str_replace(' ', '_', $path));
 }
 
 /**

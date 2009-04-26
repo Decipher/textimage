@@ -584,19 +584,11 @@ function _textimage_preset_flush($pid) {
   }
 
   $preset = _textimage_preset_load($pid);
-  $presetdir = realpath(file_directory_path() .'/textimage/'. $preset['pid']);
+  $presetdir = realpath(file_directory_path() .'/textimage/'. $pid);
 
   if (is_dir($presetdir)) {
     _textimage_recursive_delete($presetdir);
     @unlink($presetdir);
-  }
-
-  // Flush Legacy directory
-  $legacydir = realpath(file_directory_path() .'/textimage/'. $preset['name']);
-
-  if (is_dir($legacydir)) {
-    _textimage_recursive_delete($legacydir);
-    @unlink($legacydir);
   }
 
   db_delete('textimage_image')
