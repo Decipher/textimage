@@ -9,100 +9,52 @@
 function textimage_settings_form() {
   $form = array();
 
-  $fonts_path = variable_get("textimage_fonts_path", drupal_get_path('module', 'textimage') .'/fonts');
-  $images_path = variable_get("textimage_images_path", drupal_get_path('module', 'textimage') .'/backgrounds');
-
-  //check for GD
-  if (!drupal_function_exists('imagecreate')) {
-    drupal_set_message(t('Image library not available. Textimage needs the GD library extension to be installed. Please install GD.'), 'error');
-  }
-
-  //check for FreeType support
-  if (!drupal_function_exists('imagettftext')) {
-    drupal_set_message(t('Your image library does not seem to have TrueType font support. Textimage will work, but will use the default inbuilt font.'), 'error');
-  }
-
-  //check for clean URL support
-  if (!variable_get('clean_url', FALSE)) {
-    drupal_set_message(t('Textimage requires <a href="!path">clean URLs</a> be enabled. Without clean URL support Textimage is unable to cache images and can cause serious performance problems.', array('!path' => url('admin/settings/clean-urls'))), 'error');
-  }
-
-  //check for valid font path
-  if ($fonts_path != '' && !is_dir(rtrim($fonts_path, '\\/'))) {
-    drupal_set_message(t('The current font path is invalid. The default font will be used.'), 'error');
-  }
-
-  //check for valid image path
-  if ($images_path != '' && !is_dir(rtrim($images_path, '\\/'))) {
-    drupal_set_message(t('The current images path is invalid. No images will be used.'), 'error');
-  }
-
-  if (isset($fonts_path)) {
-    $imagefontinfo = t('Number of fonts found:') .' '. count(_textimage_font_list($fonts_path));
-  }
-
-  if (isset($images_path)) {
-    $imagefontinfo .= '<br />'. t('Number of background images found:') .' '. count(_textimage_image_list($images_path));
-  }
-
-  $gdinfo = gd_info();
-  $imagefontinfo .= '<br />'. t('GD Version:') .' '. $gdinfo["GD Version"];
-  $imagefontinfo .= '<br />'. t('FreeType Support:') .' ';
-  $imagefontinfo .= ($gdinfo["FreeType Support"] == TRUE) ? t('True') : t('False');
-  $imagefontinfo .= '<br />';
-
-  if (!$gdinfo["FreeType Support"]) {
-    drupal_set_message(t("This server's installation of GD does not have FreeType support. Textimage requires FreeType support for proper functionality."), 'error');
-  }
-
-  $form['info'] = array(
+  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') . '/fonts');
+  $form['fonts'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Image and font information'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE
+    '#title' => t('Fonts'),
+    '#description' => t('Number of fonts found: !fonts', array('!fonts' => count(_textimage_font_list($fonts_path)))),
   );
-
-  $form['info']['textimage_info'] = array(
-   '#type' => 'item',
-   '#markup' => $imagefontinfo,
-  );
-
-  //Fonts settings
-  $form['settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Textimage settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE
-  );
-
-  $form['settings']['textimage_fonts_path'] = array(
+  $form['fonts']['textimage_fonts_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('Fonts Path'),
+    '#title' => t('Path'),
     '#default_value' => $fonts_path,
     '#maxlength' => 255,
-    '#description' => t('Location of the directory where the Truetype (.ttf) or OpenType (.otf) fonts are stored. If you do not provide any fonts, the module will use the default font for text. Relative paths will be resolved relative to the Drupal installation directory.'),
+    '#description' =>
+      t('Location of the directory where the TrueType (.ttf) or OpenType (.otf) fonts are stored.') .'<br />'.
+      t('Relative paths will be resolved relative to the Drupal installation directory.')
+    ,
   );
 
-  $form['settings']['textimage_images_path'] = array(
+  $images_path = variable_get('textimage_images_path', drupal_get_path('module', 'textimage') . '/backgrounds');
+  $form['images'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Background images'),
+    '#description' => t('Number of background images found: !images', array('!images' => count(_textimage_image_list($images_path)))),
+  );
+  $form['images']['textimage_images_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('Background Image Path'),
+    '#title' => t('Path'),
     '#default_value' => $images_path,
     '#maxlength' => 255,
-    '#description' => t('Location of the directory where the background images are stored. Images in this directory can be overlaid with dynamic text in a preset. Relative paths will be resolved relative to the Drupal installation directory.'),
+    '#description' =>
+      t('Location of the directory where the background images are stored. Images in this directory can be overlaid with dynamic text in a preset.') .'<br />'.
+      t('Relative paths will be resolved relative to the Drupal installation directory.')
+    ,
   );
 
   return system_settings_form($form);
 }
 
 function textimage_settings_form_validate($form, &$form_state) {
-  //check for valid font path
+  // Check for valid fonts path.
   if ($form_state['values']['textimage_fonts_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_fonts_path'], '\\/'))) {
-    form_set_error('textimage_fonts_path', t('The entered font path is invalid'));
+    form_set_error('textimage_fonts_path', t('The fonts path "%path" is invalid.', array('%path' => $form_state['values']['textimage_fonts_path'])));
   }
 
-  //check for valid image path
+  // Check for valid backgorund images path.
   if ($form_state['values']['textimage_images_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_images_path'], '\\/'))) {
-    form_set_error('textimage_images_path', t('The entered image path is invalid'));
+    form_set_error('textimage_images_path', t('The background images path "%path" is invalid.', array('%path' => $form_state['values']['textimage_fonts_path'])));
   }
 }
 
@@ -114,10 +66,10 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     $preset = _textimage_preset_load($pid);
   }
 
-  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') .'/fonts');
+  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') . '/fonts');
   $font_options = _textimage_font_list($fonts_path);
 
-  $images_path = variable_get('textimage_images_path', drupal_get_path('module', 'textimage') .'/backgrounds');
+  $images_path = variable_get('textimage_images_path', drupal_get_path('module', 'textimage') . '/backgrounds');
   $image_files = drupal_map_assoc(_textimage_image_list($images_path));
 
   $presets = textimage_get_presets();
@@ -153,7 +105,7 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#required' => TRUE,
   );
 
-  $form['settings']['description'] = array(
+  $form['description'] = array(
     '#type' => 'textarea',
     '#title' => t('Description'),
     '#description' => t('A short description displayed in the list of presets.'),
@@ -163,54 +115,89 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#rows' => 1,
   );
 
+  // Preview textimage.
+  $preview = '';
+  if (count($preset) > 0) {
+    $preview = $preset;
+    $preview['pid'] = 0;
+    $preview = theme_textimage_image($preview, $preview['settings']['preview']['text'], array(), 'png', $preview['settings']['preview']['text'], $preview['settings']['preview']['text']);
+  }
+  $form['preview'] = array(
+    '#markup' =>
+      '<strong>' . t('Preview') . ":</strong>\n".
+      '<div id="textimage-preview">' . $preview . '</div>'
+    ,
+  );
+
+  $form['settings'] = array(
+    '#type' => 'vertical_tabs',
+  );
+
+  // Text settings
+  $form['settings']['font'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Font Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['settings']['font']['file'] = array(
+    '#type' => 'select',
+    '#title' => t('Font'),
+    '#options' => $font_options,
+    '#default_value' => isset($preset['settings']['font']['file'])
+      ? $preset['settings']['font']['file']
+      : '',
+    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for Fonts Path</a>.', array('!path' => url('admin/build/textimage/settings'))),
+    '#required' => TRUE,
+  );
+  $form['settings']['font']['size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Font Size'),
+    '#description' => t('Enter the size in pixels of the text to be generated.'),
+    '#default_value' => isset($preset['settings']['font']['size'])
+      ? $preset['settings']['font']['size']
+      : 16,
+    '#maxlength' => 5,
+    '#size' => 3,
+    '#required' => TRUE,
+    '#validate' => array('_textimage_number_validate' => array('size')),
+  );
+  $form['settings']['font']['color']['hex'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Color'),
+    '#description' => t('Enter the hex color code you wish to use for the generated text (i.e. #000000).'),
+    '#default_value' => isset($preset['settings']['font']['color']['hex'])
+      ? $preset['settings']['font']['color']['hex']
+      : '#000000',
+    '#maxlength' => 7,
+    '#size' => 8,
+    '#validate' => array('_textimage_hex_validate' => array('color')),
+    '#required' => TRUE,
+    '#attributes' => array(
+      'class' => 'color'
+    ),
+  );
+  $form['settings']['font']['color']['opacity'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Opacity'),
+    '#default_value' => isset($preset['settings']['font']['color']['opacity'])
+      ? $preset['settings']['font']['color']['opacity']
+      : '100',
+    '#maxlength' => 3,
+    '#size' => 2,
+    '#field_suffix' => '%',
+  );
+
   $form['settings']['text'] = array(
     '#type' => 'fieldset',
     '#title' => t('Text Settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-
-  $form['settings']['text']['font'] = array(
-    '#type' => 'select',
-    '#title' => t('Font'),
-    '#options' => $font_options,
-    '#default_value' => isset($preset['settings']['text']['font'])
-      ? $preset['settings']['text']['font']
-      : '',
-    '#description' => t('Select the font to be used in this image. If no fonts are listed, check the <a href="!path">settings for Fonts Path</a>.', array('!path' => url('admin/settings/textimage'))),
-    '#required' => TRUE,
-  );
-
-  $form['settings']['text']['size'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Font Size'),
-    '#description' => t('Enter the size in pixels of the text to be generated.'),
-    '#default_value' => isset($preset['settings']['text']['size'])
-      ? $preset['settings']['text']['size']
-      : 16,
-    '#maxlength' => 3,
-    '#size' => 3,
-    '#required' => TRUE,
-    '#validate' => array('_textimage_number_validate' => array('size')),
-  );
-
-  $form['settings']['text']['color'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Text Color'),
-    '#description' => t('Enter the hex color code you wish to use for the generated text (i.e. #000000).'),
-    '#default_value' => isset($preset['settings']['text']['color'])
-      ? $preset['settings']['text']['color']
-      : '#000000',
-    '#maxlength' => 7,
-    '#size' => 8,
-    '#validate' => array('_textimage_hex_validate' => array('color')),
-    '#required' => TRUE,
-  );
-
   $form['settings']['text']['maximum_width'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum width'),
-    '#field_suffix' => t('pixels'),
+    '#field_suffix' => t('px'),
     '#description' => t('Text lines wider than this will be wrapped. Leave blank to disable wrapping.'),
     '#default_value' => isset($preset['settings']['text']['maximum_width'])
       ? $preset['settings']['text']['maximum_width']
@@ -218,29 +205,27 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#maxlength' => 4,
     '#size' => 4,
   );
-
   $form['settings']['text']['fixed_width'] = array(
     '#type' => 'checkbox',
     '#title' => t('Fixed width?'),
-    '#description' => t('If checked the size of generated image will always be equal to the max width') .'.',
+    '#description' => t('If checked the size of generated image will always be equal to the max width') . '.',
     '#default_value' => isset($preset['settings']['text']['fixed_width'])
       ? $preset['settings']['text']['fixed_width']
       : '',
   );
-
   $form['settings']['text']['align'] = array(
     '#type' => 'select',
     '#title' => t('Text Align'),
-    '#description' => t('Only works when fixed width is enabled') .'.',
+    '#description' => t('Only works when fixed width is enabled') . '.',
     '#options' => array(ALIGN_LEFT => t('Left'), ALIGN_CENTER => t('Center'), ALIGN_RIGHT => t('Right')),
     '#default_value' => isset($preset['settings']['text']['align'])
       ? $preset['settings']['text']['align']
       : '',
   );
-
   $form['settings']['text']['angle'] = array(
     '#type' => 'textfield',
     '#title' => t('Text Rotation'),
+    '#field_suffix' => t('&deg;'),
     '#description' => t('Enter the angle in degrees at which the text will be displayed. Positive numbers rotate the text clockwise, negative numbers counter-clockwise.'),
     '#default_value' => isset($preset['settings']['text']['angle'])
       ? $preset['settings']['text']['angle']
@@ -249,7 +234,6 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#size' => 4,
     '#validate' => array('_textimage_number_validate' => array('angle')),
   );
-
   $form['settings']['text']['case'] = array(
     '#type' => 'select',
     '#title' => t('Convert to case'),
@@ -260,94 +244,114 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
       : '',
   );
 
-  $form['settings']['text']['stroke_width'] = array(
+  // Outline
+  $form['settings']['text']['stroke'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Outline'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['settings']['text']['stroke']['width'] = array(
     '#type' => 'textfield',
-    '#title' => t('Outline Width'),
+    '#title' => t('Width'),
     '#description' => t('Optionally add a stroke outline around the text. Enter the stroke width in pixels.'),
-    '#default_value' => isset($preset['settings']['text']['stroke_width'])
-      ? $preset['settings']['text']['stroke_width']
+    '#default_value' => isset($preset['settings']['text']['stroke']['width'])
+      ? $preset['settings']['text']['stroke']['width']
       : 0,
     '#maxlength' => 2,
-    '#size' => 4,
+    '#size' => 3,
+    '#field_suffix' => 'px',
     '#validate' => array('_textimage_number_validate' => array('stroke_width')),
   );
-
-  $form['settings']['text']['stroke_color'] = array(
+  $form['settings']['text']['stroke']['color'] = array(
     '#type' => 'textfield',
-    '#title' => t('Outline Color'),
-    '#description' => t('Enter the hex color code you wish to use for the stroke outline (i.e. #000000).'),
-    '#default_value' => isset($preset['settings']['text']['stroke_color'])
-      ? $preset['settings']['text']['stroke_color']
-      : '',
+    '#title' => t('Color'),
+    '#default_value' => isset($preset['settings']['text']['stroke']['color'])
+      ? $preset['settings']['text']['stroke']['color']
+      : '#000000',
     '#maxlength' => 7,
     '#size' => 8,
+    '#attributes' => array(
+      'class' => 'color'
+    ),
+    '#description' => t('Enter the hex color code you wish to use for the stroke outline (i.e. #000000)'),
     '#validate' => array('_textimage_hex_validate' => array('color')),
   );
 
-  $form['settings']['text']['margin_top'] = array(
+  // Margin
+  $form['settings']['text']['margin'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Margin'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('Specify the margin in pixels to be added around the generated text.'),
+  );
+  $form['settings']['text']['margin']['top'] = array(
     '#type' => 'textfield',
-    '#title' => t('Text Margin Top'),
-    '#default_value' => isset($preset['settings']['text']['margin_top'])
-      ? $preset['settings']['text']['margin_top']
+    '#title' => t('Top'),
+    '#field_suffix' => t('px'),
+    '#default_value' => isset($preset['settings']['text']['margin']['top'])
+      ? $preset['settings']['text']['margin']['top']
       : 0,
     '#maxlength' => 4,
     '#size' => 4,
     '#validate' => array('_textimage_number_validate' => array('margin_top')),
   );
-
-  $form['settings']['text']['margin_right'] = array(
+  $form['settings']['text']['margin']['right'] = array(
     '#type' => 'textfield',
-    '#title' => t('Text Margin Right'),
-    '#default_value' => isset($preset['settings']['text']['margin_right'])
-      ? $preset['settings']['text']['margin_right']
+    '#title' => t('Right'),
+    '#field_suffix' => t('px'),
+    '#default_value' => isset($preset['settings']['text']['margin']['right'])
+      ? $preset['settings']['text']['margin']['right']
       : 0,
     '#maxlength' => 4,
     '#size' => 4,
     '#validate' => array('_textimage_number_validate' => array('margin_right')),
   );
-
-  $form['settings']['text']['margin_bottom'] = array(
+  $form['settings']['text']['margin']['bottom'] = array(
     '#type' => 'textfield',
-    '#title' => t('Text Margin Bottom'),
-    '#default_value' => isset($preset['settings']['text']['margin_bottom'])
-      ? $preset['settings']['text']['margin_bottom']
+    '#title' => t('Bottom'),
+    '#field_suffix' => t('px'),
+    '#default_value' => isset($preset['settings']['text']['margin']['bottom'])
+      ? $preset['settings']['text']['margin']['bottom']
       : 0,
     '#maxlength' => 4,
     '#size' => 4,
     '#validate' => array('_textimage_number_validate' => array('margin_bottom')),
   );
-
-  $form['settings']['text']['margin_left'] = array(
+  $form['settings']['text']['margin']['left'] = array(
     '#type' => 'textfield',
-    '#title' => t('Text Margin Left'),
-    '#description' => t('Specify the margin in pixels to be added around the generated text.'),
-    '#default_value' => isset($preset['settings']['text']['margin_left'])
-      ? $preset['settings']['text']['margin_left']
+    '#title' => t('Left'),
+    '#field_suffix' => t('px'),
+    '#default_value' => isset($preset['settings']['text']['margin']['left'])
+      ? $preset['settings']['text']['margin']['left']
       : 0,
     '#maxlength' => 4,
     '#size' => 4,
     '#validate' => array('_textimage_number_validate' => array('margin_left')),
   );
 
+  // Background Settings
   $form['settings']['background'] = array(
     '#type' => 'fieldset',
     '#title' => t('Background settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-
   $form['settings']['background']['color'] = array(
     '#type' => 'textfield',
-    '#title' => t('Background Color'),
+    '#title' => t('Color'),
     '#description' => t('Enter the hex color code you wish to use for the background of the generated image (i.e. #FFFFFF). Leave blank for transparent.'),
     '#default_value' => isset($preset['settings']['background']['color'])
       ? $preset['settings']['background']['color']
-      : '',
+      : '#FFFFFF',
     '#maxlength' => 7,
     '#size' => 8,
     '#validate' => array('_textimage_hex_validate' => array('color')),
+    '#attributes' => array(
+      'class' => 'color'
+    ),
   );
-
   $form['settings']['background']['image'] = array(
     '#type' => 'select',
     '#title' => t('Background Type'),
@@ -357,10 +361,10 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
       : '',
     '#description' => t('Select the background type to be used in this image.'),
   );
-
   $form['settings']['background']['xoffset'] = array(
     '#type' => 'textfield',
     '#title' => t('Text X-Offset'),
+    '#field_suffix' => 'px',
     '#default_value' => isset($preset['settings']['background']['xoffset'])
       ? $preset['settings']['background']['xoffset']
       : 0,
@@ -368,10 +372,10 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#size' => 4,
     '#validate' => array('_textimage_number_validate' => array('xoffset')),
   );
-
   $form['settings']['background']['yoffset'] = array(
     '#type' => 'textfield',
     '#title' => t('Text Y-Offset'),
+    '#field_suffix' => 'px',
     '#description' => t('Specify the x and y coordinates on the image you where the top-left corner of the dynamic text should be positioned.'),
     '#default_value' => isset($preset['settings']['background']['yoffset'])
       ? $preset['settings']['background']['yoffset']
@@ -381,25 +385,25 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#validate' => array('_textimage_number_validate' => array('yoffset')),
   );
 
+  // Preview Textimage
   $form['settings']['preview'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Preview'),
+    '#title' => t('Preview settings'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#description' => '<div id="textimage-preview"></div>',
   );
-
   $form['settings']['preview']['text'] = array(
-    '#type' => 'textfield',
+    '#type' => 'textarea',
     '#title' => t('Preview text'),
-    '#default_value' => t('Preview'),
+    '#default_value' => isset($preset['settings']['preview']['text'])
+      ? $preset['settings']['preview']['text']
+      : t('Preview'),
   );
-
   $form['settings']['preview']['button'] = array(
     '#type' => 'button',
     '#value' => t('Preview'),
     '#ahah' => array(
-      'path' => 'admin/settings/textimage/json/preview',
+      'path' => 'js/textimage/preview',
       'wrapper' => 'textimage-preview'
     ),
   );
@@ -413,7 +417,7 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
 }
 
 function theme_textimage_preset_edit(&$form) {
-  drupal_add_css(drupal_get_path('module', 'textimage') .'/misc/css/textimage_admin.css');
+  drupal_add_css(drupal_get_path('module', 'textimage') . '/misc/css/textimage_admin.css');
 
   drupal_render_children($form);
 }
@@ -440,16 +444,16 @@ function textimage_preset_edit_submit($form, &$form_state) {
   _textimage_preset_flush(0);
 
   if (!isset($form_state['values']['pid'])) {
-    $return = _textimage_preset_create($form_state['values']['name'], $form_state['values']['settings']);
+    $return = _textimage_preset_create($form_state['values']['name'], $form_state['values']['description'], $form_state['values']['settings']);
   }
   elseif (is_numeric($form_state['values']['pid'])) {
-    $return = _textimage_preset_update($form_state['values']['pid'], $form_state['values']['name'], $form_state['values']['settings']);
+    $return = _textimage_preset_update($form_state['values']['pid'], $form_state['values']['name'], $form_state['values']['description'], $form_state['values']['settings']);
   }
 
   if ($return) {
     _textimage_flush_cache();
     drupal_set_message(t('Updated preset %name', array('%name' => $form_state['values']['name'])));
-    drupal_goto('admin/settings/textimage/preset/list');
+    drupal_goto('admin/build/textimage/preset/list');
   }
   else {
     drupal_set_message(t('The preset was unable to be updated.'), 'error');
@@ -457,28 +461,27 @@ function textimage_preset_edit_submit($form, &$form_state) {
 }
 
 function textimage_preset_list() {
-  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') .'/fonts');
+  $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') . '/fonts');
   $presets = textimage_get_presets();
 
   $header = array(t('Name'), t('Summary'), t('Description'), array('data' => t('Operations'), 'colspan' => '3'));
   $rows = array();
 
   foreach ($presets as $preset) {
-    $font = _textimage_font_name($fonts_path .'/'. $preset->settings['text']['font']);
+    $font = _textimage_font_name($fonts_path . '/' . $preset->settings['font']['file']);
 
-    $row = array();
-    $row[] = $preset->name;
-    $row[] = $font['name'] .' '. $preset->settings['text']['size'] . t('px');
-    $row[] = $preset->settings['description'];
-    $row[] = l(t('edit'), 'admin/settings/textimage/preset/'. $preset->pid .'/edit');
-    $row[] = l(t('delete'), 'admin/settings/textimage/preset/'. $preset->pid .'/delete');
-    $row[] = l(t('flush cache'), 'admin/settings/textimage/preset/'. $preset->pid .'/flush');
-
-    $rows[] = $row;
+    $rows[] = array(
+      $preset->name,
+      $font['name'] . ' ' . $preset->settings['font']['size'] . t('px'),
+      $preset->description,
+      l(t('edit'), 'admin/build/textimage/preset/' . $preset->pid . '/edit'),
+      l(t('delete'), 'admin/build/textimage/preset/' . $preset->pid . '/delete'),
+      l(t('flush cache'), 'admin/build/textimage/preset/' . $preset->pid . '/flush'),
+    );
   }
 
   if (empty($rows)) {
-    $rows[] = array(array('data' => t('No presets defined. <a href="!url">Create a new preset</a>.', array('!url' => url('admin/settings/textimage/preset/new'))), 'colspan' => '6', 'class' => 'message'));
+    $rows[] = array(array('data' => t('No presets defined. <a href="!url">Create a new preset</a>.', array('!url' => url('admin/build/textimage/preset/new'))), 'colspan' => '6', 'class' => 'message'));
   }
 
   return theme('table', $header, $rows);
@@ -492,7 +495,7 @@ function textimage_preset_delete_confirm(&$form_state, $pid) {
 
   return confirm_form($form,
     t('Are you sure you want to delete the preset %name?', array('%name' => $preset['name'])),
-    isset($_GET['destination']) ? $_GET['destination'] : 'admin/settings/textimage/preset/list',
+    isset($_GET['destination']) ? $_GET['destination'] : 'admin/build/textimage/preset/list',
     t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
   );
@@ -502,7 +505,7 @@ function textimage_preset_delete_confirm_submit($form, &$form_state) {
   _textimage_preset_delete($form_state['values']['pid']);
   _textimage_flush_cache();
   drupal_set_message(t('Deleted preset %name', array('%name' => $form_state['values']['name'])));
-  drupal_goto('admin/settings/textimage/preset/list');
+  drupal_goto('admin/build/textimage/preset/list');
 }
 
 function textimage_preset_flush_confirm(&$form_state, $pid) {
@@ -513,7 +516,7 @@ function textimage_preset_flush_confirm(&$form_state, $pid) {
 
   return confirm_form($form,
     t('Are you sure you want to flush the image cache for preset %name?', array('%name' => $preset['name'])),
-    isset($_GET['destination']) ? $_GET['destination'] : 'admin/settings/textimage/preset/list',
+    isset($_GET['destination']) ? $_GET['destination'] : 'admin/build/textimage/preset/list',
     t('This action cannot be undone.'),
     t('Flush Cache'), t('Cancel')
   );
@@ -521,14 +524,14 @@ function textimage_preset_flush_confirm(&$form_state, $pid) {
 
 function textimage_preset_flush_confirm_submit($form, &$form_state) {
   _textimage_preset_flush($form_state['values']['pid']);
-  drupal_goto('admin/settings/textimage/preset/list');
+  drupal_goto('admin/build/textimage/preset/list');
 }
 
 function textimage_get_presets() {
   static $presets = array();
 
   if (empty($presets)) {
-    $result = db_query('SELECT pid, name, settings FROM {textimage_preset} ORDER BY name');
+    $result = db_query("SELECT pid, name, description, settings FROM {textimage_preset} ORDER BY name");
     $presets = array();
     foreach ($result as $preset) {
       $preset->settings = unserialize($preset->settings);
@@ -544,9 +547,9 @@ function textimage_get_presets() {
  * @param name
  *    name of the preset to be created.
  */
-function _textimage_preset_create($name, $settings) {
+function _textimage_preset_create($name, $description, $settings) {
   return db_insert('textimage_preset')
-    ->fields(array('name' => $name, 'settings' => serialize($settings)))
+    ->fields(array('name' => $name, 'description' => $description, 'settings' => serialize($settings)))
     ->execute();
 }
 
@@ -557,11 +560,11 @@ function _textimage_preset_create($name, $settings) {
  * @param name
  *    new name for the preset
  */
-function _textimage_preset_update($id, $name, $settings) {
+function _textimage_preset_update($id, $name, $description, $settings) {
   $name = check_plain($name);
   _textimage_preset_flush($id);
   return db_update('textimage_preset')
-    ->fields(array('name' => $name, 'settings' => serialize($settings)))
+    ->fields(array('name' => $name, 'description' => $description, 'settings' => serialize($settings)))
     ->condition('pid', $id)
     ->execute();
 }
@@ -584,7 +587,7 @@ function _textimage_preset_flush($pid) {
   }
 
   $preset = _textimage_preset_load($pid);
-  $presetdir = realpath(file_directory_path() .'/textimage/'. $pid);
+  $presetdir = realpath(file_directory_path() . '/textimage/' . $pid);
 
   if (is_dir($presetdir)) {
     _textimage_recursive_delete($presetdir);
@@ -611,7 +614,7 @@ function _textimage_flush_cache() {
  *   An absolute filepath (relative to the filesystem) to delete
  */
 function _textimage_recursive_delete($path) {
-  $listing = $path ."/*";
+  $listing = $path . "/*";
 
   foreach (glob($listing) as $file) {
     if (is_file($file) === TRUE) {
@@ -639,7 +642,7 @@ function _textimage_font_list($fontdir) {
   if (is_dir($fontdir) && $handle = opendir($fontdir)) {
     while ($file = readdir($handle)) {
       if (preg_match("/\.[ot]tf$/i", $file) == 1) {
-        $font = _textimage_font_name($fontdir .'/'. $file);
+        $font = _textimage_font_name($fontdir . '/' . $file);
         $filelist[$file] = $font['name'];
       }
     }
@@ -753,7 +756,7 @@ function _textimage_image_list($imagesdir) {
   if (is_dir($imagesdir) && $handle = opendir($imagesdir)) {
     while ($file = readdir($handle)) {
       if (preg_match("/\.gif|\.png|\.jpg$/i", $file) == 1) {
-        $filelist[] = $imagesdir .'/'. $file;
+        $filelist[] = $imagesdir . '/' . $file;
       }
     }
     closedir($handle);
