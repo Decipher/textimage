@@ -182,8 +182,8 @@ function textimage_update_4() {
   include_once(drupal_get_path('module', 'textimage') .'/textimage_admin.inc');
   $presets = textimage_get_presets();
   foreach ($presets as $preset) {
+    // Update font settings.
     if (!isset($preset->settings['font'])) {
-      // Update font settings.
       $preset->settings['font'] = array(
         'file' => $preset->settings['text']['font'],
         'size' => $preset->settings['text']['size'],
@@ -195,8 +195,10 @@ function textimage_update_4() {
       unset($preset->settings['text']['font']);
       unset($preset->settings['text']['size']);
       unset($preset->settings['text']['color']);
+    }
 
-      // Update margin settings
+    // Update margin settings
+    if (!isset($preset->settings['text']['margin'])) {
       $preset->settings['text']['margin'] = array(
         'top' => $preset->settings['text']['margin_top'],
         'right' => $preset->settings['text']['margin_right'],
@@ -207,21 +209,31 @@ function textimage_update_4() {
       unset($preset->settings['text']['margin_right']);
       unset($preset->settings['text']['margin_bottom']);
       unset($preset->settings['text']['margin_left']);
+    }
 
-      // Update stroke settings.
+    // Update stroke settings.
+    if (!isset($preset->settings['text']['stroke'])) {
       $preset->settings['text']['stroke'] = array(
         'width' => $preset->settings['text']['stroke_width'],
         'color' => $preset->settings['text']['stroke_color'],
       );
       unset($preset->settings['text']['stroke_width']);
       unset($preset->settings['text']['stroke_color']);
+    }
 
-      // Update description.
+    // Update Preview text.
+    if (!isset($preset->settings['preview']['text']['default'])) {
+      $preset->settings['preview']['text']['default'] = $preset->settings['preview']['text'];
+      unset($preset->settings['preview']['text']);
+    }
+
+    // Update description.
+    if (isset($preset->settings['description'])) {
       $preset->description = $preset->settings['description'];
       unset($preset->settings['description']);
-
-      _textimage_preset_update($preset->pid, $preset->name, $preset->description, $preset->settings);
     }
+
+    _textimage_preset_update($preset->pid, $preset->name, $preset->description, $preset->settings);
   }
 
   return $ret;

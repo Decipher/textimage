@@ -1,5 +1,4 @@
 <?php
-
 // $Id$
 
 /**
@@ -73,9 +72,26 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
   $image_files = drupal_map_assoc(_textimage_image_list($images_path));
 
   $presets = textimage_get_presets();
+  $presets_list = array();
+  foreach ($presets as $p) {
+    $presets_list[$p->pid] = $p;
+  }
   foreach ($presets as $p) {
     if ($p->pid != $pid) {
-      $image_presets[$p->pid] = $p->name;
+      $preset_test = $p;
+      $preset_err = FALSE;
+      while (is_numeric($preset_test->settings['background']['image'])) {
+        if ($preset_test->settings['background']['image'] == $pid) {
+          $preset_err = TRUE;
+          break;
+        }
+
+        $preset_test = $presets_list[$preset_test->settings['background']['image']];
+      }
+
+      if (!$preset_err) {
+        $image_presets[$p->pid] = $p->name;
+      }
     }
   }
 
@@ -98,7 +114,7 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Preset Name'),
-    '#description' => t('Preset names should be short and only use alphanumeric characters. This name will be used in the image path for all generated images.'),
+    '#description' => t('Preset names should be short and only use alphanumeric characters.'),
     '#default_value' => isset($preset['name'])
       ? $preset['name']
       : '',
@@ -120,7 +136,17 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
   if (count($preset) > 0) {
     $preview = $preset;
     $preview['pid'] = 0;
-    $preview = theme_textimage_image($preview, $preview['settings']['preview']['text'], array(), 'png', $preview['settings']['preview']['text'], $preview['settings']['preview']['text']);
+    $preview_text = isset($preview['settings']['preview']['text']['default'])
+      ? $preview['settings']['preview']['text']['default']
+      : t('Preview');
+
+    $additional_text = array();
+    if (isset($preset['settings']['preview']['text']['additional'])) {
+      $additional_text = $preset['settings']['preview']['text']['additional'];
+      rsort($additional_text);
+    }
+
+    $preview = theme_textimage_image($preview, $preview_text, $additional_text, 'png', $preview_text, $preview_text);
   }
   $form['preview'] = array(
     '#markup' =>
@@ -358,7 +384,12 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#options' => $image_options,
     '#default_value' => isset($preset['settings']['background']['image'])
       ? $preset['settings']['background']['image']
-      : '',
+      : ''
+    ,
+    '#ahah' => array(
+      'path' => 'js/textimage/background',
+      'wrapper' => 'textimage-preview-text'
+    ),
     '#description' => t('Select the background type to be used in this image.'),
   );
   $form['settings']['background']['xoffset'] = array(
@@ -393,12 +424,34 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#collapsed' => TRUE,
   );
   $form['settings']['preview']['text'] = array(
+    '#prefix' => '<div id="textimage-preview-text">',
+    '#suffix' => '</div>',
+  );
+  $form['settings']['preview']['text']['default'] = array(
     '#type' => 'textarea',
     '#title' => t('Preview text'),
-    '#default_value' => isset($preset['settings']['preview']['text'])
-      ? $preset['settings']['preview']['text']
-      : t('Preview'),
+    '#default_value' => isset($preset['settings']['preview']['text']['default'])
+      ? $preset['settings']['preview']['text']['default']
+      : t('Preview')
+    ,
+    '#rows' => 2,
   );
+
+  // Add additional text fields.
+  if (isset($preset['settings']['preview']['text']['additional'])) {
+    foreach ($preset['settings']['preview']['text']['additional'] as $id => $value) {
+      $form['settings']['preview']['text']['additional'][$id] = array(
+        '#type' => 'textarea',
+        '#title' => t('Additional text'),
+        '#default_value' => isset($preset['settings']['preview']['text']['additional'][$id])
+          ? $preset['settings']['preview']['text']['additional'][$id]
+          : t('Preview')
+        ,
+        '#rows' => 2,
+      );
+    }
+  }
+
   $form['settings']['preview']['button'] = array(
     '#type' => 'button',
     '#value' => t('Preview'),

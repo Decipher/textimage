@@ -47,15 +47,15 @@ function textimage_help($path, $arg) {
       $output = '
         <h2 id="textimage-introduction">The dynamic text to image generator!</h2>
         <p>
-          Textimage is a module which allows you to create dynamic images using any font installed on the server.
+          Textimage adds text to image functionality using GD2 and Freetype, enabling users to create crisp images on the fly for use as theme objects, headings or limitless other possibilities.
         </p>
         <h2>Installing Fonts</h2>
         <p>
-          Textimage is dependent on the GD2 library for text manipulations. You can check what version of GD you have on the <a href="!config">Textimage configuration page</a>. Before you can begin using Text Image you must upload at least one TrueType or OpenType font to the server and tell Textimage where you uploaded it. Fonts must have a .tff or .otf extension to be seen by Textimage. If you do not have any TrueType or OpenType fonts to start using Textimage, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>.
+          Before you can begin using Textimage you must upload at least one TrueType or OpenType font to the server and tell Textimage where you uploaded it. Fonts must have a .tff or .otf extension to be seen by Textimage. If you do not have any TrueType or OpenType fonts, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>.
         </p>
         <h2 id="textimage-configuration">Configuration</h2>
         <p>
-          The basis of Textimage is made of configuration options called <em>presets</em>. A preset defines what font, size, color, etc. should be used in the generated image. You can create a new preset by clicking on the tab by the same name from the <a href="!config">configuration page</a>. Most options are pretty self explanatory, but background images can get pretty complicated if you begin to use other presets as backgrounds. Let\'s run through an example.
+          The basis of Textimage is made of configuration options called <em>presets</em>. A preset defines what font, size, color, etc. should be used in the generated image. You can create new presets on the <a href="!presets">presets page</a>. Most options are pretty self explanatory, but background images can get pretty complicated if you begin to use other presets as backgrounds. Let\'s run through an example.
         </p>
         <p>
           If you specified a backgrounds directory on the main configuration page, a list of backgrounds is automatically popuplated into the Background Image select list. Let\'s say there\'s a image called &quot;header.png&quot; in the image list that looks like this:
@@ -64,34 +64,32 @@ function textimage_help($path, $arg) {
           <img src="!example1" alt="example1" />
         </p>
         <p>
-          Now we\'ll create a preset called &quot;preset1&quot;. In this preset, set the font to braggadacio.ttf (not included), 54px, #FFFFFF (white) color. Select header.png from the background list and position the text at x-offset 14 and y-offset 22 (in pixels). After the preset is saved, Textimage is now ready to automatically generate images based on text strings. You could directly visit the image at {files}/textimage/preset1/Hello.png (where {files} is your sites file directory) and get the following result:
+          Now we\'ll create a preset called &quot;preset1&quot;. In this preset, set the font to Braggadocio (not included), 54px, #FFFFFF (white) color. Select header.png from the background list and position the text at x-offset 14 and y-offset 22 (in pixels). After the preset is saved, Textimage is now ready to automatically generate images based on text strings. You could directly visit the image at {files}/textimage/preset1/Hello.png (where {files} is your sites file directory) and get the following result:
         </p>
         <p>
           <img src="!example2" alt="example2" />
         </p>
         <p>
-          To get crazy now, create a new preset called &quot;preset2&quot;. In this preset, set the font to century.ttf (also not included), 20px, #000000 (black) color. Select <em>preset1</em> from the background list and position the text at x-offset 14 and y-offset 94. Save the preset then visit {files}/textimage/preset2/Hello/world!.png and get the following result:
+          To get crazy now, create a new preset called &quot;preset2&quot;. In this preset, set the font to Century (also not included), 20px, #000000 (black) color. Select <em>preset1</em> from the background list and position the text at x-offset 14 and y-offset 94. Save the preset then visit {files}/textimage/preset2/Hello/world!.png and get the following result:
         </p>
         <p>
           <img src="!example3" alt="example3" />
         </p>
         <p>
-          The entire preset1 is generated using the first argument <em>Hello</em>. Then preset2 is generated using the name of the file <em>world!.png</em>. You could continue chaining presets together over and over again, but be sure not to create a loop.
+          The entire preset1 is generated using the first argument <em>Hello</em>. Then preset2 is generated using the name of the file <em>world!.png</em>. You could continue chaining presets together over and over again.
         </p>
         <h2>File Names and Storage</h2>
         <p>
           Textimage supports .png, .gif, and .jpg input and output files. You can change the output format of the image simply by changing the extension of the last file. In the above example we made PNG images. If we had appended it with .jpg, a JPG image would have been created. Only PNG and GIF files support transparent backgrounds.
         </p>
-        <p>
-          When directly calling URLs for textimages, underscores (_) may be used in the place of spaces.
-        </p>
       ';
 
       $output = t($output, array(
         '!config' => url('admin/build/textimage/settings'),
-        '!example1' => base_path() . drupal_get_path('module', 'textimage') . '/misc/example1.png',
-        '!example2' => base_path() . drupal_get_path('module', 'textimage') . '/misc/example2.png',
-        '!example3' => base_path() . drupal_get_path('module', 'textimage') . '/misc/example3.png',
+        '!presets' => url('admin/build/textimage/presets'),
+        '!example1' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example1.png',
+        '!example2' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example2.png',
+        '!example3' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example3.png',
       ));
       break;
 
@@ -214,7 +212,7 @@ function textimage_menu() {
   );
 
   $items['js/textimage'] = array(
-    'page callback' => 'textimage_json',
+    'page callback' => 'textimage_js',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -406,12 +404,15 @@ function textimage_image_from_preset($preset, $text, $additional_text = array())
   if (is_numeric($background_image) && $background_image = _textimage_preset_load($background_image)) {
     $next_preset = $background_image;
     $next_text = array_pop($additional_text);
+    if (empty($next_text)) {
+      $next_text = $text;
+    }
     $background_resource = textimage_image_from_preset($next_preset, $next_text, $additional_text);
 
     $text_width = imagesx($img);
     $text_height = imagesy($img);
     imagealphablending($background_resource, TRUE);
-    imagecopy($background_resource, $img, $back_xoffset, $back_yoffset, 0, 0, $text_width,  $text_height);
+    imagecopy($background_resource, $img, $background_xoffset, $background_yoffset, 0, 0, $text_width,  $text_height);
     imagesavealpha($background_resource, TRUE);
     $img = $background_resource;
   }
@@ -842,7 +843,11 @@ function textimage_field_formatter_info() {
 }
 
 function theme_textimage_formatter($element) {
-  return theme('textimage_image', drupal_substr($element['#formatter'], 10), $element['#item']['safe'], array(), 'png', $element['#item']['safe'], $element['#item']['safe']);
+  $alt = $title = $element['#item']['safe'];
+  if (isset($element['#item']['email'])) {
+    $alt = $title = '';
+  }
+  return theme('textimage_image', drupal_substr($element['#formatter'], 10), $element['#item']['safe'], array(), 'png', $alt, $title);
 }
 
 /**
@@ -859,14 +864,18 @@ function theme_textimage_image($preset, $text, $additional_text = array(), $form
 }
 
 /**
- * Textimage JSON functionality
+ * Textimage AHAH functionality
  */
-function textimage_json() {
+function textimage_js() {
   $output = '';
 
   switch (arg(2)) {
     case 'preview':
-      textimage_json_preview($output);
+      textimage_js_preview($output);
+      break;
+
+    case 'background':
+      textimage_js_background($output);
       break;
   }
 
@@ -874,8 +883,14 @@ function textimage_json() {
   exit;
 }
 
-function textimage_json_preview(&$output) {
-  $text = $_POST['settings']['preview']['text'];
+function textimage_js_preview(&$output) {
+  $text = $_POST['settings']['preview']['text']['default'];
+
+  $additional_text = array();
+  if (isset($_POST['settings']['preview']['text']['additional'])) {
+    $additional_text = $_POST['settings']['preview']['text']['additional'];
+    rsort($additional_text);
+  }
 
   $preset = array(
     'pid' => 0,
@@ -883,5 +898,70 @@ function textimage_json_preview(&$output) {
     'settings' => $_POST['settings'],
   );
 
-  $output = theme_textimage_image($preset, $text, array(), 'png', $text, $text);
+  $output = theme_textimage_image($preset, $text, $additional_text, 'png', $text, $text);
+}
+
+function textimage_js_background(&$output) {
+  if (empty($_POST['form_build_id'])) {
+    // Invalid request.
+    drupal_set_message(t('An unrecoverable error occurred.'), 'error');
+    print drupal_to_js(array('data' => theme('status_messages')));
+    exit;
+  }
+
+  // Build the new form.
+  $form_state = array('submitted' => FALSE);
+  $form_build_id = $_POST['form_build_id'];
+  $form = form_get_cache($form_build_id, $form_state);
+
+  if (!$form) {
+    // Invalid form_build_id.
+    drupal_set_message(t('An unrecoverable error occurred. This form was missing from the server cache. Try reloading the page and submitting again.'), 'error');
+    print drupal_to_js(array('data' => theme('status_messages')));
+    exit;
+  }
+
+  // form_get_cache() doesn't yield the original $form_state,
+  // but form_builder() does. Needed for retrieving the file array.
+  $built_form = $form;
+  $built_form_state = $form_state;
+
+  $built_form += array('#post' => $_POST);
+  $built_form = form_builder($_POST['form_id'], $built_form, $built_form_state);
+
+  // Clean ids, so that the same element doesn't get a different element id
+  // when rendered once more further down.
+  form_clean_id(NULL, TRUE);
+
+  foreach (element_children($form['settings']['preview']['text']) as $key) {
+    if ($key !== 'default') {
+      unset($form['settings']['preview']['text'][$key]);
+    }
+  }
+  if (is_numeric($_POST['settings']['background']['image']) && $preset = _textimage_preset_load($_POST['settings']['background']['image'])) {
+    if (!isset($form['settings']['preview']['text']['additional'])) {
+      $form['settings']['preview']['text']['additional'] = array();
+    }
+    _textimage_js_background($form);
+
+    while (is_numeric($preset['settings']['background']['image']) && $preset = _textimage_preset_load($preset['settings']['background']['image'])) {
+      _textimage_js_background($form);
+    }
+  }
+
+  form_set_cache($form_build_id, $form, $form_state);
+  $form += array(
+    '#post' => $_POST,
+    '#programmed' => FALSE,
+  );
+  $form = form_builder($_POST['form_id'], $form, $form_state);
+
+  $output = drupal_render($form['settings']['preview']['text']);
+}
+
+function _textimage_js_background(&$form) {
+  $id = count($form['settings']['preview']['text']['additional']);
+
+  $form['settings']['preview']['text']['additional'][$id] = $form['settings']['preview']['text']['default'];
+  $form['settings']['preview']['text']['additional'][$id]['#title'] = 'Additional text';
 }
