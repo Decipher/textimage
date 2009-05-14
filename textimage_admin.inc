@@ -125,8 +125,8 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
     '#type' => 'textarea',
     '#title' => t('Description'),
     '#description' => t('A short description displayed in the list of presets.'),
-    '#default_value' => isset($preset['settings']['description'])
-      ? $preset['settings']['description']
+    '#default_value' => isset($preset['description'])
+      ? $preset['description']
       : '',
     '#rows' => 1,
   );
@@ -162,7 +162,7 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
   // Text settings
   $form['settings']['font'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Font Settings'),
+    '#title' => t('Font settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -178,7 +178,8 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
   );
   $form['settings']['font']['size'] = array(
     '#type' => 'textfield',
-    '#title' => t('Font Size'),
+    '#title' => t('Size'),
+    '#field_suffix' => t('px'),
     '#description' => t('Enter the size in pixels of the text to be generated.'),
     '#default_value' => isset($preset['settings']['font']['size'])
       ? $preset['settings']['font']['size']
@@ -216,7 +217,7 @@ function textimage_preset_edit(&$form_state, $op, $pid = NULL) {
 
   $form['settings']['text'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Text Settings'),
+    '#title' => t('Text settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );

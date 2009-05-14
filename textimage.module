@@ -364,6 +364,7 @@ function textimage_image_from_preset($preset, $text, $additional_text = array())
       }
     }
   }
+  $text_fixed_width = isset($text_fixed_width) ? $text_fixed_width : 0;
 
   // Set font path
   $font_file = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') . '/fonts') . '/' . $font_file;
@@ -714,10 +715,10 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   $box_height = max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7]);
 
   // Calculate dimensions of image.
-  $image_width = ($fixed_width)
+  $image_width = ($fixed_width && $maximum_width > 0)
     ? ($maximum_width - 1) * $cos + $text_height * $sin
     : $box_width;
-  $image_height = ($fixed_width)
+  $image_height = ($fixed_width && $maximum_width > 0)
     ? ($maximum_width - 1) * $sin + $text_height * $cos
     : $box_height;
 
@@ -730,7 +731,7 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   $x = -$bbox[0];
   $y = $box_height - $bbox[3];
 
-  if ($fixed_width && $align !== ALIGN_LEFT) {
+  if (($fixed_width && $maximum_width > 0) && $align !== ALIGN_LEFT) {
     switch ($align) {
 
       // Set text alignment center
@@ -847,6 +848,7 @@ function theme_textimage_formatter($element) {
   if (isset($element['#item']['email'])) {
     $alt = $title = '';
   }
+
   return theme('textimage_image', drupal_substr($element['#formatter'], 10), $element['#item']['safe'], array(), 'png', $alt, $title);
 }
 
