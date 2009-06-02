@@ -780,7 +780,7 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   $fore = imagecolorallocatealpha($image, $r, $g, $b, $alpha);
 
   imagettftext($image, $fontsize, $q_angle, $x, $y, $fore, $font, $text);
-  if ($rotation !== 0) {
+  if ($rotation != 0) {
     $image = imagerotate($image, $rotation, 0);
   }
 
@@ -788,6 +788,66 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   imagesavealpha($image, TRUE);
 
   return $image;
+}
+
+if (!function_exists('imagerotate')) {
+  function imagerotate($im, $angle, $bgcolor) {
+    if ($angle === 0) { 
+      return $im;
+    }
+    // imagerotate() in php's libgd rotates the image counterclockwise,
+    // this implementation rotates clockwise. The angle needs to be
+    // inverted to give the same behaviour between these implementations.
+    $angle = 360 + $angle;
+
+    $width  = imagesx($im);
+    $height = imagesy($im);
+    // background color.
+    list($r, $g, $b, $a) = _textimage_hex2rgb($bgcolor);
+
+    switch ($angle) {
+      case 270:
+      case 90:
+        // flip dimensions.
+        $rot_width = $height;
+        $rot_height = $width;
+        break;
+      case 180:
+        // maintain dims.
+        $rot_width = $width;
+        $rot_height = $height;
+        break;
+    }
+
+    $rotate = imagecreatetruecolor($rot_width, $rot_height);
+    $bg = imagecolorallocatealpha($rotate, $r, $g, $b, $a);
+    imagefilledrectangle($rotate, 0, 0, $rot_width, $rot_height, $bg);
+    imagealphablending($rotate, FALSE);
+    imagesavealpha($rotate, TRUE);
+
+    switch ($angle) {
+      case 270:
+        $rot_width--;
+        for ($y = 0; $y < $height; ++$y)
+          for ($x = 0; $x < $width; ++$x)
+            imagesetpixel($rotate, $rot_width - $y, $x, imagecolorat($im, $x, $y));
+        break;
+      case 90:
+        $rot_height--;
+        for ($y = 0; $y < $height; ++$y)
+          for ($x = 0; $x < $width; ++$x)
+            imagesetpixel($rotate, $y, $rot_height - $x, imagecolorat($im, $x, $y));
+        break;
+      case 180:
+        $rot_width--;
+        $rot_height--;
+        for ($y = 0; $y < $height; ++$y)
+          for ($x = 0; $x < $width; ++$x)
+            imagesetpixel($rotate, $rot_width - $x, $rot_height - $y, imagecolorat($im, $x, $y));
+        break;
+    }
+    return $rotate;
+  }
 }
 
 /**
