@@ -1,4 +1,3 @@
-// $Id$
 
 Textimage adds text to image functionality using GD2 and Freetype, enabling
 users to create crisp images on the fly for use as theme objects, headings or
