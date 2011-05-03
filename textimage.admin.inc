@@ -47,15 +47,15 @@ function textimage_settings_form() {
 }
 
 function textimage_settings_form_validate($form, &$form_state) {
-	// Check for valid fonts path.
-	if ($form_state['values']['textimage_fonts_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_fonts_path'], '\\/'))) {
-		form_set_error('textimage_fonts_path', t('The fonts path "%path" is invalid.', array('%path' => $form_state['values']['textimage_fonts_path'])));
-	}
+  // Check for valid fonts path.
+  if ($form_state['values']['textimage_fonts_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_fonts_path'], '\\/'))) {
+    form_set_error('textimage_fonts_path', t('The fonts path "%path" is invalid.', array('%path' => $form_state['values']['textimage_fonts_path'])));
+  }
 
-	// Check for valid backgorund images path.
-	if ($form_state['values']['textimage_images_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_images_path'], '\\/'))) {
-		form_set_error('textimage_images_path', t('The background images path "%path" is invalid.', array('%path' => $form_state['values']['textimage_fonts_path'])));
-	}
+  // Check for valid backgorund images path.
+  if ($form_state['values']['textimage_images_path'] != "" && !is_dir(rtrim($form_state['values']['textimage_images_path'], '\\/'))) {
+    form_set_error('textimage_images_path', t('The background images path "%path" is invalid.', array('%path' => $form_state['values']['textimage_fonts_path'])));
+  }
 }
 
 function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
@@ -135,7 +135,7 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
   );
   // Preview textimage.
   $preview = '';
-  
+
   if (count($preset) > 0) {
     $preview = $preset;
     $preview['pid'] = 0;
@@ -155,7 +155,7 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
       'additional_text' => $additional_text,
     ));
   }
-  
+
   //drupal_add_http_header('Content-Type', 'image/png');
   $form['preview'] = array(
     '#type'   => 'item',
@@ -164,7 +164,7 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
       '<div id="textimage-preview"><img src="' . file_create_url($preview) . '"></div>'
     ,
   );
-  
+
   $form['settings'] = array(
     '#type' => 'vertical_tabs',
   );
@@ -475,8 +475,8 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
     ),
   );
 
-  
-  
+
+
   return $form;
 }
 

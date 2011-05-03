@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Utility routines of Textimage.
@@ -12,109 +11,108 @@
  *   A GD image resource.
  */
 function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' => '#000000', 'opacity' => '100'), $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT){
-	
-	// Set rotation angle.
-	$q_angle = -$angle;
-	
-	while ($q_angle > 0 || $q_angle <= -90) {
-		$q_angle -= $q_angle > 0 ? 90 : -90;
-	}
-  
-	while ($angle < 0 || $angle >= 360) {
-		$angle += $angle < 0 ? 360 : -360;
-	}
-	
-	$rotation = -(floor($angle / 90) * 90);
-	$rad = deg2rad($q_angle);
-	$sin = -sin($rad);
-	$cos = cos($rad);
+  // Set rotation angle.
+  $q_angle = -$angle;
 
-	// Perform text wrapping, if necessary.
+  while ($q_angle > 0 || $q_angle <= -90) {
+    $q_angle -= $q_angle > 0 ? 90 : -90;
+  }
+
+  while ($angle < 0 || $angle >= 360) {
+    $angle += $angle < 0 ? 360 : -360;
+  }
+
+  $rotation = -(floor($angle / 90) * 90);
+  $rad = deg2rad($q_angle);
+  $sin = -sin($rad);
+  $cos = cos($rad);
+
+  // Perform text wrapping, if necessary.
   $max_width = $maximum_width - 1;
-	if ($max_width > 0) {
-		$text = textimage_wrap_text($text, $fontsize, $font, $max_width, $align);
-	}
+  if ($max_width > 0) {
+    $text = textimage_wrap_text($text, $fontsize, $font, $max_width, $align);
+  }
 
-	// Get co-ordinates of text string and boundry box.
-	$coords = imagettfbbox($fontsize, 0, $font, $text);
+  // Get co-ordinates of text string and boundry box.
+  $coords = imagettfbbox($fontsize, 0, $font, $text);
 
-	// Set consistant heights.
-	if ($coords[3] - $coords[5] < $fontsize * 2){
-		$characters = drupal_map_assoc(range(33, 122), 'chr');
-		$characters = join($characters);
-		$testcoords = imagettfbbox($fontsize, 0, $font, $characters);
+  // Set consistant heights.
+  if ($coords[3] - $coords[5] < $fontsize * 2){
+    $characters = drupal_map_assoc(range(33, 122), 'chr');
+    $characters = join($characters);
+    $testcoords = imagettfbbox($fontsize, 0, $font, $characters);
 
-		if ($coords[3] - $coords[5] < $testcoords[3] - $testcoords[5]){
-			$coords[1] = $testcoords[1];
-			$coords[3] = $testcoords[3];
-			$coords[5] = $testcoords[5];
-			$coords[7] = $testcoords[7];
-		}
-	}
+    if ($coords[3] - $coords[5] < $testcoords[3] - $testcoords[5]){
+      $coords[1] = $testcoords[1];
+      $coords[3] = $testcoords[3];
+      $coords[5] = $testcoords[5];
+      $coords[7] = $testcoords[7];
+    }
+  }
 
-	// Fix boundary box.
-	$bbox = array();
-	for ($i = 0; $i < 7; $i += 2) {
-		$bbox[$i] = round($coords[$i] * $cos + $coords[$i + 1] * -$sin);
-		$bbox[$i + 1] = round($coords[$i + 1] * $cos - $coords[$i] * -$sin);
-	}
+  // Fix boundary box.
+  $bbox = array();
+  for ($i = 0; $i < 7; $i += 2) {
+    $bbox[$i] = round($coords[$i] * $cos + $coords[$i + 1] * -$sin);
+    $bbox[$i + 1] = round($coords[$i + 1] * $cos - $coords[$i] * -$sin);
+  }
 
-	// Calculate dimensions of text box.
-	$text_width = sqrt(pow(abs($bbox[0] - $bbox[2]), 2) + pow(abs($bbox[1] - $bbox[3]), 2));
-	$text_height = sqrt(pow(abs($bbox[0] - $bbox[6]), 2) + pow(abs($bbox[1] - $bbox[7]), 2)); // Not used.
+  // Calculate dimensions of text box.
+  $text_width = sqrt(pow(abs($bbox[0] - $bbox[2]), 2) + pow(abs($bbox[1] - $bbox[3]), 2));
+  $text_height = sqrt(pow(abs($bbox[0] - $bbox[6]), 2) + pow(abs($bbox[1] - $bbox[7]), 2)); // Not used.
 
-	// Calculate dimensions of box from text box.
-	$box_width = max($bbox[0], $bbox[2], $bbox[4], $bbox[6]) - min($bbox[0], $bbox[2], $bbox[4], $bbox[6]);
-	$box_height = max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7]);
+  // Calculate dimensions of box from text box.
+  $box_width = max($bbox[0], $bbox[2], $bbox[4], $bbox[6]) - min($bbox[0], $bbox[2], $bbox[4], $bbox[6]);
+  $box_height = max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7]);
 
-	// Calculate dimensions of image.
-	$image_width = ($fixed_width && $maximum_width > 0)
+  // Calculate dimensions of image.
+  $image_width = ($fixed_width && $maximum_width > 0)
     ? ($maximum_width - 1) * $cos + $text_height * $sin
     : $box_width;
-  	$image_height = ($fixed_width && $maximum_width > 0)
+    $image_height = ($fixed_width && $maximum_width > 0)
     ? ($maximum_width - 1) * $sin + $text_height * $cos
     : $box_height;
 
-	// Create Image.
-	$image = imagecreatetruecolor($image_width + 1, $image_height + 1);
-	$back = imagecolorallocatealpha($image, 0, 0, 0, 127);
-	imagefill($image, 0, 0, $back);
+  // Create Image.
+  $image = imagecreatetruecolor($image_width + 1, $image_height + 1);
+  $back = imagecolorallocatealpha($image, 0, 0, 0, 127);
+  imagefill($image, 0, 0, $back);
 
-	// Set text alignment left
-	$x = -$bbox[0];
-	$y = $box_height - $bbox[3];
+  // Set text alignment left
+  $x = -$bbox[0];
+  $y = $box_height - $bbox[3];
 
-	if (($fixed_width && $maximum_width > 0) && $align !== ALIGN_LEFT) {
-		switch ($align) {
+  if (($fixed_width && $maximum_width > 0) && $align !== ALIGN_LEFT) {
+    switch ($align) {
 
-			// Set text alignment center
-			case ALIGN_CENTER:
-				$x += ($image_width - $box_width) / 2;
-				$y += ($image_height - $box_height) / 2;
-	        break;
+      // Set text alignment center
+      case ALIGN_CENTER:
+        $x += ($image_width - $box_width) / 2;
+        $y += ($image_height - $box_height) / 2;
+          break;
 
-			// Set text alignment right
-			case ALIGN_RIGHT:
-				$x += $image_width - $box_width;
-				$y += $image_height - $box_height;
-			break;
-		}
-	}
+      // Set text alignment right
+      case ALIGN_RIGHT:
+        $x += $image_width - $box_width;
+        $y += $image_height - $box_height;
+      break;
+    }
+  }
 
-	// Create the textimage.
-	list($r, $g, $b) = _textimage_hex2rgb($color['hex']);
-	$alpha = -($color['opacity'] - 100) / 100 * 127;
-	$fore = imagecolorallocatealpha($image, $r, $g, $b, $alpha);
+  // Create the textimage.
+  list($r, $g, $b) = _textimage_hex2rgb($color['hex']);
+  $alpha = -($color['opacity'] - 100) / 100 * 127;
+  $fore = imagecolorallocatealpha($image, $r, $g, $b, $alpha);
 
-	imagettftext($image, $fontsize, $q_angle, $x, $y, $fore, $font, $text);
-	if ($rotation != 0) {
-		$image = imagerotate($image, $rotation, 0);
-	}
+  imagettftext($image, $fontsize, $q_angle, $x, $y, $fore, $font, $text);
+  if ($rotation != 0) {
+    $image = imagerotate($image, $rotation, 0);
+  }
 
-	imagealphablending($image, TRUE);
-	imagesavealpha($image, TRUE);
+  imagealphablending($image, TRUE);
+  imagesavealpha($image, TRUE);
 
-	return $image;
+  return $image;
 }
 
 /**
@@ -167,7 +165,7 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
       // the search interval.
       $first_part = drupal_substr($text, 0, $fit);
       $last_part  = drupal_substr($text, $fit);
-      if ($align == ALIGN_CENTER) {        
+      if ($align == ALIGN_CENTER) {
         $text  = $first_part . "\n" . $last_part;
         // Get last line of the text's first part
         $first_part_array = explode("\n", $first_part);
@@ -238,65 +236,65 @@ if (!function_exists('drupal_preg_match')) {
 }
 
 if (!function_exists('imagerotate')) {
-	function imagerotate($im, $angle, $bgcolor) {
-		if ($angle === 0) { 
-			return $im;
-		}
-		
-		// imagerotate() in php's libgd rotates the image counterclockwise,
-		// this implementation rotates clockwise. The angle needs to be
-		// inverted to give the same behaviour between these implementations.
-		$angle = 360 + $angle;
+  function imagerotate($im, $angle, $bgcolor) {
+    if ($angle === 0) {
+      return $im;
+    }
 
-		$width  = imagesx($im);
-		$height = imagesy($im);
-		
-		// background color.
-		list($r, $g, $b, $a) = _textimage_hex2rgb($bgcolor);
+    // imagerotate() in php's libgd rotates the image counterclockwise,
+    // this implementation rotates clockwise. The angle needs to be
+    // inverted to give the same behaviour between these implementations.
+    $angle = 360 + $angle;
 
-		switch ($angle) {
-			case 270:
-			case 90:
-				// flip dimensions.
-				$rot_width = $height;
-				$rot_height = $width;
-			break;
-			case 180:
-				// maintain dims.
-				$rot_width = $width;
-				$rot_height = $height;
-			break;
-		}
+    $width  = imagesx($im);
+    $height = imagesy($im);
 
-		$rotate = imagecreatetruecolor($rot_width, $rot_height);
-		$bg = imagecolorallocatealpha($rotate, $r, $g, $b, $a);
-		imagefilledrectangle($rotate, 0, 0, $rot_width, $rot_height, $bg);
-		imagealphablending($rotate, FALSE);
-		imagesavealpha($rotate, TRUE);
+    // background color.
+    list($r, $g, $b, $a) = _textimage_hex2rgb($bgcolor);
 
-		switch ($angle){
-			case 270:
-				$rot_width--;
-				for ($y = 0; $y < $height; ++$y)
-					for ($x = 0; $x < $width; ++$x)
-						imagesetpixel($rotate, $rot_width - $y, $x, imagecolorat($im, $x, $y));
-			break;
-			case 90:
-				$rot_height--;
-				for ($y = 0; $y < $height; ++$y)
-					for ($x = 0; $x < $width; ++$x)
-					imagesetpixel($rotate, $y, $rot_height - $x, imagecolorat($im, $x, $y));
-			break;
-			case 180:
-				$rot_width--;
-				$rot_height--;
-				for ($y = 0; $y < $height; ++$y)
-					for ($x = 0; $x < $width; ++$x)
-					imagesetpixel($rotate, $rot_width - $x, $rot_height - $y, imagecolorat($im, $x, $y));
-			break;
-		}
-		return $rotate;
-	}
+    switch ($angle) {
+      case 270:
+      case 90:
+        // flip dimensions.
+        $rot_width = $height;
+        $rot_height = $width;
+      break;
+      case 180:
+        // maintain dims.
+        $rot_width = $width;
+        $rot_height = $height;
+      break;
+    }
+
+    $rotate = imagecreatetruecolor($rot_width, $rot_height);
+    $bg = imagecolorallocatealpha($rotate, $r, $g, $b, $a);
+    imagefilledrectangle($rotate, 0, 0, $rot_width, $rot_height, $bg);
+    imagealphablending($rotate, FALSE);
+    imagesavealpha($rotate, TRUE);
+
+    switch ($angle){
+      case 270:
+        $rot_width--;
+        for ($y = 0; $y < $height; ++$y)
+          for ($x = 0; $x < $width; ++$x)
+            imagesetpixel($rotate, $rot_width - $y, $x, imagecolorat($im, $x, $y));
+      break;
+      case 90:
+        $rot_height--;
+        for ($y = 0; $y < $height; ++$y)
+          for ($x = 0; $x < $width; ++$x)
+          imagesetpixel($rotate, $y, $rot_height - $x, imagecolorat($im, $x, $y));
+      break;
+      case 180:
+        $rot_width--;
+        $rot_height--;
+        for ($y = 0; $y < $height; ++$y)
+          for ($x = 0; $x < $width; ++$x)
+          imagesetpixel($rotate, $rot_width - $x, $rot_height - $y, imagecolorat($im, $x, $y));
+      break;
+    }
+    return $rotate;
+  }
 }
 
 /**

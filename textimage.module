@@ -1,33 +1,40 @@
 <?php
-// $Id: textimage.module,v 1.40 2009/06/02 22:26:40 deciphered Exp $
-
 /**
  * @file
  * Provides text to image manipulations.
  */
 
 /**
+ * Include additional files.
+ */
+foreach (module_list() as $module) {
+  if (file_exists($file = dirname(__FILE__) . "/includes/{$module}.inc")) {
+    require_once $file;
+  }
+}
+
+/**
  * Matches all 'P' Unicode character classes (punctuation)
  */
 if (!defined('PREG_CLASS_PUNCTUATION')){
-	define(
-	  'PREG_CLASS_PUNCTUATION',
-	  '\x{21}-\x{23}\x{25}-\x{2a}\x{2c}-\x{2f}\x{3a}\x{3b}\x{3f}\x{40}\x{5b}-\x{5d}' .
-	  '\x{5f}\x{7b}\x{7d}\x{a1}\x{ab}\x{b7}\x{bb}\x{bf}\x{37e}\x{387}\x{55a}-\x{55f}' .
-	  '\x{589}\x{58a}\x{5be}\x{5c0}\x{5c3}\x{5f3}\x{5f4}\x{60c}\x{60d}\x{61b}\x{61f}' .
-	  '\x{66a}-\x{66d}\x{6d4}\x{700}-\x{70d}\x{964}\x{965}\x{970}\x{df4}\x{e4f}' .
-	  '\x{e5a}\x{e5b}\x{f04}-\x{f12}\x{f3a}-\x{f3d}\x{f85}\x{104a}-\x{104f}\x{10fb}' .
-	  '\x{1361}-\x{1368}\x{166d}\x{166e}\x{169b}\x{169c}\x{16eb}-\x{16ed}\x{1735}' .
-	  '\x{1736}\x{17d4}-\x{17d6}\x{17d8}-\x{17da}\x{1800}-\x{180a}\x{1944}\x{1945}' .
-	  '\x{2010}-\x{2027}\x{2030}-\x{2043}\x{2045}-\x{2051}\x{2053}\x{2054}\x{2057}' .
-	  '\x{207d}\x{207e}\x{208d}\x{208e}\x{2329}\x{232a}\x{23b4}-\x{23b6}\x{2768}-' .
-	  '\x{2775}\x{27e6}-\x{27eb}\x{2983}-\x{2998}\x{29d8}-\x{29db}\x{29fc}\x{29fd}' .
-	  '\x{3001}-\x{3003}\x{3008}-\x{3011}\x{3014}-\x{301f}\x{3030}\x{303d}\x{30a0}' .
-	  '\x{30fb}\x{fd3e}\x{fd3f}\x{fe30}-\x{fe52}\x{fe54}-\x{fe61}\x{fe63}\x{fe68}' .
-	  '\x{fe6a}\x{fe6b}\x{ff01}-\x{ff03}\x{ff05}-\x{ff0a}\x{ff0c}-\x{ff0f}\x{ff1a}' .
-	  '\x{ff1b}\x{ff1f}\x{ff20}\x{ff3b}-\x{ff3d}\x{ff3f}\x{ff5b}\x{ff5d}\x{ff5f}-' .
-	  '\x{ff65}'
-	);
+  define(
+    'PREG_CLASS_PUNCTUATION',
+    '\x{21}-\x{23}\x{25}-\x{2a}\x{2c}-\x{2f}\x{3a}\x{3b}\x{3f}\x{40}\x{5b}-\x{5d}' .
+    '\x{5f}\x{7b}\x{7d}\x{a1}\x{ab}\x{b7}\x{bb}\x{bf}\x{37e}\x{387}\x{55a}-\x{55f}' .
+    '\x{589}\x{58a}\x{5be}\x{5c0}\x{5c3}\x{5f3}\x{5f4}\x{60c}\x{60d}\x{61b}\x{61f}' .
+    '\x{66a}-\x{66d}\x{6d4}\x{700}-\x{70d}\x{964}\x{965}\x{970}\x{df4}\x{e4f}' .
+    '\x{e5a}\x{e5b}\x{f04}-\x{f12}\x{f3a}-\x{f3d}\x{f85}\x{104a}-\x{104f}\x{10fb}' .
+    '\x{1361}-\x{1368}\x{166d}\x{166e}\x{169b}\x{169c}\x{16eb}-\x{16ed}\x{1735}' .
+    '\x{1736}\x{17d4}-\x{17d6}\x{17d8}-\x{17da}\x{1800}-\x{180a}\x{1944}\x{1945}' .
+    '\x{2010}-\x{2027}\x{2030}-\x{2043}\x{2045}-\x{2051}\x{2053}\x{2054}\x{2057}' .
+    '\x{207d}\x{207e}\x{208d}\x{208e}\x{2329}\x{232a}\x{23b4}-\x{23b6}\x{2768}-' .
+    '\x{2775}\x{27e6}-\x{27eb}\x{2983}-\x{2998}\x{29d8}-\x{29db}\x{29fc}\x{29fd}' .
+    '\x{3001}-\x{3003}\x{3008}-\x{3011}\x{3014}-\x{301f}\x{3030}\x{303d}\x{30a0}' .
+    '\x{30fb}\x{fd3e}\x{fd3f}\x{fe30}-\x{fe52}\x{fe54}-\x{fe61}\x{fe63}\x{fe68}' .
+    '\x{fe6a}\x{fe6b}\x{ff01}-\x{ff03}\x{ff05}-\x{ff0a}\x{ff0c}-\x{ff0f}\x{ff1a}' .
+    '\x{ff1b}\x{ff1f}\x{ff20}\x{ff3b}-\x{ff3d}\x{ff3f}\x{ff5b}\x{ff5d}\x{ff5f}-' .
+    '\x{ff65}'
+  );
 }
 
 /**
@@ -43,45 +50,45 @@ define('ALIGN_RIGHT', 3);
  * Implements hook_help().
  */
 function textimage_help($path, $arg){
-	$output = "";
+  $output = "";
 
-	switch($path){
-		case 'admin/help#textimage':
-			$output = '
-				<h2 id="textimage-introduction">The dynamic text to image generator!</h2>
-				<p>Textimage adds text to image functionality using GD2 and Freetype, enabling users to create crisp images on the fly for use as theme objects, headings or limitless other possibilities.</p>
-				
-				<h2>Installing Fonts</h2>
-				<p>Before you can begin using Textimage you must upload at least one TrueType or OpenType font to the server and tell Textimage where you uploaded it. Fonts must have a .tff or .otf extension to be seen by Textimage. If you do not have any TrueType or OpenType fonts, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>.</p>
-				
-				<h2 id="textimage-configuration">Configuration</h2>
-				<p>The basis of Textimage is made of configuration options called <em>presets</em>. A preset defines what font, size, color, etc. should be used in the generated image. You can create new presets on the <a href="!presets">presets page</a>. Most options are pretty self explanatory, but background images can get pretty complicated if you begin to use other presets as backgrounds. Let\'s run through an example.</p>
-				<p>If you specified a backgrounds directory on the main configuration page, a list of backgrounds is automatically popuplated into the Background Image select list. Let\'s say there\'s a image called &quot;header.png&quot; in the image list that looks like this:</p>
-				<p><img src="!example1" alt="example1" /></p>
-				<p>Now we\'ll create a preset called &quot;preset1&quot;. In this preset, set the font to Braggadocio (not included), 54px, #FFFFFF (white) color. Select header.png from the background list and position the text at x-offset 14 and y-offset 22 (in pixels). After the preset is saved, Textimage is now ready to automatically generate images based on text strings. You could directly visit the image at {files}/textimage/preset1/Hello.png (where {files} is your sites file directory) and get the following result:</p>
-        		<p><img src="!example2" alt="example2" /></p>
-				<p>To get crazy now, create a new preset called &quot;preset2&quot;. In this preset, set the font to Century (also not included), 20px, #000000 (black) color. Select <em>preset1</em> from the background list and position the text at x-offset 14 and y-offset 94. Save the preset then visit {files}/textimage/preset2/Hello/world!.png and get the following result:</p>
-        		<p><img src="!example3" alt="example3" /></p>
-        		<p>The entire preset1 is generated using the first argument <em>Hello</em>. Then preset2 is generated using the name of the file <em>world!.png</em>. You could continue chaining presets together over and over again.</p>
-        		
-				<h2>File Names and Storage</h2>
-				<p>Textimage supports .png, .gif, and .jpg input and output files. You can change the output format of the image simply by changing the extension of the last file. In the above example we made PNG images. If we had appended it with .jpg, a JPG image would have been created. Only PNG and GIF files support transparent backgrounds.</p>
-      		';
+  switch($path){
+    case 'admin/help#textimage':
+      $output = '
+        <h2 id="textimage-introduction">The dynamic text to image generator!</h2>
+        <p>Textimage adds text to image functionality using GD2 and Freetype, enabling users to create crisp images on the fly for use as theme objects, headings or limitless other possibilities.</p>
 
-			$output = t($output, array(
-				'!config' => url('admin/config/media/textimage/settings'),
-		        '!presets' => url('admin/config/media/textimage/presets'),
-		        '!example1' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example1.png',
-		        '!example2' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example2.png',
-		        '!example3' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example3.png',
-			));
-		break;
+        <h2>Installing Fonts</h2>
+        <p>Before you can begin using Textimage you must upload at least one TrueType or OpenType font to the server and tell Textimage where you uploaded it. Fonts must have a .tff or .otf extension to be seen by Textimage. If you do not have any TrueType or OpenType fonts, you can download some free GNU fonts from the <a href="http://savannah.nongnu.org/projects/freefont/">Free UCS Outline Fonts Project</a>. Once the fonts are uploaded, enter the UNIX-style path the fonts on the <a href="!config">configuration page</a>.</p>
 
-		case 'admin/config/media/modules#description':
-		case 'admin/config/textimage':
-		case 'admin/config/media/modules/textimage':
-			$output = t('Provides text to image manipulations.');
-		break;
+        <h2 id="textimage-configuration">Configuration</h2>
+        <p>The basis of Textimage is made of configuration options called <em>presets</em>. A preset defines what font, size, color, etc. should be used in the generated image. You can create new presets on the <a href="!presets">presets page</a>. Most options are pretty self explanatory, but background images can get pretty complicated if you begin to use other presets as backgrounds. Let\'s run through an example.</p>
+        <p>If you specified a backgrounds directory on the main configuration page, a list of backgrounds is automatically popuplated into the Background Image select list. Let\'s say there\'s a image called &quot;header.png&quot; in the image list that looks like this:</p>
+        <p><img src="!example1" alt="example1" /></p>
+        <p>Now we\'ll create a preset called &quot;preset1&quot;. In this preset, set the font to Braggadocio (not included), 54px, #FFFFFF (white) color. Select header.png from the background list and position the text at x-offset 14 and y-offset 22 (in pixels). After the preset is saved, Textimage is now ready to automatically generate images based on text strings. You could directly visit the image at {files}/textimage/preset1/Hello.png (where {files} is your sites file directory) and get the following result:</p>
+            <p><img src="!example2" alt="example2" /></p>
+        <p>To get crazy now, create a new preset called &quot;preset2&quot;. In this preset, set the font to Century (also not included), 20px, #000000 (black) color. Select <em>preset1</em> from the background list and position the text at x-offset 14 and y-offset 94. Save the preset then visit {files}/textimage/preset2/Hello/world!.png and get the following result:</p>
+            <p><img src="!example3" alt="example3" /></p>
+            <p>The entire preset1 is generated using the first argument <em>Hello</em>. Then preset2 is generated using the name of the file <em>world!.png</em>. You could continue chaining presets together over and over again.</p>
+
+        <h2>File Names and Storage</h2>
+        <p>Textimage supports .png, .gif, and .jpg input and output files. You can change the output format of the image simply by changing the extension of the last file. In the above example we made PNG images. If we had appended it with .jpg, a JPG image would have been created. Only PNG and GIF files support transparent backgrounds.</p>
+          ';
+
+      $output = t($output, array(
+        '!config' => url('admin/config/media/textimage/settings'),
+            '!presets' => url('admin/config/media/textimage/presets'),
+            '!example1' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example1.png',
+            '!example2' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example2.png',
+            '!example3' => base_path() . drupal_get_path('module', 'textimage') .'/misc/example3.png',
+      ));
+    break;
+
+    case 'admin/config/media/modules#description':
+    case 'admin/config/textimage':
+    case 'admin/config/media/modules/textimage':
+      $output = t('Provides text to image manipulations.');
+    break;
   }
 
   return $output;
@@ -90,124 +97,124 @@ function textimage_help($path, $arg){
 /**
  * Implements hook_theme().
  */
-function textimage_theme(){	
-	$theme = array(
-		'textimage_image' => array(
-			'variables' => array(
-				'preset' => '',
-				'text'   => '',
-				'additional_text' => array(),
-				'format' => 'png',
+function textimage_theme(){
+  $theme = array(
+    'textimage_image' => array(
+      'variables' => array(
+        'preset' => '',
+        'text'   => '',
+        'additional_text' => array(),
+        'format' => 'png',
         'file_path' => '',
-				'alt'    => '',
-				'title'  => '',
-				'attributes' => array(),
-				'getsize' => TRUE,
-				'image'   => TRUE,
-			),
-		),
-		'textimage_preset_edit' => array(
-			'variables' => array(
-				'form' => array(),
-			),
+        'alt'    => '',
+        'title'  => '',
+        'attributes' => array(),
+        'getsize' => TRUE,
+        'image'   => TRUE,
+      ),
     ),
-	);
+    'textimage_preset_edit' => array(
+      'variables' => array(
+        'form' => array(),
+      ),
+    ),
+  );
 
-	foreach (textimage_get_presets() as $preset) {
-		$theme['textimage_formatter_textimage_' . $preset->name] = array(
+  foreach (textimage_get_presets() as $preset) {
+    $theme['textimage_formatter_textimage_' . $preset->name] = array(
       'variables' => array(
         'preset'  => $preset->name, // Selected preset name
         'pid'   => $preset->pid,    // Selected preset ID
         'image' => new stdClass(),  // image object
         'text'  => NULL,            // Text for new creation of textimage
         'additional_text' => array(), // Additional text for new creation of textimage
-			),
-			'function' => 'textimage_preset_formatter',
-		);
-	}
-	
-	return $theme;
+      ),
+      'function' => 'textimage_preset_formatter',
+    );
+  }
+
+  return $theme;
 }
 
 /**
  * Implements hook_menu().
  */
 function textimage_menu() {
-	$items = array();
+  $items = array();
 
-	$items[file_build_uri('/textimage')] = array(
-		'page callback'    => 'textimage_image',
-		'access arguments' => array('access content'),
-		'type' => MENU_CALLBACK,
-	);
+  $items[file_build_uri('/textimage')] = array(
+    'page callback'    => 'textimage_image',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
 
-	$items['admin/config/media/textimage'] = array(
-		'title' => 'Textimage',
-		'description'   => 'Configure text to image preset functions.',
-		'page callback' => 'textimage_preset_list',
-		'access arguments' => array('administer site configuration'),
-		'type' => MENU_NORMAL_ITEM,
-		'file' => 'textimage.admin.inc',
-	);
-	
-	$items['admin/config/media/textimage/preset'] = array(
+  $items['admin/config/media/textimage'] = array(
+    'title' => 'Textimage',
+    'description'   => 'Configure text to image preset functions.',
+    'page callback' => 'textimage_preset_list',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'textimage.admin.inc',
+  );
+
+  $items['admin/config/media/textimage/preset'] = array(
     'title' => 'Presets',
     'type'  => MENU_DEFAULT_LOCAL_TASK,
-	);
-	  
-	$items['admin/config/media/textimage/preset/list'] = array(
-		'title' => 'List',
-		'type'  => MENU_DEFAULT_LOCAL_TASK,
-	);
+  );
 
-	$items['admin/config/media/textimage/preset/new'] = array(
-		'title' => 'New',
-		'page callback'    => 'drupal_get_form',
-		'page arguments'   => array('textimage_preset_edit', 'new'),
-		'access arguments' => array('administer site configuration'),
-		'weight' => 1,
-		'type' => MENU_LOCAL_TASK,
-		'file' => 'textimage.admin.inc',
-	);
+  $items['admin/config/media/textimage/preset/list'] = array(
+    'title' => 'List',
+    'type'  => MENU_DEFAULT_LOCAL_TASK,
+  );
 
-	$items['admin/config/media/textimage/preset/%/edit'] = array(
-		'title' => 'Edit Preset',
-		'page callback'  => 'drupal_get_form',
-		'page arguments' => array('textimage_preset_edit', 'edit', 5),
-		'access arguments' => array('administer site configuration'),
-		'type' => MENU_VISIBLE_IN_BREADCRUMB,
-		'file' => 'textimage.admin.inc',
-	);
-
-	$items['admin/config/media/textimage/preset/%/delete'] = array(
-		'title' => 'Delete Preset',
-    'load arguments'   => array(5),
-		'page callback'    => 'drupal_get_form',
-		'page arguments'   => array('textimage_preset_delete_confirm', 5),
-		'access arguments' => array('administer site configuration'),
-		'type' => MENU_VISIBLE_IN_BREADCRUMB,
-		'file' => 'textimage.admin.inc',
-	);
-
-	$items['admin/config/media/textimage/preset/%/flush'] = array(
-		'title' => 'Flush Preset Cache',
-    'load arguments'   => array(5),
-		'page callback'    => 'drupal_get_form',
-		'page arguments'   => array('textimage_preset_flush_confirm', 5),
-		'access arguments' => array('administer site configuration'),
-		'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  $items['admin/config/media/textimage/preset/new'] = array(
+    'title' => 'New',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('textimage_preset_edit', 'new'),
+    'access arguments' => array('administer site configuration'),
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'textimage.admin.inc',
-	);
+  );
 
-	$items['admin/config/media/textimage/settings'] = array(
-		'title' => 'Settings',
-		'page callback'    => 'drupal_get_form',
-		'page arguments'   => array('textimage_settings_form'),
-		'access arguments' => array('administer site configuration'),
-		'weight' => 0,
-		'type'   => MENU_LOCAL_TASK,
-		'file'   => 'textimage.admin.inc',
-	);
+  $items['admin/config/media/textimage/preset/%/edit'] = array(
+    'title' => 'Edit Preset',
+    'page callback'  => 'drupal_get_form',
+    'page arguments' => array('textimage_preset_edit', 'edit', 5),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'file' => 'textimage.admin.inc',
+  );
+
+  $items['admin/config/media/textimage/preset/%/delete'] = array(
+    'title' => 'Delete Preset',
+    'load arguments'   => array(5),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('textimage_preset_delete_confirm', 5),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'file' => 'textimage.admin.inc',
+  );
+
+  $items['admin/config/media/textimage/preset/%/flush'] = array(
+    'title' => 'Flush Preset Cache',
+    'load arguments'   => array(5),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('textimage_preset_flush_confirm', 5),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'file' => 'textimage.admin.inc',
+  );
+
+  $items['admin/config/media/textimage/settings'] = array(
+    'title' => 'Settings',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('textimage_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'weight' => 0,
+    'type'   => MENU_LOCAL_TASK,
+    'file'   => 'textimage.admin.inc',
+  );
 
   // Generate image derivatives of publicly available files.
   $directory_path  = file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'))->getDirectoryPath();
@@ -226,12 +233,12 @@ function textimage_menu() {
  * Implements hook_permission().
  */
 function textimage_permission() {
-	return array(
-		'create textimages' => array(
-			'title' => t('Create Textimages'),
-			'description' => t('Create Textimages'),
-		)
-	);
+  return array(
+    'create textimages' => array(
+      'title' => t('Create Textimages'),
+      'description' => t('Create Textimages'),
+    )
+  );
 }
 
 /**
@@ -258,63 +265,63 @@ function textimage_permission() {
  *
  */
 function textimage_image() {
-	$pattern = '/' . str_replace('/', '\/', base_path() . '(\?q=)?' . variable_get('file_default_scheme', 'public') . '://textimage/') . '/';
+  $pattern = '/' . str_replace('/', '\/', base_path() . '(\?q=)?' . variable_get('file_default_scheme', 'public') . '://textimage/') . '/';
   $args    = explode('/', preg_replace($pattern, '', request_uri()));
-	$preset  = array_shift($args);
-	if (is_numeric($preset)) {
-		drupal_not_found();
-		exit;
-	}
-	
-	$filename = urldecode(array_pop($args));
-	$additional_text = $args;
+  $preset  = array_shift($args);
+  if (is_numeric($preset)) {
+    drupal_not_found();
+    exit;
+  }
 
-	// Determine our output format
-	preg_match('/\.([a-z]+)$/i', $filename, $matches);
-	$format = $matches[1];
-	if ($format == 'jpg') {
-		$format = 'jpeg';
-	}
+  $filename = urldecode(array_pop($args));
+  $additional_text = $args;
 
-	// Determine the text to display
-	$text = preg_replace('/\.([a-z]+)$/i', '', $filename);
+  // Determine our output format
+  preg_match('/\.([a-z]+)$/i', $filename, $matches);
+  $format = $matches[1];
+  if ($format == 'jpg') {
+    $format = 'jpeg';
+  }
 
-	if (!$img = textimage_build_image('url', $preset, $text, $additional_text, $format)) {
-		return FALSE;
-	}
+  // Determine the text to display
+  $text = preg_replace('/\.([a-z]+)$/i', '', $filename);
 
-	drupal_goto($img);
+  if (!$img = textimage_build_image('url', $preset, $text, $additional_text, $format)) {
+    return FALSE;
+  }
+
+  drupal_goto($img);
 }
 
 function textimage_build_image($method, $preset, $text, $additional_text = array(), $format = 'png', $file_uri = NULL) {
-	// Integrety check
-	$output_function = 'image' . $format;
-	if (!function_exists($output_function)) {
-		$message = t('Unable to generate Textimage as the file extension is unsupported on this system. Files must have a .png, .jpg, or .gif extension.');
-		watchdog('textimage', $message,array(), WATCHDOG_ERROR);
-		drupal_set_message($message, 'error');
-		return FALSE;
-	}
+  // Integrety check
+  $output_function = 'image' . $format;
+  if (!function_exists($output_function)) {
+    $message = t('Unable to generate Textimage as the file extension is unsupported on this system. Files must have a .png, .jpg, or .gif extension.');
+    watchdog('textimage', $message,array(), WATCHDOG_ERROR);
+    drupal_set_message($message, 'error');
+    return FALSE;
+  }
 
   if (is_numeric($preset)) {
     $preset = _textimage_preset_load($preset);
   }
   elseif(!is_array($preset))  {
-    // This will use value from static variable 
+    // This will use value from static variable
     // and will possibly avoid database query
     $presets = textimage_get_presets();
     $preset  = (array) $presets[$preset];
   }
-	// Load preset
-	if (!is_array($preset) && !$preset) {
-		$message = t('Unable to generate Textimage as the preset %preset is not defined.', array('%preset' => $preset));
-		watchdog('textimage', $message, array(), WATCHDOG_ERROR);
-		drupal_set_message($message, 'error');
-		return FALSE;
-	}
-	$directory = variable_get('file_default_scheme', 'public') . '://textimage/' . $preset['pid'] . '/';
+  // Load preset
+  if (!is_array($preset) && !$preset) {
+    $message = t('Unable to generate Textimage as the preset %preset is not defined.', array('%preset' => $preset));
+    watchdog('textimage', $message, array(), WATCHDOG_ERROR);
+    drupal_set_message($message, 'error');
+    return FALSE;
+  }
+  $directory = variable_get('file_default_scheme', 'public') . '://textimage/' . $preset['pid'] . '/';
   if (empty($file_uri)) {
-    $result = db_query("SELECT file FROM {textimage_image} WHERE pid = :pid AND data = :data", 
+    $result = db_query("SELECT file FROM {textimage_image} WHERE pid = :pid AND data = :data",
       array(
         ':pid'  => $preset['pid'],
         ':data' => serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text)),
@@ -328,15 +335,15 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
     $result    = (object) array('file' => $file_path);
   }
 
-	//CHECK IF FILE EXIST
-	$file_missing = false;
-	if (empty($result) || (!empty($result) && !is_file(drupal_realpath($result->file)))) {
-		$file_missing = true;
-	}
+  //CHECK IF FILE EXIST
+  $file_missing = false;
+  if (empty($result) || (!empty($result) && !is_file(drupal_realpath($result->file)))) {
+    $file_missing = true;
+  }
 
-	if ((!$result && (user_access('create textimages') || $method == 'theme')) || $preset['pid'] == 0 || $file_missing) {
-		// Generate the image resource
-		$img = textimage_image_from_preset($preset, $text, $additional_text);
+  if ((!$result && (user_access('create textimages') || $method == 'theme')) || $preset['pid'] == 0 || $file_missing) {
+    // Generate the image resource
+    $img = textimage_image_from_preset($preset, $text, $additional_text);
     if (empty($file_uri)) {
       $filename = check_plain(str_replace('/', '', $text));
       if (empty($filename)) {
@@ -355,7 +362,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
       }
     }
 
-		if ($file_missing && $preset['pid'] !== 0) {
+    if ($file_missing && $preset['pid'] !== 0) {
       try {
         db_insert('textimage_image')
           ->fields(array(
@@ -373,42 +380,42 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
           ->condition('file', $file_path)
           ->execute();
       }
-		}
-		return $file_path;
-		
-	}
+    }
+    return $file_path;
+
+  }
   elseif(!$result) {
-		drupal_access_denied();
-		return FALSE;
-	}
+    drupal_access_denied();
+    return FALSE;
+  }
   else {
-		return $result->file;
-	}
+    return $result->file;
+  }
 }
 
 function textimage_build_preview($variables) {
-	$image = textimage_image_from_preset($variables['preset'], $variables['text'], $variables['additional_text']);
-	$file_path = variable_get('file_default_scheme', 'public') . '://textimage/preview';
-	return textimage_save_image($image, $file_path, 'png');
+  $image = textimage_image_from_preset($variables['preset'], $variables['text'], $variables['additional_text']);
+  $file_path = variable_get('file_default_scheme', 'public') . '://textimage/preview';
+  return textimage_save_image($image, $file_path, 'png');
 }
 
 function textimage_save_image($image, $file_path, $format){
   global $user;
-	$file_path = "$file_path.$format";
-	textimage_directory_check($file_path);
-	$file = file_save_data('', $file_path, FILE_EXISTS_REPLACE);
-	$wrapper = file_stream_wrapper_get_instance_by_uri($file->uri);
+  $file_path = "$file_path.$format";
+  textimage_directory_check($file_path);
+  $file = file_save_data('', $file_path, FILE_EXISTS_REPLACE);
+  $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri);
   $image_function = "image$format";
   if (function_exists($image_function)) {
     $image_function($image, $wrapper->realpath());
     imagedestroy($image);
     clearstatcache();
   }
-	$file->uid = $user->uid;
-	$file->filemime = "image/$format";
-	$file = file_save($file);
-  
-	return $file_path;
+  $file->uid = $user->uid;
+  $file->filemime = "image/$format";
+  $file = file_save($file);
+
+  return $file_path;
 }
 
 /**
@@ -571,12 +578,12 @@ function textimage_image_add_stroke($img, $thickness, $color, $text_opacity) {
  *   String containing the path of the directory to check.
  */
 function textimage_directory_check($directory_path) {
-	// create each directory necessary if it doesn't exist
-	$directory_path = drupal_dirname($directory_path);
-	if (!file_prepare_directory($directory_path, FILE_CREATE_DIRECTORY)) {
-		return FALSE;
-	}
-	return TRUE;
+  // create each directory necessary if it doesn't exist
+  $directory_path = drupal_dirname($directory_path);
+  if (!file_prepare_directory($directory_path, FILE_CREATE_DIRECTORY)) {
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /**
@@ -585,23 +592,23 @@ function textimage_directory_check($directory_path) {
  *    preset id or name.
  */
 function _textimage_preset_load($preset) {
-	// Load preset by id
-	if (is_numeric($preset)) {
-		$preset = db_query('SELECT * FROM {textimage_preset} WHERE pid = :pid', array(':pid' => $preset))->fetchAssoc();
-	}
+  // Load preset by id
+  if (is_numeric($preset)) {
+    $preset = db_query('SELECT * FROM {textimage_preset} WHERE pid = :pid', array(':pid' => $preset))->fetchAssoc();
+  }
 
-	// Load preset by name
-	else {
-		$preset = db_query("SELECT * FROM {textimage_preset} WHERE name = :name", array(':name' => $preset))->fetchAssoc();
-	}
-
-	if (empty($preset)) {
-		return FALSE;
-	}
+  // Load preset by name
   else {
-		$preset['settings'] = unserialize($preset['settings']);
-		return $preset;
-	}
+    $preset = db_query("SELECT * FROM {textimage_preset} WHERE name = :name", array(':name' => $preset))->fetchAssoc();
+  }
+
+  if (empty($preset)) {
+    return FALSE;
+  }
+  else {
+    $preset['settings'] = unserialize($preset['settings']);
+    return $preset;
+  }
 }
 
 
@@ -611,15 +618,15 @@ function _textimage_preset_load($preset) {
  */
 /*
 function textimage_field_formatter_info(){
-	$formatters = array();
+  $formatters = array();
 
-	foreach (textimage_get_presets() as $preset) {
-		$formatters['textimage_' . $preset->name] = array(
-			'label' => t('Textimage:') . ' ' . $preset->name,
-			'field types' => array('text', 'email'),
-		);
-	}
-	return $formatters;
+  foreach (textimage_get_presets() as $preset) {
+    $formatters['textimage_' . $preset->name] = array(
+      'label' => t('Textimage:') . ' ' . $preset->name,
+      'field types' => array('text', 'email'),
+    );
+  }
+  return $formatters;
 }
 */
 
@@ -636,8 +643,8 @@ function textimage_deliver($pid, $filename, $display_img = TRUE) {
   $format   = explode('.', $filename);
   $filemime = 'image/' . $format[count($format) - 1];
   $img_uri  = textimage_preset_formatter(array(
-    'pid' => $pid, 
-    'preset' => $pid, 
+    'pid' => $pid,
+    'preset' => $pid,
     'image'  => array(
       'uri' => variable_get('file_default_scheme', 'public') . "://textimage/$pid/$filename",
       'filename' => $filename,
@@ -667,11 +674,11 @@ function textimage_preset_formatter($variables) {
         $format = str_replace('image/', '', $image['filemime']);
         $uri  = preg_replace('/(.' . $format . '$)/', '', $image['uri']);
         $data = unserialize($result->data);
-        return textimage_build_image('theme', 
-          $variables['preset'], 
-          $data['text'], 
-          $data['additional_text'], 
-          $format, 
+        return textimage_build_image('theme',
+          $variables['preset'],
+          $data['text'],
+          $data['additional_text'],
+          $format,
           $uri
         );
       }
@@ -689,11 +696,11 @@ function textimage_preset_formatter($variables) {
             ->condition('data', $result->data)
             ->execute();
           $data = unserialize($result->data);
-          return textimage_build_image('theme', 
-            $variables['preset'], 
-            $data['text'], 
-            $data['additional_text'], 
-            $format, 
+          return textimage_build_image('theme',
+            $variables['preset'],
+            $data['text'],
+            $data['additional_text'],
+            $format,
             $uri
           );
         }
@@ -701,11 +708,11 @@ function textimage_preset_formatter($variables) {
           $format = str_replace('image/', '', $image['filemime']);
           $uri = preg_replace('/(.' . $format . '$)/', '', $image['uri']);
           // Try to create new textimage from defined 'text'
-          return textimage_build_image('theme', 
-            $variables['preset'], 
-            $variables['text'], 
-            !empty($variables['additional_text']) ? $variables['additional_text'] : array(), 
-            $format, 
+          return textimage_build_image('theme',
+            $variables['preset'],
+            $variables['text'],
+            !empty($variables['additional_text']) ? $variables['additional_text'] : array(),
+            $format,
             $uri
           );
         }
@@ -755,19 +762,30 @@ function textimage_js_preview($form, $form_state) {
 
   $commands = array();
   $commands[] = ajax_command_html('#textimage-preview', '<img src="' . file_create_url($preview) . '?' . time() . '">');
-  return array('#type' => 'ajax', '#commands' => $commands); 
+  return array('#type' => 'ajax', '#commands' => $commands);
 }
 
 function textimage_get_presets() {
-	$presets = &drupal_static(__FUNCTION__);
+  $presets = &drupal_static(__FUNCTION__);
 
-	if (!isset($presets)) {
-		$result  = db_query('SELECT pid, name, description, settings FROM {textimage_preset} ORDER BY name');
-		$presets = array();
-		foreach ($result as $preset) {
-			$preset->settings = unserialize($preset->settings);
-			$presets[$preset->name] = $preset;
-		}
-	}
-	return $presets;
+  if (!isset($presets)) {
+    if (module_exists('ctools')) {
+      foreach (ctools_export_load_object('textimage_preset') as $preset) {
+        if (isset($preset->in_code_only) && $preset->in_code_only) {
+          module_load_include('inc', 'textimage', 'textimage.admin');
+          _textimage_preset_create($preset->name, $preset->description, $preset->settings);
+        }
+      }
+    }
+    unset($preset);
+
+    $result  = db_query('SELECT pid, name, description, settings FROM {textimage_preset} ORDER BY name');
+    $presets = array();
+    foreach ($result as $preset) {
+      $preset->settings = unserialize($preset->settings);
+      $presets[$preset->name] = $preset;
+    }
+  }
+
+  return $presets;
 }
