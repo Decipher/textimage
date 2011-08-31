@@ -3,6 +3,10 @@ Textimage adds text to image functionality using GD2 and Freetype, enabling
 users to create crisp images on the fly for use as theme objects, headings or
 limitless other possibilities.
 
+This module requires clean URLs be enabled. Without clean URL support Textimage
+is unable to cache images, which can cause serious performance problems.
+
+
 Textimage was written by Fabiano Sant'Ana (wundo).
 - http://wundo.net
 
