@@ -28,6 +28,24 @@ Features
 * Support for non-alphanumeric characters.
 
 
+Requirements
+------------
+
+* GD2
+* FreeType
+
+
+Install instructions
+------------
+
+1. Make sure your server supports the needed PHP extensions, if you're in a
+   shared environment you may need help from your host.
+   
+2. Upload fonts files you want to use for Textimages to the 'fonts' directory
+   inside textimage directory. If you want you can change this directory to 
+   anywhere accessible by Drupal
+
+
 Usage
 ------------
 
@@ -61,11 +79,13 @@ Usage
    one of the methods detailed above.
 
 
-Requirements
+Recommended
 ------------
 
-* GD2
-* FreeType
+* Vertical Tabs - http://drupal.org/project/vertical_tabs
+
+  When the Vertical Tabs module is enabled you will receive a modified user
+  interface when creating and editing Textimage presets.
 
 
 Updating
@@ -73,5 +93,5 @@ Updating
 
 * Always run update.php on your Drupal site after updating Textimage.
 * Note: Due to certain changes in the Textimage module, some of your presets may
-  require alterations after updating.
+  require alterations after updating from 1.x to 2.x.
 
