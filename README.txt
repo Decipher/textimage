@@ -93,5 +93,5 @@ Updating
 
 * Always run update.php on your Drupal site after updating Textimage.
 * Note: Due to certain changes in the Textimage module, some of your presets may
-  require alterations after updating from 1.x to 2.x.
+  require alterations after updating from 6.x-1.x to 6.x-2.x.
 
