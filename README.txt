@@ -7,7 +7,7 @@ This module requires clean URLs be enabled. Without clean URL support Textimage
 is unable to cache images, which can cause serious performance problems.
 
 
-Textimage was originally written by Fabiano Sant'Ana (wundo)
+Textimage was originally written by Fabiano Sant'Ana (wundo).
 - http://chuva-inc.com
 
 Co-maintained by Stuart Clark (Deciphered).
