@@ -32,9 +32,13 @@ Usage
    Use the theme_textimage_image() function at the theme/module level with the
    following format:
 
-   theme('textimage_image', 'Preset', 'Text', array('Additional', 'Text'),
-   'extension', 'alt', 'title')
-
+   theme('textimage_image', array(
+    'preset' => 'Preset', 
+    'text'   => 'Text', 
+    'additional_text' => array('Additional', 'Text'), 
+    'format'    => 'png', 
+    'file_path' => 'public://myimages/sub_folder/image-filename' // Don't include the file extension.
+   ));
 
 2. via CCK/Views formatter:
 
