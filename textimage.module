@@ -298,7 +298,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
   $output_function = 'image' . $format;
   if (!function_exists($output_function)) {
     $message = t('Unable to generate Textimage as the file extension is unsupported on this system. Files must have a .png, .jpg, or .gif extension.');
-    watchdog('textimage', $message,array(), WATCHDOG_ERROR);
+    watchdog('textimage', $message, array(), WATCHDOG_ERROR);
     drupal_set_message($message, 'error');
     return FALSE;
   }
