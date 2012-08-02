@@ -306,7 +306,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
   if (is_numeric($preset)) {
     $preset = _textimage_preset_load($preset);
   }
-  elseif(!is_array($preset))  {
+  elseif (!is_array($preset))  {
     // This will use value from static variable
     // and will possibly avoid database query
     $presets = textimage_get_presets();
@@ -384,7 +384,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
     return $file_path;
 
   }
-  elseif(!$result) {
+  elseif (!$result) {
     drupal_access_denied();
     return FALSE;
   }
