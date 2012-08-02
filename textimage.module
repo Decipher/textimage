@@ -616,7 +616,6 @@ function _textimage_preset_load($preset) {
 /**
  * Implements hook_field_formatter_info().
  */
-/*
 function textimage_field_formatter_info(){
   $formatters = array();
 
@@ -628,7 +627,31 @@ function textimage_field_formatter_info(){
   }
   return $formatters;
 }
-*/
+
+
+/**
+ * Implementation of hook_field_formatter_view().
+ */
+function textimage_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  if ('textimage' !== drupal_substr($display['type'] ,0, 9)) {
+    return array();
+  }
+  $element = array();
+  foreach ($items as $delta => $item){
+    $variables = array();
+    $variables['preset'] = drupal_substr($display['type'], 10);
+    $variables['text'] = $item['value'];
+    $variables['additional_text'] = array();
+    $variables['format'] = 'png';
+    $variables['file_path'] = '';
+    $variables['alt'] = htmlentities($item['value']);
+    $variables['title'] = htmlentities($item['value']);
+    $variables['image'] = true;
+    $element[$delta]['#markup'] = theme('textimage_image', $variables);
+  }
+  return $element;
+}
+
 
 function theme_textimage_formatter($element) {
   $alt = $title = $element['#item']['safe'];
