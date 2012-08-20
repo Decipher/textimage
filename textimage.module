@@ -663,17 +663,44 @@ function theme_textimage_formatter($element) {
 }
 
 function textimage_deliver($pid, $filename, $display_img = TRUE) {
-  $format   = explode('.', $filename);
-  $filemime = 'image/' . $format[count($format) - 1];
+  $public_file_path   = base_path();
+  $public_file_path  .= file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'))->getDirectoryPath();
+  $public_file_path  .= '/textimage/';
+  $pattern = '/' . str_replace('/', '\/', $public_file_path ) . '/';
+  $trail = urldecode(preg_replace($pattern, '', request_uri()));
+  $args    = explode('/', $trail);
+  $preset  = array_shift($args);
+  $filename = array_pop($args);
+  $additional_text = $args;
+  // Determine our output format
+  $offset = strrpos($filename, '.');
+  if ($offset)	{
+    $format = substr($filename, $offset + 1);
+  }
+  else	{
+    $format = 'png';
+  }
+  if ($format == 'jpg') {
+    $format = 'jpeg';
+  }
+  $filemime = 'image/' . $format;
+  // Determine the text to display
+  $text = preg_replace('/\.([a-z]+)$/i', '', $filename);
   $img_uri  = textimage_preset_formatter(array(
+  	'method' => 'url',
     'pid' => $pid,
     'preset' => $pid,
+    'text' => $text,
+    'additional_text' => $additional_text,
     'image'  => array(
       'uri' => variable_get('file_default_scheme', 'public') . "://textimage/$pid/$filename",
       'filename' => $filename,
       'filemime' => $filemime,
     ),
   ));
+  if (!$img_uri)	{
+    drupal_not_found();
+  }  
   if ($display_img) {
     $img_info = image_get_info(drupal_realpath($img_uri));
     file_transfer($img_uri, array('Content-Type' => $filemime));
@@ -684,6 +711,7 @@ function textimage_deliver($pid, $filename, $display_img = TRUE) {
  * Default theme callback for all preset.
  */
 function textimage_preset_formatter($variables) {
+  $method = isset($variables['method']) ? $variables['method'] : 'theme';
   $image = (array) $variables['image'];
   if (!empty($image)) {
     $path = variable_get('file_default_scheme', 'public') . '://textimage/' . $variables['pid'] . '/' . $image['filename'];
@@ -697,7 +725,7 @@ function textimage_preset_formatter($variables) {
         $format = str_replace('image/', '', $image['filemime']);
         $uri  = preg_replace('/(.' . $format . '$)/', '', $image['uri']);
         $data = unserialize($result->data);
-        return textimage_build_image('theme',
+        return textimage_build_image($method,
           $variables['preset'],
           $data['text'],
           $data['additional_text'],
@@ -719,7 +747,7 @@ function textimage_preset_formatter($variables) {
             ->condition('data', $result->data)
             ->execute();
           $data = unserialize($result->data);
-          return textimage_build_image('theme',
+          return textimage_build_image($method,
             $variables['preset'],
             $data['text'],
             $data['additional_text'],
@@ -731,7 +759,7 @@ function textimage_preset_formatter($variables) {
           $format = str_replace('image/', '', $image['filemime']);
           $uri = preg_replace('/(.' . $format . '$)/', '', $image['uri']);
           // Try to create new textimage from defined 'text'
-          return textimage_build_image('theme',
+          return textimage_build_image($method,
             $variables['preset'],
             $variables['text'],
             !empty($variables['additional_text']) ? $variables['additional_text'] : array(),

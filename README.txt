@@ -70,7 +70,7 @@ Usage
 3. via URL:
 
    Create an image with the URL in following format:
-   /[files directory]/textimages/[Preset](/Additional/Text)/[Text].[extension]
+   /[files directory]/textimage/[Preset](/Additional/Text)/[Text].[extension]
 
    Note: This method can only be used by users with the 'create textimages'
    permission. This is to prevent Anonymous users from creating random images.
