@@ -674,10 +674,10 @@ function textimage_deliver($pid, $filename, $display_img = TRUE) {
   $additional_text = $args;
   // Determine our output format
   $offset = strrpos($filename, '.');
-  if ($offset)	{
+  if ($offset)  {
     $format = substr($filename, $offset + 1);
   }
-  else	{
+  else  {
     $format = 'png';
   }
   if ($format == 'jpg') {
@@ -687,7 +687,7 @@ function textimage_deliver($pid, $filename, $display_img = TRUE) {
   // Determine the text to display
   $text = preg_replace('/\.([a-z]+)$/i', '', $filename);
   $img_uri  = textimage_preset_formatter(array(
-  	'method' => 'url',
+    'method' => 'url',
     'pid' => $pid,
     'preset' => $pid,
     'text' => $text,
@@ -698,9 +698,9 @@ function textimage_deliver($pid, $filename, $display_img = TRUE) {
       'filemime' => $filemime,
     ),
   ));
-  if (!$img_uri)	{
+  if (!$img_uri)  {
     drupal_not_found();
-  }  
+  }
   if ($display_img) {
     $img_info = image_get_info(drupal_realpath($img_uri));
     file_transfer($img_uri, array('Content-Type' => $filemime));
