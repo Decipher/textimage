@@ -5,7 +5,7 @@
  */
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_settings_form() {
   $form = array();
@@ -42,7 +42,7 @@ function textimage_settings_form() {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_settings_form_validate($form, &$form_state) {
   // Check for valid fonts path.
@@ -57,7 +57,7 @@ function textimage_settings_form_validate($form, &$form_state) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
   $preset = array();
@@ -136,9 +136,7 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
   if (count($preset) > 0) {
     $preview = $preset;
     $preview['pid'] = 0;
-    $preview_text = isset($preview['settings']['preview']['text']['default'])
-      ? $preview['settings']['preview']['text']['default']
-      : t('Preview');
+    $preview_text = isset($preview['settings']['preview']['text']['default']) ? $preview['settings']['preview']['text']['default'] : t('Preview');
 
     $additional_text = array();
     if (isset($preset['settings']['preview']['text']['additional'])) {
@@ -237,7 +235,11 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
     '#type'  => 'select',
     '#title' => t('Text Align'),
     '#description' => t('Only works when fixed width is enabled') . '.',
-    '#options' => array(ALIGN_LEFT => t('Left'), ALIGN_CENTER => t('Center'), ALIGN_RIGHT => t('Right')),
+    '#options' => array(
+      ALIGN_LEFT => t('Left'),
+      ALIGN_CENTER => t('Center'),
+      ALIGN_RIGHT => t('Right'),
+    ),
     '#default_value' => isset($preset['settings']['text']['align']) ? $preset['settings']['text']['align'] : '',
   );
   $form['settings']['text']['angle'] = array(
@@ -253,7 +255,13 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
   $form['settings']['text']['case'] = array(
     '#type'  => 'select',
     '#title' => t('Convert to case'),
-    '#options' => array('' => t('Default'), 'upper' => t('UPPERCASE'), 'lower' => t('lowercase'), 'ucwords' => t('Uppercase Words'), 'ucfirst' => t('Uppercase first')),
+    '#options' => array(
+      '' => t('Default'),
+      'upper' => t('UPPERCASE'),
+      'lower' => t('lowercase'),
+      'ucwords' => t('Uppercase Words'),
+      'ucfirst' => t('Uppercase first'),
+    ),
     '#description' => t('Covert the input text to a consistent format. The default makes no changes to input text.'),
     '#default_value' => isset($preset['settings']['text']['case']) ? $preset['settings']['text']['case'] : '',
   );
@@ -427,7 +435,7 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function theme_textimage_preset_edit(&$form) {
   drupal_add_css(drupal_get_path('module', 'textimage') . '/misc/css/textimage_admin.css');
@@ -435,7 +443,7 @@ function theme_textimage_preset_edit(&$form) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_edit_validate($form, &$form_state) {
   // Check for illegal characters in preset names.
@@ -456,7 +464,7 @@ function textimage_preset_edit_validate($form, &$form_state) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_edit_submit($form, &$form_state) {
   if (isset($form_state['storage']['validate_error'])) {
@@ -485,13 +493,21 @@ function textimage_preset_edit_submit($form, &$form_state) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_list() {
   $fonts_path = variable_get('textimage_fonts_path', drupal_get_path('module', 'textimage') . '/fonts');
   $presets = textimage_get_presets();
 
-  $header = array(t('Name'), t('Summary'), t('Description'), array('data' => t('Operations'), 'colspan' => '3'));
+  $header = array(
+    t('Name'),
+    t('Summary'),
+    t('Description'),
+    array(
+      'data' => t('Operations'),
+      'colspan' => '3',
+    ),
+  );
   $rows = array();
 
   foreach ($presets as $preset) {
@@ -519,7 +535,7 @@ function textimage_preset_list() {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_delete_confirm($form, &$form_state, $pid) {
   $preset = _textimage_preset_load($pid);
@@ -536,7 +552,7 @@ function textimage_preset_delete_confirm($form, &$form_state, $pid) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_delete_confirm_submit($form, &$form_state) {
   _textimage_preset_delete($form_state['values']['pid']);
@@ -546,7 +562,7 @@ function textimage_preset_delete_confirm_submit($form, &$form_state) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_flush_confirm($form, &$form_state, $pid) {
   $preset = _textimage_preset_load($pid);
@@ -563,7 +579,7 @@ function textimage_preset_flush_confirm($form, &$form_state, $pid) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_preset_flush_confirm_submit($form, &$form_state) {
   _textimage_preset_flush($form_state['values']['pid']);
@@ -582,7 +598,11 @@ function textimage_preset_flush_confirm_submit($form, &$form_state) {
  */
 function _textimage_preset_create($name, $description, $settings) {
   return db_insert('textimage_preset')
-    ->fields(array('name' => $name, 'description' => $description, 'settings' => serialize($settings)))
+    ->fields(array(
+      'name' => $name,
+      'description' => $description,
+      'settings' => serialize($settings),
+    ))
     ->execute();
 }
 
@@ -601,7 +621,11 @@ function _textimage_preset_create($name, $description, $settings) {
 function _textimage_preset_update($id, $name, $description, $settings) {
   $name = check_plain($name);
   $result = db_update('textimage_preset')
-    ->fields(array('name' => $name, 'description' => $description, 'settings' => serialize($settings)))
+    ->fields(array(
+      'name' => $name,
+      'description' => $description,
+      'settings' => serialize($settings),
+    ))
     ->condition('pid', $id)
     ->execute();
   _textimage_preset_flush($id);
@@ -609,7 +633,7 @@ function _textimage_preset_update($id, $name, $description, $settings) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function _textimage_preset_delete($id) {
   $result = db_delete('textimage_preset')
@@ -677,7 +701,7 @@ function _textimage_clear_cache_image($preset, $file) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function _textimage_flush_cache() {
   if (module_exists('content')) {
@@ -711,7 +735,7 @@ function _textimage_font_list($fontdir) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function _textimage_font_name($filename) {
   $fd = fopen($filename, "r");
@@ -734,7 +758,12 @@ function _textimage_font_name($filename) {
 
   $storage_dec = $offset_storage_dec + $offset_name_table_dec;
   $storage_hex = drupal_strtoupper(dechex($storage_dec));
-  $font = array('copyright' => '', 'family' => '', 'subfamily' => '', 'name' => '');
+  $font = array(
+    'copyright' => '',
+    'family' => '',
+    'subfamily' => '',
+    'name' => '',
+  );
 
   for ($j = 0; $j < $number_name_records_dec; $j++) {
     $platform_id_hex = _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 0])) . _textimage_dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 1]));
@@ -787,7 +816,7 @@ function _textimage_font_name($filename) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function _textimage_dec2hex($dec) {
   $hex = dechex($dec);
@@ -795,7 +824,7 @@ function _textimage_dec2hex($dec) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function _textimage_number_validate($field, $field_name) {
   if (!empty($field['#value']) && !is_numeric($field['#value'])) {
@@ -804,7 +833,7 @@ function _textimage_number_validate($field, $field_name) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function _textimage_hex_validate($field, $field_name) {
   if (!empty($field['#value']) && !preg_match('/^#[0123456789ABCDEF]{1,6}$/i', $field['#value'])) {

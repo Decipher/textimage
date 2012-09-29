@@ -67,12 +67,8 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   $box_height = max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7]);
 
   // Calculate dimensions of image.
-  $image_width = ($fixed_width && $maximum_width > 0)
-    ? ($maximum_width - 1) * $cos + $text_height * $sin
-    : $box_width;
-    $image_height = ($fixed_width && $maximum_width > 0)
-    ? ($maximum_width - 1) * $sin + $text_height * $cos
-    : $box_height;
+  $image_width = ($fixed_width && $maximum_width > 0) ? ($maximum_width - 1) * $cos + $text_height * $sin : $box_width;
+  $image_height = ($fixed_width && $maximum_width > 0) ? ($maximum_width - 1) * $sin + $text_height * $cos : $box_height;
 
   // Create Image.
   $image = imagecreatetruecolor($image_width + 1, $image_height + 1);
@@ -224,7 +220,7 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
  */
 if (!function_exists('drupal_preg_match')) {
   /**
-   * @todo.
+   * Todo.
    */
   function drupal_preg_match($pattern, $subject, &$matches, $flags = NULL, $offset = 0) {
     // Convert the offset value from characters to bytes.
@@ -244,11 +240,11 @@ if (!function_exists('drupal_preg_match')) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 if (!function_exists('imagerotate')) {
   /**
-   * @todo.
+   * Todo.
    */
   function imagerotate($im, $angle, $bgcolor) {
     if ($angle === 0) {
@@ -374,8 +370,10 @@ function _textimage_hex2rgb($hex) {
 }
 
 /**
- * Utility function for image_stroke. Analyzes surrounding pixels and determines
- * opacity of a pixel at that x-y coordinate
+ * Utility function for image_stroke.
+ *
+ * Analyzes surrounding pixels and determines opacity of a pixel at that
+ * x-y coordinate.
  */
 function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $color, $x, $y, $width, $height) {
   list($r, $g, $b) = _textimage_hex2rgb($color);

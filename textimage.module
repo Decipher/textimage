@@ -247,7 +247,9 @@ function textimage_permission() {
 }
 
 /**
- * Menu Callback function converts the current textimage path into an image. On
+ * Menu Callback function.
+ *
+ * Converts the current textimage path into an image. On
  * first request, the image is returned to the browser from Drupal and then
  * saved to the disk. On subsequent requests (with Clean URLs enabled), the
  * cached image is loaded directly.
@@ -267,7 +269,6 @@ function textimage_permission() {
  *   appended as the file extension. For example, 'sample.png' will output a
  *   PNG with the text 'sample'. 'sample.jpg' will output the same image but
  *   in JPG format.
- *
  */
 function textimage_image() {
   $pattern = '/' . str_replace('/', '\/', base_path() . '(\?q=)?' . variable_get('file_default_scheme', 'public') . '://textimage/') . '/';
@@ -299,7 +300,7 @@ function textimage_image() {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_build_image($method, $preset, $text, $additional_text = array(), $format = 'png', $file_uri = NULL) {
   // Integrety check.
@@ -332,7 +333,11 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
     $result = db_query("SELECT file FROM {textimage_image} WHERE pid = :pid AND data = :data",
       array(
         ':pid'  => $preset['pid'],
-        ':data' => serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text)),
+        ':data' => serialize(array(
+          'format' => $format,
+          'text' => $text,
+          'additional_text' => $additional_text,
+        )),
       )
     )->fetchObject();
   }
@@ -375,14 +380,22 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
         db_insert('textimage_image')
           ->fields(array(
             'pid' => $preset['pid'],
-            'file' =>  $file_path,
-            'data' => serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text)),
+            'file' => $file_path,
+            'data' => serialize(array(
+              'format' => $format,
+              'text' => $text,
+              'additional_text' => $additional_text,
+            )),
           ))->execute();
       }
       catch(Exception $error) {
         db_update('textimage_image')
           ->fields(array(
-            'data' => serialize(array('format' => $format, 'text' => $text, 'additional_text' => $additional_text)),
+            'data' => serialize(array(
+              'format' => $format,
+              'text' => $text,
+              'additional_text' => $additional_text,
+            )),
           ))
           ->condition('pid', $preset['pid'])
           ->condition('file', $file_path)
@@ -402,7 +415,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_build_preview($variables) {
   $image = textimage_image_from_preset($variables['preset'], $variables['text'], $variables['additional_text']);
@@ -411,7 +424,7 @@ function textimage_build_preview($variables) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_save_image($image, $file_path, $format) {
   global $user;
@@ -462,12 +475,15 @@ function textimage_image_from_preset($preset, $text, $additional_text = array())
     case 'upper':
       $text = drupal_strtoupper($text);
       break;
+
     case 'lower':
       $text = drupal_strtolower($text);
       break;
+
     case 'ucfirst':
       $text = drupal_ucfirst($text);
       break;
+
     case 'ucwords':
       $text = preg_replace('/\s(\w+)\b/e', "drupal_ucfirst('$1')", $text);
       break;
@@ -541,7 +557,9 @@ function textimage_image_from_preset($preset, $text, $additional_text = array())
 }
 
 /**
- * Stroke function adds a solid color stroke around an image with a transparent
+ * Stroke function.
+ *
+ * Adds a solid color stroke around an image with a transparent
  * background.
  *
  * @param resource $img
@@ -665,7 +683,7 @@ function textimage_field_formatter_view($entity_type, $entity, $field, $instance
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function theme_textimage_formatter($element) {
   $alt = $title = $element['#item']['safe'];
@@ -677,7 +695,7 @@ function theme_textimage_formatter($element) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_deliver($pid, $filename, $display_img = TRUE) {
   $public_file_path = base_path();
@@ -793,29 +811,32 @@ function textimage_preset_formatter($variables) {
 }
 
 /**
- * Theme function for displaying textimages
+ * Theme function for displaying textimages.
  */
 function theme_textimage_image($variables) {
   if (!$path = textimage_build_image('theme', $variables['preset'], $variables['text'], $variables['additional_text'], $variables['format'], $variables['file_path'])) {
     return FALSE;
   }
   if (isset($variables['image'])) {
-    return theme('image', array('path' => $path, 'alt' => $variables['alt'], 'title' => $variables['title'], 'attributes' => $variables['attributes']));
+    return theme('image', array(
+      'path' => $path,
+      'alt' => $variables['alt'],
+      'title' => $variables['title'],
+      'attributes' => $variables['attributes'],
+    ));
   }
   return $path;
 }
 
 /**
- * Textimage preview AJAX functionality
+ * Textimage preview AJAX functionality.
  */
 function textimage_js_preview($form, $form_state) {
   $preview['settings'] = $form_state['values']['settings'];
   $preview['name'] = $form_state['values']['name'];
   $preview['description'] = $form_state['values']['description'];
   $preview['pid'] = 0;
-  $preview_text = isset($preview['settings']['preview']['text']['default'])
-    ? $preview['settings']['preview']['text']['default']
-    : t('Preview');
+  $preview_text = isset($preview['settings']['preview']['text']['default']) ? $preview['settings']['preview']['text']['default'] : t('Preview');
 
   $additional_text = array();
   if (isset($preset['settings']['preview']['text']['additional'])) {
@@ -834,7 +855,7 @@ function textimage_js_preview($form, $form_state) {
 }
 
 /**
- * @todo.
+ * Todo.
  */
 function textimage_get_presets() {
   $presets = &drupal_static(__FUNCTION__);

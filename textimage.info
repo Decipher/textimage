@@ -2,8 +2,4 @@ name = Textimage
 description = Provides text to image manipulations.
 core = 7.x
 
-files[] = textimage.install
-files[] = textimage.module
-files[] = textimage.utils.inc
-files[] = textimage.admin.inc
 configure = admin/config/media/textimage
