@@ -7,10 +7,10 @@
 /**
  * Generate an image containing text with the given parameters.
  *
- * @return $image
+ * @return resource
  *   A GD image resource.
  */
-function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' => '#000000', 'opacity' => '100'), $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT){
+function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' => '#000000', 'opacity' => '100'), $angle = 0, $maximum_width = 0, $fixed_width = 0, $align = ALIGN_LEFT) {
   // Set rotation angle.
   $q_angle = -$angle;
 
@@ -37,12 +37,12 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   $coords = imagettfbbox($fontsize, 0, $font, $text);
 
   // Set consistant heights.
-  if ($coords[3] - $coords[5] < $fontsize * 2){
+  if ($coords[3] - $coords[5] < $fontsize * 2) {
     $characters = drupal_map_assoc(range(33, 122), 'chr');
     $characters = join($characters);
     $testcoords = imagettfbbox($fontsize, 0, $font, $characters);
 
-    if ($coords[3] - $coords[5] < $testcoords[3] - $testcoords[5]){
+    if ($coords[3] - $coords[5] < $testcoords[3] - $testcoords[5]) {
       $coords[1] = $testcoords[1];
       $coords[3] = $testcoords[3];
       $coords[5] = $testcoords[5];
@@ -59,7 +59,8 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
 
   // Calculate dimensions of text box.
   $text_width = sqrt(pow(abs($bbox[0] - $bbox[2]), 2) + pow(abs($bbox[1] - $bbox[3]), 2));
-  $text_height = sqrt(pow(abs($bbox[0] - $bbox[6]), 2) + pow(abs($bbox[1] - $bbox[7]), 2)); // Not used.
+  // Not used.
+  $text_height = sqrt(pow(abs($bbox[0] - $bbox[6]), 2) + pow(abs($bbox[1] - $bbox[7]), 2));
 
   // Calculate dimensions of box from text box.
   $box_width = max($bbox[0], $bbox[2], $bbox[4], $bbox[6]) - min($bbox[0], $bbox[2], $bbox[4], $bbox[6]);
@@ -78,24 +79,24 @@ function textimage_text_to_image($text, $fontsize, $font, $color = array('hex' =
   $back = imagecolorallocatealpha($image, 0, 0, 0, 127);
   imagefill($image, 0, 0, $back);
 
-  // Set text alignment left
+  // Set text alignment left.
   $x = -$bbox[0];
   $y = $box_height - $bbox[3];
 
   if (($fixed_width && $maximum_width > 0) && $align !== ALIGN_LEFT) {
     switch ($align) {
 
-      // Set text alignment center
+      // Set text alignment center.
       case ALIGN_CENTER:
         $x += ($image_width - $box_width) / 2;
         $y += ($image_height - $box_height) / 2;
-          break;
+        break;
 
-      // Set text alignment right
+      // Set text alignment right.
       case ALIGN_RIGHT:
         $x += $image_width - $box_width;
         $y += $image_height - $box_height;
-      break;
+        break;
     }
   }
 
@@ -127,16 +128,17 @@ function textimage_measure_text_width($text, $fontsize, $font) {
  * Wrap text for rendering at a given width.
  */
 function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
-  // State variables for the search interval
+  // State variables for the search interval.
   $end = 0;
   $begin = 0;
   $fit = $begin;
   if ($align == ALIGN_CENTER) {
-    // Get width of the space character
+    // Get width of the space character.
     $space_width = textimage_measure_text_width(' ', $fontsize, $font);
   }
-  // Note: we count in bytes for speed reasons, but maintain character boundaries.
-  while (true) {
+  // Note: we count in bytes for speed reasons, but maintain character
+  // boundaries.
+  while (TRUE) {
     // Find the next wrap point (always after trailing whitespace).
     if (drupal_preg_match('/[' . PREG_CLASS_PUNCTUATION . '][' . PREG_CLASS_SEPARATOR . ']*|[' . PREG_CLASS_SEPARATOR . ']+/u', $text, $match, PREG_OFFSET_CAPTURE, $end)) {
       $end = $match[0][1] + drupal_strlen($match[0][0]);
@@ -167,14 +169,15 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
       $last_part  = drupal_substr($text, $fit);
       if ($align == ALIGN_CENTER) {
         $text  = $first_part . "\n" . $last_part;
-        // Get last line of the text's first part
+        // Get last line of the text's first part.
         $first_part_array = explode("\n", $first_part);
         $last_index = count($first_part_array) - 1;
         $last_line  = $first_part_array[$last_index];
         $last_line_width = textimage_measure_text_width($last_line, $fontsize, $font);
-        // Get needed space for padding
+        // Get needed space for padding.
         $num_space = floor(($maximum_width - $last_line_width) / $space_width);
-        // Add space padding (to center the last line of the text's first part)
+        // Add space padding (to center the last line of the text's first
+        // part).
         for ($i = 0; $i < $num_space; ++$i) {
           $last_line = ' ' . $last_line;
         }
@@ -182,10 +185,11 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
         $first_part = implode("\n", $first_part_array);
         $last_part_width = textimage_measure_text_width($last_part, $fontsize, $font);
         if ($last_part_width < $maximum_width) {
-          // Get needed space for last part's padding
+          // Get needed space for last part's padding.
           $num_space = floor(($maximum_width - $last_part_width) / $space_width) - 2;
           $last_part = trim($last_part);
-          // Add space padding (to center the last line of the text's first part)
+          // Add space padding (to center the last line of the
+          // text's first part).
           for ($i = 0; $i < $num_space; ++$i) {
             $last_part = ' ' . $last_part;
           }
@@ -219,6 +223,9 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
  * @see http://php.net/manual/en/function.preg-match.php
  */
 if (!function_exists('drupal_preg_match')) {
+  /**
+   * @todo.
+   */
   function drupal_preg_match($pattern, $subject, &$matches, $flags = NULL, $offset = 0) {
     // Convert the offset value from characters to bytes.
     $offset = strlen(drupal_substr($subject, 0, $offset));
@@ -227,7 +234,8 @@ if (!function_exists('drupal_preg_match')) {
 
     if ($return_value && ($flags & PREG_OFFSET_CAPTURE)) {
       foreach ($matches as &$match) {
-        // Convert the offset returned by preg_match from bytes back to characters.
+        // Convert the offset returned by preg_match from bytes back to
+        // characters.
         $match[1] = drupal_strlen(substr($subject, 0, $match[1]));
       }
     }
@@ -235,7 +243,13 @@ if (!function_exists('drupal_preg_match')) {
   }
 }
 
+/**
+ * @todo.
+ */
 if (!function_exists('imagerotate')) {
+  /**
+   * @todo.
+   */
   function imagerotate($im, $angle, $bgcolor) {
     if ($angle === 0) {
       return $im;
@@ -249,21 +263,22 @@ if (!function_exists('imagerotate')) {
     $width  = imagesx($im);
     $height = imagesy($im);
 
-    // background color.
+    // Background color.
     list($r, $g, $b, $a) = _textimage_hex2rgb($bgcolor);
 
     switch ($angle) {
       case 270:
       case 90:
-        // flip dimensions.
+        // Flip dimensions.
         $rot_width = $height;
         $rot_height = $width;
-      break;
+        break;
+
       case 180:
-        // maintain dims.
+        // Maintain dims.
         $rot_width = $width;
         $rot_height = $height;
-      break;
+        break;
     }
 
     $rotate = imagecreatetruecolor($rot_width, $rot_height);
@@ -272,45 +287,52 @@ if (!function_exists('imagerotate')) {
     imagealphablending($rotate, FALSE);
     imagesavealpha($rotate, TRUE);
 
-    switch ($angle){
+    switch ($angle) {
       case 270:
         $rot_width--;
-        for ($y = 0; $y < $height; ++$y)
-          for ($x = 0; $x < $width; ++$x)
+        for ($y = 0; $y < $height; ++$y) {
+          for ($x = 0; $x < $width; ++$x) {
             imagesetpixel($rotate, $rot_width - $y, $x, imagecolorat($im, $x, $y));
-      break;
+          }
+        }
+        break;
+
       case 90:
         $rot_height--;
-        for ($y = 0; $y < $height; ++$y)
-          for ($x = 0; $x < $width; ++$x)
-          imagesetpixel($rotate, $y, $rot_height - $x, imagecolorat($im, $x, $y));
-      break;
+        for ($y = 0; $y < $height; ++$y) {
+          for ($x = 0; $x < $width; ++$x) {
+            imagesetpixel($rotate, $y, $rot_height - $x, imagecolorat($im, $x, $y));
+          }
+        }
+        break;
+
       case 180:
         $rot_width--;
         $rot_height--;
-        for ($y = 0; $y < $height; ++$y)
-          for ($x = 0; $x < $width; ++$x)
-          imagesetpixel($rotate, $rot_width - $x, $rot_height - $y, imagecolorat($im, $x, $y));
-      break;
+        for ($y = 0; $y < $height; ++$y) {
+          for ($x = 0; $x < $width; ++$x) {
+            imagesetpixel($rotate, $rot_width - $x, $rot_height - $y, imagecolorat($im, $x, $y));
+          }
+        }
+        break;
     }
     return $rotate;
   }
 }
 
 /**
- * This function adds a margin (or border) around an existing image resource
+ * This function adds a margin (or border) around an existing image resource.
  */
-
 function textimage_image_add_margin($img, $margin) {
   $width = imagesx($img);
   $height = imagesy($img);
 
-  // Create a new image for the background
+  // Create a new image for the background.
   $back_img = imagecreatetruecolor($width + $margin['right'] + $margin['left'], $height + $margin['top'] + $margin['bottom']);
   $back = imagecolorallocatealpha($back_img, 0, 0, 0, 127);
   imagefill($back_img, 0, 0, $back);
 
-  // Apply the source image ontop the background with the new margin
+  // Apply the source image ontop the background with the new margin.
   imagecopy($back_img, $img, $margin['left'], $margin['top'], 0, 0, $width, $height);
   imagealphablending($back_img, TRUE);
   imagesavealpha($back_img, TRUE);
@@ -319,13 +341,14 @@ function textimage_image_add_margin($img, $margin) {
 }
 
 /**
- *  Convert a hex color representation to it's rgb integer components.
+ * Convert a hex color representation to it's rgb integer components.
  *
- *  @param $hex
- *    Hex representation of the color.
- *    Can be in the formats: '#ABC','ABC','#AABBCC','AABBCC'
- *  @return
- *    Array with three components RGB.
+ * @param string $hex
+ *   Hex representation of the color.
+ *   Can be in the formats: '#ABC','ABC','#AABBCC','AABBCC'
+ *
+ * @return array
+ *   Array with three components RGB.
  */
 function _textimage_hex2rgb($hex) {
   $r = $g = $b = '';
@@ -359,7 +382,8 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
 
   $pixel = imagecolorsforindex($img, imagecolorat($img, $x, $y));
 
-  // Preform a radial analysis of all pixels within the radius of $thickness pixels
+  // Preform a radial analysis of all pixels within the radius of $thickness
+  // pixels.
   $degree_increment = (90 / $thickness);
   $radial_coords = array();
 
@@ -367,14 +391,14 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
     $x_offset = round(cos($degrees) * $thickness);
     $y_offset = round(sin($degrees) * $thickness);
 
-    // Add the coordinates for the corresponding pixel in each 90° quadrant
+    // Add the coordinates for the corresponding pixel in each 90° quadrant.
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x - $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y - $y_offset);
     $radial_coords[] = array('x' => $x - $x_offset, 'y' => $y - $y_offset);
   }
 
-  // Generate a total alpha level for all analyzed pixels
+  // Generate a total alpha level for all analyzed pixels.
   $total_alpha = 0;
   $total_colors = 0;
 
@@ -383,7 +407,8 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
       $xy_color = imagecolorsforindex($img, imagecolorat($img, $coords['x'], $coords['y']));
     }
     else {
-      // This analized pixel is outside the dimensions of the image, record as transparent
+      // This analized pixel is outside the dimensions of the image,
+      // record as transparent.
       $xy_color = array('alpha' => '127');
     }
 
@@ -391,19 +416,21 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
     $total_colors++;
   }
 
-  // Check that we're not in the middle of the image or in a blonk area
+  // Check that we're not in the middle of the image or in a blonk area.
   if ($total_alpha < (127 * $total_colors) && $total_alpha > 0) {
-    // If we're on a semi-transparent pixel, blend the remaining amount with our border color
+    // If we're on a semi-transparent pixel, blend the remaining amount
+    // with our border color.
     if ($pixel['alpha'] < 127) {
       $alpha = 127 - $pixel['alpha'];
     }
-    // We're on a completely transparent pixel where we'll use a generated transparency
     else {
+      // We're on a completely transparent pixel where we'll
+      // use a generated transparency.
       $alpha = 127 - ((127 * $total_colors) - $total_alpha);
     }
     $alpha = ($alpha < 0) ? 0 : $alpha;
     $alpha = ($alpha > 127) ? 127 : $alpha;
-    // Apply the color to the border overlay image
+    // Apply the color to the border overlay image.
     $color = imagecolorallocatealpha($border_img, $r, $g, $b, $alpha);
     imagesetpixel($border_img, $x, $y, $color);
   }

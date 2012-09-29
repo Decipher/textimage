@@ -23,7 +23,8 @@ Features
 * Backgrounds:
   * Define a color or simply have a transparent background.
   * Use a pre-made image to integrate directly with your theme.
-  * Use another Textimage preset to achieve a multi-layered image (see image above).
+  * Use another Textimage preset to achieve a multi-layered image
+    (see image above).
 * CCK and Views formatter integration.
 * Support for non-alphanumeric characters.
 
@@ -40,9 +41,9 @@ Install instructions
 
 1. Make sure your server supports the needed PHP extensions, if you're in a
    shared environment you may need help from your host.
-   
+
 2. Upload fonts files you want to use for Textimages to the 'fonts' directory
-   inside textimage directory. If you want you can change this directory to 
+   inside textimage directory. If you want you can change this directory to
    anywhere accessible by Drupal
 
 
@@ -55,11 +56,12 @@ Usage
    following format:
 
    theme('textimage_image', array(
-    'preset' => 'Preset', 
-    'text'   => 'Text', 
-    'additional_text' => array('Additional', 'Text'), 
-    'format'    => 'png', 
-    'file_path' => 'public://myimages/sub_folder/image-filename' // Don't include the file extension.
+    'preset' => 'Preset',
+    'text'   => 'Text',
+    'additional_text' => array('Additional', 'Text'),
+    'format'    => 'png',
+    // Don't include the file extension!
+    'file_path' => 'public://myimages/sub_folder/image-filename'
    ));
 
 2. via CCK/Views formatter:
@@ -94,4 +96,3 @@ Updating
 * Always run update.php on your Drupal site after updating Textimage.
 * Note: Due to certain changes in the Textimage module, some of your presets may
   require alterations after updating from 6.x-1.x to 6.x-2.x.
-

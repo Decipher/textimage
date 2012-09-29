@@ -1,7 +1,6 @@
 
 /* AHAH Preview */
-#textimage-preview
-{
+#textimage-preview {
   background-image: url('../images/transparent.png');
   border: 1px solid #999;
   margin-right: 5%;
@@ -9,8 +8,7 @@
   text-align: center;
 }
 
-#textimage-preview IMG
-{
-  padding: 0;
+#textimage-preview IMG {
   margin: 0;
+  padding: 0;
 }
