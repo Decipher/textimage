@@ -420,7 +420,7 @@ function textimage_preset_edit($form, &$form_state, $op, $pid = NULL) {
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type'  => 'submit',
-    '#value' => t('Submit'),
+    '#value' => t('Save preset'),
   );
 
   $form['actions']['preview'] = array(

@@ -485,7 +485,13 @@ function textimage_image_from_preset($preset, $text, $additional_text = array())
       break;
 
     case 'ucwords':
-      $text = preg_replace('/\s(\w+)\b/e', "drupal_ucfirst('$1')", $text);
+      $text = preg_replace_callback(
+        '/\s(\w+)\b/',
+        function ($m) {
+          return drupal_ucfirst($m[1]);
+        },
+        $text
+      );
       break;
   }
 
