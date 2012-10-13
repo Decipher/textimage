@@ -14,7 +14,7 @@ function textimage_settings_form() {
   $form['fonts'] = array(
     '#type'  => 'fieldset',
     '#title' => t('Fonts'),
-    '#description' => t('Number of fonts found: !fonts', array('!fonts' => count(_textimage_font_list($fonts_path)))),
+    '#description' => t('Number of fonts found: @fonts', array('@fonts' => count(_textimage_font_list($fonts_path)))),
   );
   $form['fonts']['textimage_fonts_path'] = array(
     '#type' => 'textfield',
@@ -28,7 +28,7 @@ function textimage_settings_form() {
   $form['images'] = array(
     '#type' => 'fieldset',
     '#title' => t('Background images'),
-    '#description' => t('Number of background images found: !images', array('!images' => count(_textimage_image_list($images_path)))),
+    '#description' => t('Number of background images found: @images', array('@images' => count(_textimage_image_list($images_path)))),
   );
   $form['images']['textimage_images_path'] = array(
     '#type' => 'textfield',
