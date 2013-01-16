@@ -593,15 +593,20 @@ function textimage_preset_flush_confirm_submit($form, &$form_state) {
  *   name of the preset to be created
  * @param string $description
  *   description
- * @param string $settings
+ * @param string|array $settings
  *   settings
  */
 function _textimage_preset_create($name, $description, $settings) {
+  // Serialize preset settings if not yet done.
+  if (!is_string($settings)) {
+    $settings = serialize($settings);
+  }
+
   return db_insert('textimage_preset')
     ->fields(array(
       'name' => $name,
       'description' => $description,
-      'settings' => serialize($settings),
+      'settings' => $settings,
     ))
     ->execute();
 }
