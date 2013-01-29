@@ -224,7 +224,7 @@ if (!function_exists('drupal_preg_match')) {
    */
   function drupal_preg_match($pattern, $subject, &$matches, $flags = NULL, $offset = 0) {
     // Convert the offset value from characters to bytes.
-    $offset = drupal_strlen(drupal_substr($subject, 0, $offset));
+    $offset = strlen(drupal_substr($subject, 0, $offset));
 
     $return_value = preg_match($pattern, $subject, $matches, $flags, $offset);
 
@@ -232,7 +232,7 @@ if (!function_exists('drupal_preg_match')) {
       foreach ($matches as &$match) {
         // Convert the offset returned by preg_match from bytes back to
         // characters.
-        $match[1] = drupal_strlen(drupal_substr($subject, 0, $match[1]));
+        $match[1] = drupal_strlen(substr($subject, 0, $match[1]));
       }
     }
     return $return_value;

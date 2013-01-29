@@ -5,3 +5,4 @@ core = 7.x
 configure = admin/config/media/textimage
 files[] = tests/textimage.test
 files[] = tests/textimage_url.test
+files[] = tests/textimage_preg_match.test
