@@ -709,9 +709,14 @@ function theme_textimage_formatter($element) {
  * Todo.
  */
 function textimage_deliver($pid, $filename, $display_img = TRUE) {
-  $public_file_path = base_path();
-  $public_file_path .= file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'))->getDirectoryPath();
-  $public_file_path .= '/textimage/';
+  $stream_wrapper = file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'));
+  if ($stream_wrapper instanceof DrupalLocalStreamWrapper) {
+    $directory_path  = $stream_wrapper->getDirectoryPath();
+  }
+  else {
+    drupal_not_found();
+  }
+  $public_file_path = base_path() . $directory_path . '/textimage/';
   $pattern = '/' . str_replace('/', '\/', $public_file_path) . '/';
   $trail = urldecode(preg_replace($pattern, '', request_uri()));
   $args    = explode('/', $trail);
