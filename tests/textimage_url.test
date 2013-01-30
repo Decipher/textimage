@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * @file
  * Textimage - web test case script.
@@ -9,8 +9,11 @@
  */
 class TextimageUrlTest extends DrupalWebTestCase {
 
-  protected $textimage_admin = 'admin/config/media/textimage';
+  protected $textimageAdmin = 'admin/config/media/textimage';
 
+  /**
+   * Get info.
+   */
   public static function getInfo() {
     return array(
       'name' => 'Textimage URL',
@@ -19,6 +22,9 @@ class TextimageUrlTest extends DrupalWebTestCase {
     );
   }
 
+  /**
+   * Set up.
+   */
   public function setUp() {
     // Enable required modules.
     $modules = array(
@@ -27,12 +33,15 @@ class TextimageUrlTest extends DrupalWebTestCase {
     parent::setUp($modules);
   }
 
+  /**
+   * Tear down.
+   */
   public function tearDown() {
     parent::tearDown();
   }
 
   /**
-   * Test functionality of the module.
+   * Build and display a URL derivative.
    */
   public function testTextimage() {
 
@@ -50,7 +59,7 @@ class TextimageUrlTest extends DrupalWebTestCase {
     $edit = array(
       'textimage_fonts_path' => drupal_get_path('module', 'textimage') . '/tests/fonts',
     );
-    $this->drupalPost($this->textimage_admin . '/settings' , $edit, t('Save configuration'));
+    $this->drupalPost($this->textimageAdmin . '/settings', $edit, t('Save configuration'));
 
     // Create a test preset.
     $edit = array(
@@ -61,7 +70,7 @@ class TextimageUrlTest extends DrupalWebTestCase {
       'settings[text][maximum_width]' => 200,
       'settings[text][fixed_width]' => TRUE,
     );
-    $this->drupalPost($this->textimage_admin . '/preset/new' , $edit, t('Save preset'));
+    $this->drupalPost($this->textimageAdmin . '/preset/new', $edit, t('Save preset'));
 
     // Build and display a URL derivative.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url preview text image');

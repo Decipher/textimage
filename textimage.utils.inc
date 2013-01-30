@@ -217,6 +217,7 @@ function textimage_wrap_text($text, $fontsize, $font, $maximum_width, $align) {
  * in bytes.
  *
  * @see http://php.net/manual/en/function.preg-match.php
+ * @see http://drupal.org/node/465638
  */
 if (!function_exists('drupal_preg_match')) {
   /**
@@ -224,6 +225,7 @@ if (!function_exists('drupal_preg_match')) {
    */
   function drupal_preg_match($pattern, $subject, &$matches, $flags = NULL, $offset = 0) {
     // Convert the offset value from characters to bytes.
+    // NOTE - strlen is used on purpose here, instead of drupal_strlen
     $offset = strlen(drupal_substr($subject, 0, $offset));
 
     $return_value = preg_match($pattern, $subject, $matches, $flags, $offset);
@@ -232,6 +234,7 @@ if (!function_exists('drupal_preg_match')) {
       foreach ($matches as &$match) {
         // Convert the offset returned by preg_match from bytes back to
         // characters.
+        // NOTE - substr is used on purpose here, instead of drupal_substr
         $match[1] = drupal_strlen(substr($subject, 0, $match[1]));
       }
     }

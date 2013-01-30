@@ -15,10 +15,11 @@ Co-maintained by Stuart Clark (Deciphered).
 
 
 Features
-------------
+--------
 
 * Support for TrueType fonts and OpenType fonts.
-* Rotate your text at any angle.
+* Rotate text at any angle.
+* Automatic text wrapping when using maximum width.
 * Configurable opacity in text color.
 * Backgrounds:
   * Define a color or simply have a transparent background.
@@ -26,6 +27,8 @@ Features
   * Use another Textimage preset to achieve a multi-layered image
     (see image above).
 * CCK and Views formatter integration.
+  * CCK Textfield widget support.
+  * Email module widget support.
 * Support for non-alphanumeric characters.
 
 
@@ -37,14 +40,14 @@ Requirements
 
 
 Install instructions
-------------
+--------------------
 
 1. Make sure your server supports the needed PHP extensions, if you're in a
    shared environment you may need help from your host.
 
 2. Upload fonts files you want to use for Textimages to the 'fonts' directory
    inside textimage directory. If you want you can change this directory to
-   anywhere accessible by Drupal
+   anywhere accessible by Drupal.
 
 
 Usage
@@ -74,25 +77,20 @@ Usage
    Create an image with the URL in following format:
    /[files directory]/textimage/[Preset](/Additional/Text)/[Text].[extension]
 
-   Note: This method can only be used by users with the 'create textimages'
+   Notes:
+   a) this method can only be used by users with the 'create textimages'
    permission. This is to prevent Anonymous users from creating random images.
+   b) this method only works if the "Default download method" on the
+   admin/config/media/file-system page is set to a local file system (in fact,
+   to a local stream wrapper).
 
    If you need dynamically created Textimages, it is strongly advised you use
    one of the methods detailed above.
-
-
-Recommended
-------------
-
-* Vertical Tabs - http://drupal.org/project/vertical_tabs
-
-  When the Vertical Tabs module is enabled you will receive a modified user
-  interface when creating and editing Textimage presets.
 
 
 Updating
 ------------
 
 * Always run update.php on your Drupal site after updating Textimage.
-* Note: Due to certain changes in the Textimage module, some of your presets may
-  require alterations after updating from 6.x-1.x to 6.x-2.x.
+* Due to certain changes in the Textimage module, some of your presets may
+  require alterations after updating.

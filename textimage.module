@@ -221,8 +221,8 @@ function textimage_menu() {
     'file'   => 'textimage.admin.inc',
   );
 
-  // Generate image derivatives of publicly available files for local default
-  // filesystem only.
+  // Generate image derivatives of publicly available files, via
+  // URL request path. For local default filesystem only.
   $stream_wrapper = file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'));
   if ($stream_wrapper instanceof DrupalLocalStreamWrapper) {
     $directory_path  = $stream_wrapper->getDirectoryPath();
@@ -235,6 +235,7 @@ function textimage_menu() {
       'type' => MENU_CALLBACK,
     );
   }
+
   return $items;
 }
 
@@ -392,7 +393,7 @@ function textimage_build_image($method, $preset, $text, $additional_text = array
             )),
           ))->execute();
       }
-      catch(Exception $error) {
+      catch (Exception $error) {
         db_update('textimage_image')
           ->fields(array(
             'data' => serialize(array(

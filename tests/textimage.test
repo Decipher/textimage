@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * @file
  * Textimage - web test case script.
@@ -9,8 +9,11 @@
  */
 class TextimageTest extends DrupalWebTestCase {
 
-  protected $textimage_admin = 'admin/config/media/textimage';
+  protected $textimageAdmin = 'admin/config/media/textimage';
 
+  /**
+   * Get info.
+   */
   public static function getInfo() {
     return array(
       'name' => 'Textimage functionality',
@@ -19,15 +22,20 @@ class TextimageTest extends DrupalWebTestCase {
     );
   }
 
+  /**
+   * Set up.
+   */
   public function setUp() {
     // Enable required modules.
     $modules = array(
       'textimage',
-//      'ctools',
     );
     parent::setUp($modules);
   }
 
+  /**
+   * Tear down.
+   */
   public function tearDown() {
     parent::tearDown();
   }
@@ -51,7 +59,7 @@ class TextimageTest extends DrupalWebTestCase {
     $edit = array(
       'textimage_fonts_path' => drupal_get_path('module', 'textimage') . '/tests/fonts',
     );
-    $this->drupalPost($this->textimage_admin . '/settings' , $edit, t('Save configuration'));
+    $this->drupalPost($this->textimageAdmin . '/settings', $edit, t('Save configuration'));
 
     // Create a test preset.
     $edit = array(
@@ -62,7 +70,7 @@ class TextimageTest extends DrupalWebTestCase {
       'settings[text][maximum_width]' => 200,
       'settings[text][fixed_width]' => TRUE,
     );
-    $this->drupalPost($this->textimage_admin . '/preset/new' , $edit, t('Save preset'));
+    $this->drupalPost($this->textimageAdmin . '/preset/new', $edit, t('Save preset'));
 
     // Generate a few derivative images via theme.
     $textimage = theme(

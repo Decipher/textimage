@@ -1,2 +1,10 @@
-Textimage 7.x-2.x-dev
-=====================
+Textimage 7.x-2.0-xxxx, xxxx-xx-xx
+----------------------------------
+- Issue #1901856 by mondrake: Implemented a basic simpletest script
+- Issue #1893960 by Dmitriy.trt: Fixed wrong behavior of drupal_preg_match()
+  follows to infinite loops in textimage_wrap_text()
+- Issue #1890026 by Dmitriy.trt: Fixed presets exported with Ctools Bulk
+  Export are broken
+- Issue #1889032 by Dmitriy.trt: Fixed Textimage breaks the website
+  with non-local default filesystem
+- Issue #1813592 by mondrake: Fixed parse error with php 5.2.x
