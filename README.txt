@@ -69,7 +69,7 @@ Usage
     'file_path' => 'public://myimages/sub_folder/image-filename'
    ));
 
-2. via CCK/Views formatter:
+2. via Field/Views formatter:
 
    Select a Textimage preset in a text field display options.
 
