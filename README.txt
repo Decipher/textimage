@@ -10,8 +10,10 @@ is unable to cache images, which can cause serious performance problems.
 Textimage was originally written by Fabiano Sant'Ana (wundo).
 - http://chuva-inc.com
 
-Co-maintained by Stuart Clark (Deciphered).
-- http://stuar.tc/lark
+Co-maintained by:
+- Stuart Clark (Deciphered) http://stuar.tc/lark
+- Mondrake http://drupal.org/user/1307444
+
 
 
 Features
