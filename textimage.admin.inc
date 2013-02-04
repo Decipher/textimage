@@ -821,7 +821,7 @@ function _textimage_font_name($filename) {
 }
 
 /**
- * Todo.
+ * Auxiliar function to convert from decimal to hex.
  */
 function _textimage_dec2hex($dec) {
   $hex = dechex($dec);
@@ -829,7 +829,7 @@ function _textimage_dec2hex($dec) {
 }
 
 /**
- * Todo.
+ * Auxiliar function to validate either the entered value is a valid hex color code or not.
  */
 function _textimage_number_validate($field, $field_name) {
   if (!empty($field['#value']) && !is_numeric($field['#value'])) {
@@ -838,13 +838,14 @@ function _textimage_number_validate($field, $field_name) {
 }
 
 /**
- * Todo.
+ * Auxiliar function to validate either the entered value is a valid hex color code or not.
  */
 function _textimage_hex_validate($field, $field_name) {
   if (!empty($field['#value']) && !preg_match('/^#[0123456789ABCDEF]{1,6}$/i', $field['#value'])) {
     form_set_error($field_name, t('The value for %field must be in a hexidecimal format (i.e. #FFFFFF is white).', array('%field' => $field['#title'])));
   }
 }
+
 /**
  * Returns an array of files with jpg, png, and gif extensions.
  *
