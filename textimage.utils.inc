@@ -392,7 +392,7 @@ function textimage_image_stroke_change_pixels(&$img, &$border_img, $thickness, $
     $x_offset = round(cos($degrees) * $thickness);
     $y_offset = round(sin($degrees) * $thickness);
 
-    // Add the coordinates for the corresponding pixel in each 90° quadrant.
+    // Add the coordinates for the corresponding pixel in each 90 degrees quadrant.
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x - $x_offset, 'y' => $y + $y_offset);
     $radial_coords[] = array('x' => $x + $x_offset, 'y' => $y - $y_offset);
