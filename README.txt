@@ -14,85 +14,64 @@ Co-maintained by:
 - Stuart Clark (Deciphered) http://stuar.tc/lark
 - Mondrake http://drupal.org/user/1307444
 
+-----------------
+Textimage 7.x-3.x
+-----------------
+
+Note: this release *breaks backward compatibility*, since it uses different
+API and DB structures. If you want to test or review, please mind about
+installing the module in an environment where there is no 7.x-2.x installed.
 
 
-Features
---------
+DELTA FEATURES:
+---------------
 
-* Support for TrueType fonts and OpenType fonts.
-* Rotate text at any angle.
-* Automatic text wrapping when using maximum width.
-* Configurable opacity in text color.
-* Backgrounds:
-  * Define a color or simply have a transparent background.
-  * Use a pre-made image to integrate directly with your theme.
-  * Use another Textimage preset to achieve a multi-layered image
-    (see image above).
-* CCK and Views formatter integration.
-  * CCK Textfield widget support.
-  * Email module widget support.
-* Support for non-alphanumeric characters.
+Textimage 3 is a major rewrite of Textimage.
 
+- Leverage Image and Tokens features that are embedded in core Drupal 7.
 
-Requirements
-------------
+- Drop the preset concept and db schema and use instead the Image concepts:
+styles and effects. This finally allows Textimage to use any image effect
+to build the final image - leveraging a wide library of image effects
+provided by core and other contrib modules. Also, it allows core Image module
+to use Textimage effects.
 
-* GD2
-* FreeType
+- Move all primitive image functions to toolkit specific includes, allowing to
+potentially use alternative toolkits (other than GD).
 
+- Implement Drupal 7 field formatters for Text and Image fields.
 
-Install instructions
---------------------
+- Implement a derivative delivery mechanism specific to Textimage - enabling
+usage of scheme wrappers (public, private, ...) to indicate storage
+destination of image files, and providing a framework to leverage tokens.
+(90% done)
 
-1. Make sure your server supports the needed PHP extensions, if you're in a
-   shared environment you may need help from your host.
+- Enable Tokens substitution at runtime in the text.
 
-2. Upload fonts files you want to use for Textimages to the 'fonts' directory
-   inside textimage directory. If you want you can change this directory to
-   anywhere accessible by Drupal.
+- Implement a direct text to image theme (i.e. enable producing a textimage
+with no predefined style!).
 
+- Enhance the text overlay effects
 
-Usage
-------------
+- Integrate with Imagecache Actions module to leverage its effects and
+functions (dependency).
 
-1. via theme_textimage_image():
+- Optional @font-your-face module integration for font management.
 
-   Use the theme_textimage_image() function at the theme/module level with the
-   following format:
+- Optional Media module integration for background image management.
 
-   theme('textimage_image', array(
-    'preset' => 'Preset',
-    'text'   => 'Text',
-    'additional_text' => array('Additional', 'Text'),
-    'format'    => 'png',
-    // Don't include the file extension!
-    'file_path' => 'public://myimages/sub_folder/image-filename'
-   ));
+- Optional jQuery Colorpicker module integration for color selection in
+effects' admin forms.
 
-2. via Field/Views formatter:
+- Document code(90% done)
 
-   Select a Textimage preset in a text field display options.
+- Documentation for users(0% done)
 
-
-3. via URL:
-
-   Create an image with the URL in following format:
-   /[files directory]/textimage/[Preset](/Additional/Text)/[Text].[extension]
-
-   Notes:
-   a) this method can only be used by users with the 'create textimages'
-   permission. This is to prevent Anonymous users from creating random images.
-   b) this method only works if the "Default download method" on the
-   admin/config/media/file-system page is set to a local file system (in fact,
-   to a local stream wrapper).
-
-   If you need dynamically created Textimages, it is strongly advised you use
-   one of the methods detailed above.
-
-
-Updating
-------------
-
-* Always run update.php on your Drupal site after updating Textimage.
-* Due to certain changes in the Textimage module, some of your presets may
-  require alterations after updating.
+NICE TO HAVE:
+-------------
+- a way to specify a http link for the textimage in fields and/or themes,
+  with tokens
+- textimage_text effect - if elements with different opacity overlap (e.g.
+  in case of shadow/outline or if background color is opaque itself), then
+  we get a combined color effect. One may want to refer each element's
+  opacity to the original image instead.
