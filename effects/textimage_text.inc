@@ -593,7 +593,7 @@ function _textimage_text_effect_preview_image($data) {
         ),
       ),
       'title' => t('Preview'),
-      'alt' => t('Could not generate preview.'),
+      'alt' => t('Display preview not available.'),
       'caching' => FALSE,
     )
   );
