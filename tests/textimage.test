@@ -110,7 +110,8 @@ class TextimageTest extends DrupalWebTestCase {
     $this->assertTrue($files_count == 3, t('Textimage generation via theme.'));
 
     // Build and display a URL derivative.
-    $this->drupalGet($directory_path . '/textimage/textimage_test/url preview text image');
+    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
+    $this->assertResponse(200, 'URL Textimage response');
 
     // Check file was generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
