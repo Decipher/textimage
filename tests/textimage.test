@@ -69,6 +69,7 @@ class TextimageTest extends DrupalWebTestCase {
     // Create a test image style.
     $edit = array(
       'name' => 'textimage_test',
+      'label' => 'Textimage Test',
     );
     $this->drupalPost('admin/config/media/image-styles/add', $edit, t('Create new style'));
 

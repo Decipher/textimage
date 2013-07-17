@@ -27,6 +27,7 @@ class TextimagePregMatchTestCase extends DrupalUnitTestCase {
    */
   protected function setUp() {
     parent::setUp();
+    module_load_include('inc', 'textimage', 'effects/textimage_text');
   }
 
   /**
