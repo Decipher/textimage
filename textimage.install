@@ -47,6 +47,16 @@ function textimage_requirements($phase) {
     $requirements['textimage_gd']['description'] = $t('The GD library for PHP is missing or outdated. Check the <a href="@url">PHP image documentation</a> for information on how to correct this.', array('@url' => 'http://www.php.net/manual/book.image.php'));
   }
 
+  // Check Clean URLs are set on.
+  if (!variable_get('clean_url', FALSE)) {
+    $requirements['textimage_clean_url'] = array(
+      'title' => $t('Clean URLs'),
+      'value' => $t('Disabled'),
+      'severity' => REQUIREMENT_WARNING,
+      'description' => $t('Textimage requires Clean URLs to be set on to provide URL-based generation of text images. Visit the <a href="@url">Clean URLs</a> configuration page to set up.', array('@url' => url('admin/config/search/clean-urls'))),
+    );
+  }
+
   return $requirements;
 }
 
