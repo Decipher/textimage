@@ -899,7 +899,7 @@ function _textimage_text_effect_get_wrapper($image, array $data) {
   // ---------------------------------------
 
   // Get inner box, for horizontal text, unpadded.
-  $inner_box = _textimage_get_bounding_box($image, $data['text_string'], $data['font']['size'], $data['font']['uri']);
+  $inner_box = _textimage_get_bounding_box($image, $data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
 
   // Adjust to fixed width, if requested.
   if ($data['text']['fixed_width'] && !empty($data['text']['maximum_width'])) {
@@ -1062,7 +1062,7 @@ function _textimage_wrap_text($image, $text, $font_size, $font_uri, $maximum_wid
 
     // Fetch text, removing trailing white-space, and measure it.
     $line  = preg_replace('/[' . PREG_CLASS_SEPARATOR . ']+$/u', '', drupal_substr($text, $begin, $end - $begin));
-    $width = _textimage_measure_text_width($image, $line, $font_size, $font_uri);
+    $width = _textimage_measure_text_width($image, $line, 1, $font_size, $font_uri);
 
     // See if line extends past the available space.
     if ($width > $maximum_width) {
@@ -1071,7 +1071,7 @@ function _textimage_wrap_text($image, $text, $font_size, $font_uri, $maximum_wid
         // Cut off letters until it fits.
         while (drupal_strlen($line) > 0 && $width > $maximum_width) {
           $line  = drupal_substr($line, 0, -1);
-          $width = _textimage_measure_text_width($image, $line, $font_size, $font_uri);
+          $width = _textimage_measure_text_width($image, $line, 1, $font_size, $font_uri);
         }
         // If no fit was found, the image is too narrow.
         $fit = drupal_strlen($line) ? $begin + drupal_strlen($line) : $end;
@@ -1127,6 +1127,8 @@ function _textimage_get_font_path($image, $font_uri) {
  *   Image object.
  * @param string $text
  *   Text string in UTF-8 encoding.
+ * @param int $lines
+ *   The number of lines the text is composed of.
  * @param int $font_size
  *   Font size.
  * @param string $font_uri
@@ -1137,12 +1139,13 @@ function _textimage_get_font_path($image, $font_uri) {
  * @return TextimageTextbox
  *   Textbox object.
  */
-function _textimage_get_bounding_box($image, $text, $font_size, $font_uri, $angle = 0) {
+function _textimage_get_bounding_box($image, $text, $lines, $font_size, $font_uri, $angle = 0) {
   $data = array(
     'size' => $font_size,
     'angle' => $angle,
     'fontfile' => $font_uri,
     'text' => $text,
+    'lines' => $lines,
   );
   return image_toolkit_invoke('textimage_get_bounding_box', $image, array($data));
 }
@@ -1154,6 +1157,8 @@ function _textimage_get_bounding_box($image, $text, $font_size, $font_uri, $angl
  *   Image object.
  * @param string $text
  *   Text string in UTF-8 encoding.
+ * @param int $lines
+ *   The number of lines the text is composed of.
  * @param int $font_size
  *   Font size.
  * @param string $font_uri
@@ -1162,8 +1167,8 @@ function _textimage_get_bounding_box($image, $text, $font_size, $font_uri, $angl
  * @return array
  *   An associative array of box measurements.
  */
-function _textimage_measure_text_width($image, $text, $font_size, $font_uri) {
-  $box = _textimage_get_bounding_box($image, $text, $font_size, $font_uri);
+function _textimage_measure_text_width($image, $text, $lines, $font_size, $font_uri) {
+  $box = _textimage_get_bounding_box($image, $text, $lines, $font_size, $font_uri);
   return $box->get('width');
 }
 

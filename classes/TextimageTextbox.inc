@@ -50,6 +50,7 @@ class TextimageTextbox {
         break;
 
       case 'points':
+        $this->basepoint = array(0, 0);
         // Note: there is no check whether the points are actually representing
         // a rectangle.
         // Translate box to top left = 0,0.

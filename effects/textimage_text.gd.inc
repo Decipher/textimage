@@ -66,7 +66,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
   foreach ($data['text_lines'] as $text_line) {
 
     // This text line's box size.
-    $text_line_box = _textimage_get_bounding_box($image, $text_line, $data['font']['size'], $data['font']['uri']);
+    $text_line_box = _textimage_get_bounding_box($image, $text_line, 1, $data['font']['size'], $data['font']['uri']);
     $text_line_box->set('height', $data['line_height']);
 
     // Manage text alignment within the line.
@@ -167,9 +167,29 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
  * Return the bounding box of a text using TrueType fonts.
  */
 function image_gd_textimage_get_bounding_box($image, $data = array()) {
+
   $box = new TextimageTextbox();
-  $box->set('points', imagettfbbox($data['size'], $data['angle'], $data['fontfile'], $data['text']));
+
+  // Need to calculate the height independently from primitive as
+  // lack of descending/ascending characters will limit the height.
+  // So to have uniformity we take a dummy string with ascending and
+  // descending characters to set to max height possible.
+  $box->set('points', imagettfbbox($data['size'], 0, $data['fontfile'], 'bdfhkltgjpqyBDFHKLTGJPQY§@çÀÈÉÌÒÇ'));
+  $height = $data['lines'] * $box->get('height');
+
+  // Now get the box for full text to get width.
+  $box->set('points', imagettfbbox($data['size'], 0, $data['fontfile'], $data['text']));
+
+  // Reset height.
+  $box->set('height', $height);
+
+  // Rotate if angle specified.
+  if ($data['angle']) {
+    $box = $box->getTranslatedBox($data['angle']);
+  }
+
   return $box;
+
 }
 
 /**
