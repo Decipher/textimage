@@ -124,8 +124,8 @@ function textimage_menu() {
     $directory_path  = $stream_wrapper->getDirectoryPath();
     $items[$directory_path . '/textimage'] = array(
       'title' => 'URL textimage generation',
-      'page callback' => 'textimage_uri_deliver',
-      'access arguments' => array('generate textimage uri derivatives'),
+      'page callback' => 'textimage_url_deliver',
+      'access arguments' => array('generate textimage url derivatives'),
       'type' => MENU_CALLBACK,
     );
   }
@@ -138,9 +138,9 @@ function textimage_menu() {
  */
 function textimage_permission() {
   return array(
-    'generate textimage uri derivatives' => array(
-      'title' => t('Generate Textimage URI derivatives'),
-      'description' => t('Allows users to generate Textimage derivatives directly from an URI request.'),
+    'generate textimage url derivatives' => array(
+      'title' => t('Generate Textimage URL derivatives'),
+      'description' => t('Allows users to generate Textimage derivatives directly from an URL request.'),
     ),
   );
 }
@@ -584,35 +584,11 @@ function textimage_color_element_validate(&$element, &$form_state, $form) {
  */
 function theme_textimage_style_image($variables) {
 
-  // Retrieve Textimage style.
-  if ($variables['style_name']) {
-    $style = TextimageStyles::get($variables['style_name']);
-    if (!$style) {
-      _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $variables['style_name'])), WATCHDOG_ERROR);
-      return NULL;
-    }
-  }
-  else {
-    _textimage_diag(t("No image style was specified while invoking Textimage."), WATCHDOG_ERROR);
-    return NULL;
-  }
-
-  // Handle input text.
-  if (!$variables['text']) {
-    $text = array(t("No text specified"));
-  }
-  if (is_array($variables['text'])) {
-    $text = $variables['text'];
-  }
-  else {
-    $text = array($variables['text']);
-  }
-
-  // Get URL to image file.
-  $url = TextimageImager::getImage(
-    $style,
+  // Get URI to image file.
+  $uri = TextimageImager::getImageUri(
+    $variables['style_name'],
     NULL,
-    $text,
+    $variables['text'],
     $variables['format'],
     TRUE,
     $variables['node'],
@@ -620,11 +596,11 @@ function theme_textimage_style_image($variables) {
   );
 
   // Render through theme_image.
-  if ($url) {
+  if ($uri) {
     return theme(
       'image',
       array(
-        'path' => $url,
+        'path' => $uri,
         'alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
         'title' => $variables['title'],
         'attributes' => $variables['attributes'],
@@ -641,17 +617,6 @@ function theme_textimage_style_image($variables) {
  */
 function theme_textimage_direct_image($variables) {
 
-  // Handle input text.
-  if (!$variables['text']) {
-    $text = array(t("No text specified"));
-  }
-  if (is_array($variables['text'])) {
-    $text = $variables['text'];
-  }
-  else {
-    $text = array($variables['text']);
-  }
-
   // Merge textimage_text effects with default data.
   foreach ($variables['effects'] as $seq => &$effect) {
     switch ($effect['name']) {
@@ -666,21 +631,21 @@ function theme_textimage_direct_image($variables) {
     }
   }
 
-  // Get URL to image file.
-  $url = TextimageImager::getImage(
+  // Get URI to image file.
+  $uri = TextimageImager::getImageUri(
     NULL,
     $variables['effects'],
-    $text,
+    $variables['text'],
     $variables['format'],
     $variables['caching']
   );
 
   // Render through theme_image.
-  if ($url) {
+  if ($uri) {
     return theme(
       'image',
       array(
-        'path' => $url,
+        'path' => $uri,
         'alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
         'title' => $variables['title'],
         'attributes' => $variables['attributes'],
@@ -694,9 +659,9 @@ function theme_textimage_direct_image($variables) {
 }
 
 /**
- * Deliver directly a Textimage from the URI request.
+ * Deliver directly a Textimage from the URL request.
  */
-function textimage_uri_deliver() {
+function textimage_url_deliver() {
 
   // Get the real directory of the public wrapper.
   $public_path = file_stream_wrapper_get_instance_by_scheme('public')->getDirectoryPath();
@@ -736,14 +701,14 @@ function textimage_uri_deliver() {
   }
 
   // Get the image and transfer to client.
-  $url = TextimageImager::getImage(
+  $uri = TextimageImager::processImageRequest(
     $style,
     NULL,
     $text,
     $extension
   );
-  $image_info = image_get_info($url);
-  file_transfer($url, array(
+  $image_info = image_get_info($uri);
+  file_transfer($uri, array(
     'Content-Type' => $image_info['mime_type'],
     'Content-Length' => $image_info['file_size'],
   ));

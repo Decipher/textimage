@@ -51,7 +51,7 @@ class TextimageTest extends DrupalWebTestCase {
     // Create a user and log it in.
     $this->admin_user = $this->drupalCreateUser(array(
       'administer image styles',
-      'generate textimage uri derivatives',
+      'generate textimage url derivatives',
     ));
     $this->drupalLogin($this->admin_user);
 

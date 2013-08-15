@@ -10,6 +10,80 @@
 abstract class TextimageImager {
 
   /**
+   * Get a Textimage URL, building the image if necessary.
+   *
+   * @param name $style_name
+   *   the image style name.
+   * @param array $effects_outline
+   *   an outline of the style's effects data.
+   * @param array $text
+   *   text to be used to deliver the image.
+   * @param string $extension
+   *   (optional) file extension to be delivered (png jpg jpeg gif). Defaults
+   *   to 'png'.
+   * @param bool $caching
+   *   (optional) TRUE if image caching has to be used. Defaults to TRUE.
+   * @param object $node
+   *   (optional) a node entity. It is used for resolving the tokens in the
+   *   text effects.
+   * @param object $source_image_file
+   *   (optional) a file entity. It is used for resolving the tokens
+   *   in the text effects.
+   *
+   * @return array
+   *   the URL of the image, or NULL in case of failure
+   */
+  public static function getImageUrl($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL) {
+    $uri = static::getImageUri($style_name, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
+    return $uri ? file_create_url($uri) : NULL;
+  }
+
+  /**
+   * Get a Textimage URI, building the image if necessary.
+   *
+   * @param name $style_name
+   *   the image style name.
+   * @param array $effects_outline
+   *   an outline of the style's effects data.
+   * @param array $text
+   *   text to be used to deliver the image.
+   * @param string $extension
+   *   (optional) file extension to be delivered (png jpg jpeg gif). Defaults
+   *   to 'png'.
+   * @param bool $caching
+   *   (optional) TRUE if image caching has to be used. Defaults to TRUE.
+   * @param object $node
+   *   (optional) a node entity. It is used for resolving the tokens in the
+   *   text effects.
+   * @param object $source_image_file
+   *   (optional) a file entity. It is used for resolving the tokens
+   *   in the text effects.
+   *
+   * @return array
+   *   the URI of the image, or NULL in case of failure
+   */
+  public static function getImageUri($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL) {
+
+    if ($style_name) {
+      // Retrieve Textimage style and process via processImageRequest.
+      $style = TextimageStyles::get($style_name);
+      if ($style) {
+        return static::processImageRequest($style, NULL, $text, $extension, $caching, $node, $source_image_file);
+      }
+      else {
+        _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $style_name)), WATCHDOG_ERROR);
+        return NULL;
+      }
+    }
+    elseif (!empty($effects_outline) && is_array($effects_outline)) {
+      return static::processImageRequest(NULL, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
+    }
+
+    _textimage_diag(t("No input was specified while invoking Textimage."), WATCHDOG_ERROR);
+    return NULL;
+  }
+
+  /**
    * Process image delivery request.
    *
    * @param array $style
@@ -21,12 +95,18 @@ abstract class TextimageImager {
    * @param string $extension
    *   file extension to be delivered (png jpg jpeg gif)
    * @param bool $caching
-   *   TRUE if image caching has to be used
+   *   (optional) TRUE if image caching has to be used. Defaults to TRUE.
+   * @param object $node
+   *   (optional) a node entity. It is used for resolving the tokens in the
+   *   text effects.
+   * @param object $source_image_file
+   *   (optional) a file entity. It is used for resolving the tokens
+   *   in the text effects.
    *
    * @return array
    *   the uri of the image, or NULL in case of failure
    */
-  public static function getImage($style, $effects_outline, &$text, $extension, $caching = TRUE, $node = NULL, $source_image_file = NULL) {
+  public static function processImageRequest($style, $effects_outline, &$text, $extension, $caching = TRUE, $node = NULL, $source_image_file = NULL) {
 
     $source_image_uri = isset($source_image_file) ? $source_image_file->uri : NULL;
 
@@ -62,10 +142,10 @@ abstract class TextimageImager {
         if ($text_item) {
           // Replace any tokens in text with run-time values.
           $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-          $processed_text[] = self::processTextString($text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
+          $processed_text[] = static::processTextString($text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
         }
         elseif ($default_text_item) {
-          $processed_text[] = self::processTextString($default_text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
+          $processed_text[] = static::processTextString($default_text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
         }
         else {
           $processed_text[] = t('* Missing text *');
@@ -100,7 +180,7 @@ abstract class TextimageImager {
 
     // Check cache and/or store and return if db and file hit.
     if ($caching) {
-      if ($uri = self::getCached($hash)) {
+      if ($uri = static::getCached($hash)) {
         return $uri;
       }
     }
@@ -109,7 +189,7 @@ abstract class TextimageImager {
     timer_start('TextimageImager::build');
 
     // Get URI of the to-be image file.
-    $uri = self::getUri($hash, $style, $processed_text, $extension, $caching);
+    $uri = static::buildUri($hash, $style, $processed_text, $extension, $caching);
 
     // Build a runtime-only style, in case the image is being generated through
     // theme_textimage_direct_image().
@@ -125,7 +205,7 @@ abstract class TextimageImager {
     }
 
     // Build the image.
-    if (!self::buildImage($style, $source_image_uri, $uri, $extension)) {
+    if (!static::buildImage($style, $source_image_uri, $uri, $extension)) {
       _textimage_diag(t("Textimage failed to build an image for image style '@style'.", array('@style' => $style['name'])), WATCHDOG_ERROR, __FUNCTION__);
       return NULL;
     }
@@ -135,8 +215,8 @@ abstract class TextimageImager {
 
     // Saves db imagestore data.
     if ($caching) {
-      self::setCached($hash, $uri);
-      self::putInStore($style, $hash, $effects_outline, $image_data, $uri, $timer['time']);
+      static::setCached($hash, $uri);
+      static::putInStore($style, $hash, $effects_outline, $image_data, $uri, $timer['time']);
     }
 
     return $uri;
@@ -212,8 +292,8 @@ abstract class TextimageImager {
     }
 
     // Reset state.
-    self::setState();
-    self::setState('building_module', 'textimage');
+    static::setState();
+    static::setState('building_module', 'textimage');
 
     // Try to generate the image, unless another thread just did it while we
     // were acquiring the lock.
@@ -224,7 +304,7 @@ abstract class TextimageImager {
     };
 
     // Reset state.
-    self::setState();
+    static::setState();
 
     // Release lock.
     if (!empty($lock_acquired)) {
@@ -267,11 +347,11 @@ abstract class TextimageImager {
    * @return string
    *   URI of the image, or NULL in case of failure
    */
-  protected static function getUri($hash, $style, array $text, $extension, $caching) {
+  protected static function buildUri($hash, $style, array $text, $extension, $caching) {
 
     // If style and caching are set, then try a clear file uri.
     if ($style and $caching) {
-      if ($uri = self::getStyledImageClearFileUri($style, $text, $extension)) {
+      if ($uri = static::getStyledImageClearFileUri($style, $text, $extension)) {
         return $uri;
       }
     }
@@ -386,7 +466,7 @@ abstract class TextimageImager {
     // In stock, check file is there.
     $uri = $stored_image['uri'];
     if (is_file($uri)) {
-      self::setCached($hash, $uri);
+      static::setCached($hash, $uri);
       return $uri;
     }
     else {
@@ -456,7 +536,7 @@ abstract class TextimageImager {
    */
   public static function getState($variable = NULL) {
     if ($variable) {
-      return self::setState($variable);
+      return static::setState($variable);
     }
     return NULL;
   }

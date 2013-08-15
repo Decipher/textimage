@@ -31,7 +31,7 @@ abstract class TextimageStyles {
    *   TRUE if style exists, otherwise FALSE
    */
   public static function exists($style_name) {
-    return self::get($style_name) ? TRUE : FALSE;
+    return static::get($style_name) ? TRUE : FALSE;
   }
 
   /**
@@ -46,7 +46,7 @@ abstract class TextimageStyles {
    */
   public static function get($style_name) {
     $style = image_style_load($style_name);
-    return self::isTextimage($style) ? $style : NULL;
+    return static::isTextimage($style) ? $style : NULL;
   }
 
   /**
@@ -59,7 +59,7 @@ abstract class TextimageStyles {
     $styles = image_styles();
     $list = array();
     foreach ($styles as $style_name => $style_info) {
-      if ($style = self::get($style_name)) {
+      if ($style = static::get($style_name)) {
         $list[] = $style;
       }
     }
@@ -83,8 +83,8 @@ abstract class TextimageStyles {
         $options[$option] = $value;
         continue;
       }
-      $style = self::get($option);
-      if (self::isTextimage($style)) {
+      $style = static::get($option);
+      if (static::isTextimage($style)) {
         $options[$option] = $value;
       }
     }
@@ -112,7 +112,7 @@ abstract class TextimageStyles {
         if (!is_array($style['textimage'])) {
           $style['textimage'] = empty($style['textimage']) ? array() : (array) (unserialize($style['textimage']));
         }
-        $style['textimage'] += self::defaultSettings();
+        $style['textimage'] += static::defaultSettings();
         return TRUE;
       }
     }
@@ -203,14 +203,34 @@ abstract class TextimageStyles {
         ->execute();
     // Change style in fields, if a new textimage style is indicated.
     if ($style['name']) {
-      if (self::get($style['name'])) {
-        self::save($style, TRUE);
+      if (static::get($style['name'])) {
+        static::save($style, TRUE);
       }
     }
   }
 
   /**
-   * Build an outline of the style effects' data.
+   * Build an outline of the style effects' data, given the style name.
+   *
+   * @param array $style_name
+   *   Image style name.
+   *
+   * @return array
+   *   a simple array, where each element is an associative array of
+   *   'name' => the effect name
+   *   'data' => the effect data
+   */
+  public static function getStyleEffectsOutline($style_name) {
+    if ($style = static::get($style_name)) {
+      return static::getEffectsOutline($style);
+    }
+    else {
+      return NULL;
+    }
+  }
+
+  /**
+   * Build an outline of the style effects' data, given the style array.
    *
    * This is used to build a thumbnail of just the effects' data, that can be
    * used to produce a md5 hash without bringing in db dependent values.

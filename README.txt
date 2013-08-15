@@ -56,7 +56,6 @@ Features
     * Case format conversion.
     * Easy selection of the text position on the background image.
     * Options to manage text overflow against background.
-    * Line-level text alignment (left/center/right).
   * Textimage background
     * Background can be defined as a color, or as a fixed image, or as the
       result of the previous image effects.
@@ -198,17 +197,17 @@ Using Textimage image styles
    - Select from the dropdown displayed the image style you want to use to
      represent the content as a Textimage
 
-2. via URI:
+2. via URL:
 
-   Create an image with the URI in following format:
-   /[path_to_public_files]/textimage/[style]/[Text_0]/[Text_1]/.../[Text_n].[extension]
+   Create an image with the URL in following format:
+   http://[your_domain]{/your_drupal_directory}/[path_to_public_files]/textimage/[style_name]/[Text_0]/[Text_1]/.../[Text_n].[extension]
 
    In a standard installation, [path_to_public_files] = 'sites/default/files'.
 
    Text_0...n - each string will be consumed by a textimage_text effect in the
    sequence specified within the image style.
 
-   Note: This method can only be used by users with the 'generate textimage uri
+   Note: This method can only be used by users with the 'generate textimage url
    derivatives' permission. This is to prevent Anonymous users from creating
    random images. If you need dynamically created Textimages, it is strongly
    advised you use one of the methods detailed below.
@@ -223,8 +222,9 @@ Using Textimage image styles
    -----------------------
    This is used for Textimages based on a stored image style. Example:
 
-    theme('textimage_style_image' => array(
-      'variables' => array(
+    theme(
+      'textimage_style_image',
+      array(
         'style_name' => 'my_image_style',
         'text'   => array('text1', 'text2'),
         'format' => 'png',
@@ -261,8 +261,9 @@ Using Textimage image styles
    This is used for Textimages based on a image style created programmatically.
    Example:
 
-    theme('textimage_direct_image' => array(
-      'variables' => array(
+    theme(
+      'textimage_direct_image',
+      array(
         'effects' => array(),
         'text'   => array('text1', 'text2'),
         'format' => 'png',
@@ -292,13 +293,14 @@ Using Textimage image styles
 
 4. Programmers - calling API functions:
 
-    Programmers can invoke directly TextimageImager::getImage() to get the URI of
-    a Textimage generated via the input parameters. Example:
+    Programmers can invoke directly TextimageImager::getImageUri() or
+    TextimageImager::getImageUrl() to get respectively the URI or the full
+    URL of a Textimage generated via the input parameters. Example:
 
-    $my_textimage_uri = TextimageImager::getImage(
-      $style,
+    $my_textimage_uri = TextimageImager::getImageUri(
+      $style_name,
       $effects_outline,
-      &$text,
+      $text,
       $extension,
       $caching,
       $node,
@@ -306,14 +308,13 @@ Using Textimage image styles
     );
 
     Variables:
-    - $style - the image style array. Optional - if not set then
+    - $style_name - the image style name. Optional - if not set then
       $effects_outline is expected.
     - $effects_outline - a subset of an array of image style effects. Given
       a $style['effects'] array, corresponds to the array of 'name' and 'data'
       keys of each element. You can use the helper function
-      TextimageStyles::getEffectsOutline($style) to get this array based on
-      a $style image style array. Optional - if not set then $style is
-      expected.
+      TextimageStyles::getStyleEffectsOutline($style_name) to get this array
+      based on a style name. Optional - if not set then $style is expected.
     - $text - an array of text strings, with unresolved tokens; each string
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
