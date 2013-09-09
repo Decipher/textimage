@@ -675,25 +675,41 @@ function theme_textimage_text_effect_summary($variables) {
  */
 function textimage_text_effect($image, $data) {
 
-  // Get the text image resource.
-  $wrapper = _textimage_text_effect_get_wrapper($image, $data);
-  if (!$wrapper) {
+  // Get the text wrapper resource.
+  if (!$wrapper = _textimage_get_text_wrapper($image, $data)) {
     return FALSE;
   }
 
-  // Handle text image overflowing the original image.
-  if ($image->info['width'] < $wrapper->info['width'] || $image->info['height'] < $wrapper->info['height']) {
-    switch ($data['layout']['overflow_action']) {
-      case 'extend':
-        // Recanvass the original image.
-        $old_width = $image->info['width'];
-        $old_height = $image->info['height'];
-        $new_width = max($wrapper->info['width'], $image->info['width']);
-        $new_height = max($wrapper->info['height'], $image->info['height']);
+  // Background image dimensions.
+  $image_width = $image->info['width'];
+  $image_height = $image->info['height'];
 
-        // Get carried on color.
-        $main_bg_color = TextimageImager::getState('background_color');
+  // Offset wrapper dimensions.
+  $offset_wrapper = array();
 
+  // Determine needed resizing/repositioning of background image and/or
+  // text wrapper image, based on the settings.
+  switch ($data['layout']['overflow_action']) {
+    case 'extend':
+      // The background image new dimensions, after extension.
+      $image_new = array(
+        'xpos' => 0,
+        'ypos' => 0,
+        'width' => $image_width,
+        'height' => $image_height,
+      );
+
+      // The size of the frame sides for color filling.
+      $frame = array(
+        'top' => 0,
+        'right' => 0,
+        'bottom' => 0,
+        'left' => 0,
+      );
+
+      // Check wrapper image overflowing the original image.
+      list($resized, $offset_wrapper) = _textimage_background_image_resize($image, $wrapper, $data, $image_new, $frame);
+      if ($resized) {
         // Call out to canvasactions_definecanvas_effect(), transparent
         // background.
         $canvas_data = array(
@@ -701,70 +717,88 @@ function textimage_text_effect($image, $data) {
             'HEX' => NULL,
           ),
           'under' => TRUE,
-          'exact' => array(
-            'width' => $new_width,
-            'height' => $new_height,
-            'xpos' => 0,
-            'ypos' => 0,
-          ),
+          'exact' => $image_new,
         );
         if (!canvasactions_definecanvas_effect($image, $canvas_data)) {
           return FALSE;
         }
+        // Color fill the frame with carried on background color.
+        if ($main_bg_color = TextimageImager::getState('background_color')) {
+          // Top rectangle.
+          if ($frame['top']) {
+            $points = array(
+              0, 0,
+              $image_new['width'] - 1, 0,
+              $image_new['width'] - 1, $frame['top'] - 1,
+              0, $frame['top'] - 1,
+            );
+            _textimage_draw_rectangle($image, $points, $main_bg_color);
+          }
+          // Bottom rectangle.
+          if ($frame['bottom']) {
+            $points = array(
+              0, $image_height + $frame['top'],
+              $image_new['width'] - 1, $image_height + $frame['top'],
+              $image_new['width'] - 1, $image_new['height'] - 1,
+              0, $image_new['height'] - 1,
+            );
+            _textimage_draw_rectangle($image, $points, $main_bg_color);
+          }
+          // Left rectangle.
+          if ($frame['left']) {
+            $points = array(
+              0, $frame['top'],
+              $frame['left'] - 1, $frame['top'],
+              $frame['left'] - 1, $frame['top'] + $image_height - 1,
+              0, $frame['top'] + $image_height - 1,
+            );
+            _textimage_draw_rectangle($image, $points, $main_bg_color);
+          }
+          // Right rectangle.
+          if ($frame['right']) {
+            $points = array(
+              $frame['left'] + $image_width, $frame['top'],
+              $image_new['width'] - 1, $frame['top'],
+              $image_new['width'] - 1, $frame['top'] + $image_height - 1,
+              $frame['left'] + $image_width, $frame['top'] + $image_height - 1,
+            );
+            _textimage_draw_rectangle($image, $points, $main_bg_color);
+          }
+        }
+      }
+      break;
 
-        // Color fill lower rectangle.
-        $points = array(
-          0,
-          $old_height,
-          $new_width,
-          $old_height,
-          $new_width,
-          $new_height,
-          0,
-          $new_height,
-        );
-        _textimage_draw_rectangle($image, $points, $main_bg_color);
-
-        // Color fill top right rectangle.
-        $points = array(
-          $old_width,
-          0,
-          $new_width,
-          0,
-          $new_width,
-          $old_height - 1,
-          $old_width,
-          $old_height - 1,
-        );
-        _textimage_draw_rectangle($image, $points, $main_bg_color);
-
-        break;
-
-      case 'scaletext':
-        // Scale down the wrapper.
+    case 'scaletext':
+      // Check if scaling down is needed.
+      list($resized, $offset_wrapper) = _textimage_wrapper_resize($image, $wrapper, $data);
+      if ($resized) {
         $scale_data = array(
-          'width' => $wrapper->info['width'] > $image->info['width'] ? $image->info['width'] : NULL,
-          'height' => $wrapper->info['height'] > $image->info['height'] ? $image->info['height'] : NULL,
+          'width' => $offset_wrapper['width'],
+          'height' => $offset_wrapper['height'],
           'upscale' => 0,
         );
-        $success = image_scale_effect($wrapper, $scale_data);
-        break;
+        if (!image_scale_effect($wrapper, $scale_data)) {
+          return FALSE;
+        }
+      }
+      break;
 
-      case 'crop':
-      default:
-        // Do nothing.
-        break;
+    case 'crop':
+    default:
+      // Nothing to do, just place the wrapper at offset required.
+      $x_offset = ceil(image_filter_keyword($data['layout']['x_pos'], $image_width, $wrapper->info['width']));
+      $y_offset = ceil(image_filter_keyword($data['layout']['y_pos'], $image_height, $wrapper->info['height']));
+      $offset_wrapper['xpos'] = $x_offset + $data['layout']['x_offset'];
+      $offset_wrapper['ypos'] = $y_offset + $data['layout']['y_offset'];
+      break;
 
-    }
   }
 
-  // Determine offset.
-  $x_offset = image_filter_keyword($data['layout']['x_pos'], $image->info['width'], $wrapper->info['width']) + $data['layout']['x_offset'];
-  $y_offset = image_filter_keyword($data['layout']['y_pos'], $image->info['height'], $wrapper->info['height']) + $data['layout']['y_offset'];
-
   // Finally, lay the wrapper over the source image.
-  if (!image_overlay($image, $wrapper, $x_offset, $y_offset)) {
-    return FALSE;
+  if (!empty($offset_wrapper)) {
+    if (!image_overlay($image, $wrapper, $offset_wrapper['xpos'], $offset_wrapper['ypos'])) {
+      return FALSE;
+    }
   }
 
   return TRUE;
@@ -775,29 +809,37 @@ function textimage_text_effect($image, $data) {
  */
 function textimage_text_effect_dimensions(array &$dimensions, array $data) {
 
-  switch ($data['layout']['overflow_action']) {
-    case 'extend':
-      // Dummy image object.
-      $image = new stdClass();
-      $image->info['width'] = 1;
-      $image->info['height'] = 1;
-      $image->info['extension'] = 'png';
-      $image->info['mime_type'] = 'image/png';
-      $image->toolkit = image_get_toolkit();
+  // Dimensions are potentially affected only if the effect is set to
+  // autoextend the background image in case of wrapper overflow.
+  if ($data['layout']['overflow_action'] == 'extend') {
 
-      // Get the wrapper text image resource.
-      $wrapper = _textimage_text_effect_get_wrapper($image, $data);
-      if ($wrapper) {
-        $dimensions['width'] = max($wrapper->info['width'], $dimensions['width']);
-        $dimensions['height'] = max($wrapper->info['height'], $dimensions['height']);
-      }
-      break;
+    // Dummy image object.
+    $image = new stdClass();
+    $image->info['width'] = $dimensions['width'];
+    $image->info['height'] = $dimensions['height'];
+    $image->info['extension'] = 'png';
+    $image->info['mime_type'] = 'image/png';
+    $image->toolkit = image_get_toolkit();
 
-    case 'scaletext':
-    case 'crop':
-    default:
-      // Do nothing.
-      break;
+    // Get the text wrapper resource.
+    if (!$wrapper = _textimage_get_text_wrapper($image, $data)) {
+      return;
+    }
+
+    // The background image new dimensions, after extension.
+    $image_new = array(
+      'xpos' => 0,
+      'ypos' => 0,
+      'width' => $image->info['width'],
+      'height' => $image->info['height'],
+    );
+
+    // Checks if resizing needed.
+    list($resized, $offset_wrapper) = _textimage_background_image_resize($image, $wrapper, $data, $image_new);
+    if ($resized) {
+      $dimensions['width'] = $image_new['width'];
+      $dimensions['height'] = $image_new['height'];
+    }
 
   }
 }
@@ -808,7 +850,7 @@ function textimage_text_effect_dimensions(array &$dimensions, array $data) {
  * This is separated from textimage_text_effect() so that it can also be used
  * by the textimage_text_effect_dimensions() function.
  */
-function _textimage_text_effect_get_wrapper($image, array $data) {
+function _textimage_get_text_wrapper($image, array $data) {
 
   // Include toolkit specific image functions.
   $toolkit_functions_filename = (__DIR__) . '/textimage_text.' . image_get_toolkit() . '.inc';
@@ -959,6 +1001,148 @@ function _textimage_text_effect_get_wrapper($image, array $data) {
     return NULL;
   }
   return $wrapper;
+}
+
+/**
+ * Recalculate background image size.
+ *
+ * When wrapper overflows the original image, and autoextent is set on.
+ */
+function _textimage_background_image_resize($image, $wrapper, $data, &$image_new, &$frame = NULL) {
+
+  $resized = FALSE;
+
+  // Background image dimensions.
+  $image_width = $image->info['width'];
+  $image_height = $image->info['height'];
+
+  // Wrapper image dimensions.
+  $wrapper_width = $wrapper->info['width'];
+  $wrapper_height = $wrapper->info['height'];
+
+  // Determine wrapper offset, based on placement option.
+  // This is just taking into account the image and wrapper dimensions;
+  // additional offset explicitly specified is considered later.
+  $x_offset = ceil(image_filter_keyword($data['layout']['x_pos'], $image_width, $wrapper_width));
+  $y_offset = ceil(image_filter_keyword($data['layout']['y_pos'], $image_height, $wrapper_height));
+
+  // The position of the wrapper, once offset as per explicit
+  // input. Width and height are not relevant for the algorithm,
+  // but would be determined as follows:
+  //  'width' => ($wrapper_width < $image_width) ? $wrapper_width + abs($data['layout']['x_offset']) : $wrapper_width;
+  //  'height' = ($wrapper_height < $image_height) ? $wrapper_height + abs($data['layout']['y_offset']) : $wrapper_height;
+  $offset_wrapper = array(
+    'xpos' => $x_offset + $data['layout']['x_offset'],
+    'ypos' => $y_offset + $data['layout']['y_offset'],
+  );
+
+  // If offset wrapper overflows to the left, background image
+  // will be shifted to the right.
+  if ($offset_wrapper['xpos'] < 0) {
+    $image_new['width'] = $image_width - $offset_wrapper['xpos'];
+    $image_new['xpos'] = -$offset_wrapper['xpos'];
+    $offset_wrapper['xpos'] = 0;
+    if (isset($frame)) {
+      $frame['left'] = $image_new['width'] - $image_width;
+    }
+    $resized = TRUE;
+  }
+
+  // If offset wrapper overflows to the top, background image
+  // will be shifted to the bottom.
+  if ($offset_wrapper['ypos'] < 0) {
+    $image_new['height'] = $image_height - $offset_wrapper['ypos'];
+    $image_new['ypos'] = -$offset_wrapper['ypos'];
+    $offset_wrapper['ypos'] = 0;
+    if (isset($frame)) {
+      $frame['top'] = $image_new['height'] - $image_height;
+    }
+    $resized = TRUE;
+  }
+
+  // If offset wrapper overflows to the right, background image
+  // will be extended to the right.
+  if (($offset_wrapper['xpos'] + $wrapper_width) > $image_new['width']) {
+    $tmp = $image_new['width'];
+    $image_new['width'] = $offset_wrapper['xpos'] + $wrapper_width;
+    if (isset($frame)) {
+      $frame['right'] = $image_new['width'] - $tmp;
+    }
+    $resized = TRUE;
+  }
+
+  // If offset wrapper overflows to the bottom, background image
+  // will be extended to the bottom.
+  if (($offset_wrapper['ypos'] + $wrapper_height) > $image_new['height']) {
+    $tmp = $image_new['height'];
+    $image_new['height'] = $offset_wrapper['ypos'] + $wrapper_height;
+    if (isset($frame)) {
+      $frame['bottom'] = $image_new['height'] - $tmp;
+    }
+    $resized = TRUE;
+  }
+
+  return array($resized, $offset_wrapper);
+}
+
+/**
+ * Recalculate wrapper image size.
+ *
+ * When wrapper overflows the original image, and scaling is set on.
+ */
+function _textimage_wrapper_resize($image, $wrapper, $data) {
+
+  $resized = FALSE;
+
+  // Background image dimensions.
+  $image_width = $image->info['width'];
+  $image_height = $image->info['height'];
+
+  // Wrapper image dimensions.
+  $wrapper_width = $wrapper->info['width'];
+  $wrapper_height = $wrapper->info['height'];
+
+  // Determine wrapper offset, based on placement option and direct
+  // offset indicated in settings.
+  $offset_wrapper = array(
+    'xpos' => ceil(image_filter_keyword($data['layout']['x_pos'], $image_width, $wrapper_width)) + $data['layout']['x_offset'],
+    'ypos' => ceil(image_filter_keyword($data['layout']['y_pos'], $image_height, $wrapper_height)) + $data['layout']['y_offset'],
+  );
+
+  // Position of wrapper's bottom right point.
+  $xc_pos = $offset_wrapper['xpos'] + $wrapper_width;
+  $yc_pos = $offset_wrapper['ypos'] + $wrapper_height;
+
+  // Redetermine offset wrapper position and size based on
+  // background image size.
+  $offset_wrapper['xpos'] = max(0, $offset_wrapper['xpos']);
+  $offset_wrapper['ypos'] = max(0, $offset_wrapper['ypos']);
+  $xc_pos = min($image_width, $xc_pos);
+  $yc_pos = min($image_height, $yc_pos);
+  $offset_wrapper['width'] = $xc_pos - $offset_wrapper['xpos'];
+  $offset_wrapper['height'] = $yc_pos - $offset_wrapper['ypos'];
+
+  // If negative width/height, then the wrapper is totally
+  // overflowing the background, and we cannot resize it.
+  if ($offset_wrapper['width'] < 0 || $offset_wrapper['height'] < 0) {
+    return array(FALSE, array());
+  }
+
+  // Determine if scaling needed. Take the side that is shrinking
+  // most.
+  $width_resize_index = $offset_wrapper['width'] / $wrapper_width;
+  $height_resize_index = $offset_wrapper['height'] / $wrapper_height;
+  if ($width_resize_index < 1 || $height_resize_index < 1) {
+    $resized = TRUE;
+    if ($width_resize_index < $height_resize_index) {
+      $offset_wrapper['height'] = NULL;
+    }
+    else {
+      $offset_wrapper['width'] = NULL;
+    }
+  }
+
+  return array($resized, $offset_wrapper);
 }
 
 /**
