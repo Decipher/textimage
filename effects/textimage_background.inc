@@ -51,7 +51,7 @@ function _textimage_background_effect_defaults() {
  */
 function textimage_background_effect_form($data) {
 
-  // Merge data with defaults.
+  // Merge input data with effect defaults.
   $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
 
   $form = array();
@@ -318,7 +318,10 @@ function textimage_background_effect_form_validate($element, &$form_state) {
  */
 function theme_textimage_background_effect_summary($variables) {
   $output = NULL;
-  $data = $variables['data'];
+
+  // Merge input data with effect defaults.
+  $data = array_replace_recursive(_textimage_background_effect_defaults(), $variables['data']);
+
   switch ($data['background_image']['mode']) {
     case 'select':
       $output .= t('- Image: <b>@image</b>', array('@image' => $data['background_image']['uri']));
@@ -410,6 +413,9 @@ function theme_textimage_background_effect_summary($variables) {
  *   true on success, false on failure to apply the effect.
  */
 function textimage_background_effect(&$image, $data) {
+
+  // Merge input data with effect defaults.
+  $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
 
   // Handle background image.
   switch ($data['background_image']['mode']) {
@@ -533,6 +539,9 @@ function textimage_background_effect(&$image, $data) {
  * Implements 'textimage_background' image dimensions callback.
  */
 function textimage_background_effect_dimensions(array &$dimensions, array $data) {
+
+  // Merge input data with effect defaults.
+  $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
 
   // If exact size WxH, set and return.
   if ($data['exact']['width'] and $data['exact']['height']) {

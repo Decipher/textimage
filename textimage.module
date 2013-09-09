@@ -617,20 +617,6 @@ function theme_textimage_style_image($variables) {
  */
 function theme_textimage_direct_image($variables) {
 
-  // Merge textimage_text effects with default data.
-  foreach ($variables['effects'] as $seq => &$effect) {
-    switch ($effect['name']) {
-      case 'textimage_text':
-        $effect['data'] = array_replace_recursive(_textimage_text_effect_defaults(), $effect['data']);
-        break;
-
-      case 'textimage_background':
-        $effect['data'] = array_replace_recursive(_textimage_background_effect_defaults(), $effect['data']);
-        break;
-
-    }
-  }
-
   // Get URI to image file.
   $uri = TextimageImager::getImageUri(
     NULL,
