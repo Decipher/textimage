@@ -23,9 +23,18 @@ function image_gd_textimage_get_font_path($image, $data = array()) {
 function image_gd_textimage_text_to_image($image, $data = array()) {
 
   // Create the image resource, fill transparent.
-  $image->resource = imagecreatetruecolor($image->info['width'], $image->info['height']);
-  $back = imagecolorallocatealpha($image->resource, 0, 0, 0, 127);
-  imagefill($image->resource, 0, 0, $back);
+  $new_image = image_toolkit_invoke('textimage_create_transparent', $image, array(
+      $image->info['width'],
+      $image->info['height'],
+      NULL,
+    )
+  );
+  if ($new_image) {
+    $image->resource = $new_image->resource;
+  }
+  else {
+    return FALSE;
+  }
 
   // Draw and fill the outer text box, if required.
   if ($data['layout']['background_color']) {
@@ -283,6 +292,76 @@ function image_gd_textimage_draw_ellipse($image, $data = array()) {
  * Get a GD imagecolor.
  */
 function image_gd_textimage_imagecolor($image, $data = array()) {
-  list($r, $g, $b, $alpha) = array_values(imagecache_actions_hex2rgba($data['rgba']));
-  return imagecolorallocatealpha($image->resource, $r, $g, $b, $alpha);
+  if ($image->info['mime_type'] == 'image/png') {
+    list($r, $g, $b, $alpha) = array_values(imagecache_actions_hex2rgba($data['rgba']));
+    return imagecolorallocatealpha($image->resource, $r, $g, $b, $alpha);
+  }
+  else {
+    list($r, $g, $b) = array_values(imagecache_actions_hex2rgba($data['rgba']));
+    return imagecolorallocate($image->resource, $r, $g, $b);
+  }
+}
+
+/**
+ * Create a truecolor transparent image.
+ *
+ * If file type does not allow transparency, the image will be filled in
+ * white. For .gif files, takes transparency from the original image resource
+ * if available and no transparent color is specified in input.
+ *
+ * @param $image
+ *   An image object.
+ * @param $width
+ *   The width of the image, in pixels.
+ * @param $height
+ *   The height of the image, in pixels.
+ * @param $tranparent
+ *   The transparent color array red/blue/green for gif transparency.
+ *
+ * @return
+ *   A GD image handle.
+ */
+function image_gd_textimage_create_transparent(stdClass $image, $width, $height, $transparent = NULL) {
+  $res = imagecreatetruecolor($width, $height);
+  if ($image->info['mime_type'] == 'image/png') {
+    imagealphablending($res, FALSE);
+    $transparency = imagecolorallocatealpha($res, 0, 0, 0, 127);
+    imagefill($res, 0, 0, $transparency);
+    imagealphablending($res, TRUE);
+    imagesavealpha($res, TRUE);
+  }
+  elseif ($image->info['mime_type'] == 'image/gif') {
+    if (empty($transparent)) {
+      // Grab transparent color index from image resource.
+      if (isset($image->resource) && $transparent = imagecolortransparent($image->resource) >= 0) {
+        // The original has a transparent color, allocate to the new image.
+        $transparent_color = imagecolorsforindex($image->resource, $transparent);
+        $transparent = imagecolorallocate($res, $transparent_color['red'], $transparent_color['green'], $transparent_color['blue']);
+      }
+      else {
+        // No incoming image or no transparency channel, no color specified,
+        // fill white.
+        $transparent = imagecolorallocate($res, 255, 255, 255);
+      }
+    }
+    else {
+      // Get transparent from the input argument.
+      $transparent = imagecache_actions_hex2rgba($transparent);
+      $transparent = imagecolorallocate($res, $transparent['red'], $transparent['green'], $transparent['blue']);
+    }
+    // Flood with our transparent color.
+    if ($transparent >= 0) {
+      imagefill($res, 0, 0, $transparent);
+      imagecolortransparent($res, $transparent);
+    }
+  }
+  else {
+    imagefill($res, 0, 0, imagecolorallocate($res, 255, 255, 255));
+  }
+
+  $new_image = clone $image;
+  $new_image->info['width'] = $width;
+  $new_image->info['height'] = $height;
+  $new_image->resource = $res;
+  return $new_image;
 }

@@ -862,13 +862,7 @@ function textimage_text_effect_dimensions(array &$dimensions, array $data) {
 function _textimage_get_text_wrapper($image, array $data) {
 
   // Include toolkit specific image functions.
-  $toolkit_functions_filename = (__DIR__) . '/textimage_text.' . image_get_toolkit() . '.inc';
-  if (is_file($toolkit_functions_filename)) {
-    require_once $toolkit_functions_filename;
-  }
-  else {
-    $toolkits = image_get_available_toolkits();
-    _textimage_diag(t("Textimage does not support the '@toolkit' image toolkit.", array('@toolkit' => $toolkits[image_get_toolkit()])), WATCHDOG_ERROR);
+  if (!_textimage_load_toolkit_functions()) {
     return NULL;
   }
 

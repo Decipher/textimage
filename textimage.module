@@ -963,3 +963,20 @@ function _textimage_flush_all() {
 function _textimage_get_store_path($path) {
   return _textimage_get_variable('store_scheme') . '://textimage_store/' . $path;
 }
+
+/**
+ * Load Textimage toolkit dependent functions.
+ */
+function _textimage_load_toolkit_functions() {
+  // Include toolkit specific image functions.
+  $toolkit_functions_filename = (__DIR__) . '/effects/textimage_text.' . image_get_toolkit() . '.inc';
+  if (is_file($toolkit_functions_filename)) {
+    require_once $toolkit_functions_filename;
+    return TRUE;
+  }
+  else {
+    $toolkits = image_get_available_toolkits();
+    _textimage_diag(t("Textimage does not support the '@toolkit' image toolkit.", array('@toolkit' => $toolkits[image_get_toolkit()])), WATCHDOG_ERROR);
+    return FALSE;
+  }
+}

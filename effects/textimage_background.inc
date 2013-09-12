@@ -443,11 +443,20 @@ function textimage_background_effect(&$image, $data) {
     case 'passthrough':
       break;
 
-    // If explicitly requested not to have a background image, load
-    // a base 1x1 image.
+    // If explicitly requested not to have a background image, create
+    // a transparent 1x1 image.
     case '':
     default:
-      $new_image = image_load(drupal_get_path('module', 'textimage') . '/misc/images/base.' . $image->info['extension']);
+      // Include toolkit specific image functions.
+      if (!_textimage_load_toolkit_functions()) {
+        return FALSE;
+      }
+      $new_image = image_toolkit_invoke('textimage_create_transparent', $image, array(
+          1,
+          1,
+          NULL,
+        )
+      );
       if ($new_image) {
         foreach ($new_image as $property => $value) {
           $image->$property = $value;

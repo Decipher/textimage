@@ -295,9 +295,27 @@ abstract class TextimageImager {
     static::setState();
     static::setState('building_module', 'textimage');
 
+    // If no source image specified, we are processing a pure Textimage
+    // request. In that case we need to use a dummy 1x1 image stored
+    // in textimage/misc/images, and prepend an additional
+    // 'textimage_background' effect to ensure we start with a clean
+    // background.
+    if (!$source) {
+      $source = drupal_get_path('module', 'textimage') . '/misc/images/base.' . $extension;
+      $cleanup_effect_id = max(array_keys($style['effects'])) + 1;
+      $cleanup_effect = array(
+        $cleanup_effect_id => image_effect_definition_load('textimage_background'),
+      );
+      $cleanup_effect[$cleanup_effect_id]['data'] = array(
+        'background_image' => array(
+          'mode' => '',
+        ),
+      );
+      $style['effects'] = $cleanup_effect + $style['effects'];
+    }
+
     // Try to generate the image, unless another thread just did it while we
     // were acquiring the lock.
-    $source = $source ? $source : drupal_get_path('module', 'textimage') . '/misc/images/base.' . $extension;
     $success = file_exists($uri) || image_style_create_derivative($style, $source, $uri);
     if (!$success) {
       return FALSE;
