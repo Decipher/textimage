@@ -414,6 +414,11 @@ function theme_textimage_background_effect_summary($variables) {
  */
 function textimage_background_effect(&$image, $data) {
 
+  // Include toolkit specific image functions.
+  if (!_textimage_load_toolkit_functions()) {
+    return FALSE;
+  }
+
   // Merge input data with effect defaults.
   $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
 
@@ -447,14 +452,10 @@ function textimage_background_effect(&$image, $data) {
     // a transparent 1x1 image.
     case '':
     default:
-      // Include toolkit specific image functions.
-      if (!_textimage_load_toolkit_functions()) {
-        return FALSE;
-      }
       $new_image = image_toolkit_invoke('textimage_create_transparent', $image, array(
           1,
           1,
-          NULL,
+          TextimageImager::getState('gif_transparency_color'),
         )
       );
       if ($new_image) {
@@ -468,13 +469,12 @@ function textimage_background_effect(&$image, $data) {
 
   $success = TRUE;
 
-  // Handle exact sizing.
-  if ($data['exact']['width'] or $data['exact']['height']) {
-
+  // Handle exact sizing impacts on original image.
+  if ($data['exact']['width'] || $data['exact']['height']) {
     // If current image is larger than size requested, call out to
     // scale/resize/crop effects to reduce image size depending
     // on options selected.
-    if ($data['exact']['width'] <= $image->info['width'] or $data['exact']['height'] <= $image->info['height']) {
+    if ($data['exact']['width'] <= $image->info['width'] || $data['exact']['height'] <= $image->info['height']) {
 
       switch ($data['exact']['dimensions']) {
         case 'scale':
@@ -511,26 +511,40 @@ function textimage_background_effect(&$image, $data) {
     }
   }
 
-  // Call out to canvasactions_definecanvas_effect() to finalise layout.
-  $canvas_data = array(
-    'RGB' => array(
-      'HEX' => $data['background']['color'],
-    ),
-    'under' => TRUE,
-    'exact' => array(
-      'width' => $data['exact']['width'],
-      'height' => $data['exact']['height'],
-      'xpos' => $data['exact']['xpos'],
-      'ypos' => $data['exact']['ypos'],
-    ),
-    'relative' => array(
-      'leftdiff' => $data['relative']['leftdiff'],
-      'rightdiff' => $data['relative']['rightdiff'],
-      'topdiff' => $data['relative']['topdiff'],
-      'bottomdiff' => $data['relative']['bottomdiff'],
-    ),
-  );
-  $success = canvasactions_definecanvas_effect($image, $canvas_data);
+  // If resizing, call out to canvasactions_definecanvas_effect()
+  // to finalise layout.
+  if ($data['exact']['width'] || $data['exact']['height'] || $data['relative']['leftdiff'] || $data['relative']['rightdiff'] || $data['relative']['topdiff'] || $data['relative']['bottomdiff']) {
+    $canvas_data = array(
+      'RGB' => array(
+        'HEX' => $data['background']['color'],
+      ),
+      'under' => TRUE,
+      'exact' => array(
+        'width' => $data['exact']['width'],
+        'height' => $data['exact']['height'],
+        'xpos' => $data['exact']['xpos'],
+        'ypos' => $data['exact']['ypos'],
+      ),
+      'relative' => array(
+        'leftdiff' => $data['relative']['leftdiff'],
+        'rightdiff' => $data['relative']['rightdiff'],
+        'topdiff' => $data['relative']['topdiff'],
+        'bottomdiff' => $data['relative']['bottomdiff'],
+      ),
+    );
+
+    if ($image->info['mime_type'] == 'image/gif') {
+      // For .gif format, if transparent background set transparency color.
+      if (!$canvas_data['RGB']['HEX']) {
+        $canvas_data['RGB']['HEX'] = TextimageImager::getState('gif_transparency_color');
+      }
+      $success = canvasactions_definecanvas_effect($image, $canvas_data);
+    }
+    else {
+      $success = canvasactions_definecanvas_effect($image, $canvas_data);
+    }
+  }
+
   if (!$success) {
     _textimage_diag(t('Textimage failed image processing.'), WATCHDOG_ERROR, __FUNCTION__);
     return FALSE;
@@ -539,6 +553,11 @@ function textimage_background_effect(&$image, $data) {
   // Stores background color for later effects.
   if ($data['background']['repeat']) {
     TextimageImager::setState('background_color', $data['background']['color']);
+  }
+
+  // Reset transparency color for .gif format.
+  if ($image->info['mime_type'] == 'image/gif') {
+    image_toolkit_invoke('textimage_set_transparency', $image, array(TextimageImager::getState('gif_transparency_color')));
   }
 
   return $success;

@@ -44,7 +44,7 @@ Quick start instructions
 
 Features
 --------
-* Provides two image effects for use in Drupal's Image system:
+* Provides three image effects for use in Drupal's Image system:
   * Textimage text
     * Default text accepts tokens that are resolved at run-time.
     * Support for TrueType fonts and OpenType fonts.
@@ -60,6 +60,9 @@ Features
     * Background can be defined as a color, or as a fixed image, or as the
       result of the previous image effects.
     * Exact/relative sizing of the image.
+  * Textimage GIF transparency
+    * Define a color for GIF transparency, so to allow transparent background
+      for Textimage images. Only works within the set of Textimage effects.
 * Field display formatters for Text and Image fields.
 
 
@@ -174,6 +177,13 @@ Image effect: Textimage background
 - Exact size - In case the size specified is smaller than the source, the options
   are to scale/crop/resize the image.
 - Relative size - Basically adds to the image a border of the size specified.
+
+
+Image effect: Textimage GIF transparency
+----------------------------------------
+- Color - the color specified will be used to set GIF transparency, so to
+  allow transparent background for Textimage images. Only works within the set
+  of Textimage effects.
 
 
 -------------------------------------------------------------------------------

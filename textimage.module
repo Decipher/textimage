@@ -76,6 +76,12 @@ function textimage_theme() {
         'data' => NULL,
       ),
     ),
+    // Textimage GIF transparency effect - summary.
+    'textimage_gif_transparency_effect_summary' => array(
+      'variables' => array(
+        'data' => NULL,
+      ),
+    ),
     // Render a string with color formatting.
     'textimage_colored_string' => array(
       'variables' => array(
@@ -236,6 +242,7 @@ function textimage_schema_alter(&$schema) {
 // Effects .inc files are included here for the time being.
 require_once 'effects/textimage_background.inc';
 require_once 'effects/textimage_text.inc';
+require_once 'effects/textimage_gif_transparency.inc';
 
 /**
  * Implements hook_image_styles_alter().
@@ -269,6 +276,15 @@ function textimage_image_effect_info() {
     'dimensions callback' => 'textimage_text_effect_dimensions',
     'form callback' => 'textimage_text_effect_form',
     'summary theme' => 'textimage_text_effect_summary',
+  );
+
+  $effects['textimage_gif_transparency'] = array(
+    'label' => t('Textimage GIF transparency'),
+    'help' => t('Define a color to set GIF transparency.'),
+    'effect callback' => 'textimage_gif_transparency_effect',
+    'dimensions passthrough' => TRUE,
+    'form callback' => 'textimage_gif_transparency_effect_form',
+    'summary theme' => 'textimage_gif_transparency_effect_summary',
   );
 
   return $effects;

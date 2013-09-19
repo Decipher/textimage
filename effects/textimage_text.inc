@@ -807,6 +807,11 @@ function textimage_text_effect($image, $data) {
     }
   }
 
+  // Reset transparency color for .gif format.
+  if ($image->info['mime_type'] == 'image/gif') {
+    image_toolkit_invoke('textimage_set_transparency', $image, array(TextimageImager::getState('gif_transparency_color')));
+  }
+
   return TRUE;
 }
 
@@ -999,6 +1004,7 @@ function _textimage_get_text_wrapper($image, array $data) {
     'outer_box' => $outer_box_t->get('points'),
     'line_height' => $line_height,
     'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
+    'gif_transparency_color' => TextimageImager::getState('gif_transparency_color'),
   );
   if (!image_toolkit_invoke('textimage_text_to_image', $wrapper, array($data_textimage))) {
     return NULL;

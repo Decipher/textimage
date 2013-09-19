@@ -26,7 +26,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
   $new_image = image_toolkit_invoke('textimage_create_transparent', $image, array(
       $image->info['width'],
       $image->info['height'],
-      NULL,
+      $data['gif_transparency_color'],
     )
   );
   if ($new_image) {
@@ -364,4 +364,22 @@ function image_gd_textimage_create_transparent(stdClass $image, $width, $height,
   $new_image->info['height'] = $height;
   $new_image->resource = $res;
   return $new_image;
+}
+
+/**
+ * Set a color to transparent.
+ *
+ * Mainly to support .gif files transparency.
+ *
+ * @param $image
+ *   An image object.
+ * @param $color
+ *   The transparent color array red/blue/green for .gif transparency.
+ */
+function image_gd_textimage_set_transparency(stdClass $image, $color) {
+  if ($color) {
+    list($r, $g, $b) = array_values(imagecache_actions_hex2rgba($color));
+    $transparent = imagecolorallocate($image->resource, $r, $g, $b);
+    imagecolortransparent($image->resource, $transparent);
+  }
 }
