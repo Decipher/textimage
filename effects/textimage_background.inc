@@ -282,9 +282,17 @@ function textimage_background_effect_form($data) {
  */
 function textimage_background_effect_form_validate($element, &$form_state) {
   $v = &$form_state['values']['data'];
-  if ($v['background_image']['mode'] == 'select' && !$v['background_image']['fid']['fid']) {
-    form_set_error('background_image', t('Select an image, or choose another option for the background image.'));
-    return;
+  if ($v['background_image']['mode'] == 'select') {
+    if (_textimage_get_variable('backgrounds_handling_module') == 'media') {
+      if (empty($v['background_image']['fid']['fid'])) {
+        form_set_error('background_image', t('Select an image, or choose another option for the background image.'));
+        return;
+      }
+    }
+    elseif (empty($v['background_image']['uri'])) {
+      form_set_error('background_image', t('Select an image, or choose another option for the background image.'));
+      return;
+    }
   }
   if ($v['background_image']['mode'] <> 'select') {
     unset(
