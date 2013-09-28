@@ -136,7 +136,8 @@ Image effect: Textimage text
   and padding setup.
 - Default text. Accepts tokens that are resolved at run-time. If Token
   module is installed, a list of available tokens is displayed on the
-  effect form.
+  effect form. See the 'Using Textimage field formatters and tokens'
+  section below for more information regarding the usage of tokens.
 - Font
   - Font. Select from a list of available fonts.
   - Size. In points.
@@ -190,7 +191,7 @@ Image effect: Textimage GIF transparency
 
 
 Using Textimage image styles
--------------------------------
+----------------------------
 
 1. via Content Type field display formatters
 
@@ -336,6 +337,43 @@ Using Textimage image styles
       effects.
     - $source_image_file - a file entity. It is used for resolving the tokens
       in the text effects.
+
+
+-------------------------------------------------------------------------------
+
+
+Using Textimage field formatters and tokens
+-------------------------------------------
+
+There are specific pre-conditions for text tokens to be resolved into full
+text. Some tokens are 'general' (e.g. current date and time, site name, etc.)
+but others require the 'context' that has to be accessed to retrieve
+information, like a user, or a node, etc. When the context is missing, the
+token can not be resolved.
+
+Textimage provides context for 'user', 'node' and 'file' tokens through
+its field display formatters. Textimage provides built-in field formatters
+for the following field types: 'image', 'text', 'text_with_summary',
+'text_long'.
+
+If you select a Textimage formatter for a 'text' field, Textimage will use
+the text entered in the field to produce an image with it. In the field text
+you can enter the tokens directly, or [textimage:default] in which case
+Textimage will just fetch and use the default text entered in the image effect
+UI. If your image style is built with multiple 'Textimage text' effects, the
+text field needs to be multi-value as well. Each text field value will be used
+by one 'Textimage text' effect in the same sequence.
+Tokens will be resolved against the 'node' (current content) and 'user' token
+types.
+
+If you select a Textimage formatter for an 'image' field, Textimage will use
+the text entered in the default text in the image effect UI to produce the
+image. In this case, tokens will be resolved against 'node', 'user' and 'file'
+token types, where the 'file' is the original image uploaded in the content.
+
+Programmers can develop additional field display formatters, using the lower
+level APIs to pass 'node' or 'file' objects to be resolved. 'User' is always
+the current user within the scope of the Textimage image building process.
 
 
 -------------------------------------------------------------------------------
