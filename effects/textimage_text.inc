@@ -67,7 +67,7 @@ function _textimage_text_effect_defaults() {
 function textimage_text_effect_form($data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_text_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_text_effect_defaults(), $data);
 
   $form = array();
 
@@ -614,7 +614,7 @@ function _textimage_text_effect_preview_image($data) {
 function theme_textimage_text_effect_summary($variables) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_text_effect_defaults(), $variables['data']);
+  $data = drupal_array_merge_deep(_textimage_text_effect_defaults(), $variables['data']);
 
   $output = ' - ' . t('Font:') . ' ' . $data['font']['name'];
   $output .= (' - ' . t('Size: @size', array('@size' => $data['font']['size'])));
@@ -679,7 +679,7 @@ function theme_textimage_text_effect_summary($variables) {
 function textimage_text_effect($image, $data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_text_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_text_effect_defaults(), $data);
 
   // Get the text wrapper resource.
   if (!$wrapper = _textimage_get_text_wrapper($image, $data)) {
@@ -821,7 +821,7 @@ function textimage_text_effect($image, $data) {
 function textimage_text_effect_dimensions(array &$dimensions, array $data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_text_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_text_effect_defaults(), $data);
 
   // Dimensions are potentially affected only if the effect is set to
   // autoextend the background image in case of wrapper overflow.

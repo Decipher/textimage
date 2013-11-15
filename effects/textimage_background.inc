@@ -52,7 +52,7 @@ function _textimage_background_effect_defaults() {
 function textimage_background_effect_form($data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_background_effect_defaults(), $data);
 
   $form = array();
 
@@ -328,7 +328,7 @@ function theme_textimage_background_effect_summary($variables) {
   $output = NULL;
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_background_effect_defaults(), $variables['data']);
+  $data = drupal_array_merge_deep(_textimage_background_effect_defaults(), $variables['data']);
 
   switch ($data['background_image']['mode']) {
     case 'select':
@@ -428,7 +428,7 @@ function textimage_background_effect(&$image, $data) {
   }
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_background_effect_defaults(), $data);
 
   // Handle background image.
   switch ($data['background_image']['mode']) {
@@ -577,7 +577,7 @@ function textimage_background_effect(&$image, $data) {
 function textimage_background_effect_dimensions(array &$dimensions, array $data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_background_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_background_effect_defaults(), $data);
 
   // If exact size WxH, set and return.
   if ($data['exact']['width'] and $data['exact']['height']) {

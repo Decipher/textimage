@@ -31,7 +31,7 @@ abstract class TextimageStyles {
    *   TRUE if style exists, otherwise FALSE
    */
   public static function exists($style_name) {
-    return static::get($style_name) ? TRUE : FALSE;
+    return self::get($style_name) ? TRUE : FALSE;
   }
 
   /**
@@ -46,7 +46,7 @@ abstract class TextimageStyles {
    */
   public static function get($style_name) {
     $style = image_style_load($style_name);
-    return static::isTextimage($style) ? $style : NULL;
+    return self::isTextimage($style) ? $style : NULL;
   }
 
   /**
@@ -59,7 +59,7 @@ abstract class TextimageStyles {
     $styles = image_styles();
     $list = array();
     foreach ($styles as $style_name => $style_info) {
-      if ($style = static::get($style_name)) {
+      if ($style = self::get($style_name)) {
         $list[] = $style;
       }
     }
@@ -83,8 +83,8 @@ abstract class TextimageStyles {
         $options[$option] = $value;
         continue;
       }
-      $style = static::get($option);
-      if (static::isTextimage($style)) {
+      $style = self::get($option);
+      if (self::isTextimage($style)) {
         $options[$option] = $value;
       }
     }
@@ -112,7 +112,7 @@ abstract class TextimageStyles {
         if (!is_array($style['textimage'])) {
           $style['textimage'] = empty($style['textimage']) ? array() : (array) (unserialize($style['textimage']));
         }
-        $style['textimage'] += static::defaultSettings();
+        $style['textimage'] += self::defaultSettings();
         return TRUE;
       }
     }
@@ -203,8 +203,8 @@ abstract class TextimageStyles {
         ->execute();
     // Change style in fields, if a new textimage style is indicated.
     if ($style['name']) {
-      if (static::get($style['name'])) {
-        static::save($style, TRUE);
+      if (self::get($style['name'])) {
+        self::save($style, TRUE);
       }
     }
   }
@@ -221,8 +221,8 @@ abstract class TextimageStyles {
    *   'data' => the effect data
    */
   public static function getStyleEffectsOutline($style_name) {
-    if ($style = static::get($style_name)) {
-      return static::getEffectsOutline($style);
+    if ($style = self::get($style_name)) {
+      return self::getEffectsOutline($style);
     }
     else {
       return NULL;

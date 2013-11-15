@@ -30,7 +30,7 @@ function _textimage_gif_transparency_effect_defaults() {
 function textimage_gif_transparency_effect_form($data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_gif_transparency_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_gif_transparency_effect_defaults(), $data);
 
   $form = array();
 
@@ -63,7 +63,7 @@ function theme_textimage_gif_transparency_effect_summary($variables) {
   $output = NULL;
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_gif_transparency_effect_defaults(), $variables['data']);
+  $data = drupal_array_merge_deep(_textimage_gif_transparency_effect_defaults(), $variables['data']);
 
   // GIF transparency color.
   $output .= (' ' .  t('- Color:') . ' ');
@@ -101,7 +101,7 @@ function theme_textimage_gif_transparency_effect_summary($variables) {
 function textimage_gif_transparency_effect(&$image, $data) {
 
   // Merge input data with effect defaults.
-  $data = array_replace_recursive(_textimage_gif_transparency_effect_defaults(), $data);
+  $data = drupal_array_merge_deep(_textimage_gif_transparency_effect_defaults(), $data);
 
   // Stores GIF transparency color for later effects.
   if ($data['gif_transparency_color']) {

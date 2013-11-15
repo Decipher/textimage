@@ -837,7 +837,7 @@ function _textimage_get_variable($variable = NULL) {
   $vars = &drupal_static(__FUNCTION__);
   if (!isset($vars)) {
     $vars = variable_get('textimage', array());
-    $vars = array_replace_recursive(
+    $vars = drupal_array_merge_deep(
       array(
         'store_scheme' => 'private',
         'fonts_handling_module' => 'textimage',
@@ -985,7 +985,7 @@ function _textimage_get_store_path($path) {
  */
 function _textimage_load_toolkit_functions() {
   // Include toolkit specific image functions.
-  $toolkit_functions_filename = (__DIR__) . '/effects/textimage_text.' . image_get_toolkit() . '.inc';
+  $toolkit_functions_filename = dirname(__FILE__) . '/effects/textimage_text.' . image_get_toolkit() . '.inc';
   if (is_file($toolkit_functions_filename)) {
     require_once $toolkit_functions_filename;
     return TRUE;

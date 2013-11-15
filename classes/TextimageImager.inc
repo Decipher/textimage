@@ -34,7 +34,7 @@ abstract class TextimageImager {
    *   the URL of the image, or NULL in case of failure
    */
   public static function getImageUrl($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL) {
-    $uri = static::getImageUri($style_name, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
+    $uri = self::getImageUri($style_name, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
     return $uri ? file_create_url($uri) : NULL;
   }
 
@@ -68,7 +68,7 @@ abstract class TextimageImager {
       // Retrieve Textimage style and process via processImageRequest.
       $style = TextimageStyles::get($style_name);
       if ($style) {
-        return static::processImageRequest($style, NULL, $text, $extension, $caching, $node, $source_image_file);
+        return self::processImageRequest($style, NULL, $text, $extension, $caching, $node, $source_image_file);
       }
       else {
         _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $style_name)), WATCHDOG_ERROR);
@@ -76,7 +76,7 @@ abstract class TextimageImager {
       }
     }
     elseif (!empty($effects_outline) && is_array($effects_outline)) {
-      return static::processImageRequest(NULL, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
+      return self::processImageRequest(NULL, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
     }
 
     _textimage_diag(t("No input was specified while invoking Textimage."), WATCHDOG_ERROR);
@@ -142,10 +142,10 @@ abstract class TextimageImager {
         if ($text_item) {
           // Replace any tokens in text with run-time values.
           $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-          $processed_text[] = static::processTextString($text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
+          $processed_text[] = self::processTextString($text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
         }
         elseif ($default_text_item) {
-          $processed_text[] = static::processTextString($default_text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
+          $processed_text[] = self::processTextString($default_text_item, $e_data['data']['text']['case_format'], $node, $source_image_file);
         }
         else {
           $processed_text[] = t('* Missing text *');
@@ -180,7 +180,7 @@ abstract class TextimageImager {
 
     // Check cache and/or store and return if db and file hit.
     if ($caching) {
-      if ($uri = static::getCached($hash)) {
+      if ($uri = self::getCached($hash)) {
         return $uri;
       }
     }
@@ -189,7 +189,7 @@ abstract class TextimageImager {
     timer_start('TextimageImager::build');
 
     // Get URI of the to-be image file.
-    $uri = static::buildUri($hash, $style, $processed_text, $extension, $caching);
+    $uri = self::buildUri($hash, $style, $processed_text, $extension, $caching);
 
     // Build a runtime-only style, in case the image is being generated through
     // theme_textimage_direct_image().
@@ -205,7 +205,7 @@ abstract class TextimageImager {
     }
 
     // Build the image.
-    if (!static::buildImage($style, $source_image_uri, $uri, $extension)) {
+    if (!self::buildImage($style, $source_image_uri, $uri, $extension)) {
       _textimage_diag(t("Textimage failed to build an image for image style '@style'.", array('@style' => $style['name'])), WATCHDOG_ERROR, __FUNCTION__);
       return NULL;
     }
@@ -215,8 +215,8 @@ abstract class TextimageImager {
 
     // Saves db imagestore data.
     if ($caching) {
-      static::setCached($hash, $uri);
-      static::putInStore($style, $hash, $effects_outline, $image_data, $uri, $timer['time']);
+      self::setCached($hash, $uri);
+      self::putInStore($style, $hash, $effects_outline, $image_data, $uri, $timer['time']);
     }
 
     return $uri;
@@ -292,8 +292,8 @@ abstract class TextimageImager {
     }
 
     // Reset state.
-    static::setState();
-    static::setState('building_module', 'textimage');
+    self::setState();
+    self::setState('building_module', 'textimage');
 
     // If no source image specified, we are processing a pure Textimage
     // request. In that case we need to use a dummy 1x1 image stored
@@ -322,7 +322,7 @@ abstract class TextimageImager {
     };
 
     // Reset state.
-    static::setState();
+    self::setState();
 
     // Release lock.
     if (!empty($lock_acquired)) {
@@ -369,7 +369,7 @@ abstract class TextimageImager {
 
     // If style and caching are set, then try a clear file uri.
     if ($style and $caching) {
-      if ($uri = static::getStyledImageClearFileUri($style, $text, $extension)) {
+      if ($uri = self::getStyledImageClearFileUri($style, $text, $extension)) {
         return $uri;
       }
     }
@@ -484,7 +484,7 @@ abstract class TextimageImager {
     // In stock, check file is there.
     $uri = $stored_image['uri'];
     if (is_file($uri)) {
-      static::setCached($hash, $uri);
+      self::setCached($hash, $uri);
       return $uri;
     }
     else {
@@ -554,7 +554,7 @@ abstract class TextimageImager {
    */
   public static function getState($variable = NULL) {
     if ($variable) {
-      return static::setState($variable);
+      return self::setState($variable);
     }
     return NULL;
   }
