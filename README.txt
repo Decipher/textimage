@@ -68,7 +68,7 @@ Features
 
 Requirements
 ------------
-- Drupal 7.23 or later, with Image module enabled
+- Drupal 7.23 or later, with Color and Image modules enabled
 - GD2 and FreeType libraries
 - Private file system configured
 - ImageCache Actions

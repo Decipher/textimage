@@ -2,6 +2,7 @@ name = Textimage
 description = Provides Text-to-Image image effects, and field formatters for Text and Image fields.
 core = 7.x
 package = Media
+dependencies[] = color
 dependencies[] = image
 dependencies[] = imagecache_actions
 dependencies[] = imagecache_canvasactions
