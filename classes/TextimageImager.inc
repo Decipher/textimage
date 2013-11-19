@@ -29,12 +29,15 @@ abstract class TextimageImager {
    * @param object $source_image_file
    *   (optional) a file entity. It is used for resolving the tokens
    *   in the text effects.
+   * @param string $target_uri
+   *   (optional) defines the URI where the Textimage image file should be
+   *   saved. Disables caching.
    *
    * @return array
    *   the URL of the image, or NULL in case of failure
    */
-  public static function getImageUrl($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL) {
-    $uri = self::getImageUri($style_name, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
+  public static function getImageUrl($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL, $target_uri = NULL) {
+    $uri = self::getImageUri($style_name, $effects_outline, $text, $extension, $caching, $node, $source_image_file, $target_uri);
     return $uri ? file_create_url($uri) : NULL;
   }
 
@@ -58,17 +61,20 @@ abstract class TextimageImager {
    * @param object $source_image_file
    *   (optional) a file entity. It is used for resolving the tokens
    *   in the text effects.
+   * @param string $target_uri
+   *   (optional) defines the URI where the Textimage image file should be
+   *   saved. Disables caching.
    *
    * @return array
    *   the URI of the image, or NULL in case of failure
    */
-  public static function getImageUri($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL) {
+  public static function getImageUri($style_name, $effects_outline, $text, $extension = 'png', $caching = TRUE, $node = NULL, $source_image_file = NULL, $target_uri = NULL) {
 
     if ($style_name) {
       // Retrieve Textimage style and process via processImageRequest.
       $style = TextimageStyles::get($style_name);
       if ($style) {
-        return self::processImageRequest($style, NULL, $text, $extension, $caching, $node, $source_image_file);
+        return self::processImageRequest($style, NULL, $text, $extension, $caching, $node, $source_image_file, $target_uri);
       }
       else {
         _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $style_name)), WATCHDOG_ERROR);
@@ -76,7 +82,7 @@ abstract class TextimageImager {
       }
     }
     elseif (!empty($effects_outline) && is_array($effects_outline)) {
-      return self::processImageRequest(NULL, $effects_outline, $text, $extension, $caching, $node, $source_image_file);
+      return self::processImageRequest(NULL, $effects_outline, $text, $extension, $caching, $node, $source_image_file, $target_uri);
     }
 
     _textimage_diag(t("No input was specified while invoking Textimage."), WATCHDOG_ERROR);
@@ -102,11 +108,14 @@ abstract class TextimageImager {
    * @param object $source_image_file
    *   (optional) a file entity. It is used for resolving the tokens
    *   in the text effects.
+   * @param string $target_uri
+   *   (optional) defines the URI where the Textimage image file should be
+   *   saved. Disables caching.
    *
    * @return array
    *   the uri of the image, or NULL in case of failure
    */
-  public static function processImageRequest($style, $effects_outline, &$text, $extension, $caching = TRUE, $node = NULL, $source_image_file = NULL) {
+  public static function processImageRequest($style, $effects_outline, &$text, $extension, $caching = TRUE, $node = NULL, $source_image_file = NULL, $target_uri = NULL) {
 
     $source_image_uri = isset($source_image_file) ? $source_image_file->uri : NULL;
 
@@ -178,6 +187,11 @@ abstract class TextimageImager {
     );
     $hash = md5(serialize($hash_input));
 
+    // Disable caching if the target URI is set.
+    if ($target_uri) {
+      $caching = FALSE;
+    }
+
     // Check cache and/or store and return if db and file hit.
     if ($caching) {
       if ($uri = self::getCached($hash)) {
@@ -189,7 +203,12 @@ abstract class TextimageImager {
     timer_start('TextimageImager::build');
 
     // Get URI of the to-be image file.
-    $uri = self::buildUri($hash, $style, $processed_text, $extension, $caching);
+    if (!$target_uri) {
+      $uri = self::buildUri($hash, $style, $processed_text, $extension, $caching);
+    }
+    else {
+      $uri = $target_uri;
+    }
 
     // Build a runtime-only style, in case the image is being generated through
     // theme_textimage_direct_image().
@@ -281,20 +300,6 @@ abstract class TextimageImager {
    */
   protected static function buildImage($style, $source, $uri, $extension) {
 
-    // Don't start generating the image if generation is in progress
-    // in another thread.
-    $lock_name = 'textimage_process:' . $uri;
-    if (!file_exists($uri)) {
-      $lock_acquired = lock_acquire($lock_name);
-      if (!$lock_acquired) {
-        return FALSE;
-      }
-    }
-
-    // Reset state.
-    self::setState();
-    self::setState('building_module', 'textimage');
-
     // If no source image specified, we are processing a pure Textimage
     // request. In that case we need to use a dummy 1x1 image stored
     // in textimage/misc/images, and prepend an additional
@@ -314,22 +319,29 @@ abstract class TextimageImager {
       $style['effects'] = $cleanup_effect + $style['effects'];
     }
 
-    // Try to generate the image, unless another thread just did it while we
-    // were acquiring the lock.
-    $success = file_exists($uri) || image_style_create_derivative($style, $source, $uri);
-    if (!$success) {
-      return FALSE;
-    };
-
     // Reset state.
     self::setState();
+    self::setState('building_module', 'textimage');
+
+    // Try a lock to the file generation process. If cannot get the lock,
+    // return success if the file exists already. Otherwise return failure.
+    $lock_name = 'textimage_process:' . $uri;
+    if(!$lock_acquired = lock_acquire($lock_name)) {
+      return file_exists($uri) ? TRUE : FALSE;
+    }
+
+    // Generate the image.
+    $success = image_style_create_derivative($style, $source, $uri);
 
     // Release lock.
     if (!empty($lock_acquired)) {
       lock_release($lock_name);
     }
 
-    return TRUE;
+    // Reset state.
+    self::setState();
+
+    return $success;
   }
 
   /**

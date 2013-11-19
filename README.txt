@@ -315,7 +315,8 @@ Using Textimage image styles
       $extension,
       $caching,
       $node,
-      $source_image_file
+      $source_image_file,
+      $target_uri
     );
 
     Variables:
@@ -337,6 +338,10 @@ Using Textimage image styles
       effects.
     - $source_image_file - a file entity. It is used for resolving the tokens
       in the text effects.
+    - $target_uri - (optional) specifies the URI where the textimage file
+      should be stored. Allows to bypass the automatic URI generation performed
+      by Textimage. NOTE: It disables caching, as, given an URI, there is no
+      control on the actual text that gets into the image.
 
 
 -------------------------------------------------------------------------------

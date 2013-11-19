@@ -118,6 +118,38 @@ class TextimageTest extends DrupalWebTestCase {
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));
 
+    // Build a textimage at target URI.
+    $uri = TextimageImager::getImageUri(
+      'textimage_test',
+      NULL,
+      array('test'),
+      'png',
+      FALSE,
+      NULL,
+      NULL,
+      'public://textimage-testing/bingo-bongo.png'
+    );
+
+    // Check file was generated.
+    $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
+    $this->assertTrue($files_count == 1, t('Textimage generation at target URI.'));
+
+    // Build another textimage at same target URI.
+    $uri = TextimageImager::getImageUri(
+      'textimage_test',
+      NULL,
+      array('another test'),
+      'png',
+      FALSE,
+      NULL,
+      NULL,
+      'public://textimage-testing/bingo-bongo.png'
+    );
+
+    // Check file was replaced.
+    $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
+    $this->assertTrue($files_count == 1, t('Textimage replaced at target URI.'));
+
   }
 
 }
