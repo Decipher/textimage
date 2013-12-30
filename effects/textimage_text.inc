@@ -122,7 +122,7 @@ function textimage_text_effect_form($data) {
   if (_textimage_module_exists('token', TEXTIMAGE_TOKEN_MIN_VERSION)) {
     $form['settings']['text_default']['tokens'] = array(
       '#theme' => 'token_tree',
-      '#token_types' => array('node', 'user', 'file'),
+      '#token_types' => array('node', 'user', 'file', 'textimage'),
       '#global_types' => TRUE,
       '#click_insert' => TRUE,
     );

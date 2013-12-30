@@ -64,6 +64,8 @@ Features
     * Define a color for GIF transparency, so to allow transparent background
       for Textimage images. Only works within the set of Textimage effects.
 * Field display formatters for Text and Image fields.
+* Textimage API to generate Textimage images programmatically.
+* Textimage tokens to retrieve URI/URL of generated Textimage images.
 
 
 Requirements
@@ -320,24 +322,25 @@ Using Textimage image styles
     );
 
     Variables:
-    - $style_name - the image style name. Optional - if not set then
+    - $style_name - the image style name. If set to NULL, then
       $effects_outline is expected.
     - $effects_outline - a subset of an array of image style effects. Given
       a $style['effects'] array, corresponds to the array of 'name' and 'data'
       keys of each element. You can use the helper function
       TextimageStyles::getStyleEffectsOutline($style_name) to get this array
-      based on a style name. Optional - if not set then $style is expected.
+      based on a style name. If set to NULL then $style is expected.
     - $text - an array of text strings, with unresolved tokens; each string
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
-    - $extension - the file format of the resulting image (png/gif/jpg/jpeg).
-    - $caching - if set to TRUE, the image will be cached for future accesses;
-      otherwise, the image will be stored in textimage_store and deleted on
-      cron run.
-    - $node - a node entity. It is used for resolving the tokens in the text
-      effects.
-    - $source_image_file - a file entity. It is used for resolving the tokens
+    - $extension - (optional) the file format of the resulting image
+      (png/gif/jpg/jpeg). Defaults to 'png'.
+    - $caching - (optional) if set to TRUE, the image will be cached for
+      future access; otherwise, the image will be stored in
+      textimage_store/uncached and deleted on cron run. Defaults to TRUE.
+    - $node - (optional) a node entity. It is used for resolving the tokens
       in the text effects.
+    - $source_image_file - (optional) a file entity. It is used for resolving
+      the tokens in the text effects.
     - $target_uri - (optional) specifies the URI where the textimage file
       should be stored. Allows to bypass the automatic URI generation performed
       by Textimage. NOTE: It disables caching, as, given an URI, there is no
@@ -347,8 +350,8 @@ Using Textimage image styles
 -------------------------------------------------------------------------------
 
 
-Using Textimage field formatters and tokens
--------------------------------------------
+Using Textimage field formatters with tokens
+--------------------------------------------
 
 There are specific pre-conditions for text tokens to be resolved into full
 text. Some tokens are 'general' (e.g. current date and time, site name, etc.)
@@ -384,46 +387,78 @@ the current user within the scope of the Textimage image building process.
 -------------------------------------------------------------------------------
 
 
+Textimage tokens
+----------------
+
+Textimage provides two tokens that can be used to retrieve the location where
+a Textimage image has been stored:
+
+A token to retrieve the URL of a Textimage image
+
+[textimage:url:field{:display}{:sequence}]
+
+and the URI equivalent
+
+[textimage:uri:field{:display}{:sequence}]
+
+where:
+- 'field' is the machine name of the field for which the Textimage is
+  generated (e.g. 'body', or 'field_my_field');
+- 'display' is an optional indication of the display view mode (e.g. 'default',
+  'full', 'teaser', etc.); 'default' is used if not specified;
+- 'sequence' is an optional indication of the URL/URI to return if Textimage
+  produces more images for the same field (like e.g. in a multi-value Image
+  field); if not specified, a comma-delimited string of all the URLs/URIs
+  generated will be returned.
+
+
+-------------------------------------------------------------------------------
+
+
 Delta - 3.x vs. 2.x
 -------------------
 
 - Leverage Image and Tokens features that are embedded in core Drupal 7.
 
 - Drop the preset concept and db schema and use instead the Image concepts:
-styles and effects. This finally allows Textimage to use any image effect
-to build the final image - leveraging a wide library of image effects
-provided by core and other contrib modules. Also, it allows core Image module
-to use Textimage effects.
+  styles and effects. This finally allows Textimage to use any image effect
+  to build the final image - leveraging a wide library of image effects
+  provided by core and other contrib modules. Also, it allows core Image
+  module to use Textimage effects.
 
 - Move all primitive image functions to toolkit specific includes, allowing to
-potentially use alternative toolkits (other than GD).
+  potentially use alternative toolkits (other than GD).
 
 - Implement Drupal 7 field formatters for Text and Image fields.
 
 - Implement a derivative delivery mechanism specific to Textimage - enabling
-usage of scheme wrappers (public, private, ...) to indicate storage
-destination of image files, and providing a framework to leverage tokens.
+  usage of scheme wrappers (public, private, ...) to indicate storage
+  destination of image files, and providing a framework to leverage tokens.
 
 - Enable Tokens substitution at runtime in the text.
 
 - Implement a direct text to image theme (i.e. enable producing a textimage
-with no predefined style!).
+  with no predefined style!).
 
 - Enhance the text overlay effects
 
 - Integrate with Imagecache Actions module to leverage its effects and
-functions (dependency).
+  functions (dependency).
 
 - Optional @font-your-face module integration for font management.
 
 - Optional Media module integration for background image management.
 
 - Optional jQuery Colorpicker module integration for color selection in
-effects' admin forms.
+  effects' admin forms.
+
+- Documented API to produce Textimage images programmatically.
+
+- Textimage tokens to retrieve URI/URL of generated Textimage images.
 
 
-Nice-to-haves
--------------
+Wishlist
+--------
 - a way to specify a http link for the textimage in fields and/or themes,
   with tokens
 - textimage_text effect - if elements with different opacity overlap (e.g.

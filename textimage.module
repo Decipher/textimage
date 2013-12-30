@@ -238,6 +238,52 @@ function textimage_schema_alter(&$schema) {
   }
 }
 
+/**
+ * Implements hook_token_info().
+ */
+function textimage_token_info() {
+  $type = array(
+    'name' => t('Textimage'),
+    'description' => t('Tokens related to Textimage'),
+    'needs-data' => 'node',
+  );
+  $tokens = array(
+    'uri' => array(
+      'name' => t("URI"),
+      'description' => t("The URI(s) of a Textimage generated for a node's field. Use like <strong>[textimage:uri:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URI to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URIs generated will be returned."),
+      'dynamic' => TRUE,
+    ),
+    'url' => array(
+      'name' => t("URL"),
+      'description' => t("The URL(s) of a Textimage generated for a node's field. Use like <strong>[textimage:url:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URL to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URLs generated will be returned."),
+      'dynamic' => TRUE,
+    ),
+  );
+  return array(
+    'types'  => array('textimage' => $type),
+    'tokens' => array('textimage' => $tokens),
+  );
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function textimage_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  // Jumps out if not processing textimage tokens.
+  if ($type != 'textimage') {
+    return array();
+  }
+  // Jumps out with a warning if node is not available.
+  if (!isset($data['node'])) {
+    _textimage_diag(t('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens))), WATCHDOG_WARNING);
+    return array();
+  }
+  // Process tokens.
+  $replacements = TextimageImager::processTokens('url', $tokens, $data['node']);
+  $replacements += TextimageImager::processTokens('uri', $tokens, $data['node']);
+  return $replacements;
+}
+
 // There is not a way to specify a file in hook_image_effect_info.
 // Effects .inc files are included here for the time being.
 require_once 'effects/textimage_background.inc';
@@ -399,11 +445,8 @@ function textimage_field_formatter_view($entity_type, $entity, $field, $instance
   $element = array();
 
   if ($field['module'] == 'text') {
-    // Get text strings from a text field.
-    $text = array();
-    foreach ($items as $delta => $item) {
-      $text[] = $item['value'];
-    }
+    // Get sanitized text strings from a text field.
+    $text = TextimageImager::getTextFieldText($items, $field, $instance, $node);
     $element[] = array(
       '#theme' => 'textimage_style_image',
       '#style_name' => $display['settings']['image_style'],
