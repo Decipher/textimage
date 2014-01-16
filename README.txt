@@ -66,6 +66,7 @@ Features
 * Field display formatters for Text and Image fields.
 * Textimage API to generate Textimage images programmatically.
 * Textimage tokens to retrieve URI/URL of generated Textimage images.
+* Integrates with Metatag to use Textimage tokens in meta tags.
 
 
 Requirements
@@ -82,6 +83,8 @@ Recommended modules, for a feature rich set:
 - Jquery Colorpicker    (7.x-1.0-rc1 or later)
 - Token                 (7.x-1.5 or later)
 
+Integration with modules:
+- Metatag               (7.x-1.0-beta8 or later)
 
 Installation instructions (long version)
 ----------------------------------------
@@ -410,6 +413,9 @@ where:
   produces more images for the same field (like e.g. in a multi-value Image
   field); if not specified, a comma-delimited string of all the URLs/URIs
   generated will be returned.
+
+Textimage tokens can be used with the Metatag module to specify e.g. URL
+meta tags.
 
 
 -------------------------------------------------------------------------------

@@ -284,6 +284,24 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
   return $replacements;
 }
 
+/**
+ * Implements hook_metatag_token_types_alter().
+ *
+ * Integration of Textimage tokens with the Metatag module.
+ */
+function textimage_metatag_token_types_alter(&$options) {
+  // Add Textimage tokens to the token types managed by Metatag,
+  // for the node context.
+  if ($options['context'] == 'node') {
+    if (!isset($options['token types'])) {
+      $options['token types'] = array();
+    }
+    if (!in_array('textimage', $options['token types'])) {
+      $options['token types'][] = 'textimage';
+    }
+  }
+}
+
 // There is not a way to specify a file in hook_image_effect_info.
 // Effects .inc files are included here for the time being.
 require_once 'effects/textimage_background.inc';
