@@ -1,3 +1,15 @@
+/**
+ * @todo Upgrade
+ *
+ * Config:
+ *   fonts_handling_module => fonts.plugin_id
+ *   fonts_path => fonts.plugin_settings.textimage.path
+ */
+#2134439 - array_replace_recursive
+#2133587 - Allow to specify a target URI for a textimage file in the API
+#2146495 - 'tokens' introduced a new exception to be separated into its own file
+remove REQUIREMENT_INFO
+
 -----------------
 Textimage 7.x-3.x
 -----------------

@@ -1,0 +1,20 @@
+services:
+  cache.textimage:
+    class: Drupal\Core\Cache\CacheBackendInterface
+    tags:
+      - { name: cache.bin }
+    factory_method: get
+    factory_service: cache_factory
+    arguments: [textimage]
+  plugin.manager.textimage.font:
+    class: Drupal\textimage\Plugin\TextimagePluginManager
+    arguments: [font, '@container.namespaces', '@cache.cache', '@language_manager', '@module_handler']
+  plugin.manager.textimage.background:
+    class: Drupal\textimage\Plugin\TextimagePluginManager
+    arguments: [background, '@container.namespaces', '@cache.cache', '@language_manager', '@module_handler']
+  plugin.manager.textimage.color:
+    class: Drupal\textimage\Plugin\TextimagePluginManager
+    arguments: [color, '@container.namespaces', '@cache.cache', '@language_manager', '@module_handler']
+  textimage.factory:
+    class: Drupal\textimage\TextimageFactory
+    arguments: ['@lock', '@token']

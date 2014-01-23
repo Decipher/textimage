@@ -1,0 +1,17 @@
+store_scheme: private
+message_level: 6
+font:
+  plugin_id: textimage
+  plugin_settings:
+    textimage:
+      path: private://textimage_store/fonts
+default_font:
+  name:
+  uri:
+background:
+  plugin_id: textimage
+  plugin_settings:
+    textimage:
+      path: private://textimage_store/backgrounds
+color:
+  plugin_id: textimage

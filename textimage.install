@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Textimage - Installation scripts.
@@ -11,50 +12,37 @@ function textimage_requirements($phase) {
 
   $requirements = array();
 
-  // Ensure translations don't break at install time.
-  $t = get_t();
-
   // Check a private wrapper exists and is writeable.
   $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE);
   if (!isset($wrappers['private'])) {
     $requirements['textimage_private_wrapper'] = array(
-      'title' => $t('Private file wrapper'),
-      'value' => $t('Undefined'),
+      'title' => t('Private file wrapper'),
+      'value' => t('Undefined'),
       'severity' => REQUIREMENT_ERROR,
-      'description' => $t('Textimage requires access to a private area for file storage. Ensure that a path is specified for "Private file system path" visiting the <a href="@url">File system</a> configuration page, or, alternatively, that a "private" writeable stream wrapper is defined elsewhere.', array('@url' => url('admin/config/media/file-system'))),
+      'description' => t('Textimage requires access to a private area for file storage. Ensure that a path is specified for "Private file system path" visiting the <a href="@url">File system</a> configuration page, or, alternatively, that a "private" writeable stream wrapper is defined elsewhere.', array('@url' => url('admin/config/media/file-system'))),
     );
   }
 
   // Check PHP GD2 library enabled and providing FreeType support.
-  $requirements['textimage_gd']['title'] = $t('GD library FreeType support');
+  $requirements['textimage_gd']['title'] = t('GD library FreeType support');
   if (function_exists('imagegd2')) {
     $info = gd_info();
     $requirements['textimage_gd']['value'] = $info['GD Version'];
     // Check for FreeType support.
     if (function_exists('imagettftext') && $info["FreeType Support"]) {
-      $requirements['textimage_gd']['severity'] = REQUIREMENT_OK;
+      $requirements['textimage_gd']['severity'] = REQUIREMENT_INFO;
     }
     else {
       // No FreeType support, raise error.
       $requirements['textimage_gd']['severity'] = REQUIREMENT_ERROR;
-      $requirements['textimage_gd']['description'] = $t('The GD Library for PHP is enabled, but was compiled without FreeType support. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://www.php.net/manual/book.image.php">the PHP manual</a>.');
+      $requirements['textimage_gd']['description'] = t('The GD Library for PHP is enabled, but was compiled without FreeType support. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://www.php.net/manual/book.image.php">the PHP manual</a>.');
     }
   }
   else {
     // No GD2, raise error.
-    $requirements['textimage_gd']['value'] = $t('Not installed');
+    $requirements['textimage_gd']['value'] = t('Not installed');
     $requirements['textimage_gd']['severity'] = REQUIREMENT_ERROR;
-    $requirements['textimage_gd']['description'] = $t('The GD library for PHP is missing or outdated. Check the <a href="@url">PHP image documentation</a> for information on how to correct this.', array('@url' => 'http://www.php.net/manual/book.image.php'));
-  }
-
-  // Check Clean URLs are set on.
-  if (!variable_get('clean_url', FALSE)) {
-    $requirements['textimage_clean_url'] = array(
-      'title' => $t('Clean URLs'),
-      'value' => $t('Disabled'),
-      'severity' => REQUIREMENT_WARNING,
-      'description' => $t('Textimage requires Clean URLs to be set on to provide URL-based generation of text images. Visit the <a href="@url">Clean URLs</a> configuration page to set up.', array('@url' => url('admin/config/search/clean-urls'))),
-    );
+    $requirements['textimage_gd']['description'] = t('The GD library for PHP is missing or outdated. Check the <a href="@url">PHP image documentation</a> for information on how to correct this.', array('@url' => 'http://www.php.net/manual/book.image.php'));
   }
 
   return $requirements;
@@ -65,11 +53,6 @@ function textimage_requirements($phase) {
  */
 function textimage_schema() {
   $schema = array();
-
-  // Pick the definition of the {cache_textimage} table from the standard
-  // {cache} table.
-  $schema['cache_textimage'] = drupal_get_schema_unprocessed('system', 'cache');
-  $schema['cache_textimage']['description'] = 'Cache table for Textimage module to store image URIs.';
 
   // Define {textimage_store}.
   $schema['textimage_store'] = array(
@@ -136,34 +119,25 @@ function textimage_schema() {
  * Implements hook_install().
  */
 function textimage_install() {
-  $t = get_t();
-  // Add database fields required by Textimage.
-  $table_fields = _textimage_define_table_fields();
-  foreach ($table_fields as $table_name => $fields) {
-    foreach ($fields as $field_name => $field) {
-      if (!db_field_exists($table_name, $field_name)) {
-        db_add_field($table_name, $field_name, $field);
-      }
-    }
-  }
+
   // Create fonts and background directories.
-  $fonts_path = _textimage_get_variable('fonts_path');
+  $fonts_path = config('textimage.settings')->get('font.plugin_settings.textimage.path');
   if (!file_prepare_directory($fonts_path, FILE_CREATE_DIRECTORY)) {
     _textimage_diag(
-      $t(
+      t(
         'Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup font management.',
         array(
-          '%path' => _textimage_get_variable('fonts_path'),
+          '%path' => $fonts_path,
           '@url' => url('admin/config/media/textimage'),
         )
       ),
       WATCHDOG_ERROR
     );
   }
-  $backgrounds_path = _textimage_get_variable('backgrounds_path');
+  $backgrounds_path = config('textimage.settings')->get('background.plugin_settings.textimage.path');
   if (!file_prepare_directory($backgrounds_path, FILE_CREATE_DIRECTORY)) {
     _textimage_diag(
-      $t(
+      t(
         'Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup background images management.',
         array(
           '%path' => _textimage_get_variable('backgrounds_path'),
@@ -184,15 +158,7 @@ function textimage_uninstall() {
   foreach ($wrappers as $wrapper => $wrapper_data) {
     file_unmanaged_delete_recursive($wrapper . '://textimage');
   }
-  // Remove database fields required by Textimage.
-  $table_fields = _textimage_define_table_fields();
-  foreach ($table_fields as $table_name => $fields) {
-    foreach ($fields as $field_name => $field) {
-      if (db_field_exists($table_name, $field_name)) {
-        db_drop_field($table_name, $field_name);
-      }
-    }
-  }
+
   // Remove all variables whose name begins with 'textimage'.
   $res = db_select('variable', 'v')
       ->fields('v')
@@ -204,20 +170,4 @@ function textimage_uninstall() {
       drupal_set_message(t('Variable %var has been deleted.', array('%var' => $row->name)));
     }
   }
-}
-
-/**
- * Helper - return Textimage fields added to the schema.
- */
-function _textimage_define_table_fields() {
-  $definition = array();
-  $definition['image_styles'] = array(
-    'textimage'    => array(
-      'type' => 'blob',
-      'not null' => FALSE,
-      'description' => 'Textimage settings.',
-      'serialize' => TRUE,
-    ),
-  );
-  return $definition;
 }

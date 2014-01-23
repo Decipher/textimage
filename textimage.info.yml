@@ -1,0 +1,16 @@
+name: Textimage
+type: module
+description: 'Provides Text-to-Image image effects, and field formatters for Text and Image fields.'
+package: Media
+core: 8.x
+configure: textimage.settings
+dependencies:
+ - image
+ - color
+#  - menu
+
+
+# dependencies[] = imagecache_actions
+# dependencies[] = imagecache_canvasactions
+# files[] = tests/textimage.test
+# files[] = tests/textimage_preg_match.test

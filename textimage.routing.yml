@@ -1,0 +1,16 @@
+# Textimage module routes
+
+textimage.settings:
+  path: '/admin/config/media/textimage'
+  defaults:
+    _form: '\Drupal\textimage\Form\SettingsForm'
+  requirements:
+    _permission: 'administer image styles'
+
+textimage.flush_all:
+  path: '/admin/config/media/textimage/cleanup'
+  defaults:
+    _form: '\Drupal\textimage\Form\FlushAllForm'
+    _title: 'Cleanup Textimage'
+  requirements:
+    _permission: 'administer image styles'

@@ -1,0 +1,130 @@
+<?php
+
+/**
+ * @file
+ * Contains \Drupal\textimage\Plugin\textimage\background\Textimage.
+ */
+
+namespace Drupal\textimage\Plugin\textimage\background;
+
+use Drupal\Component\Utility\MapArray;
+use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
+use Drupal\textimage\Plugin\TextimagePluginBase;
+
+/**
+ * Basic background image plugin for Textimage.
+ *
+ * Provides access to images stored in a directory, specified in configuration.
+ *
+ * @Plugin(
+ *   id = "textimage",
+ *   title = @Translation("Textimage basic image handler"),
+ *   short_title = @Translation("Textimage"),
+ *   help = @Translation("Access images stored in the directory specified in configuration.")
+ * )
+ */
+class Textimage extends TextimagePluginBase implements TextimageBackgroundPluginInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return array('path' => 'private://textimage_store/backgrounds');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function configurationForm(array $form, array &$form_state, array $options = array()) {
+    $element['path'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Path'),
+      '#default_value' => $this->configuration['path'],
+      '#element_validate' => array(array($this, 'validatePath')),
+      '#maxlength' => 255,
+      '#description' =>
+        $this->t('Location of the directory where the background images are stored.') . ' ' .
+        $this->t('Relative paths will be resolved relative to the Drupal installation directory.'),
+    );
+    return $element;
+  }
+
+  public function validatePath($element, &$form_state, $form) {
+    if (!is_dir($element['#value'])) {
+      form_set_error(implode('][', $element['#parents']), $form_state, $this->t('Invalid directory specified.'));
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function selectionElement($name, array $options = array()) {
+
+    // Get list of images.
+    $image_files = $this->getList();
+    if (empty($image_files)) {
+      _textimage_diag(
+        $this->t(
+          'No background images available. Make sure at least one image is available in the directory specified in the <a href="!url">configuration page</a>.',
+          array(
+            '!url' => url('admin/config/media/textimage'),
+          )
+        ),
+        WATCHDOG_WARNING
+      );
+    }
+
+    // Element.
+    $element[$name] = array(
+      '#type'  => 'select',
+      '#title'   => isset($options['#title']) ? $options['#title'] : $this->t('Background image'),
+      '#description' => isset($options['#description']) ? $options['#description'] : $this->t('Select image.'),
+      '#options' => MapArray::copyValuesToKeys($image_files),
+      '#default_value' => isset($options['background_image']['uri']) ? pathinfo($options['background_image']['uri'], PATHINFO_BASENAME) : '',
+      '#element_validate' => array(array($this, 'validateSelectorUri')),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="data[background_image][mode]"]' => array('value' => 'select'),
+        ),
+      ),
+    );
+
+    return $element;
+  }
+
+  public function validateSelectorUri($element, &$form_state, $form) {
+    $v = &$form_state['values']['data'];
+    if ($v['background_image']['mode'] == 'select') {
+      $file_path = $this->configuration['path'] . '/' . $element['#value'];
+      if (!file_exists($file_path)) {
+        form_set_error(implode('][', $element['#parents']), $form_state, $this->t('The file selected does not exist.'));
+      }
+      else {
+        $form_state['values']['data']['background_image']['uri'] = $file_path;
+      }
+    }
+  }
+
+  /**
+   * Returns an array of files with image extensions in the specified directory.
+   *
+   * @param string $images_dir
+   *   URL of the images directory.
+   *
+   * @return array
+   *   Array of image files.
+   */
+  protected function getList() {
+    $filelist = array();
+    if (is_dir($this->configuration['path']) && $handle = opendir($this->configuration['path'])) {
+      while ($file = readdir($handle)) {
+        if (preg_match("/\.gif|\.png|\.jpg|\.jpeg$/i", $file) == 1) {
+          $filelist[] = $file;
+        }
+      }
+      closedir($handle);
+    }
+    return $filelist;
+  }
+
+}

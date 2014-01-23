@@ -1,8 +1,13 @@
 <?php
+
 /**
  * @file
  * Textimage - Provides text to image manipulations.
  */
+
+// @todo remove
+require_once 'textimage_canvas_temp.inc';
+require_once 'textimage_text.gd.temp.inc';
 
 /**
  * Define constants.
@@ -51,6 +56,7 @@ function textimage_theme() {
         'node' => NULL,
         'source_image_file' => NULL,
       ),
+      'template' => 'textimage',
     ),
     // Get a textimage from a programmatically created image style.
     'textimage_direct_image' => array(
@@ -63,34 +69,31 @@ function textimage_theme() {
         'attributes' => array(),
         'caching' => TRUE,
       ),
+      'template' => 'textimage',
     ),
     // Textimage background image effect - summary.
     'textimage_background_effect_summary' => array(
-      'variables' => array(
-        'data' => NULL,
-      ),
+      'variables' => array('data' => NULL),
+      'template' => 'textimage-background-summary',
     ),
     // Textimage text image effect - summary.
-    'textimage_text_effect_summary' => array(
-      'variables' => array(
-        'data' => NULL,
-      ),
+    'textimage_text_summary' => array(
+      'variables' => array('data' => NULL),
+      'template' => 'textimage-text-summary',
     ),
     // Textimage GIF transparency effect - summary.
-    'textimage_gif_transparency_effect_summary' => array(
-      'variables' => array(
-        'data' => NULL,
-      ),
+    'textimage_gif_transparency_summary' => array(
+      'variables' => array('data' => NULL),
+      'template' => 'textimage-gif-transparency-summary',
     ),
-    // Render a string with color formatting.
-    'textimage_colored_string' => array(
+    // Render a color information box and string.
+    'textimage_color_detail' => array(
       'variables' => array(
-        'text' => '',
-        'foreground_color' => '#000000',
-        'background_color' => '',
+        'color' => '#000000',
         'border' => FALSE,
         'border_color' => '#000000',
       ),
+      'template' => 'textimage-color-detail',
     ),
   );
 
@@ -105,22 +108,10 @@ function textimage_menu() {
 
   $items['admin/config/media/textimage'] = array(
     'title' => 'Textimage',
-    'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('textimage_form_settings'),
-    'access arguments' => array('administer image styles'),
     'description' => 'Configure Textimage settings.',
+    'route_name' => 'textimage.settings',
     'weight' => 10,
     'type'   => MENU_NORMAL_ITEM,
-    'file'   => 'textimage.admin.inc',
-  );
-  $items['admin/config/media/textimage/cleanup'] = array(
-    'title' => 'Cleanup Textimage',
-    'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('textimage_flush_all_form'),
-    'access arguments' => array('administer image styles'),
-    'description' => 'Cleanup Textimage stored images.',
-    'type'   => MENU_CALLBACK,
-    'file'   => 'textimage.admin.inc',
   );
 
   // Generate image derivatives of publicly available files, via
@@ -173,14 +164,17 @@ function textimage_file_download($uri) {
     $original_uri = file_uri_scheme($uri) . '://' . implode('/', $args);
 
     // Check that the file exists and is an image.
-    if ($info = image_get_info($uri)) {
+    $image = \Drupal::service('image.factory')->get($uri);
+    if ($image->getExtension()) {
       // Check the permissions of the original to grant access to this image.
-      $headers = module_invoke_all('file_download', $original_uri);
+      $headers = \Drupal::moduleHandler()->invokeAll('file_download', array($original_uri));
+      // Confirm there's at least one module granting access and none denying access.
+// @todo implement a download controller / file permissions   if (!empty($headers) && !in_array(-1, $headers)) {
       if (!in_array(-1, $headers)) {
         return array(
           // Send headers describing the image's size, and MIME-type...
-          'Content-Type' => $info['mime_type'],
-          'Content-Length' => $info['file_size'],
+          'Content-Type' => $image->getMimeType(),
+          'Content-Length' => $image->getFileSize(),
           // By not explicitly setting them here, this uses normal Drupal
           // Expires, Cache-Control and ETag headers to prevent proxy or
           // browser caching of private images.
@@ -193,7 +187,7 @@ function textimage_file_download($uri) {
   // Private file access for the original files. Note that we only
   // check access for non-temporary images, since file.module will
   // grant access for all temporary files.
-  $files = file_load_multiple(array(), array('uri' => $uri));
+  $files = entity_load_multiple_by_properties('file', array('uri' => $uri));
   if (count($files)) {
     $file = reset($files);
     if ($file->status) {
@@ -203,10 +197,10 @@ function textimage_file_download($uri) {
 }
 
 /**
- * Implements hook_flush_caches().
+ * Implements hook_cache_flush().
  */
-function textimage_flush_caches() {
-  return array('cache_textimage');
+function textimage_cache_flush() {
+  return array('textimage');
 }
 
 /**
@@ -220,20 +214,6 @@ function textimage_cron() {
     }
     else {
       _textimage_diag(t("Textimage could not remove temporary image files."), WATCHDOG_ERROR, __FUNCTION__);
-    }
-  }
-}
-
-/**
- * Implements hook_schema_alter().
- */
-function textimage_schema_alter(&$schema) {
-  // Alter the schema adding fields required by Textimage.
-  require_once 'textimage.install';
-  $table_fields = _textimage_define_table_fields();
-  foreach ($table_fields as $table_name => $fields) {
-    foreach ($fields as $field_name => $field) {
-      $schema[$table_name]['fields'][$field_name] = $field;
     }
   }
 }
@@ -302,85 +282,48 @@ function textimage_metatag_token_types_alter(&$options) {
   }
 }
 
-// There is not a way to specify a file in hook_image_effect_info.
-// Effects .inc files are included here for the time being.
-require_once 'effects/textimage_background.inc';
-require_once 'effects/textimage_text.inc';
-require_once 'effects/textimage_gif_transparency.inc';
-
-/**
- * Implements hook_image_styles_alter().
- */
-function textimage_image_styles_alter(&$styles) {
-  // Adds textimage properties to the image styles when loading them.
-  foreach ($styles as &$style) {
-    TextimageStyles::isTextimage($style);
+// **** D8 specific ****
+/*function textimage_entity_info(&$entity_info) {
+  if (isset($entity_info['image_style'])) {
+    $entity_info['image_style']['textimage'] = array('bingo' => 'bongo');
   }
-}
+}*/
 
-/**
- * Implements hook_image_effect_info().
- */
-function textimage_image_effect_info() {
-  $effects = array();
+/*function textimage_image_style_presave(\Drupal\Core\Entity\EntityInterface $entity) {
 
-  $effects['textimage_background'] = array(
-    'label' => t('Textimage background'),
-    'help' => t('Define size and background color of the Textimage, or a background image.'),
-    'effect callback' => 'textimage_background_effect',
-    'dimensions callback' => 'textimage_background_effect_dimensions',
-    'form callback' => 'textimage_background_effect_form',
-    'summary theme' => 'textimage_background_effect_summary',
+  //dpm($entity);
+  $entity->set('textimage', 'BingoBongo');
+//  dpm($entity);
+
+}*/
+
+//function textimage_textimage_style_load($entities) {
+
+//  dpm($entity_type);
+//  $entity->set('textimage', 'BingoBongo');
+//  dpm($entities);
+/*  foreach ($entities as $entity) {
+    dpm($entity->name . ' . ' . $entity->isTextimage());
+  }*/
+
+//}
+
+function textimage_image_style_create_derivative($style, $original_uri, $derivative_uri) {
+  \Drupal\textimage\Entity\TextimageStyle::setState();
+  watchdog(
+    'image',
+    t(
+      'Creating derivative image: %derivative for style: %style from image: %original',
+      array(
+        '%style' => $style->id(),
+        '%derivative' => $derivative_uri,
+        '%original' => $original_uri,
+      )
+    )
   );
-
-  $effects['textimage_text'] = array(
-    'label' => t('Textimage text'),
-    'help' => t('Define text font, size and positioning.'),
-    'effect callback' => 'textimage_text_effect',
-    'dimensions callback' => 'textimage_text_effect_dimensions',
-    'form callback' => 'textimage_text_effect_form',
-    'summary theme' => 'textimage_text_effect_summary',
-  );
-
-  $effects['textimage_gif_transparency'] = array(
-    'label' => t('Textimage GIF transparency'),
-    'help' => t('Define a color to set GIF transparency.'),
-    'effect callback' => 'textimage_gif_transparency_effect',
-    'dimensions passthrough' => TRUE,
-    'form callback' => 'textimage_gif_transparency_effect_form',
-    'summary theme' => 'textimage_gif_transparency_effect_summary',
-  );
-
-  return $effects;
 }
 
-/**
- * Implements hook_image_style_flush().
- */
-function textimage_image_style_flush($style) {
-  // Manage the textimage part of style flushing.
-  if (TextimageStyles::isTextimage($style)) {
-    TextimageStyles::flush($style);
-  }
-}
-
-/**
- * Implements hook_image_style_save().
- */
-function textimage_image_style_save($style) {
-  if (TextimageStyles::isTextimage($style)) {
-    TextimageStyles::save($style);
-  }
-}
-
-/**
- * Implements hook_image_style_delete().
- */
-function textimage_image_style_delete($style) {
-  if (TextimageStyles::isTextimage($style)) {
-    TextimageStyles::delete($style);
-  }
-}
+// **** END D8 specific ****
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -388,106 +331,56 @@ function textimage_image_style_delete($style) {
  * @see _textimage_image_style_form_form_alter()
  */
 function textimage_form_image_style_form_alter(&$form, &$form_state, $form_id) {
-  require_once 'textimage.admin.inc';
-  _textimage_image_style_form_form_alter($form, $form_state, $form_id);
-}
+/*$style = $form_state['controller']->getEntity();
+dpm($style);
+$effects = $style->getEffects();
+foreach ($effects->sort() as $effect) {
+dpm($effect);
+};*/
 
-/**
- * Implements hook_field_formatter_info().
- */
-function textimage_field_formatter_info() {
-  $formatters = array(
-    'textimage' => array(
-      'label' => t('Textimage'),
-      'description' => t('Textimage formatter'),
-      'field types' => array('image', 'text', 'text_with_summary', 'text_long'),
-      'settings' => array('image_style' => ''),
-    ),
-  );
-  return $formatters;
-}
-
-/**
- * Implements hook_field_formatter_settings_form().
- */
-function textimage_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
-  $display = $instance['display'][$view_mode];
-  $settings = $display['settings'];
-
-  $image_styles = TextimageStyles::getOptions(FALSE);
-  $element['image_style'] = array(
-    '#title' => t('Image style'),
-    '#type' => 'select',
-    '#default_value' => $settings['image_style'],
-    '#options' => $image_styles,
-    '#required' => TRUE,
-    '#description' => t('Only Textimage relevant image styles can be selected.'),
-  );
-
-  return $element;
-}
-
-/**
- * Implements hook_field_formatter_settings_summary().
- */
-function textimage_field_formatter_settings_summary($field, $instance, $view_mode) {
-  $display = $instance['display'][$view_mode];
-  $settings = $display['settings'];
-
-  $summary = array();
-
-  $image_styles = TextimageStyles::getOptions(FALSE);
-  // Unset possible 'No defined styles' option.
-  unset($image_styles['']);
-  // Styles could be lost because of enabled/disabled modules that defines
-  // their styles in code.
-  if (isset($image_styles[$settings['image_style']])) {
-    $summary[] = t('Image style: @style', array('@style' => $image_styles[$settings['image_style']]));
-  }
-  else {
-    $summary[] = t('Image style: undefined');
-  }
-
-  return implode('<br />', $summary);
-}
-
-/**
- * Implements hook_field_formatter_view().
- */
-function textimage_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-
-  // If formatting a node, store entity for passing to theme.
-  // The node entity will be used for the detokening of text.
-  $node = ($entity_type == 'node') ? $entity : NULL;
-
-  $element = array();
-
-  if ($field['module'] == 'text') {
-    // Get sanitized text strings from a text field.
-    $text = TextimageImager::getTextFieldText($items, $field, $instance, $node);
-    $element[] = array(
-      '#theme' => 'textimage_style_image',
-      '#style_name' => $display['settings']['image_style'],
-      '#text' => $text,
-      '#node' => $node,
+/*  if (TextimageStyles::isTextimage($form_state['image_style'])) {
+    $form['textimage_options'] = array(
+      '#type' => 'fieldset',
+      '#tree' => TRUE,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Textimage options'),
+      '#description' => t('Define Textimage options specific for this image style.'),
     );
-  }
-  elseif ($field['module'] == 'image') {
-    // Get source image from an image field.
-    foreach ($items as $delta => $item) {
-      $source_image_file = file_load($item['fid']);
-      $element[$delta] = array(
-        '#theme' => 'textimage_style_image',
-        '#style_name' => $display['settings']['image_style'],
-        '#text' => NULL,
-        '#node' => $node,
-        '#source_image_file' => $source_image_file,
-      );
+    // Define file storage wrapper used for the style images.
+    $scheme_options = array();
+    foreach (file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE) as $scheme => $stream_wrapper) {
+      $scheme_options[$scheme] = $stream_wrapper['name'];
     }
-  }
-
-  return $element;
+    $form['textimage_options']['uri_scheme'] = array(
+      '#type' => 'radios',
+      '#options' => $scheme_options,
+      '#title' => t('Image destination'),
+      '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
+      '#default_value' => $form_state['image_style']['textimage']['uri_scheme'],
+    );
+    // Adds a submit handler to deal with textimage options.
+    $form['#submit'][] = '_textimage_image_style_form_textimage_submit';
+  }*/
 }
+
+/**
+ * Submit handler to deal with a style's Textimage options.
+ *
+ * @see _textimage_image_style_form_form_alter()
+ */
+function _textimage_image_style_form_textimage_submit($form, &$form_state) {
+  $style = TextimageStyles::get($form_state['values']['name']);
+  // Update Textimage-specific style options.
+  if ($style) {
+    $style['textimage']['uri_scheme'] = $form_state['values']['textimage_options']['uri_scheme'];
+    image_style_save($style);
+  }
+}
+
+/**
+ * Textimage color form element.
+ */
 
 /**
  * Implements hook_element_info().
@@ -531,9 +424,11 @@ function textimage_color_element_process($element, &$form_state) {
   $hex = $transparent ? '#FFFFFF' : drupal_substr($element['#default_value'], 0, 7);
   $opacity = $transparent ? 100 : _textimage_rgba_to_opacity($element['#default_value']);
 
+  $colorPlugin = \Drupal::service('plugin.manager.textimage.color')->getPlugin();
+
   if ($element['#allow_transparent'] || $element['#allow_opacity']) {
-    // If more sub-fields are needed to define the color, wrap them in a
-    // fieldset.
+    // More sub-fields are needed to define the color, wrap them in a
+    // container fieldset.
     $element['container'] = array(
       '#type' => 'fieldset',
       '#description' => $element['#description'],
@@ -548,25 +443,7 @@ function textimage_color_element_process($element, &$form_state) {
       );
     }
     // Color field.
-    // Renders a jquery_colorpicker element if available and enabled, otherwise
-    // a textfield.
-    if (_textimage_get_variable('color_selector') == 'jquery_colorpicker') {
-      $element['container']['hex'] = array(
-        '#title' => t('Color'),
-        '#type' => 'jquery_colorpicker',
-        '#default_value' => drupal_substr($hex, -6),
-      );
-    }
-    else {
-      $element['container']['hex'] = array(
-        '#title' => t('Color'),
-        '#type' => 'textfield',
-        '#default_value' => $hex,
-        '#maxlength' => 7,
-        '#size' => 7,
-        '#element_validate' => array('image_effect_color_validate'),
-      );
-    }
+    $element['container'] += $colorPlugin->selectionElement('hex', array('#default_value' => $hex));
     // States management for color field.
     $element['container']['hex']['#states'] = array(
       'visible' => array(
@@ -576,13 +453,14 @@ function textimage_color_element_process($element, &$form_state) {
     // Textfield for opacity.
     if ($element['#allow_opacity']) {
       $element['container']['opacity'] = array(
-        '#type'  => 'textfield',
+        '#type'  => 'number',
         '#title' => t('Opacity'),
         '#default_value' => $opacity,
         '#maxlength' => 3,
         '#size' => 2,
         '#field_suffix' => '%',
-        '#element_validate' => array('element_validate_integer'),
+        '#min' => 0,
+        '#max' => 100,
         '#states' => array(
           'visible' => array(
             ':input[name="' . $element['#name'] . '[container][transparent]"]' => array('checked' => FALSE),
@@ -593,25 +471,7 @@ function textimage_color_element_process($element, &$form_state) {
   }
   else {
     // No transparency or opacity, straight color field.
-    if (_textimage_get_variable('color_selector') == 'jquery_colorpicker') {
-      $element['hex'] = array(
-        '#type' => 'jquery_colorpicker',
-        '#title' => $element['#title'],
-        '#description' => $element['#description'],
-        '#default_value' => drupal_substr($hex, -6),
-      );
-    }
-    else {
-      $element['hex'] = array(
-        '#type' => 'textfield',
-        '#title' => $element['#title'],
-        '#description' => $element['#description'],
-        '#default_value' => $hex,
-        '#maxlength' => 7,
-        '#size' => 7,
-        '#element_validate' => array('image_effect_color_validate'),
-      );
-    }
+    $element += $colorPlugin->selectionElement('hex', $form, $form_state, array('#default_value' => $hex));
   }
 
   unset(
@@ -657,12 +517,15 @@ function textimage_color_element_validate(&$element, &$form_state, $form) {
  */
 
 /**
- * Theme function to get a Textimage from a stored image style.
+ * Prepares variables to get a Textimage from a stored image style.
+ *
+ * Default template: textimage.html.twig.
  */
-function theme_textimage_style_image($variables) {
+// @todo maybe we don't even need this and just go for image__textimage_style and its preprocess
+function template_preprocess_textimage_style_image(&$variables) {
 
   // Get URI to image file.
-  $uri = TextimageImager::getImageUri(
+  $uri = \Drupal::service('textimage.factory')->getImageUri(
     $variables['style_name'],
     NULL,
     $variables['text'],
@@ -672,30 +535,28 @@ function theme_textimage_style_image($variables) {
     $variables['source_image_file']
   );
 
-  // Render through theme_image.
+  // Render through image theme.
   if ($uri) {
-    return theme(
-      'image',
-      array(
-        'path' => $uri,
-        'alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
-        'title' => $variables['title'],
-        'attributes' => $variables['attributes'],
-      )
+    $variables['image'] = array(
+      '#theme' => 'image__textimage',
+      '#uri' => $uri,
+      '#alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
+      '#title' => $variables['title'],
+      '#attributes' => $variables['attributes'],
     );
-  }
-  else {
-    return NULL;
   }
 }
 
 /**
- * Theme function to get a Textimage from a programmatical image style.
+ * Prepares variables to get a Textimage from a programmatical image style.
+ *
+ * Default template: textimage.html.twig.
  */
-function theme_textimage_direct_image($variables) {
+// @todo maybe we don't even need this and just go for image__textimage_direct and its preprocess
+function template_preprocess_textimage_direct_image(&$variables) {
 
   // Get URI to image file.
-  $uri = TextimageImager::getImageUri(
+  $uri = \Drupal::service('textimage.factory')->getImageUri(
     NULL,
     $variables['effects'],
     $variables['text'],
@@ -703,22 +564,44 @@ function theme_textimage_direct_image($variables) {
     $variables['caching']
   );
 
-  // Render through theme_image.
+  // Render through image theme.
   if ($uri) {
-    return theme(
-      'image',
-      array(
-        'path' => $uri,
-        'alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
-        'title' => $variables['title'],
-        'attributes' => $variables['attributes'],
-      )
+    $variables['image'] = array(
+      '#theme' => 'image__textimage',
+      '#uri' => $uri,
+      '#alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
+      '#title' => $variables['title'],
+      '#attributes' => $variables['attributes'],
     );
   }
-  else {
-    return NULL;
-  }
+}
 
+/**
+ * Prepares variables to get a color info.
+ *
+ * Default template: textimage-color-detail.html.twig.
+ */
+function template_preprocess_textimage_color_detail(&$variables) {
+   $css = array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'textimage') . '/css/textimage.admin.css', // @todo should be a separate css ?
+      ),
+    ),
+  );
+  drupal_render($css);  // @todo any better??
+  if ($variables['color']) {
+    if ($variables['border']) {
+      if ($variables['border_color'] == 'matchLuma') {
+        $variables['border_color'] = textimage_match_luma($variables['color']);
+      }
+      else {
+        $variables['border_color'] = drupal_substr($variables['border_color'], 0, 7);
+      }
+    }
+    $variables['color_opacity'] = _textimage_rgba_to_opacity($variables['color']);
+    $variables['color'] = drupal_substr($variables['color'], 0, 7);
+  }
 }
 
 /**
@@ -778,54 +661,6 @@ function textimage_url_deliver() {
 }
 
 /**
- * Render a text string, color formatted.
- *
- * Optionally, uses Luma algorithms to determine best color match
- * for foreground and border colors.
- */
-function theme_textimage_colored_string($variables) {
-
-  drupal_add_css(drupal_get_path('module', 'textimage') . '/misc/css/textimage.admin.css');
-
-  // Set background color.
-  if (!empty($variables['background_color'])) {
-    $background_color = drupal_substr($variables['background_color'], 0, 7);
-    $background_color_css = "background-color:{$background_color};";
-  }
-  else {
-    $background_color = "#FFFFFF";
-    $background_color_css = NULL;
-  }
-
-  // Set text.
-  $text = $variables['text'];
-
-  // Set text foreground color. If 'matchLuma' is specified, resolves
-  // best color against background.
-  if ($variables['foreground_color'] == 'matchLuma') {
-    $foreground_color = textimage_match_luma($background_color);
-  }
-  else {
-    $foreground_color = drupal_substr($variables['foreground_color'], 0, 7);
-  }
-
-  // Set border css if required.  If 'matchLuma' is specified for border
-  // color, resolves best color against background.
-  $border_css = NULL;
-  if ($variables['border']) {
-    if ($variables['border_color'] == 'matchLuma') {
-      $border_color = textimage_match_luma($background_color);
-    }
-    else {
-      $border_color = drupal_substr($variables['border_color'], 0, 7);
-    }
-    $border_css = "border-color:{$border_color};";
-  }
-
-  return "<span class=\"textimage-colored-string\" style=\"{$background_color_css} color:{$foreground_color}; {$border_css} \">{$text}</span>";
-}
-
-/**
  * Determine best match to over/underlay a defined color.
  *
  * Calculates UCCIR 601 luma of the entered color and returns a black or
@@ -864,7 +699,7 @@ function _textimage_diag($message, $severity, $caller = NULL) {
   if ($severity <= WATCHDOG_NOTICE) {
     watchdog('textimage', $message, array(), $severity);
   }
-  if ($severity <= variable_get('textimage_message_level', WATCHDOG_WARNING)) {
+  if ($severity <= \Drupal::config('textimage.settings')->get('message_level')) {
     switch ($severity) {
       case WATCHDOG_DEBUG:
       case WATCHDOG_INFO:
@@ -881,80 +716,6 @@ function _textimage_diag($message, $severity, $caller = NULL) {
     }
     drupal_set_message($message, $type, FALSE);
   }
-}
-
-/**
- * Return a 'textimage' configuration variable.
- *
- * @param string $variable
- *   textimage settings variable to be returned, or NULL
- *   to return the entire config.
- *
- * @return string|array
- *   value of the requested configuration variable, or the entire array
- *   if no variable specified in input
- */
-function _textimage_get_variable($variable = NULL) {
-  $vars = &drupal_static(__FUNCTION__);
-  if (!isset($vars)) {
-    $vars = variable_get('textimage', array());
-    $vars = drupal_array_merge_deep(
-      array(
-        'store_scheme' => 'private',
-        'fonts_handling_module' => 'textimage',
-        'fonts_path' => 'private://textimage_store/fonts',
-        'default_font' => array(
-          'name' => '',
-          'uri'  => '',
-        ),
-        'backgrounds_handling_module' => 'textimage',
-        'backgrounds_path'  => 'private://textimage_store/backgrounds',
-        'color_selector' => 'textbox',
-      ),
-      $vars
-    );
-  }
-  if ($variable) {
-    return isset($vars[$variable]) ? $vars[$variable] : NULL;
-  }
-  else {
-    return $vars;
-  }
-}
-
-/**
- * Store a 'textimage' configuration variable.
- *
- * @param string|array $variable
- *   the name of the textimage configuration variable, or the entire
- *   configuration array
- * @param string $value
- *   the value of the textimage configuration variable to store
- */
-function _textimage_set_variable($variable, $value = NULL) {
-  if (is_array($variable)) {
-    $vars = $variable;
-  }
-  else {
-    $vars = _textimage_get_variable();
-    if ($variable) {
-      $vars[$variable] = $value;
-    }
-  }
-  $vars = array_intersect_key(
-    $vars,
-    array(
-      'store_scheme' => NULL,
-      'fonts_handling_module' => NULL,
-      'fonts_path' => NULL,
-      'default_font' => array(),
-      'backgrounds_handling_module' => NULL,
-      'backgrounds_path'  => NULL,
-      'color_selector' => NULL,
-    )
-  );
-  variable_set('textimage', $vars);
-  drupal_static_reset('_textimage_get_variable');
 }
 
 /**
@@ -1018,18 +779,20 @@ function _textimage_opacity_to_alpha($value) {
  * the image styles, clear all cache and all store entries on the db.
  */
 function _textimage_flush_all() {
-  foreach (image_styles() as $style) {
+/*  foreach (image_styles() as $style) {
     if (TextimageStyles::isTextimage($style)) {
       image_style_flush($style);
     }
-  }
+  }*/
+  file_unmanaged_delete_recursive('public://textimage');  // @todo temp
+  file_unmanaged_delete_recursive('private://textimage');  // @todo temp
   if (file_exists(_textimage_get_store_path('unstyled_hashed'))) {
     file_unmanaged_delete_recursive(_textimage_get_store_path('unstyled_hashed'));
   }
   if (file_exists(_textimage_get_store_path('uncached'))) {
     file_unmanaged_delete_recursive(_textimage_get_store_path('uncached'));
   }
-  cache_clear_all(NULL, 'cache_textimage');
+  cache('textimage')->deleteAll();
   db_truncate('textimage_store')->execute();
   _textimage_diag(t('All Textimage images were removed.'), WATCHDOG_NOTICE);
 }
@@ -1038,22 +801,18 @@ function _textimage_flush_all() {
  * Return a path within the textimage_store structure.
  */
 function _textimage_get_store_path($path) {
-  return _textimage_get_variable('store_scheme') . '://textimage_store/' . $path;
+  return \Drupal::config('textimage.settings')->get('store_scheme') . '://textimage_store/' . $path;
 }
 
 /**
- * Load Textimage toolkit dependent functions.
+ * @todo - temp hack to run GD while a solution is found
  */
-function _textimage_load_toolkit_functions() {
-  // Include toolkit specific image functions.
-  $toolkit_functions_filename = dirname(__FILE__) . '/effects/textimage_text.' . image_get_toolkit() . '.inc';
-  if (is_file($toolkit_functions_filename)) {
-    require_once $toolkit_functions_filename;
-    return TRUE;
+function _textimage_toolkit_invoke($method, $image, array $params = array()) {
+  $function = 'image_gd_' . $method;
+  if (function_exists($function)) {
+    array_unshift($params, $image);
+    return call_user_func_array($function, $params);
   }
-  else {
-    $toolkits = image_get_available_toolkits();
-    _textimage_diag(t("Textimage does not support the '@toolkit' image toolkit.", array('@toolkit' => $toolkits[image_get_toolkit()])), WATCHDOG_ERROR);
-    return FALSE;
-  }
+  watchdog('image', 'The selected image handling toolkit %toolkit can not correctly process %function.', array('%toolkit' => $image->getToolkitId(), '%function' => $function), WATCHDOG_ERROR);
+  return FALSE;
 }

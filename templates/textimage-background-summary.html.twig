@@ -1,0 +1,44 @@
+{#
+/**
+ * @file
+ * Default theme implementation for a summary of a Textimage text effect.
+ *
+ * @ingroup themeable
+ */
+#}
+{% spaceless %}
+  {% if data.background_image.mode == 'select' %}
+    - {{ 'Image'|t  }}: <b>{{ data.background_image.uri }}</b>
+  {% elseif data.background_image.mode == 'passthrough' %}
+    - {{ 'Inherit image from previous effect'|t  }}
+  {% else %}
+    - {{ 'No image'|t  }}
+  {% endif %}
+  {% if data.exact.width or data.exact.height %}
+    - {{ 'Exact size'|t  }}:
+    {% if data.exact.width and data.exact.height %}
+      {{ data.exact.width }}x{{ data.exact.height }}
+    {% elseif data.exact.width %}
+      {{ 'width'|t  }} {{ data.exact.width }}
+    {% else %}
+      {{ 'height'|t  }} {{ data.exact.height }}
+    {% endif %}
+  {% elseif data.relative.leftdiff or data.relative.rightdiff or data.relative.topdiff or data.relative.bottomdiff %}
+    - {{ 'Relative size'|t  }}:
+    {% if data.relative.leftdiff %}
+      {{ 'left'|t  }} {{ data.relative.leftdiff }}
+    {% endif %}
+    {% if data.relative.rightdiff %}
+      {{ 'right'|t  }} {{ data.relative.rightdiff }}
+    {% endif %}
+    {% if data.relative.topdiff %}
+      {{ 'top'|t  }} {{ data.relative.topdiff }}
+    {% endif %}
+    {% if data.relative.bottomdiff %}
+      {{ 'bottom'|t  }} {{ data.relative.bottomdiff }}
+    {% endif %}
+  {% endif %}
+  {% if data.background_color_detail %}
+    - {{ 'Background color'|t }}: {{ data.background_color_detail }}
+  {% endif %}
+{% endspaceless %}
