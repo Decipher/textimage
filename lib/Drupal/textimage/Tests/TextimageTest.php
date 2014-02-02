@@ -43,7 +43,8 @@ class TextimageTest extends WebTestBase {
    */
   public function testTextimage() {
 
-    $stream_wrapper = file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'));
+    $config = \Drupal::service('config.factory')->get('system.file');
+    $stream_wrapper = file_stream_wrapper_get_instance_by_scheme($config->get('default_scheme'));
     $directory_path = $stream_wrapper->getDirectoryPath();
 
     // Create a user and log it in.
@@ -106,14 +107,14 @@ class TextimageTest extends WebTestBase {
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 3, t('Textimage generation via theme.'));
 
-    // Build and display a URL derivative. @todo
-/*    variable_set('clean_url', 1);
-    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
-    $this->assertResponse(200);
-*/
+    // Build and display a URL derivative. @todo does not work, simpletest failure (error 500)
+/* @todo variable_set('clean_url', 1);*/
+/*    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
+    $this->assertResponse(200);*/
+
     // Check file was generated.
 //    $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-/*    $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));*/
+//    $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));
 
     // Build a textimage at target URI.
     $uri = $this->textimageFactory->getImageUri(

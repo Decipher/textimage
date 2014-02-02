@@ -10,9 +10,11 @@ namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Timer;
 use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Utility\Token;
+use Drupal\field\Field;
 
 /**
  * Provides a factory for Textimage.
@@ -42,6 +44,7 @@ class TextimageFactory {
    * @param \Drupal\Core\Utility\Token $token_service
    *   the token resolution service
    */
+  // @todo inject cache??
   public function __construct(DatabaseLockBackend $lock_service, Token $token_service) {
     $this->lock = $lock_service;
     $this->token = $token_service;
@@ -162,7 +165,7 @@ class TextimageFactory {
    */
   public function processImageRequest($textimage_style, $effects_outline, &$text, $extension, $caching = TRUE, $node = NULL, $source_image_file = NULL, $target_uri = NULL) {
 
-    $source_image_uri = isset($source_image_file) ? $source_image_file->uri : NULL;
+    $source_image_uri = isset($source_image_file) ? $source_image_file->getFileUri() : NULL;
 
     // Normalise $text to an array.
     if (!$text) {
@@ -455,7 +458,7 @@ class TextimageFactory {
   protected function getStyledImageClearFileUri($style_name, array $text, $extension) {
 
     // Get a single string out of all the text.
-    $file_name = implode('-+-', $text);
+    $file_name = implode('---', $text);
 
     // Filenames longer than 200 characters will fail in most filesystems.
     if (Unicode::strlen($file_name) > 200) {
@@ -564,7 +567,7 @@ class TextimageFactory {
     if (!empty($style_name)) {
       $tags['style'] = $style_name;
     }
-    cache('textimage')->set('tiid:' . $hash, $data, CacheBackendInterface::CACHE_PERMANENT, $tags);
+    cache('textimage')->set('tiid:' . $hash, $data, Cache::PERMANENT, $tags);
   }
 
   /**
@@ -661,7 +664,7 @@ class TextimageFactory {
    * @return array
    *   An array of token replacements.
    */
-  public static function processTokens($key, $tokens, $node) {
+  public function processTokens($key, $tokens, $node) {
 
     // Need to avoid endless loops, that would occur if there are
     // circular references in the tokens. Set static variables for
@@ -677,7 +680,7 @@ class TextimageFactory {
     }
 
     // Get tokens specific for the required key.
-    $sub_tokens = token_find_with_prefix($tokens, $key);
+    $sub_tokens = $this->token->findWithPrefix($tokens, $key);
 
     // Return immediately if none, or no node.
     if (empty($sub_tokens) || !$node) {
@@ -714,10 +717,10 @@ class TextimageFactory {
       }
 
       // Check for recursion, i.e. the field is already engaged in a
-      // token resolution. Throw a TextimageImagerTokenException in case.
+      // token resolution. Throw a TextimageTokenException in case.
       if (in_array($field_name, $field_stack)) {
         $this->rollbackStack($nesting_level, $field_stack);
-        throw new TextimageImagerTokenException($original);
+        throw new TextimageTokenException($original);
       }
 
       // Set current requested field in the field stack.
@@ -730,44 +733,48 @@ class TextimageFactory {
       $index = isset($sub_token_array[2]) ? $sub_token_array[2] : NULL;
 
       // Get general field info, continue if missing.
-      $field_info = field_info_field($field_name);
+      $field_info = Field::fieldInfo()->getField('node', $field_name);  // @todo inject Field???
       if (!$field_info) {
         continue;
       }
 
       // Get node (bundle) dependent field info, continue if missing.
-      $node_type = $node->type;
-      $instance_info = field_info_instance('node', $field_name, $node_type);
+      $node_type = $node->getType();
+      $instance_info = Field::fieldInfo()->getInstance('node', $node_type, $field_name);
       if (!$instance_info) {
         continue;
       }
 
-      // Get info on module providing formatting, continue if missing.
-      $display_module = isset($instance_info['display'][$display_mode]['module']) ? $instance_info['display'][$display_mode]['module'] : NULL;
-      if (!$display_module) {
+      // Get info on component providing formatting, continue if missing.
+      $entity_display = entity_get_display('node', $node_type, $display_mode);
+      if (!$entity_display) {
+        continue;
+      }
+      $entity_display_component = $entity_display->getComponent($field_name);
+      if (empty($entity_display_component['type'])) {
         continue;
       }
 
       // At this point, if Textimage is providing field formatting for the
       // current field, we can proceed accessing the data needed to resolve
       // the token.
-      if ($display_module == 'textimage') {
+      if ($entity_display_component['type'] == 'textimage') {
 
         // Get the image style used for the field formatting.
-        $image_style = isset($instance_info['display'][$display_mode]['settings']['image_style']) ? $instance_info['display'][$display_mode]['settings']['image_style'] : NULL;
+        $image_style = isset($entity_display_component['settings']['image_style']) ? $entity_display_component['settings']['image_style'] : NULL;
         if (!$image_style) {
           continue;
         }
 
         // Get the field items.
-        $items = field_get_items('node', $node, $field_name);
+        $items = $node->get($field_name);
 
         // Invoke Textimage API functions to return the token value requested.
-        if ($field_info['module'] == 'text') {
+        if ($field_info->module == 'text') {
           // Text field. Get sanitized text items and return a single image.
-          $text = $this->getTextFieldText($items, $field_info, $instance_info, $node);
+          $text = $this->getTextFieldText($items);
           try {
-            $replacements[$original] = TextimageImager::$callback_function(
+            $replacements[$original] = $this->$callback_function(
               $image_style,
               NULL,
               $text,
@@ -776,42 +783,41 @@ class TextimageFactory {
               $node
             );
           }
-          catch (TextimageImagerTokenException $e) {
+          catch (TextimageTokenException $e) {
             // Callback ended up in circular loop, mark the failing token.
             $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
             if ($nesting_level > 0) {
               // Returns up in the nesting of iteration with the failing token.
               $this->rollbackStack($nesting_level, $field_stack);
-              throw new TextimageImagerTokenException($e->getToken());
+              throw new TextimageTokenException($e->getToken());
             }
             else {
               // Inform about the token failure.
               $msg = t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
                 array(
                   '@token' => $original,
-                  '@node_title' => $node->title,
+                  '@node_title' => $node->getTitle(),
                 )
               );
               _textimage_diag($msg, WATCHDOG_WARNING);
             }
           }
         }
-        elseif ($field_info['module'] == 'image') {
+        elseif ($field_info->module == 'image') {
           // Image field. Get a separate Textimage from each of the images
           // in the field.
           try {
             $ret = array();
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
-              $source_image_file = file_load($item['fid']);
-              $ret[] = TextimageImager::$callback_function(
+              $ret[] = $this->$callback_function(
                 $image_style,
                 NULL,
                 NULL,
                 'png',
                 TRUE,
                 $node,
-                $source_image_file
+                $item->entity
               );
             }
             // Return a single URI/URL if requested, or a comma separated
@@ -823,20 +829,20 @@ class TextimageFactory {
               $replacements[$original] = implode(',', $ret);
             }
           }
-          catch (TextimageImagerTokenException $e) {
+          catch (TextimageTokenException $e) {
             // Callback ended up in circular loop, mark the failing token.
             $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
             if ($nesting_level > 0) {
               // Returns up in the nesting of iteration with the failing token.
               $this->rollbackStack($nesting_level, $field_stack);
-              throw new TextimageImagerTokenException($e->getToken());
+              throw new TextimageTokenException($e->getToken());
             }
             else {
               // Inform about the token failure.
               $msg = t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
                 array(
                   '@token' => $original,
-                  '@node_title' => $node->title,
+                  '@node_title' => $node->getTitle(),
                 )
               );
               _textimage_diag($msg, WATCHDOG_WARNING);
@@ -865,27 +871,22 @@ class TextimageFactory {
   }
 
   /**
-   * Retrieves text from a Text field. @todo probably not here
+   * Retrieves text from a Text field.
    *
    * Text gets sanitized for use within Textimage: HTML tags are
    * stripped.
    *
-   * @param array $items
+   * @param Drupal\Core\Field\FieldItemListInterface $items
    *   Field items.
-   * @param array $field
-   *   The field where items are contained.
-   * @param array $instance
-   *   The field instance.
-   * @param object $node
-   *   The node where the items are contained.
    *
    * @return array
    *   An array of sanitized text items.
    */
-  public function getTextFieldText($items, $field, $instance, $node) {
+  public function getTextFieldText(FieldItemListInterface $items) {
     $text = array();
     foreach ($items as $delta => $item) {
-      $text[] = strip_tags($item['value']);
+      $value = $item->getValue();
+      $text[] = strip_tags($value['value']);
     }
     return $text;
   }

@@ -4,6 +4,7 @@ textimage.settings:
   path: '/admin/config/media/textimage'
   defaults:
     _form: '\Drupal\textimage\Form\SettingsForm'
+    _title: 'Textimage'
   requirements:
     _permission: 'administer image styles'
 
@@ -14,3 +15,6 @@ textimage.flush_all:
     _title: 'Cleanup Textimage'
   requirements:
     _permission: 'administer image styles'
+
+route_callbacks:
+  - '\Drupal\textimage\Routing\TextimageRoutes::routes'

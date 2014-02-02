@@ -158,16 +158,4 @@ function textimage_uninstall() {
   foreach ($wrappers as $wrapper => $wrapper_data) {
     file_unmanaged_delete_recursive($wrapper . '://textimage');
   }
-
-  // Remove all variables whose name begins with 'textimage'.
-  $res = db_select('variable', 'v')
-      ->fields('v')
-      ->condition('name', 'textimage%', 'LIKE')
-      ->execute();
-  if ($res) {
-    foreach ($res as $row) {
-      variable_del($row->name);
-      drupal_set_message(t('Variable %var has been deleted.', array('%var' => $row->name)));
-    }
-  }
 }

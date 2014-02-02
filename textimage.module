@@ -101,33 +101,16 @@ function textimage_theme() {
 }
 
 /**
- * Implements hook_menu().
+ * Implements hook_menu_link_defaults().
  */
-function textimage_menu() {
-  $items = array();
-
-  $items['admin/config/media/textimage'] = array(
-    'title' => 'Textimage',
+function textimage_menu_link_defaults() {
+  $links['textimage.admin.config'] = array(
+    'link_title' => 'Textimage',
     'description' => 'Configure Textimage settings.',
+    'parent' => 'system.admin.config.media',
     'route_name' => 'textimage.settings',
-    'weight' => 10,
-    'type'   => MENU_NORMAL_ITEM,
   );
-
-  // Generate image derivatives of publicly available files, via
-  // URL request path. For local default filesystem only.
-  $stream_wrapper = file_stream_wrapper_get_instance_by_scheme(variable_get('file_default_scheme', 'public'));
-  if ($stream_wrapper instanceof DrupalLocalStreamWrapper) {
-    $directory_path  = $stream_wrapper->getDirectoryPath();
-    $items[$directory_path . '/textimage'] = array(
-      'title' => 'URL textimage generation',
-      'page callback' => 'textimage_url_deliver',
-      'access arguments' => array('generate textimage url derivatives'),
-      'type' => MENU_CALLBACK,
-    );
-  }
-
-  return $items;
+  return $links;
 }
 
 /**
@@ -259,8 +242,8 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
     return array();
   }
   // Process tokens.
-  $replacements = TextimageImager::processTokens('url', $tokens, $data['node']);
-  $replacements += TextimageImager::processTokens('uri', $tokens, $data['node']);
+  $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data['node']);
+  $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data['node']);
   return $replacements;
 }
 
@@ -338,12 +321,12 @@ foreach ($effects->sort() as $effect) {
 dpm($effect);
 };*/
 
-/*  if (TextimageStyles::isTextimage($form_state['image_style'])) {
+/*  if (TextimageStyles::isTextimage($form_state['image_style'])) {*/
     $form['textimage_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#tree' => TRUE,
-      '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+      '#weight' => 10,
       '#title' => t('Textimage options'),
       '#description' => t('Define Textimage options specific for this image style.'),
     );
@@ -357,11 +340,12 @@ dpm($effect);
       '#options' => $scheme_options,
       '#title' => t('Image destination'),
       '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
-      '#default_value' => $form_state['image_style']['textimage']['uri_scheme'],
+//  @todo     '#default_value' => $form_state['image_style']['textimage']['uri_scheme'],
+      '#default_value' => 'public',
     );
     // Adds a submit handler to deal with textimage options.
-    $form['#submit'][] = '_textimage_image_style_form_textimage_submit';
-  }*/
+//    $form['#submit'][] = '_textimage_image_style_form_textimage_submit';
+  /*}*/
 }
 
 /**
@@ -605,62 +589,6 @@ function template_preprocess_textimage_color_detail(&$variables) {
 }
 
 /**
- * Deliver directly a Textimage from the URL request.
- */
-function textimage_url_deliver() {
-
-  // Get the real directory of the public wrapper.
-  $public_path = file_stream_wrapper_get_instance_by_scheme('public')->getDirectoryPath();
-
-  // Full path to public textimage files.
-  $public_textimage_path = base_path() . $public_path . '/textimage/';
-  $pattern = '/' . str_replace('/', '\/', $public_textimage_path) . '/';
-
-  // The request in format [style]/[Text_0]/[Text_1]/.../[Text_n].[extension]
-  // is in the trailing part of the URL.
-  $trail = urldecode(preg_replace($pattern, '', request_uri()));
-  $args = explode('/', $trail);
-
-  // Manages the [style].
-  $style_name = array_shift($args);
-  $style = TextimageStyles::get($style_name);
-  if (!$style) {
-    drupal_not_found();
-  }
-  if ($style['textimage']['uri_scheme'] != 'public') {
-    drupal_access_denied();
-  }
-
-  // [Text_0]/[Text_1]/.../[Text_n] to the $text array.
-  $text = $args;
-
-  // Manage the [extension].
-  $last_text = array_pop($text);
-  $offset = strrpos($last_text, '.');
-  if ($offset && (strlen($last_text) - $offset) <= 5) {
-    $extension = substr($last_text, $offset + 1);
-    $text[] = substr($last_text, 0, $offset);
-  }
-  else {
-    $extension = 'png';
-    $text[] = $last_text;
-  }
-
-  // Get the image and transfer to client.
-  $uri = TextimageImager::processImageRequest(
-    $style,
-    NULL,
-    $text,
-    $extension
-  );
-  $image_info = image_get_info($uri);
-  file_transfer($uri, array(
-    'Content-Type' => $image_info['mime_type'],
-    'Content-Length' => $image_info['file_size'],
-  ));
-}
-
-/**
  * Determine best match to over/underlay a defined color.
  *
  * Calculates UCCIR 601 luma of the entered color and returns a black or
@@ -784,8 +712,12 @@ function _textimage_flush_all() {
       image_style_flush($style);
     }
   }*/
-  file_unmanaged_delete_recursive('public://textimage');  // @todo temp
-  file_unmanaged_delete_recursive('private://textimage');  // @todo temp
+  if (file_exists('public://textimage')) {
+    file_unmanaged_delete_recursive('public://textimage');  // @todo temp
+  }
+  if (file_exists('private://textimage')) {
+    file_unmanaged_delete_recursive('private://textimage');  // @todo temp
+  }
   if (file_exists(_textimage_get_store_path('unstyled_hashed'))) {
     file_unmanaged_delete_recursive(_textimage_get_store_path('unstyled_hashed'));
   }

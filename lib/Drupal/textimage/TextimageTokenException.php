@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage;
 
-// @todo remove t()
+use Drupal\Component\Utility\String;
 
 /**
  * Exception thrown by Textimage factory on token processing failure.
@@ -25,7 +25,7 @@ class TextimageTokenException extends \Exception {
    * Constructs a TextimageImagerTokenException object.
    */
   public function __construct($token, \Exception $previous = NULL) {
-      parent::__construct(t("Textimage token @token could not be resolved.", array('@token' => $token)), 0, $previous);
+      parent::__construct(String::format("Textimage token @token could not be resolved.", array('@token' => $token)), 0, $previous);
       $this->token = $token;
   }
 
