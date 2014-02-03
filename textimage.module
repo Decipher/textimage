@@ -5,6 +5,8 @@
  * Textimage - Provides text to image manipulations.
  */
 
+use Drupal\textimage\Component\ColorUtility;
+
 // @todo remove
 require_once 'textimage_canvas_temp.inc';
 require_once 'textimage_text.gd.temp.inc';
@@ -407,7 +409,7 @@ function textimage_color_element_process($element, &$form_state) {
   // we have a starting value.
   $transparent = empty($element['#default_value']) ? TRUE : FALSE;
   $hex = $transparent ? '#FFFFFF' : drupal_substr($element['#default_value'], 0, 7);
-  $opacity = $transparent ? 100 : _textimage_rgba_to_opacity($element['#default_value']);
+  $opacity = $transparent ? 100 : ColorUtility::rgbaToOpacity($element['#default_value']);
 
   $colorPlugin = \Drupal::service('plugin.manager.textimage.color')->getPlugin();
 
@@ -486,7 +488,7 @@ function textimage_color_element_validate(&$element, &$form_state, $form) {
     $element['#value'] = '#' . $element['#value'];
   }
   if ($element['#value'] && $element['#allow_opacity']) {
-    $element['#value'] .= _textimage_opacity_to_alpha($element['container']['opacity']['#value']);
+    $element['#value'] .= ColorUtility::opacityToAlpha($element['container']['opacity']['#value']);
   }
 
   // Replace the element value in the parent form with the normalized value.
@@ -578,37 +580,15 @@ function template_preprocess_textimage_color_detail(&$variables) {
   if ($variables['color']) {
     if ($variables['border']) {
       if ($variables['border_color'] == 'matchLuma') {
-        $variables['border_color'] = textimage_match_luma($variables['color']);
+        $variables['border_color'] = ColorUtility::matchLuma($variables['color']);
       }
       else {
         $variables['border_color'] = drupal_substr($variables['border_color'], 0, 7);
       }
     }
-    $variables['color_opacity'] = _textimage_rgba_to_opacity($variables['color']);
+    $variables['color_opacity'] = ColorUtility::rgbaToOpacity($variables['color']);
     $variables['color'] = drupal_substr($variables['color'], 0, 7);
   }
-}
-
-/**
- * Determine best match to over/underlay a defined color.
- *
- * Calculates UCCIR 601 luma of the entered color and returns a black or
- * white color to ensure readibility.
- *
- * @see http://en.wikipedia.org/wiki/Luma_video
- */
-function textimage_match_luma($rgba, $soft = FALSE) {
-  list($r, $g, $b, $alpha) = array_values(imagecache_actions_hex2rgba($rgba));
-  $luma = 1 - (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
-  if ($luma < 0.5) {
-    // Bright colors - black.
-    $d = 0;
-  }
-  else {
-    // Dark colors - white.
-    $d = 255;
-  }
-  return _color_pack(array($d, $d, $d));
 }
 
 /**
@@ -672,33 +652,6 @@ function _textimage_module_exists($module, $version = NULL, $comparison_operator
     return version_compare($module_info['version'], $version, $comparison_operator);
   }
   return TRUE;
-}
-
-/**
- * Convert RGBA alpha to percent opacity.
- *
- * @param string $rgba
- *   RGBA hex.
- *
- * @return int
- *   Opacity as percentage (0 = transparent, 100 = fully opaque).
- */
-function _textimage_rgba_to_opacity($rgba) {
-  $hex = drupal_substr($rgba, 7, 2);
-  return $hex ? floor(-(hexdec($hex) - 127) / 127 * 100) : 100;
-}
-
-/**
- * Convert percent opacity to hex alpha.
- *
- * @param int $value
- *   Opacity as percentage (0 = transparent, 100 = fully opaque).
- *
- * @return string
- *   Opacity as HEX.
- */
-function _textimage_opacity_to_alpha($value) {
-  return ($value == NULL) ? NULL : drupal_strtoupper(str_pad(dechex(-($value - 100) / 100 * 127), 2, "0", STR_PAD_LEFT));
 }
 
 /**

@@ -15,6 +15,7 @@ use Drupal\image\ConfigurableImageEffectInterface;
 use Drupal\image\ImageEffectBase;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
+use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Entity\TextimageStyle;
 
 /**
@@ -1300,7 +1301,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
 
     // Check color.
     if ($rgba && $luma) {
-      $rgba = textimage_match_luma($rgba);
+      $rgba = ColorUtility::matchLuma($rgba);
     }
 
     // Invoke toolkit.
@@ -1332,7 +1333,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
       $rgba = '#00000000';
     }
     elseif ($luma) {
-      $rgba = textimage_match_luma($rgba);
+      $rgba = ColorUtility::matchLuma($rgba);
     }
 
     // Invoke toolkit.
@@ -1368,7 +1369,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
       $rgba = '#00000000';
     }
     elseif ($luma) {
-      $rgba = textimage_match_luma($rgba);
+      $rgba = ColorUtility::matchLuma($rgba);
     }
 
     // Retrieve points.

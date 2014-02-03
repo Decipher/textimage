@@ -109,12 +109,12 @@ class TextimageTest extends WebTestBase {
 
     // Build and display a URL derivative. @todo does not work, simpletest failure (error 500)
 /* @todo variable_set('clean_url', 1);*/
-/*    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
-    $this->assertResponse(200);*/
+    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
+    $this->assertResponse(200);
 
     // Check file was generated.
-//    $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-//    $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));
+    $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
+    $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));
 
     // Build a textimage at target URI.
     $uri = $this->textimageFactory->getImageUri(
