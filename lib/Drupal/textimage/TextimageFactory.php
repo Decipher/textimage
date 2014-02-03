@@ -2,15 +2,17 @@
 
 /**
  * @file
-
  * Contains \Drupal\textimage\TextimageFactory.
  */
+// @todo Cache::PERMANENT to lower timeline??
 
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Timer;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Utility\Token;
@@ -37,17 +39,36 @@ class TextimageFactory {
   protected $token;
 
   /**
+   * The textimage cache service.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
+  protected $cache;
+
+  /**
+   * The configuration object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * Constructs a new TextimageFactory object.
    *
+   * @param \Drupal\Core\Config\ConfigFactory $config_factory
+   *   the config factory
    * @param \Drupal\Core\Lock\DatabaseLockBackend $lock_service
    *   the lock service
    * @param \Drupal\Core\Utility\Token $token_service
    *   the token resolution service
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
+   *   the textimage cache service
    */
-  // @todo inject cache??
-  public function __construct(DatabaseLockBackend $lock_service, Token $token_service) {
+  public function __construct(ConfigFactory $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service) {
+    $this->config = $config_factory->get('textimage.settings');
     $this->lock = $lock_service;
     $this->token = $token_service;
+    $this->cache = $cache_service;
   }
 
   /**
@@ -435,15 +456,15 @@ class TextimageFactory {
     if ($caching) {
       $base_name = $hash . '.' . $extension;
       if ($style_name) {
-        $uri = _textimage_get_store_path('styled_hashed/') . $style_name . '/' . $base_name;
+        $uri = $this->getStorePath('styled_hashed/') . $style_name . '/' . $base_name;
       }
       else {
-        $uri = _textimage_get_store_path('unstyled_hashed/') . $base_name;
+        $uri = $this->getStorePath('unstyled_hashed/') . $base_name;
       }
     }
     else {
       $base_name = md5(session_id() . microtime()) . '.' . $extension;
-      $uri = _textimage_get_store_path('uncached/') . $base_name;
+      $uri = $this->getStorePath('uncached/') . $base_name;
     }
 
     return $uri;
@@ -519,7 +540,7 @@ class TextimageFactory {
   protected function getCached($hash, $style_name) {
 
     // At first, check cache.
-    if ($cached = cache('textimage')->get('tiid:' . $hash)) {
+    if ($cached = $this->cache->get('tiid:' . $hash)) {
       if (is_file($cached->data['uri'])) {
         return $cached->data['uri'];
       }
@@ -567,7 +588,7 @@ class TextimageFactory {
     if (!empty($style_name)) {
       $tags['style'] = $style_name;
     }
-    cache('textimage')->set('tiid:' . $hash, $data, Cache::PERMANENT, $tags);
+    $this->cache->set('tiid:' . $hash, $data, Cache::PERMANENT, $tags);
   }
 
   /**
@@ -648,6 +669,42 @@ class TextimageFactory {
         return isset($keys[$variable]) ? $keys[$variable] : NULL;
       }
     }
+  }
+
+  /**
+   * Cleanup Textimage.
+   *
+   * This will remove all image files generated via Textimage, flush all
+   * the image styles, clear all cache and all store entries on the db.
+   */
+  public function flushAll() {
+  /*  foreach (image_styles() as $style) {
+      if (TextimageStyles::isTextimage($style)) {
+        image_style_flush($style);
+      }
+    }*/
+    if (file_exists('public://textimage')) {
+      file_unmanaged_delete_recursive('public://textimage');  // @todo temp
+    }
+    if (file_exists('private://textimage')) {
+      file_unmanaged_delete_recursive('private://textimage');  // @todo temp
+    }
+    if (file_exists($this->getStorePath('unstyled_hashed'))) {
+      file_unmanaged_delete_recursive($this->getStorePath('unstyled_hashed'));
+    }
+    if (file_exists($this->getStorePath('uncached'))) {
+      file_unmanaged_delete_recursive($this->getStorePath('uncached'));
+    }
+    $this->cache->deleteAll();
+    db_truncate('textimage_store')->execute();
+    _textimage_diag(t('All Textimage images were removed.'), WATCHDOG_NOTICE);
+  }
+
+  /**
+   * Return a path within the textimage_store structure.
+   */
+  public function getStorePath($path) {
+    return $this->config->get('store_scheme') . '://textimage_store/' . $path;
   }
 
   /**

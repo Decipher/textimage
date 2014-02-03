@@ -17,4 +17,4 @@ services:
     arguments: [color, '@container.namespaces', '@cache.cache', '@language_manager', '@module_handler']
   textimage.factory:
     class: Drupal\textimage\TextimageFactory
-    arguments: ['@lock', '@token']
+    arguments: ['@config.factory', '@lock', '@token', '@cache.textimage']

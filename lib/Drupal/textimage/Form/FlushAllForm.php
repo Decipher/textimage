@@ -8,17 +8,45 @@
 namespace Drupal\textimage\Form;
 
 use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\textimage\TextimageFactory;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Creates a form to delete an image style.
+ * Creates a form to confirm flushing of all Textimage images.
  */
 class FlushAllForm extends ConfirmFormBase {
+
+  /**
+   * The Textimage factory.
+   *
+   * @var \Drupal\textimage\TextimageFactory
+   */
+  protected $textimageFactory;
+
+  /**
+   * Constructs a FlushAllForm object.
+   *
+   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   *   The Textimage factory.
+   */
+  public function __construct(TextimageFactory $textimage_factory) {
+    $this->textimageFactory = $textimage_factory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('textimage.factory')
+    );
+  }
 
   /**
    * {@inheritdoc}
    */
   public function getFormID() {
-    return 'textimage_flush_all';
+    return 'textimage_flush_all_form';
   }
 
   /**
@@ -53,8 +81,8 @@ class FlushAllForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, array &$form_state) {
-    _textimage_flush_all();
-    $form_state['redirect'] = 'admin/config/media/textimage';
+    $this->textimageFactory->flushAll();
+    $form_state['redirect_route']['route_name'] = 'textimage.settings';
   }
 
 }

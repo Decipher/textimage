@@ -190,9 +190,10 @@ function textimage_cache_flush() {
  * Implements hook_cron().
  */
 function textimage_cron() {
+  $uncached_dir = \Drupal::service('textimage.factory')->getStorePath('uncached');
   // Remove temporary, uncached, image files.
-  if (file_exists(_textimage_get_store_path('uncached'))) {
-    if (file_unmanaged_delete_recursive(_textimage_get_store_path('uncached'))) {
+  if (file_exists($uncached_dir)) {
+    if (file_unmanaged_delete_recursive($uncached_dir)) {
       _textimage_diag(t("Textimage temporary image files removed."), WATCHDOG_NOTICE);
     }
     else {
@@ -698,42 +699,6 @@ function _textimage_rgba_to_opacity($rgba) {
  */
 function _textimage_opacity_to_alpha($value) {
   return ($value == NULL) ? NULL : drupal_strtoupper(str_pad(dechex(-($value - 100) / 100 * 127), 2, "0", STR_PAD_LEFT));
-}
-
-/**
- * Cleanup Textimage.
- *
- * This will remove all image files generated via Textimage, flush all
- * the image styles, clear all cache and all store entries on the db.
- */
-function _textimage_flush_all() {
-/*  foreach (image_styles() as $style) {
-    if (TextimageStyles::isTextimage($style)) {
-      image_style_flush($style);
-    }
-  }*/
-  if (file_exists('public://textimage')) {
-    file_unmanaged_delete_recursive('public://textimage');  // @todo temp
-  }
-  if (file_exists('private://textimage')) {
-    file_unmanaged_delete_recursive('private://textimage');  // @todo temp
-  }
-  if (file_exists(_textimage_get_store_path('unstyled_hashed'))) {
-    file_unmanaged_delete_recursive(_textimage_get_store_path('unstyled_hashed'));
-  }
-  if (file_exists(_textimage_get_store_path('uncached'))) {
-    file_unmanaged_delete_recursive(_textimage_get_store_path('uncached'));
-  }
-  cache('textimage')->deleteAll();
-  db_truncate('textimage_store')->execute();
-  _textimage_diag(t('All Textimage images were removed.'), WATCHDOG_NOTICE);
-}
-
-/**
- * Return a path within the textimage_store structure.
- */
-function _textimage_get_store_path($path) {
-  return \Drupal::config('textimage.settings')->get('store_scheme') . '://textimage_store/' . $path;
 }
 
 /**

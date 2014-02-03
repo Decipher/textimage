@@ -13,12 +13,20 @@ use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\textimage\Plugin\TextimagePluginManager;
 use Drupal\textimage\Plugin\TextimagePluginBaseInterface;
+use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Main Textimage settings admin form.
  */
 class SettingsForm extends ConfigFormBase {
+
+  /**
+   * The Textimage factory.
+   *
+   * @var \Drupal\textimage\TextimageFactory
+   */
+  protected $textimageFactory;
 
   /**
    * An array of Textimage plugin factories.
@@ -28,20 +36,10 @@ class SettingsForm extends ConfigFormBase {
   protected $pluginFactory = array();
 
   /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('plugin.manager.textimage.font'),
-      $container->get('plugin.manager.textimage.background'),
-      $container->get('plugin.manager.textimage.color')
-    );
-  }
-
-  /**
    * Constructs the class for Textimage settings form.
    *
+   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   *   The Textimage factory.
    * @param \Drupal\Core\Config\ConfigFactory $config_factory
    *   The factory for configuration objects.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $font_plugin_factory
@@ -51,9 +49,9 @@ class SettingsForm extends ConfigFormBase {
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $color_plugin_factory
    *   The color plugin factory.
    */
-  public function __construct(ConfigFactory $config_factory, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ConfigFactory $config_factory, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
     parent::__construct($config_factory);
-
+    $this->textimageFactory = $textimage_factory;
     // Loops through the function args to build the array of Textimage
     // plugin factories.
     foreach (func_get_args() as $arg) {
@@ -62,6 +60,19 @@ class SettingsForm extends ConfigFormBase {
       }
     }
     $this->config = $this->config('textimage.settings');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('textimage.factory'),
+      $container->get('config.factory'),
+      $container->get('plugin.manager.textimage.font'),
+      $container->get('plugin.manager.textimage.background'),
+      $container->get('plugin.manager.textimage.color')
+    );
   }
 
   /**
@@ -213,7 +224,7 @@ class SettingsForm extends ConfigFormBase {
 
     // Overall module flush if storage scheme gets changed.
     if ($form_state['values']['store_scheme'] != $this->config->get('store_scheme')) {
-      _textimage_flush_all();
+      $this->textimageFactory->flushAll();
     }
 
     // Main Textimage store location.
