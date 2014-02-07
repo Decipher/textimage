@@ -21,10 +21,11 @@ use Drupal\Core\Field\FormatterBase;
  *     "text",
  *     "text_with_summary",
  *     "text_long",
- *     "image"
+ *     "image",
  *   },
  *   settings = {
- *     "image_style" = ""
+ *     "image_style" = "",
+ *     "image_link" = "",
  *   }
  * )
  */
@@ -45,6 +46,19 @@ class TextimageFormatter extends FormatterBase {
       '#required' => TRUE,
       '#description' => t('Only Textimage relevant image styles can be selected.'),
     );
+
+    $link_types = array(
+      'content' => t('Content'),
+      'file' => t('File'),
+    );
+    $element['image_link'] = array(
+      '#title' => t('Link image to'),
+      '#type' => 'select',
+      '#default_value' => $this->getSetting('image_link'),
+      '#empty_option' => t('Nothing'),
+      '#options' => $link_types,
+    );
+
     return $element;
   }
 
@@ -68,6 +82,14 @@ class TextimageFormatter extends FormatterBase {
       $summary[] = t('Image style: undefined');
     }
 
+    $link_types = array(
+      'content' => t('Linked to content'),
+      'file' => t('Linked to file'),
+    );
+    // Display this setting only if image is linked.
+    if (isset($link_types[$this->getSetting('image_link')])) {
+      $summary[] = $link_types[$this->getSetting('image_link')];
+    }
 
     return $summary;
   }
@@ -84,33 +106,52 @@ class TextimageFormatter extends FormatterBase {
     // The node entity will be used for the detokening of text.
     $node = ($instance->entity_type == 'node') ? $items->getEntity() : NULL;
 
+    // Check if the formatter involves a link.
+    $href = NULL;
+    if ($image_link_setting = $this->getSetting('image_link')) {
+      switch ($image_link_setting) {
+        case 'content':
+          $uri = $items->getEntity()->urlInfo();
+          // @todo Remove when theme_textimage_formatter() has support for route name.
+          $uri['path'] = $items->getEntity()->getSystemPath();
+          $href = $uri['path'];
+          break;
+
+        case 'file':
+          $href = '#textimage_derivative_url#';
+          break;
+
+      }
+    }
+
     $elements = array();
 
     if ($field->module == 'text') {
       // Get sanitized text strings from a text field.
       $text = \Drupal::service('textimage.factory')->getTextFieldText($items);
       $elements[] = array(
-        '#theme' => 'textimage_style_image',
+        '#theme' => 'textimage_formatter',
         '#style_name' => $this->getSetting('image_style'),
         '#text' => $text,
         '#node' => $node,
+        '#href' => $href,
       );
     }
     elseif ($field->module == 'image') {
       // Get source image from an image field.
       foreach ($items as $delta => $item) {
         $elements[$delta] = array(
-          '#theme' => 'textimage_style_image',
+          '#theme' => 'textimage_formatter',
           '#style_name' => $this->getSetting('image_style'),
           '#text' => NULL,
           '#node' => $node,
           '#source_image_file' => $item->entity,
+          '#href' => $href,
         );
       }
     }
 
     return $elements;
   }
-
 
 }

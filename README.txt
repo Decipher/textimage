@@ -224,8 +224,11 @@ Using Textimage image styles
    - In the 'Manage Display' tab, select a 'Textimage' format for the field
      created above (or any existing one)
    - Click on the gear icon
-   - Select from the dropdown displayed the image style you want to use to
+   - Select from the 'Image style' dropdown the image style you want to use to
      represent the content as a Textimage
+   - Optionally, select from the 'Link image to' dropdown whether the Textimage
+     should be clickable, linking to either the node content or the image file.
+     By default, the Textimage is not linked.
 
 2. via URL:
 
@@ -244,8 +247,8 @@ Using Textimage image styles
 
 3. Programmers/themers - calling Textimage theme() functions:
 
-   There are two separate theme functions that can be used to render HTML to
-   Textimage images:
+   There are three theme functions that can be used to render HTML of Textimage
+   images:
 
    -----------------------
    'textimage_style_image'
@@ -320,6 +323,42 @@ Using Textimage image styles
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
       cron run.
+
+   ---------------------
+   'textimage_formatter'
+   ---------------------
+   This is the low level theme used by Textimage to render HTML. It also
+   allows to specify wrapping the <img> tag in a container <div> tag, and/or
+   wrapping the entire output in an anchor tag.
+
+    Variables:
+    - style_name - the image style name. If specified, it will override any
+      value passed in the 'effects' variable.
+    - effects - an array of image style effects. Given a $style image style
+      array, corresponds to the $style['effects'] key.
+    - text - an array of text strings, with unresolved tokens; each string
+      of the array will be consumed by a textimage_text effect in the sequence
+      specified within the image style.
+    - format - the file format of the resulting image (png/gif/jpg/jpeg).
+    - alt - the alternative text to be displayed if no image is accessible
+      to the browser.
+    - title - the text to be displayed when hovering the image on the browser.
+    - attributes - associative array of attributes to be placed in the img tag.
+    - caching - if set to TRUE, the image will be cached for future accesses;
+      otherwise, the image will be stored in textimage_store and deleted on
+      cron run.
+    - node - a node entity. It is used for resolving the tokens in the text
+      effects.
+    - source_image_file - a file entity. It is used for resolving the tokens
+      in the text effects.
+    - image_container_attributes - if specified, the <img> tag will be wrapped
+      in a <div> container, whose attributes will be set to the array passed
+      here. Any attribute having the placeholder '#textimage_derivative_url#'
+      will be resolved at run-time with the actual Textimage URL.
+    - href - if specified, the entire output will be wrapped in a <a> anchor,
+      whose href will be set to the value passed here. If
+      '#textimage_derivative_url#' is passed, the href will be resolved at
+      run-time with the actual Textimage URL.
 
 4. Programmers - calling API functions:
 
@@ -479,8 +518,7 @@ Delta - 3.x vs. 2.x
 
 Wishlist
 --------
-- a way to specify a http link for the textimage in fields and/or themes,
-  with tokens
+- allow token resolution in theme_textimage_formatter href.
 - textimage_text effect - if elements with different opacity overlap (e.g.
   in case of shadow/outline or if background color is opaque itself), then
   we get a combined color effect. One may want to refer each element's

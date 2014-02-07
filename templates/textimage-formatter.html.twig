@@ -1,0 +1,16 @@
+{#
+/**
+ * @file
+ * Default theme implementation to display a Textimage formatter theme.
+ *
+ * Available variables:
+ * - textimage: A Textimage formatter array.
+ *
+ * @ingroup theme
+ */
+#}
+{% if textimage %}
+  {{ textimage }}
+{% else %}
+  {{ 'Image not available.'|t }}
+{% endif %}

@@ -602,7 +602,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
     $data['layout']['y_offset'] = 0;
     $data['layout']['overflow_action'] = 'extend';
     $data['debug_visuals'] = $data['preview_bar']['debug_visuals'];
-    return theme('textimage_direct_image', array(
+    return theme('textimage_formatter', array(
         'text' => array($data['text_string']),
         'effects' => array(
           array(

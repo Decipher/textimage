@@ -87,17 +87,17 @@ class TextimageTest extends WebTestBase {
     // Generate a few derivative images via theme.
     $textimage = array();
     $textimage[0] = array(
-      '#theme' => 'textimage_style_image',
+      '#theme' => 'textimage_formatter',
       '#style_name' => 'textimage_test',
       '#text' => array('preview text image'),
     );
     $textimage[1] = array(
-      '#theme' => 'textimage_style_image',
+      '#theme' => 'textimage_formatter',
       '#style_name' => 'textimage_test',
       '#text' => array('Предварительный просмотр текста'),
     );
     $textimage[2] = array(
-      '#theme' => 'textimage_style_image',
+      '#theme' => 'textimage_formatter',
       '#style_name' => 'textimage_test',
       '#text' => array('προεπισκόπηση της εικόνας κείμενο'),
     );

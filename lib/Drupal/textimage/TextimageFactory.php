@@ -196,9 +196,8 @@ class TextimageFactory {
       $text = array($text);
     }
 
-    // Get the style's effects outline.
-    // This will be already set if the function is invoked via
-    // theme_textimage_direct_image().
+    // Get the style's effects outline, if not passed directly.
+// @todo put this logic in getImageUri, remove $effects_outline from method signature
     if (!$effects_outline) {
       $effects_outline = $textimage_style->getImageStyle()->getEffects()->getConfiguration();
     }

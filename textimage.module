@@ -46,10 +46,11 @@ function textimage_help($path, $arg) {
  */
 function textimage_theme() {
   $theme = array(
-    // Get a textimage from a stored image style.
-    'textimage_style_image' => array(
+    // Format a textimage.
+    'textimage_formatter' => array(
       'variables' => array(
         'style_name' => '',
+        'effects' => array(),
         'text'   => array(),
         'format' => 'png',
         'alt'    => 'Image not available.',
@@ -58,21 +59,10 @@ function textimage_theme() {
         'caching' => TRUE,
         'node' => NULL,
         'source_image_file' => NULL,
+        'image_container_attributes' => array(),
+        'href' => '',
       ),
-      'template' => 'textimage',
-    ),
-    // Get a textimage from a programmatically created image style.
-    'textimage_direct_image' => array(
-      'variables' => array(
-        'effects' => array(),
-        'text'   => array(),
-        'format' => 'png',
-        'alt'    => 'Image not available.',
-        'title'  => '',
-        'attributes' => array(),
-        'caching' => TRUE,
-      ),
-      'template' => 'textimage',
+      'template' => 'textimage-formatter',
     ),
     // Textimage background image effect - summary.
     'textimage_background_effect_summary' => array(
@@ -505,63 +495,68 @@ function textimage_color_element_validate(&$element, &$form_state, $form) {
  */
 
 /**
- * Prepares variables to get a Textimage from a stored image style.
+ * Prepares variables to get a Textimage.
  *
- * Default template: textimage.html.twig.
+ * Default template: textimage-formatter.html.twig.
  */
-// @todo maybe we don't even need this and just go for image__textimage_style and its preprocess
-function template_preprocess_textimage_style_image(&$variables) {
+// @todo maybe we can drop the template and use image__textimage or image_formatter__textimage???
+function template_preprocess_textimage_formatter(&$variables) {
+
+  $output = array();
 
   // Get URI to image file.
-  $uri = \Drupal::service('textimage.factory')->getImageUri(
+  $image_uri = \Drupal::service('textimage.factory')->getImageUri(
     $variables['style_name'],
-    NULL,
+    $variables['effects'],
     $variables['text'],
     $variables['format'],
-    TRUE,
+    $variables['caching'],
     $variables['node'],
     $variables['source_image_file']
   );
 
   // Render through image theme.
-  if ($uri) {
-    $variables['image'] = array(
+  if ($image_uri) {
+    $image = \Drupal::service('image.factory')->get($image_uri);
+    // Get the <img>.
+    $output = array(
       '#theme' => 'image__textimage',
-      '#uri' => $uri,
-      '#alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
+      '#uri' => $image_uri,
+      '#width' => $image->getWidth(),
+      '#height' => $image->getHeight(),
+      '#alt' => $variables['alt'],
       '#title' => $variables['title'],
       '#attributes' => $variables['attributes'],
     );
+    $image_url = file_create_url($image_uri);
+
+    // Wrap the <img> in a container if requested.
+    if (!empty($variables['image_container_attributes'])) {
+      $container_attributes = array();
+      foreach ($variables['image_container_attributes'] as $key => $value) {
+        $container_attributes[$key] = str_replace('#textimage_derivative_url#', $image_url, $value);
+      }
+      $output = array(
+        '#theme' => 'container',
+        '#attributes' => $container_attributes,
+        '#children' => drupal_render($output),    // @todo remove once theme_container converted to Twig
+      );
+    }
+
+    // Use the output to build a link if href specified.
+    if ($variables['href']) {
+      $output = array(
+        '#type' => 'link',
+        '#title' => $output,
+        '#href' => ($variables['href'] == '#textimage_derivative_url#') ? $image_url : $variables['href'],
+        '#options' => array(
+          'html' => TRUE,
+        ),
+      );
+    }
   }
-}
 
-/**
- * Prepares variables to get a Textimage from a programmatical image style.
- *
- * Default template: textimage.html.twig.
- */
-// @todo maybe we don't even need this and just go for image__textimage_direct and its preprocess
-function template_preprocess_textimage_direct_image(&$variables) {
-
-  // Get URI to image file.
-  $uri = \Drupal::service('textimage.factory')->getImageUri(
-    NULL,
-    $variables['effects'],
-    $variables['text'],
-    $variables['format'],
-    $variables['caching']
-  );
-
-  // Render through image theme.
-  if ($uri) {
-    $variables['image'] = array(
-      '#theme' => 'image__textimage',
-      '#uri' => $uri,
-      '#alt' => $variables['alt'] ? $variables['alt'] : implode(' - ', $text),
-      '#title' => $variables['title'],
-      '#attributes' => $variables['attributes'],
-    );
-  }
+  $variables['textimage'] = $output;
 }
 
 /**
