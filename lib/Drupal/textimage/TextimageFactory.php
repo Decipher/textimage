@@ -310,11 +310,10 @@ class TextimageFactory {
   public function processTextString($text, $case_format, $node = NULL, $source_image_file = NULL) {
 
     // Replace any tokens in text with run-time values.
-    global $user;
     $text = $this->token->replace(
       $text,
       array(
-        'user' => $user,
+        'user' => \Drupal::currentUser(),  // @todo inject service??
         'node' => $node,
         'file' => $source_image_file,
       )

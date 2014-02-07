@@ -107,8 +107,7 @@ class TextimageTest extends WebTestBase {
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 3, t('Textimage generation via theme.'));
 
-    // Build and display a URL derivative. @todo does not work, simpletest failure (error 500)
-/* @todo variable_set('clean_url', 1);*/
+    // Build and display a URL derivative.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
     $this->assertResponse(200);
 

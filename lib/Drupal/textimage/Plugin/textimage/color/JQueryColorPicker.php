@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\textimage\color;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\textimage\Plugin\TextimageColorPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -28,7 +29,7 @@ class JQueryColorpicker extends TextimagePluginBase implements TextimageColorPlu
     $element[$name] = array(
       '#title' => t('Color'),
       '#type' => 'jquery_colorpicker',
-      '#default_value' => drupal_substr($options['#default_value'], -6),
+      '#default_value' => Unicode::substr($options['#default_value'], -6),
     );
     return $element;
   }

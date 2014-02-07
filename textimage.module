@@ -5,6 +5,7 @@
  * Textimage - Provides text to image manipulations.
  */
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\textimage\Component\ColorUtility;
 
 // @todo remove
@@ -408,7 +409,7 @@ function textimage_color_element_process($element, &$form_state) {
   // values (white, fully opaque) so that if transparency is unchecked,
   // we have a starting value.
   $transparent = empty($element['#default_value']) ? TRUE : FALSE;
-  $hex = $transparent ? '#FFFFFF' : drupal_substr($element['#default_value'], 0, 7);
+  $hex = $transparent ? '#FFFFFF' : Unicode::substr($element['#default_value'], 0, 7);
   $opacity = $transparent ? 100 : ColorUtility::rgbaToOpacity($element['#default_value']);
 
   $colorPlugin = \Drupal::service('plugin.manager.textimage.color')->getPlugin();
@@ -479,10 +480,10 @@ function textimage_color_element_validate(&$element, &$form_state, $form) {
     $element['#value'] = NULL;
   }
   elseif ($element['#allow_transparent'] || $element['#allow_opacity']) {
-    $element['#value'] = drupal_strtoupper($element['container']['hex']['#value']);
+    $element['#value'] = Unicode::strtoupper($element['container']['hex']['#value']);
   }
   else {
-    $element['#value'] = drupal_strtoupper($element['hex']['#value']);
+    $element['#value'] = Unicode::strtoupper($element['hex']['#value']);
   }
   if ($element['#value'] && $element['#value'][0] <> '#') {
     $element['#value'] = '#' . $element['#value'];
@@ -583,11 +584,11 @@ function template_preprocess_textimage_color_detail(&$variables) {
         $variables['border_color'] = ColorUtility::matchLuma($variables['color']);
       }
       else {
-        $variables['border_color'] = drupal_substr($variables['border_color'], 0, 7);
+        $variables['border_color'] = Unicode::substr($variables['border_color'], 0, 7);
       }
     }
     $variables['color_opacity'] = ColorUtility::rgbaToOpacity($variables['color']);
-    $variables['color'] = drupal_substr($variables['color'], 0, 7);
+    $variables['color'] = Unicode::substr($variables['color'], 0, 7);
   }
 }
 
