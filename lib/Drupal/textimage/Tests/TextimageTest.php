@@ -110,7 +110,7 @@ class TextimageTest extends WebTestBase {
 
     // Check files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-    $this->assertTrue($files_count == 5, t('Textimage generation via theme.'));
+    $this->assertTrue($files_count == 4, t('Textimage generation via theme.'));
 
     // Build and display a URL derivative.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
@@ -118,7 +118,7 @@ class TextimageTest extends WebTestBase {
 
     // Check file was generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-    $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));
+    $this->assertTrue($files_count == 5, t('Textimage generation via request URL.'));
 
     // Build a textimage at target URI via API.
     $uri = $this->textimageFactory->getImageUri(
