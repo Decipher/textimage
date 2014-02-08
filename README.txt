@@ -327,9 +327,9 @@ Using Textimage image styles
    ---------------------
    'textimage_formatter'
    ---------------------
-   This is the low level theme used by Textimage to render HTML. It also
-   allows to specify wrapping the <img> tag in a container <div> tag, and/or
-   wrapping the entire output in an anchor tag.
+   This is the low level theme function used by Textimage to render HTML. It
+   also allows to specify wrapping the <img> tag in a container <div> tag,
+   and/or wrapping the entire output in an anchor tag.
 
     Variables:
     - style_name - the image style name. If specified, it will override any
@@ -340,10 +340,6 @@ Using Textimage image styles
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
     - format - the file format of the resulting image (png/gif/jpg/jpeg).
-    - alt - the alternative text to be displayed if no image is accessible
-      to the browser.
-    - title - the text to be displayed when hovering the image on the browser.
-    - attributes - associative array of attributes to be placed in the img tag.
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
       cron run.
@@ -351,6 +347,13 @@ Using Textimage image styles
       effects.
     - source_image_file - a file entity. It is used for resolving the tokens
       in the text effects.
+    - target_uri - allows to specify the URI where the textimage file should be
+      stored. If specified, the automatic URI generation performed by Textimage
+      is bypassed and caching disabled.
+    - alt - the alternative text to be displayed if no image is accessible
+      to the browser.
+    - title - the text to be displayed when hovering the image on the browser.
+    - attributes - associative array of attributes to be placed in the img tag.
     - image_container_attributes - if specified, the <img> tag will be wrapped
       in a <div> container, whose attributes will be set to the array passed
       here. Any attribute having the placeholder '#textimage_derivative_url#'

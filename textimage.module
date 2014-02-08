@@ -53,12 +53,13 @@ function textimage_theme() {
         'effects' => array(),
         'text'   => array(),
         'format' => 'png',
-        'alt'    => 'Image not available.',
-        'title'  => '',
-        'attributes' => array(),
         'caching' => TRUE,
         'node' => NULL,
         'source_image_file' => NULL,
+        'target_uri' => NULL,
+        'alt'    => '',
+        'title'  => '',
+        'attributes' => array(),
         'image_container_attributes' => array(),
         'href' => '',
       ),
@@ -512,7 +513,8 @@ function template_preprocess_textimage_formatter(&$variables) {
     $variables['format'],
     $variables['caching'],
     $variables['node'],
-    $variables['source_image_file']
+    $variables['source_image_file'],
+    $variables['target_uri']
   );
 
   // Render through image theme.

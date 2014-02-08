@@ -101,11 +101,16 @@ class TextimageTest extends WebTestBase {
       '#style_name' => 'textimage_test',
       '#text' => array('προεπισκόπηση της εικόνας κείμενο'),
     );
+    $textimage[3] = array(
+      '#theme' => 'textimage_formatter',
+      '#style_name' => 'textimage_test',
+      '#text' => array('Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
+    );
     $output = drupal_render($textimage);
 
     // Check files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-    $this->assertTrue($files_count == 3, t('Textimage generation via theme.'));
+    $this->assertTrue($files_count == 5, t('Textimage generation via theme.'));
 
     // Build and display a URL derivative.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
@@ -115,7 +120,7 @@ class TextimageTest extends WebTestBase {
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 4, t('Textimage generation via request URL.'));
 
-    // Build a textimage at target URI.
+    // Build a textimage at target URI via API.
     $uri = $this->textimageFactory->getImageUri(
       'textimage_test',
       NULL,
@@ -129,7 +134,7 @@ class TextimageTest extends WebTestBase {
 
     // Check file was generated.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
-    $this->assertTrue($files_count == 1, t('Textimage generation at target URI.'));
+    $this->assertTrue($files_count == 1, t('Textimage generation at target URI via API.'));
 
     // Build another textimage at same target URI.
     $uri = $this->textimageFactory->getImageUri(
@@ -145,7 +150,21 @@ class TextimageTest extends WebTestBase {
 
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
-    $this->assertTrue($files_count == 1, t('Textimage replaced at target URI.'));
+    $this->assertTrue($files_count == 1, t('Textimage replaced at target URI via API.'));
+
+    // Build a textimage at target URI via theme.
+    $textimage = array();
+    $textimage[0] = array(
+      '#theme' => 'textimage_formatter',
+      '#style_name' => 'textimage_test',
+      '#text' => array('Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'),
+      '#target_uri' => 'public://textimage-testing/ut-enim.png',
+    );
+    $output = drupal_render($textimage);
+
+    // Check file was generated.
+    $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
+    $this->assertTrue($files_count == 2, t('Textimage generation at target URI via theme.'));
 
   }
 

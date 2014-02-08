@@ -134,6 +134,7 @@ class TextimageFormatter extends FormatterBase {
         '#style_name' => $this->getSetting('image_style'),
         '#text' => $text,
         '#node' => $node,
+        '#alt' => $variables['alt'] ? $variables['alt'] : implode(' ', $text),
         '#href' => $href,
       );
     }
