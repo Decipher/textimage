@@ -26,6 +26,8 @@ use Drupal\Core\Field\FormatterBase;
  *   settings = {
  *     "image_style" = "",
  *     "image_link" = "",
+ *     "image_alt" = "",
+ *     "image_title" = "",
  *   }
  * )
  */
@@ -59,6 +61,22 @@ class TextimageFormatter extends FormatterBase {
       '#options' => $link_types,
     );
 
+    // Manage image alt and title attribute settings.
+    $element['image_alt'] = array(
+      '#title' => t('Alternate text'),
+      '#type' => 'textfield',
+      '#default_value' => $this->getSetting('image_alt'),
+      '#description' => t('This text will be used by screen readers, search engines, or when the image cannot be loaded.') . ' ' . t('Tokens can be used.'),
+      '#maxlength' => 512,
+    );
+    $element['image_title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title'),
+      '#default_value' => $this->getSetting('image_title'),
+      '#description' => t('The title is used as a tool tip when the user hovers the mouse over the image.') . ' ' . t('Tokens can be used.'),
+      '#maxlength' => 1024,
+    );
+
     return $element;
   }
 
@@ -89,6 +107,16 @@ class TextimageFormatter extends FormatterBase {
     // Display this setting only if image is linked.
     if (isset($link_types[$this->getSetting('image_link')])) {
       $summary[] = $link_types[$this->getSetting('image_link')];
+    }
+
+    // Display this setting only if alt text is specified.
+    if ($this->getSetting('image_alt')) {
+      $summary[] = t('Alternate text: @image_alt', array('@image_alt' => $this->getSetting('image_alt')));
+    }
+
+    // Display this setting only if title is specified.
+    if ($this->getSetting('image_title')) {
+      $summary[] = t('Title: @image_title', array('@image_title' => $this->getSetting('image_title')));
     }
 
     return $summary;
@@ -134,7 +162,8 @@ class TextimageFormatter extends FormatterBase {
         '#style_name' => $this->getSetting('image_style'),
         '#text' => $text,
         '#node' => $node,
-        '#alt' => $variables['alt'] ? $variables['alt'] : implode(' ', $text),
+        '#alt' => $this->getSetting('image_alt'),
+        '#title' => $this->getSetting('image_title'),
         '#href' => $href,
       );
     }
@@ -147,6 +176,8 @@ class TextimageFormatter extends FormatterBase {
           '#text' => NULL,
           '#node' => $node,
           '#source_image_file' => $item->entity,
+          '#alt' => $this->getSetting('image_alt'),
+          '#title' => $this->getSetting('image_title'),
           '#href' => $href,
         );
       }

@@ -9,6 +9,7 @@ TODO:
 - #2134439 - array_replace_recursive
 - remove REQUIREMENT_INFO
 - check the temp toolkit ops implementation, diff from 7.x-3.x
+- look at redirects, introduce new Url() see #2153891 Add a Url value object
 
 -------------------------------------------------------------------------------
 
@@ -229,6 +230,12 @@ Using Textimage image styles
    - Optionally, select from the 'Link image to' dropdown whether the Textimage
      should be clickable, linking to either the node content or the image file.
      By default, the Textimage is not linked.
+   - Optionally, enter a value for the image 'alt' attribute in the 'Alternate
+     text' textbox. This text will be used by screen readers, search engines,
+     or when the image cannot be loaded. Tokens can be used.
+   - Optionally, enter a value for the image 'title' attribute in the 'Title'
+     textbox. The title is used as a tool tip when the user hovers the mouse
+     over the image. Tokens can be used.
 
 2. via URL:
 
@@ -261,8 +268,8 @@ Using Textimage image styles
         'style_name' => 'my_image_style',
         'text'   => array('text1', 'text2'),
         'format' => 'png',
-        'alt'    => 'Alternative text if no image',
-        'title'  => 'Textimage title',
+        'alt'    => 'Alternate text',
+        'title'  => 'Image title',
         'attributes' => array(),
         'caching' => TRUE,
         'node' => NULL,
@@ -276,9 +283,10 @@ Using Textimage image styles
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
     - format - the file format of the resulting image (png/gif/jpg/jpeg).
-    - alt - the alternative text to be displayed if no image is accessible
-      to the browser.
+    - alt - the image alternate text. This text will be used by screen readers,
+      search engines, or when the image cannot be loaded. Tokens can be used.
     - title - the text to be displayed when hovering the image on the browser.
+      Tokens can be used.
     - attributes - associative array of attributes to be placed in the img tag.
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
@@ -300,8 +308,8 @@ Using Textimage image styles
         'effects' => array(),
         'text'   => array('text1', 'text2'),
         'format' => 'png',
-        'alt'    => 'Alternative text if no image',
-        'title'  => 'Textimage title',
+        'alt'    => 'Alternate text',
+        'title'  => 'Image title',
         'attributes' => array(),
         'caching' => TRUE,
       ),
@@ -316,9 +324,10 @@ Using Textimage image styles
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
     - format - the file format of the resulting image (png/gif/jpg/jpeg).
-    - alt - the alternative text to be displayed if no image is accessible
-      to the browser.
+    - alt - the image alternate text. This text will be used by screen readers,
+      search engines, or when the image cannot be loaded. Tokens can be used.
     - title - the text to be displayed when hovering the image on the browser.
+      Tokens can be used.
     - attributes - associative array of attributes to be placed in the img tag.
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
@@ -350,9 +359,10 @@ Using Textimage image styles
     - target_uri - allows to specify the URI where the textimage file should be
       stored. If specified, the automatic URI generation performed by Textimage
       is bypassed and caching disabled.
-    - alt - the alternative text to be displayed if no image is accessible
-      to the browser.
+    - alt - the image alternate text. This text will be used by screen readers,
+      search engines, or when the image cannot be loaded. Tokens can be used.
     - title - the text to be displayed when hovering the image on the browser.
+      Tokens can be used.
     - attributes - associative array of attributes to be placed in the img tag.
     - image_container_attributes - if specified, the <img> tag will be wrapped
       in a <div> container, whose attributes will be set to the array passed

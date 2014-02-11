@@ -526,8 +526,8 @@ function template_preprocess_textimage_formatter(&$variables) {
       '#uri' => $image_uri,
       '#width' => $image->getWidth(),
       '#height' => $image->getHeight(),
-      '#alt' => $variables['alt'],
-      '#title' => $variables['title'],
+      '#alt' => \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['node'], $variables['source_image_file']),
+      '#title' => \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['node'], $variables['source_image_file']),
       '#attributes' => $variables['attributes'],
     );
     $image_url = file_create_url($image_uri);
@@ -541,7 +541,7 @@ function template_preprocess_textimage_formatter(&$variables) {
       $output = array(
         '#theme' => 'container',
         '#attributes' => $container_attributes,
-        '#children' => drupal_render($output),    // @todo remove once theme_container converted to Twig
+        '#children' => drupal_render($output),    // @todo remove once theme_container converted to Twig, see #2152203
       );
     }
 

@@ -7,17 +7,10 @@
 
 namespace Drupal\textimage\Tests;
 
-use Drupal\simpletest\WebTestBase;
-
 /**
  * Functional tests for Textimage.
  */
-class TextimageTest extends WebTestBase {
-
-  protected $textimageAdmin = 'admin/config/media/textimage';
-  protected $textimageFactory;
-
-  public static $modules = array('textimage');
+class TextimageTest extends TextimageTestBase {
 
   /**
    * {@inheritdoc}
@@ -31,14 +24,6 @@ class TextimageTest extends WebTestBase {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function setUp() {
-    parent::setUp();
-    $this->textimageFactory = \Drupal::service('textimage.factory');
-  }
-
-  /**
    * Test functionality of the module.
    */
   public function testTextimage() {
@@ -46,43 +31,6 @@ class TextimageTest extends WebTestBase {
     $config = \Drupal::service('config.factory')->get('system.file');
     $stream_wrapper = file_stream_wrapper_get_instance_by_scheme($config->get('default_scheme'));
     $directory_path = $stream_wrapper->getDirectoryPath();
-
-    // Create a user and log it in.
-    $this->admin_user = $this->drupalCreateUser(array(
-      'administer image styles',
-      'generate textimage url derivatives',
-    ));
-    $this->drupalLogin($this->admin_user);
-
-    // Change Textimage font directory.
-    // @todo Form Ajax can not be tested at the moment, so going for direct
-    // change to the config settings.
-    $config = \Drupal::service('config.factory')->get('textimage.settings');
-    $config->set('font.plugin_settings.textimage.path', drupal_get_path('module', 'textimage') . '/tests/fonts');
-    $config->save();
-
-    // Set default font.
-    $this->drupalGet($this->textimageAdmin);
-    $edit = array(
-      'font[default_font_name]' => 'Old Standard TT Regular',
-    );
-    $this->drupalPostForm(NULL, $edit, t('Save configuration'));
-
-    // Create a test image style.
-    $edit = array(
-      'name' => 'textimage_test',
-      'label' => 'Textimage Test',
-    );
-    $this->drupalPostForm('admin/config/media/image-styles/add', $edit, t('Create new style'));
-
-    // Create a test textimage_text effect.
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test/add/textimage_text', array(), t('Add effect'));
-
-    // Set image storage to 'public' wrapper. @todo
-/*    $edit = array(
-      'textimage_options[uri_scheme]' => 'public',
-    );
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));*/
 
     // Generate a few derivative images via theme.
     $textimage = array();
