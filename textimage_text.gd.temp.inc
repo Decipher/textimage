@@ -30,7 +30,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
     )
   );
   if ($new_image) {
-    $image->setResource($new_image->getResource());
+    $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
   }
   else {
     return FALSE;
@@ -146,7 +146,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
 
     // Overlays the text.
     imagettftext(
-      $image->getResource(),
+      $image->getToolkit()->getResource(),
       $data['font']['size'],
       -$data['font']['angle'],
       $x_pos,
@@ -166,8 +166,8 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
   }
 
   // Finalise image.
-  imagealphablending($image->getResource(), TRUE);
-  imagesavealpha($image->getResource(), TRUE);
+  imagealphablending($image->getToolkit()->getResource(), TRUE);
+  imagesavealpha($image->getToolkit()->getResource(), TRUE);
 
   return TRUE;
 }
@@ -226,7 +226,7 @@ function image_gd_textimage_text_stroke($image, $data = array()) {
   for ($c1 = ($data['x'] - abs($data['left'])); $c1 <= ($data['x'] + abs($data['right'])); $c1++) {
     for ($c2 = ($data['y'] - abs($data['top'])); $c2 <= ($data['y'] + abs($data['bottom'])); $c2++) {
       $bg = imagettftext(
-        $image->getResource(),
+        $image->getToolkit()->getResource(),
         $data['size'],
         $data['angle'],
         $c1,
@@ -258,14 +258,14 @@ function image_gd_textimage_text_stroke($image, $data = array()) {
 function image_gd_textimage_draw_polygon($image, $data = array()) {
   if ($data['fill_color']) {
     $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['fill_color'])));
-    $success = imagefilledpolygon($image->getResource(), $data['points'], $data['num_points'], $color);
+    $success = imagefilledpolygon($image->getToolkit()->getResource(), $data['points'], $data['num_points'], $color);
     if (!$success) {
       return FALSE;
     }
   }
   if ($data['border_color']) {
     $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['border_color'])));
-    $success = imagepolygon($image->getResource(), $data['points'], $data['num_points'], $color);
+    $success = imagepolygon($image->getToolkit()->getResource(), $data['points'], $data['num_points'], $color);
     if (!$success) {
       return FALSE;
     }
@@ -277,7 +277,7 @@ function image_gd_textimage_draw_polygon($image, $data = array()) {
  */
 function image_gd_textimage_draw_line($image, $data = array()) {
   $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['rgba'])));
-  return imageline($image->getResource(), $data['a'][0], $data['a'][1], $data['b'][0], $data['b'][1], $color);
+  return imageline($image->getToolkit()->getResource(), $data['a'][0], $data['a'][1], $data['b'][0], $data['b'][1], $color);
 }
 
 /**
@@ -285,7 +285,7 @@ function image_gd_textimage_draw_line($image, $data = array()) {
  */
 function image_gd_textimage_draw_ellipse($image, $data = array()) {
   $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['rgba'])));
-  return imagefilledellipse($image->getResource(), $data['c'][0], $data['c'][1], $data['width'], $data['height'], $color);
+  return imagefilledellipse($image->getToolkit()->getResource(), $data['c'][0], $data['c'][1], $data['width'], $data['height'], $color);
 }
 
 /**
@@ -294,11 +294,11 @@ function image_gd_textimage_draw_ellipse($image, $data = array()) {
 function image_gd_textimage_imagecolor($image, $data = array()) {
   if ($image->getMimeType() == 'image/png') {
     list($r, $g, $b, $alpha) = array_values(imagecache_actions_hex2rgba($data['rgba']));
-    return imagecolorallocatealpha($image->getResource(), $r, $g, $b, $alpha);
+    return imagecolorallocatealpha($image->getToolkit()->getResource(), $r, $g, $b, $alpha);
   }
   else {
     list($r, $g, $b) = array_values(imagecache_actions_hex2rgba($data['rgba']));
-    return imagecolorallocate($image->getResource(), $r, $g, $b);
+    return imagecolorallocate($image->getToolkit()->getResource(), $r, $g, $b);
   }
 }
 
@@ -333,9 +333,9 @@ function image_gd_textimage_create_transparent($image, $width, $height, $transpa
   elseif ($image->getMimeType() == 'image/gif') {
     if (empty($transparent)) {
       // Grab transparent color index from image resource.
-      if ($image->getResource() && $transparent = imagecolortransparent($image->getResource()) >= 0) {
+      if ($image->getToolkit()->getResource() && $transparent = imagecolortransparent($image->getToolkit()->getResource()) >= 0) {
         // The original has a transparent color, allocate to the new image.
-        $transparent_color = imagecolorsforindex($image->getResource(), $transparent);
+        $transparent_color = imagecolorsforindex($image->getToolkit()->getResource(), $transparent);
         $transparent = imagecolorallocate($res, $transparent_color['red'], $transparent_color['green'], $transparent_color['blue']);
       }
       else {
@@ -358,10 +358,11 @@ function image_gd_textimage_create_transparent($image, $width, $height, $transpa
     imagefill($res, 0, 0, imagecolorallocate($res, 255, 255, 255));
   }
 
-  $new_image = clone $image;
+  $new_image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+  //$new_image = clone $image;
   $new_image->setWidth($width);
   $new_image->setHeight($height);
-  $new_image->setResource($res);
+  $new_image->getToolkit()->setResource($res);
   return $new_image;
 }
 
@@ -378,7 +379,7 @@ function image_gd_textimage_create_transparent($image, $width, $height, $transpa
 function image_gd_textimage_set_transparency($image, $color) {
   if ($color) {
     list($r, $g, $b) = array_values(imagecache_actions_hex2rgba($color));
-    $transparent = imagecolorallocate($image->getResource(), $r, $g, $b);
-    imagecolortransparent($image->getResource(), $transparent);
+    $transparent = imagecolorallocate($image->getToolkit()->getResource(), $r, $g, $b);
+    imagecolortransparent($image->getToolkit()->getResource(), $transparent);
   }
 }

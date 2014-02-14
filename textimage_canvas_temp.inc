@@ -117,13 +117,14 @@ function canvasactions_definecanvas_effect($image, array $data) {
  *   true on success, false otherwise.
  */
 function image_gd_definecanvas($image, array $data = array()) {
+
   $targetsize = $data['targetsize'];
   $RGB = $data['RGB'];
 
   $newcanvas = imagecreatetruecolor($targetsize['width'], $targetsize['height']);
   imagesavealpha($newcanvas, TRUE);
   imagealphablending($newcanvas, FALSE);
-  imagesavealpha($image->getResource(), TRUE);
+  imagesavealpha($image->getToolkit()->getResource(), TRUE);
   if ($RGB['HEX']) {
     // Set color, allow it to define transparency, or assume opaque.
     $background = imagecolorallocatealpha($newcanvas, $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
@@ -135,15 +136,17 @@ function image_gd_definecanvas($image, array $data = array()) {
   imagefilledrectangle($newcanvas, 0, 0, $targetsize['width'], $targetsize['height'], $background);
 
   if ($data['under']) {
-    $canvas_object = clone $image;
-    $canvas_object->setResource($newcanvas);
+    $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+    //$canvas_object = clone $image;
+    $canvas_object->getToolkit()->setResource($newcanvas);
     $canvas_object->setWidth($targetsize['width']);
     $canvas_object->setHeight($targetsize['height']);
     image_overlay($image, $canvas_object, $targetsize['left'], $targetsize['top'], 100, TRUE);
   }
   else {
-    $image->setResource($newcanvas);
+    $image->getToolkit()->setResource($newcanvas);
   }
+
   return TRUE;
 }
 
@@ -220,28 +223,28 @@ function image_gd_overlay($image, $layer, $x, $y, $alpha = 100, $reverse = FALSE
     $lower = &$image;
   }
   if ($alpha == 100 && ($upper->getMimeType() != 'image/gif')) {
-    imagealphablending($lower->getResource(), TRUE);
-    imagesavealpha($lower->getResource(), TRUE);
-    imagealphablending($upper->getResource(), TRUE);
-    imagesavealpha($upper->getResource(), TRUE);
-    imagecopy($lower->getResource(), $upper->getResource(), $x, $y, 0, 0, $upper->getWidth(), $upper->getHeight());
-    imagedestroy($upper->getResource());
-    $image->setResource($lower->getResource());
+    imagealphablending($lower->getToolkit()->getResource(), TRUE);
+    imagesavealpha($lower->getToolkit()->getResource(), TRUE);
+    imagealphablending($upper->getToolkit()->getResource(), TRUE);
+    imagesavealpha($upper->getToolkit()->getResource(), TRUE);
+    imagecopy($lower->getToolkit()->getResource(), $upper->getToolkit()->getResource(), $x, $y, 0, 0, $upper->getWidth(), $upper->getHeight());
+    imagedestroy($upper->getToolkit()->getResource());
+    $image->getToolkit()->setResource($lower->getToolkit()->getResource());
     $image->setHeight($lower->getHeight());
     $image->setWidth($lower->getWidth());
   }
-  else {
+/*/  else {
     // imagecopy() cannot be used and we have to use the slow library.
     module_load_include('inc', 'imagecache_actions', 'watermark');
     $watermark = new watermark();
-    $result_img = $watermark->create_watermark($lower->getResource(), $upper->getResource(), $x, $y, $alpha);
+    $result_img = $watermark->create_watermark($lower->getToolkit()->getResource(), $upper->getToolkit()->getResource(), $x, $y, $alpha);
     // Watermark creates a new image resource, so clean up both old images.
-    imagedestroy($lower->getResource());
-    imagedestroy($upper->getResource());
-    $image->setResource($result_img);
+    imagedestroy($lower->getToolkit()->getResource());
+    imagedestroy($upper->getToolkit()->getResource());
+    $image->getToolkit()->setResource($result_img);
     $image->setHeight($lower->getHeight());
     $image->setWidth($lower->getWidth());
-  }
+  }*/
 
   return TRUE;
 }
