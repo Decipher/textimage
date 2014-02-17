@@ -69,32 +69,22 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTrue($files_count == 5, t('Textimage generation via request URL.'));
 
     // Build a textimage at target URI via API.
-    $uri = $this->textimageFactory->getImageUri(
-      'textimage_test',
-      NULL,
-      array('test'),
-      'png',
-      FALSE,
-      NULL,
-      NULL,
-      'public://textimage-testing/bingo-bongo.png'
-    );
+    $uri = $this->textimageFactory->getTextimage()
+      ->styleByName('textimage_test')
+      ->setTargetUri('public://textimage-testing/bingo-bongo.png')
+      ->process('test')
+      ->getUri();
 
     // Check file was generated.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, t('Textimage generation at target URI via API.'));
 
     // Build another textimage at same target URI.
-    $uri = $this->textimageFactory->getImageUri(
-      'textimage_test',
-      NULL,
-      array('another test'),
-      'png',
-      FALSE,
-      NULL,
-      NULL,
-      'public://textimage-testing/bingo-bongo.png'
-    );
+    $uri = $this->textimageFactory->getTextimage()
+      ->styleByName('textimage_test')
+      ->setTargetUri('public://textimage-testing/bingo-bongo.png')
+      ->process('another test')
+      ->getUri();
 
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
@@ -113,6 +103,30 @@ class TextimageTest extends TextimageTestBase {
     // Check file was generated.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 2, t('Textimage generation at target URI via theme.'));
+
+    // Test token resolution.
+
+    // Create a text field for Textimage test.
+    $field_name = strtolower($this->randomName());
+    $this->createTextimageField($field_name, 'article');
+
+    // Create a new node.
+    $field_value = $this->randomName(20);
+    $nid = $this->createTextimageNode($field_name, $field_value, 'article');
+    $node = node_load($nid, TRUE);
+
+    // Set the textimage formatter - no link.
+    $display = entity_get_display('node', $node->getType(), 'default');
+    $display_options['type'] = 'textimage';
+    $display_options['settings']['image_style'] = 'textimage_test';
+    $display->setComponent($field_name, $display_options)
+      ->save();
+    $this->drupalGet('node/' . $nid);
+
+    // Check token.
+    $node = node_load($nid, TRUE);
+    $uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', array('node' => $node));
+    $this->assertEqual('public://textimage/textimage_test/' . $field_value . '.png', $uri);
 
   }
 

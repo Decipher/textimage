@@ -16,7 +16,6 @@ use Drupal\image\ImageEffectBase;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Component\ColorUtility;
-use Drupal\textimage\Entity\TextimageStyle;
 
 /**
  * Define the Textimage text.
@@ -802,12 +801,12 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
     if ($this->configuration['layout']['overflow_action'] == 'extend') {
 
       // Dummy image object.
-      $image = new stdClass();
-      $image->info['width'] = $dimensions['width'];
-      $image->info['height'] = $dimensions['height'];
-      $image->info['extension'] = 'png';
-      $image->info['mime_type'] = 'image/png';
-      $image->toolkit = image_get_toolkit();
+      //$image = new stdClass();   @todo no longer possible to create empty images
+      $image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+      $image->setWidth($dimensions['width']);
+      $image->setHeight($dimensions['height']);
+// @todo     $image->info['extension'] = 'png';
+// @todo     $image->info['mime_type'] = 'image/png';
 
       // Get the text wrapper resource.
       if (!$wrapper = $this->getTextWrapper($image, $this->configuration)) {
@@ -818,8 +817,8 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
       $image_new = array(
         'xpos' => 0,
         'ypos' => 0,
-        'width' => $image->info['width'],
-        'height' => $image->info['height'],
+        'width' => $image->getWidth(),
+        'height' => $image->getHeight(),
       );
 
       // Checks if resizing needed.
@@ -857,8 +856,8 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
       return NULL;
     }
 
-    // If the effect is executed outside of the context of the TextimageStyle
-    // class (e.g. by the core Image module), then the text_string has not been
+    // If the effect is executed outside of the context of Textimage
+    // (e.g. by the core Image module), then the text_string has not been
     // pre-processed to translate tokens or apply text conversion.
     if (!($this->textimageFactory->getState('building_module') == 'textimage')) {
       $data['text_string'] = $this->textimageFactory->processTextString($data['text_string'], $data['text']['case_format']);

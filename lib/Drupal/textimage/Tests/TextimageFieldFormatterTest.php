@@ -38,14 +38,11 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $node = node_load($nid, TRUE);
 
     // Get Textimage URL.
-    $textimage_url = $this->textimageFactory->getImageUrl(
-      'textimage_test',
-      NULL,
-      array($field_value),
-      'png',
-      TRUE,
-      $node
-    );
+    $textimage_url = $this->textimageFactory->getTextimage()
+      ->styleByName('textimage_test')
+      ->node($node)
+      ->process($field_value)
+      ->getUrl();
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');

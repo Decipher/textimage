@@ -9,7 +9,7 @@ namespace Drupal\textimage\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
-use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\textimage\Plugin\TextimagePluginManager;
 use Drupal\textimage\Plugin\TextimagePluginBaseInterface;
@@ -40,7 +40,7 @@ class SettingsForm extends ConfigFormBase {
    *
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
    *   The Textimage factory.
-   * @param \Drupal\Core\Config\ConfigFactory $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $font_plugin_factory
    *   The font plugin factory.
@@ -49,7 +49,7 @@ class SettingsForm extends ConfigFormBase {
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $color_plugin_factory
    *   The color plugin factory.
    */
-  public function __construct(TextimageFactory $textimage_factory, ConfigFactory $config_factory, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
     parent::__construct($config_factory);
     $this->textimageFactory = $textimage_factory;
     // Loops through the function args to build the array of Textimage

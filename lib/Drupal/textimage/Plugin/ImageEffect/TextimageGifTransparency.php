@@ -10,7 +10,6 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\image\ConfigurableImageEffectInterface;
 use Drupal\image\ImageEffectBase;
-use Drupal\textimage\Entity\TextimageStyle;
 
 /**
  * Define the Textimage GIF transparency color.

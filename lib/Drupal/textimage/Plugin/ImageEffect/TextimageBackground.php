@@ -10,7 +10,6 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\image\ConfigurableImageEffectInterface;
 use Drupal\image\ImageEffectBase;
-use Drupal\textimage\Entity\TextimageStyle;
 
 /**
  * Define the Textimage background canvas.
@@ -457,7 +456,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
           _textimage_diag($this->t('Textimage could not find an image to load.'), WATCHDOG_ERROR, __FUNCTION__);
           return;
         }
-        $new_image = image_load($this->configuration['background_image']['uri']);
+        $new_image = \Drupal::service('image.factory')->get($this->configuration['background_image']['uri']); // @todo inject
         if (!$new_image) {
           _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
           return;

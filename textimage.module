@@ -52,7 +52,7 @@ function textimage_theme() {
         'style_name' => '',
         'effects' => array(),
         'text'   => array(),
-        'format' => 'png',
+        'extension' => 'png',
         'caching' => TRUE,
         'node' => NULL,
         'source_image_file' => NULL,
@@ -286,8 +286,9 @@ function textimage_metatag_token_types_alter(&$options) {
 
 //}
 
-function textimage_image_style_create_derivative($style, $original_uri, $derivative_uri) {
-  \Drupal\textimage\Entity\TextimageStyle::setState();
+/* test hook for derivative creation */
+/*function textimage_image_style_create_derivative($style, $original_uri, $derivative_uri) {
+  ....TextimageFactory::setState();
   watchdog(
     'image',
     t(
@@ -299,7 +300,7 @@ function textimage_image_style_create_derivative($style, $original_uri, $derivat
       )
     )
   );
-}
+}*/
 
 // **** END D8 specific ****
 
@@ -316,7 +317,7 @@ foreach ($effects->sort() as $effect) {
 dpm($effect);
 };*/
 
-/*  if (TextimageStyles::isTextimage($form_state['image_style'])) {*/
+/*  if (...::isTextimage($form_state['image_style'])) {*/
     $form['textimage_options'] = array(
       '#type' => 'details',
       '#tree' => TRUE,
@@ -348,14 +349,14 @@ dpm($effect);
  *
  * @see _textimage_image_style_form_form_alter()
  */
-function _textimage_image_style_form_textimage_submit($form, &$form_state) {
-  $style = TextimageStyles::get($form_state['values']['name']);
+/*function _textimage_image_style_form_textimage_submit($form, &$form_state) {
+  $style = ...:get($form_state['values']['name']);
   // Update Textimage-specific style options.
   if ($style) {
     $style['textimage']['uri_scheme'] = $form_state['values']['textimage_options']['uri_scheme'];
     image_style_save($style);
   }
-}
+}*/
 
 /**
  * Textimage color form element.
@@ -506,16 +507,30 @@ function template_preprocess_textimage_formatter(&$variables) {
   $output = array();
 
   // Get URI to image file.
-  $image_uri = \Drupal::service('textimage.factory')->getImageUri(
-    $variables['style_name'],
-    $variables['effects'],
-    $variables['text'],
-    $variables['format'],
-    $variables['caching'],
-    $variables['node'],
-    $variables['source_image_file'],
-    $variables['target_uri']
-  );
+  $textimage = \Drupal::service('textimage.factory')->getTextimage();
+  if ($variables['style_name']) {
+    $textimage->styleByName($variables['style_name']);
+  }
+  else  {
+    $textimage->effects($variables['effects']);
+  }
+  if ($variables['target_uri']) {
+    $textimage->setTargetUri($variables['target_uri']);
+  }
+  else {
+    $textimage->setCaching($variables['caching']);
+  }
+  if ($variables['source_image_file']) {
+    $textimage->sourceImageFile($variables['source_image_file']);
+  }
+  if ($variables['node']) {
+    $textimage->node($variables['node']);
+  }
+  if (isset($variables['user_messages'])) {
+    $textimage->setUserMessages($variables['user_messages']);
+  }
+  $textimage->extension($variables['extension'])->process($variables['text']);
+  $image_uri = $textimage->getUri();
 
   // Render through image theme.
   if ($image_uri) {
@@ -599,14 +614,14 @@ function template_preprocess_textimage_color_detail(&$variables) {
  * @param string $caller
  *   the calling function
  */
-function _textimage_diag($message, $severity, $caller = NULL) {
+function _textimage_diag($message, $severity, $caller = NULL, $user_messages = TRUE) {
   if ($caller) {
     $message = t("@message - Function: @caller", array('@message' => $message, '@caller' => $caller));
   }
   if ($severity <= WATCHDOG_NOTICE) {
     watchdog('textimage', $message, array(), $severity);
   }
-  if ($severity <= \Drupal::config('textimage.settings')->get('message_level')) {
+  if ($severity <= \Drupal::config('textimage.settings')->get('message_level') && $user_messages) {
     switch ($severity) {
       case WATCHDOG_DEBUG:
       case WATCHDOG_INFO:

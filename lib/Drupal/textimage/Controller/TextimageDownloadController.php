@@ -79,7 +79,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    */
   public function urlDeliver($text_string, ImageStyleInterface $image_style) {
     // Check if the style exists.
-    if (empty($image_style)) {   // @todo should be a textimage_style, or???
+    if (empty($image_style)) {   // @todo should be a textimage style
       throw new NotFoundHttpException('Could not find the image style requested.');
     }
     /* @todo
@@ -105,17 +105,12 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       $text[] = $last_text;
     }
 
-    // @todo review
-    // @todo temp hack to generate a fake entity if not existing
-    $textimage_style = entity_create('textimage_style', array('id' => $image_style->id()));
-
     // Get the Textimage URI.
-    $image_uri = $this->textimageFactory->processImageRequest(
-      $textimage_style,
-      NULL,
-      $text,
-      $extension
-    );
+    $image_uri = $this->textimageFactory->getTextimage()
+      ->style($image_style)
+      ->extension($extension)
+      ->process($text)
+      ->getUri();
     
     // Don't try to send file if it is missing.
     if (!file_exists($image_uri)) {

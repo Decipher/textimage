@@ -37,7 +37,9 @@ class TextimageFormatter extends FormatterBase {
    * {@inheritdoc}
    */
   public function settingsForm(array $form, array &$form_state) {
-    // @todo to-be $image_styles = TextimageStyles::getOptions(FALSE);
+
+    // Image style setting.
+// @todo filter only Textimage relevant styles
     $image_styles = image_style_options(FALSE); // @todo remove
     $element['image_style'] = array(
       '#title' => t('Image style'),
@@ -49,6 +51,7 @@ class TextimageFormatter extends FormatterBase {
       '#description' => t('Only Textimage relevant image styles can be selected.'),
     );
 
+    // Link setting.
     $link_types = array(
       'content' => t('Content'),
       'file' => t('File'),
@@ -61,7 +64,7 @@ class TextimageFormatter extends FormatterBase {
       '#options' => $link_types,
     );
 
-    // Manage image alt and title attribute settings.
+    // Image alt and title attribute settings.
     $element['image_alt'] = array(
       '#title' => t('Alternate text'),
       '#type' => 'textfield',
@@ -86,7 +89,7 @@ class TextimageFormatter extends FormatterBase {
   public function settingsSummary() {
     $summary = array();
 
-    // @todo to-be $image_styles = TextimageStyles::getOptions(FALSE);
+// @todo filter only Textimage relevant styles
     $image_styles = image_style_options(FALSE); // @todo remove
     // Unset possible 'No defined styles' option.
     unset($image_styles['']);
@@ -100,11 +103,11 @@ class TextimageFormatter extends FormatterBase {
       $summary[] = t('Image style: undefined');
     }
 
+    // Display link setting only if image is linked.
     $link_types = array(
       'content' => t('Linked to content'),
       'file' => t('Linked to file'),
     );
-    // Display this setting only if image is linked.
     if (isset($link_types[$this->getSetting('image_link')])) {
       $summary[] = $link_types[$this->getSetting('image_link')];
     }
