@@ -13,7 +13,7 @@ use Drupal\simpletest\WebTestBase;
 /**
  * Functional tests for Textimage.
  */
-class TextimageTestBase extends WebTestBase {
+abstract class TextimageTestBase extends WebTestBase {
 
   protected $textimageAdmin = 'admin/config/media/textimage';
   protected $textimageFactory;
