@@ -29,13 +29,6 @@ Co-maintained by:
 - Mondrake http://drupal.org/user/1307444
 
 
-Compatibility
--------------
-Textimage 3 is a major rewrite of Textimage, and is NOT compatible with
-earlier versions. Install the module in an environment where there is
-no 7.x-2.x installed.
-
-
 Quick start instructions
 ------------------------
 - Check requirements (below) and install / configure the modules needed.
@@ -252,18 +245,13 @@ Using Textimage image styles
    random images. If you need dynamically created Textimages, it is strongly
    advised you use one of the methods detailed below.
 
-3. Programmers/themers - calling Textimage theme() functions:
+3. Programmers/themers - via theming:
 
-   There are three theme functions that can be used to render HTML of Textimage
-   images:
-
-   -----------------------
-   'textimage_style_image'
-   -----------------------
-   This is used for Textimages based on a stored image style. Example:
+   You can use the 'textimage_formatter' theme to render a Textimage via
+   a render array, like e.g.:
 
     theme(
-      'textimage_style_image',
+      'textimage_formatter',
       array(
         'style_name' => 'my_image_style',
         'text'   => array('text1', 'text2'),
@@ -277,70 +265,14 @@ Using Textimage image styles
       ),
     ));
 
-    Variables:
-    - style_name - the image style name.
-    - text - an array of text strings, with unresolved tokens; each string
-      of the array will be consumed by a textimage_text effect in the sequence
-      specified within the image style.
-    - format - the file format of the resulting image (png/gif/jpg/jpeg).
-    - alt - the image alternate text. This text will be used by screen readers,
-      search engines, or when the image cannot be loaded. Tokens can be used.
-    - title - the text to be displayed when hovering the image on the browser.
-      Tokens can be used.
-    - attributes - associative array of attributes to be placed in the img tag.
-    - caching - if set to TRUE, the image will be cached for future accesses;
-      otherwise, the image will be stored in textimage_store and deleted on
-      cron run.
-    - node - a node entity. It is used for resolving the tokens in the text
-      effects.
-    - source_image_file - a file entity. It is used for resolving the tokens
-      in the text effects.
-
-   ------------------------
-   'textimage_direct_image'
-   ------------------------
-   This is used for Textimages based on a image style created programmatically.
-   Example:
-
-    theme(
-      'textimage_direct_image',
-      array(
-        'effects' => array(),
-        'text'   => array('text1', 'text2'),
-        'format' => 'png',
-        'alt'    => 'Alternate text',
-        'title'  => 'Image title',
-        'attributes' => array(),
-        'caching' => TRUE,
-      ),
-    ));
+   This theme allows also to specify wrapping the <img> tag in a container
+   <div> tag, and/or wrapping the entire output in an anchor tag.
 
     Variables:
-    - effects - an array of image style effects. Given a $style image style
-      array, corresponds to the $style['effects'] key. You can dynamically
-      load and manipulate this array and pass it over to this theme, with no
-      need to save it back to storage.
-    - text - an array of text strings, with unresolved tokens; each string
-      of the array will be consumed by a textimage_text effect in the sequence
-      specified within the image style.
-    - format - the file format of the resulting image (png/gif/jpg/jpeg).
-    - alt - the image alternate text. This text will be used by screen readers,
-      search engines, or when the image cannot be loaded. Tokens can be used.
-    - title - the text to be displayed when hovering the image on the browser.
-      Tokens can be used.
-    - attributes - associative array of attributes to be placed in the img tag.
-    - caching - if set to TRUE, the image will be cached for future accesses;
-      otherwise, the image will be stored in textimage_store and deleted on
-      cron run.
-
-   ---------------------
-   'textimage_formatter'
-   ---------------------
-   This is the low level theme function used by Textimage to render HTML. It
-   also allows to specify wrapping the <img> tag in a container <div> tag,
-   and/or wrapping the entire output in an anchor tag.
-
-    Variables:
+    - textimage - A fully processed Textimage object. If this variable is set,
+      the theme function will use this object to render the image, and the
+      variables style_name, effects, text, format, caching, node,
+      source_image_file, target_uri will be ineffective.
     - style_name - the image style name. If specified, it will override any
       value passed in the 'effects' variable.
     - effects - an array of image style effects. Given a $style image style
@@ -373,47 +305,49 @@ Using Textimage image styles
       '#textimage_derivative_url#' is passed, the href will be resolved at
       run-time with the actual Textimage URL.
 
-4. Programmers - calling API functions:
+4. Programmers - using the API:
 
-    Programmers can invoke directly TextimageImager::getImageUri() or
-    TextimageImager::getImageUrl() to get respectively the URI or the full
-    URL of a Textimage generated via the input parameters. Example:
+    Programmers can get a Textimage object from the Textimage factory, and
+    use the relevant methods to process an image. Example:
 
-    $my_textimage_uri = TextimageImager::getImageUri(
-      $style_name,
-      $effects_outline,
-      $text,
-      $extension,
-      $caching,
-      $node,
-      $source_image_file,
-      $target_uri
-    );
+    $my_textimage = \Drupal::service('textimage.factory')->getTextimage();
+    $my_textimage_url = $my_textimage
+      ->styleByName('textimage_test')
+      ->node($node)
+      ->process($field_value)
+      ->getUrl();
 
-    Variables:
-    - $style_name - the image style name. If set to NULL, then
-      $effects_outline is expected.
-    - $effects_outline - a subset of an array of image style effects. Given
-      a $style['effects'] array, corresponds to the array of 'name' and 'data'
+    Methods:
+    - style($style) - an image style.
+    - styleByName($style_name) - an image style name.
+    - effects($effects_outline) - an array of image style effects.
+      Given a $style['effects'] array, corresponds to the array of 'name' and 'data'
       keys of each element. You can use the helper function
       TextimageStyles::getStyleEffectsOutline($style_name) to get this array
-      based on a style name. If set to NULL then $style is expected.
-    - $text - an array of text strings, with unresolved tokens; each string
-      of the array will be consumed by a textimage_text effect in the sequence
-      specified within the image style.
-    - $extension - (optional) the file format of the resulting image
-      (png/gif/jpg/jpeg). Defaults to 'png'.
-    - $caching - (optional) if set to TRUE, the image will be cached for
+      based on a style name. If not used, then $style is expected.
+    - extension($extension) - the file format of the resulting image
+      (png/gif/jpg/jpeg). If not set, defaults to 'png'.
+    - setCaching($caching) - if set to TRUE, the image will be cached for
       future access; otherwise, the image will be stored in
       textimage_store/uncached and deleted on cron run. Defaults to TRUE.
-    - $node - (optional) a node entity. It is used for resolving the tokens
+    - node($node) - a node entity. It is used for resolving the tokens
       in the text effects.
-    - $source_image_file - (optional) a file entity. It is used for resolving
+    - sourceImageFile($source_image_file) - a file entity. It is used for resolving
       the tokens in the text effects.
-    - $target_uri - (optional) specifies the URI where the textimage file
+    - setTargetUri($target_uri) - specifies the URI where the textimage file
       should be stored. Allows to bypass the automatic URI generation performed
       by Textimage. NOTE: It disables caching, as, given an URI, there is no
       control on the actual text that gets into the image.
+    - process($text) - retrieves or builds a textimage file, using an array of text strings, with unresolved tokens; each string
+      of the array will be consumed by a textimage_text effect in the sequence
+      specified within the image style.
+    - load
+    - setUserMessages
+    - setHashedFilename
+    - id
+    - getText
+    - getUri
+    - getUrl
 
 
 -------------------------------------------------------------------------------
@@ -485,48 +419,6 @@ meta tags.
 
 
 -------------------------------------------------------------------------------
-
-
-Delta - 3.x vs. 2.x
--------------------
-
-- Leverage Image and Tokens features that are embedded in core Drupal 7.
-
-- Drop the preset concept and db schema and use instead the Image concepts:
-  styles and effects. This finally allows Textimage to use any image effect
-  to build the final image - leveraging a wide library of image effects
-  provided by core and other contrib modules. Also, it allows core Image
-  module to use Textimage effects.
-
-- Move all primitive image functions to toolkit specific includes, allowing to
-  potentially use alternative toolkits (other than GD).
-
-- Implement Drupal 7 field formatters for Text and Image fields.
-
-- Implement a derivative delivery mechanism specific to Textimage - enabling
-  usage of scheme wrappers (public, private, ...) to indicate storage
-  destination of image files, and providing a framework to leverage tokens.
-
-- Enable Tokens substitution at runtime in the text.
-
-- Implement a direct text to image theme (i.e. enable producing a textimage
-  with no predefined style!).
-
-- Enhance the text overlay effects
-
-- Integrate with Imagecache Actions module to leverage its effects and
-  functions (dependency).
-
-- Optional @font-your-face module integration for font management.
-
-- Optional Media module integration for background image management.
-
-- Optional jQuery Colorpicker module integration for color selection in
-  effects' admin forms.
-
-- Documented API to produce Textimage images programmatically.
-
-- Textimage tokens to retrieve URI/URL of generated Textimage images.
 
 
 Wishlist

@@ -180,7 +180,10 @@ class Textimage {
    * @return self
    */
   protected function set($property, $value) {
-    if (!$this->processed) {  // @todo check if property exists
+    if (!property_exists($this, $property)) {
+      throw new TextimageException(t("Attempted to set non existing property '@property'.", array('@property' => $property)));
+    }
+    if (!$this->processed) {
       $this->$property = $value;
     }
     else {
@@ -198,10 +201,12 @@ class Textimage {
    * @return self
    */
   public function style(ImageStyleInterface $image_style) {
-// @todo check it is Textimage relevant
-    $this->set('style', $image_style);
-    $effects = @$this->style->getEffects()->getConfiguration();
-    return $this->set('effects', $effects);
+    if (TRUE) { // @todo check it is Textimage relevant
+      $this->set('style', $image_style);
+      $effects = @$this->style->getEffects()->getConfiguration();
+      $this->set('effects', $effects);
+    }
+    return $this;
   }
 
   /**
@@ -216,11 +221,16 @@ class Textimage {
     if ($image_style_name) {
       // Retrieve Textimage style.
       if ($image_style = entity_load('image_style', $image_style_name)) {  // @todo check it is Textimage relevant
-        $this->style($image_style);
+        $this->set('style', $image_style);
+        $effects = @$this->style->getEffects()->getConfiguration();
+        $this->set('effects', $effects);
       }
       else {
         _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $image_style_name)), WATCHDOG_ERROR, NULL, $this->userMessages);
       }
+    }
+    else {
+      _textimage_diag(t("Image style not specified while processing a Textimage."), WATCHDOG_ERROR, NULL, $this->userMessages);
     }
     return $this;
   }

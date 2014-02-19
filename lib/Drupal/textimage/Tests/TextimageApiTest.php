@@ -169,6 +169,27 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->load($id);
     $this->assertTrue(file_exists($uri), 'Load - file exixts');
+
+    // Test output of theme textimage_formatter.
+    $output = array(
+      '#theme' => 'textimage_formatter',
+      '#textimage' => $textimage,
+      '#alt' => 'Alternate text',
+      '#title' => 'Textimage title',
+      '#attributes' => array('class' => 'textimage-test'),
+      '#image_container_attributes' => array('class' => 'textimage-container-test'),
+      '#href' => $textimage->getUrl(),
+    );
+    $this->drupalSetContent(drupal_render($output));
+    $elements = $this->xpath(
+      '//a[@href = :href]/div[@class = :container_class]/img[@src = :src]',
+     array(
+        ':href' => $textimage->getUrl(),
+        ':container_class' => 'textimage-container-test',
+        ':src' => $textimage->getUrl(),
+      )
+    );
+    $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');
   }
 
   /**

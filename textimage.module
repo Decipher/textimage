@@ -7,6 +7,7 @@
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Textimage;
 
 // @todo remove
 require_once 'textimage_canvas_temp.inc';
@@ -49,6 +50,7 @@ function textimage_theme() {
     // Format a textimage.
     'textimage_formatter' => array(
       'variables' => array(
+        'textimage' => NULL,
         'style_name' => '',
         'effects' => array(),
         'text'   => array(),
@@ -501,36 +503,41 @@ function textimage_color_element_validate(&$element, &$form_state, $form) {
  *
  * Default template: textimage-formatter.html.twig.
  */
-// @todo maybe we can drop the template and use image__textimage or image_formatter__textimage???
 function template_preprocess_textimage_formatter(&$variables) {
 
   $output = array();
 
   // Get URI to image file.
-  $textimage = \Drupal::service('textimage.factory')->getTextimage();
-  if ($variables['style_name']) {
-    $textimage->styleByName($variables['style_name']);
-  }
-  else  {
-    $textimage->effects($variables['effects']);
-  }
-  if ($variables['target_uri']) {
-    $textimage->setTargetUri($variables['target_uri']);
+  if ($variables['textimage'] && $variables['textimage'] instanceof Textimage) {
+    $image_uri = $variables['textimage']->getUri();
   }
   else {
-    $textimage->setCaching($variables['caching']);
+    $textimage = \Drupal::service('textimage.factory')->getTextimage();
+    if ($variables['style_name']) {
+      $textimage->styleByName($variables['style_name']);
+    }
+    else  {
+      $textimage->effects($variables['effects']);
+    }
+    if ($variables['target_uri']) {
+      $textimage->setTargetUri($variables['target_uri']);
+    }
+    else {
+      $textimage->setCaching($variables['caching']);
+    }
+    if ($variables['source_image_file']) {
+      $textimage->sourceImageFile($variables['source_image_file']);
+    }
+    if ($variables['node']) {
+      $textimage->node($variables['node']);
+    }
+    if (isset($variables['user_messages'])) {
+      $textimage->setUserMessages($variables['user_messages']);
+    }
+    $textimage->extension($variables['extension']);
+    $textimage->process($variables['text']);
+    $image_uri = $textimage->getUri();
   }
-  if ($variables['source_image_file']) {
-    $textimage->sourceImageFile($variables['source_image_file']);
-  }
-  if ($variables['node']) {
-    $textimage->node($variables['node']);
-  }
-  if (isset($variables['user_messages'])) {
-    $textimage->setUserMessages($variables['user_messages']);
-  }
-  $textimage->extension($variables['extension'])->process($variables['text']);
-  $image_uri = $textimage->getUri();
 
   // Render through image theme.
   if ($image_uri) {
@@ -573,7 +580,7 @@ function template_preprocess_textimage_formatter(&$variables) {
     }
   }
 
-  $variables['textimage'] = $output;
+  $variables['textimage_output'] = $output;
 }
 
 /**

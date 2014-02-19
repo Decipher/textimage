@@ -4,13 +4,13 @@
  * Default theme implementation to display a Textimage formatter theme.
  *
  * Available variables:
- * - textimage: A Textimage formatter array.
+ * - textimage_output: A Textimage formatter array.
  *
  * @ingroup theme
  */
 #}
-{% if textimage %}
-  {{ textimage }}
+{% if textimage_output %}
+  {{ textimage_output }}
 {% else %}
   {{ 'Image not available.'|t }}
 {% endif %}
