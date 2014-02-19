@@ -146,8 +146,9 @@ class TextimageApiTest extends TextimageTestBase {
       ->styleByName('textimage_test')
       ->setHashedFilename(TRUE)
       ->process($text_array);
-    // Check URI.
+    // Check URI and Textimage.
     $this->assertTrue(strpos($textimage->getUri(), $textimage->id()) > 0, 'Hashed filename');
+    $this->assertTextimage($textimage->getUri(), 120, 121);
 
     // Test loading the Textimage metadata.
     $id = $textimage->id();

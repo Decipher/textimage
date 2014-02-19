@@ -59,6 +59,9 @@ class TextimageTest extends TextimageTestBase {
     // Check files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 4, t('Textimage generation via theme.'));
+    $this->assertTextimage($directory_path . '/textimage/textimage_test/preview text image.png', 177, 28);
+    $this->assertTextimage($directory_path . '/textimage/textimage_test/ÐŸÑ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¹ Ð¿Ñ€Ð¾ÑÐ¼Ð¾Ñ‚Ñ€ Ñ‚ÐµÐºÑÑ‚Ð°.png', 331, 28);
+    $this->assertTextimage($directory_path . '/textimage/textimage_test/Ï€ÏÎ¿ÎµÏ€Î¹ÏƒÎºÏŒÏ€Î·ÏƒÎ· Ï„Î·Ï‚ ÎµÎ¹ÎºÏŒÎ½Î±Ï‚ ÎºÎµÎ¯Î¼ÎµÎ½Î¿.png', 328, 28);
 
     // Build and display a URL derivative.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
@@ -67,6 +70,7 @@ class TextimageTest extends TextimageTestBase {
     // Check file was generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 5, t('Textimage generation via request URL.'));
+    $this->assertTextimage($directory_path . '/textimage/textimage_test/url_preview_text_image.png', 225, 28);
 
     // Build a textimage at target URI via API.
     $uri = $this->textimageFactory->getTextimage()
@@ -78,6 +82,7 @@ class TextimageTest extends TextimageTestBase {
     // Check file was generated.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, t('Textimage generation at target URI via API.'));
+    $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 35, 28);
 
     // Build another textimage at same target URI.
     $uri = $this->textimageFactory->getTextimage()
@@ -89,6 +94,7 @@ class TextimageTest extends TextimageTestBase {
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, t('Textimage replaced at target URI via API.'));
+    $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 113, 28);
 
     // Build a textimage at target URI via theme.
     $textimage = array();

@@ -169,4 +169,15 @@ abstract class TextimageTestBase extends WebTestBase {
     return isset($matches[1]) ? $matches[1] : FALSE;
   }
 
+  /**
+   * Asserts a Textimage.
+   */
+  protected function assertTextimage($path, $width, $height) {
+    $image = \Drupal::service('image.factory')->get($path);
+    $w_error = abs($image->getWidth() - $width);
+    $h_error = abs($image->getHeight() - $height);
+    $tolerance = 0.1;
+    $this->assertTrue($w_error < $width * $tolerance && $h_error < $height * $tolerance, t('Textimage width and height (@act_wx@act_h) approximate expected results (@exp_wx@exp_h)', array('@act_w' => $image->getWidth(), '@act_h' => $image->getHeight(), '@exp_w' => $width, '@exp_h' => $height)));
+  }
+
 }
