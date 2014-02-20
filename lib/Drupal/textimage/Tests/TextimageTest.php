@@ -60,8 +60,8 @@ class TextimageTest extends TextimageTestBase {
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 4, t('Textimage generation via theme.'));
     $this->assertTextimage($directory_path . '/textimage/textimage_test/preview text image.png', 177, 28);
-    $this->assertTextimage($directory_path . '/textimage/textimage_test/ÐŸÑ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¹ Ð¿Ñ€Ð¾ÑÐ¼Ð¾Ñ‚Ñ€ Ñ‚ÐµÐºÑÑ‚Ð°.png', 331, 28);
-    $this->assertTextimage($directory_path . '/textimage/textimage_test/Ï€ÏÎ¿ÎµÏ€Î¹ÏƒÎºÏŒÏ€Î·ÏƒÎ· Ï„Î·Ï‚ ÎµÎ¹ÎºÏŒÎ½Î±Ï‚ ÎºÎµÎ¯Î¼ÎµÎ½Î¿.png', 328, 28);
+    $this->assertTextimage($directory_path . '/textimage/textimage_test/Предварительный просмотр текста.png', 331, 28);
+    $this->assertTextimage($directory_path . '/textimage/textimage_test/προεπισκόπηση της εικόνας κείμενο.png', 328, 28);
 
     // Build and display a URL derivative.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
