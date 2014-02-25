@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\textimage\Plugin\TextimageBackgroundPluginInterface.
+ */
+
 namespace Drupal\textimage\Plugin;
 
 /**

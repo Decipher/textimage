@@ -8,8 +8,6 @@
 namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Image\ImageInterface;
-use Drupal\image\ConfigurableImageEffectInterface;
-use Drupal\image\ImageEffectBase;
 
 /**
  * Define the Textimage background canvas.
@@ -20,22 +18,7 @@ use Drupal\image\ImageEffectBase;
  *   description = @Translation("Define size and background color of the Textimage, or a background image.")
  * )
  */
-class TextimageBackground extends ImageEffectBase implements ConfigurableImageEffectInterface {
-
-  // @todo
-  protected $effectsFactory;
-  protected $imageFactory;
-  protected $backgroundPlugin;
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->effectsFactory = \Drupal::service('plugin.manager.image.effect');
-    $this->imageFactory = \Drupal::service('image.factory');
-    $this->backgroundPlugin = \Drupal::service('plugin.manager.textimage.background')->getPlugin();
-  }
+class TextimageBackground extends TextimageEffectBase {
 
   /**
    * {@inheritdoc}
@@ -296,7 +279,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
           _textimage_diag($this->t('Textimage could not find an image to load.'), WATCHDOG_ERROR, __FUNCTION__);
           return FALSE;
         }
-        $new_image = $this->imageFactory->get($this->configuration['background_image']['uri']);
+        $new_image = $this->imageFactory->get($this->configuration['background_image']['uri']); // @todo maybe not needed if calling toolkit methods directly
         if ($new_image) {
           $image->setHeight($new_image->getHeight());
           $image->setWidth($new_image->getWidth());
@@ -320,7 +303,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
         $new_image = _textimage_toolkit_invoke('textimage_create_transparent', $image, array(
             1,
             1,
-            \Drupal::service('textimage.factory')->getState('gif_transparency_color'),
+            $this->textimageFactory->getState('gif_transparency_color'),
           )
         );
         if ($new_image) {
@@ -350,7 +333,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
                 'upscale' => 0,
               ),
             );
-            $effect = $this->effectsFactory->createInstance('image_scale', $scale_data);
+            $effect = $this->effectManager->createInstance('image_scale', $scale_data); // @todo use toolkit call directly
             $success = $effect->applyEffect($image);
             break;
 
@@ -361,7 +344,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
                 'height' => $this->configuration['exact']['height'] ? $this->configuration['exact']['height'] : $image->getHeight(),
               ),
             );
-            $effect = $this->effectsFactory->createInstance('image_resize', $resize_data);
+            $effect = $this->effectManager->createInstance('image_resize', $resize_data); // @todo use toolkit call directly
             $success = $effect->applyEffect($image);
             break;
 
@@ -373,7 +356,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
                 'anchor' => $this->configuration['exact']['crop'],
               ),
             );
-            $effect = $this->effectsFactory->createInstance('image_crop', $crop_data);
+            $effect = $this->effectManager->createInstance('image_crop', $crop_data); // @todo use toolkit call directly
             $success = $effect->applyEffect($image);
             break;
         }
@@ -410,7 +393,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
       if ($image->getMimeType() == 'image/gif') {
         // For .gif format, if transparent background set transparency color.
         if (!$canvas_data['RGB']['HEX']) {
-          $canvas_data['RGB']['HEX'] = \Drupal::service('textimage.factory')->getState('gif_transparency_color');
+          $canvas_data['RGB']['HEX'] = $this->textimageFactory->getState('gif_transparency_color');
         }
         $success = canvasactions_definecanvas_effect($image, $canvas_data); // @todo
       }
@@ -426,12 +409,12 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
 
     // Stores background color for later effects.
     if ($this->configuration['background']['repeat']) {
-      \Drupal::service('textimage.factory')->setState('background_color', $this->configuration['background']['color']);
+      $this->textimageFactory->setState('background_color', $this->configuration['background']['color']);
     }
 
     // Reset transparency color for .gif format.
     if ($image->getMimeType() == 'image/gif') {
-      _textimage_toolkit_invoke('textimage_set_transparency', $image, array(\Drupal::service('textimage.factory')->getState('gif_transparency_color'))); // @todo
+      _textimage_toolkit_invoke('textimage_set_transparency', $image, array($this->textimageFactory->getState('gif_transparency_color'))); // @todo
     }
 
     return $success;
@@ -456,7 +439,7 @@ class TextimageBackground extends ImageEffectBase implements ConfigurableImageEf
           _textimage_diag($this->t('Textimage could not find an image to load.'), WATCHDOG_ERROR, __FUNCTION__);
           return;
         }
-        $new_image = \Drupal::service('image.factory')->get($this->configuration['background_image']['uri']); // @todo inject
+        $new_image = $this->imageFactory->get($this->configuration['background_image']['uri']); // @todo use toolkit??
         if (!$new_image) {
           _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
           return;

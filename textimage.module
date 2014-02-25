@@ -513,27 +513,28 @@ function template_preprocess_textimage_formatter(&$variables) {
   }
   else {
     $textimage = \Drupal::service('textimage.factory')->getTextimage();
+
     if ($variables['style_name']) {
       $textimage->styleByName($variables['style_name']);
     }
     else  {
       $textimage->effects($variables['effects']);
     }
-    if ($variables['target_uri']) {
-      $textimage->setTargetUri($variables['target_uri']);
-    }
-    else {
-      $textimage->setCaching($variables['caching']);
-    }
+
     if ($variables['source_image_file']) {
       $textimage->sourceImageFile($variables['source_image_file']);
     }
     if ($variables['node']) {
       $textimage->node($variables['node']);
     }
-    if (isset($variables['user_messages'])) {
-      $textimage->setUserMessages($variables['user_messages']);
+
+    if ($variables['target_uri']) {
+      $textimage->setTargetUri($variables['target_uri']);
     }
+    else {
+      $textimage->setCaching($variables['caching']);
+    }
+
     $textimage->extension($variables['extension']);
     $textimage->process($variables['text']);
     $image_uri = $textimage->getUri();

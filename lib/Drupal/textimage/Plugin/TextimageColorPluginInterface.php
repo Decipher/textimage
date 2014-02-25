@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\textimage\Plugin\TextimageColorPluginInterface.
+ */
+
 namespace Drupal\textimage\Plugin;
 
 /**

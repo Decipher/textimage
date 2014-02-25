@@ -11,8 +11,6 @@ use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Image\ImageInterface;
-use Drupal\image\ConfigurableImageEffectInterface;
-use Drupal\image\ImageEffectBase;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Component\ColorUtility;
@@ -26,23 +24,7 @@ use Drupal\textimage\Component\ColorUtility;
  *   description = @Translation("Define text font, size and positioning.")
  * )
  */
-class TextimageText extends ImageEffectBase implements ConfigurableImageEffectInterface {
-
-  // @todo
-  protected $effectsFactory;
-  protected $textimageFactory;
-  protected $fontPlugin;
-  // @todo inject configuration
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->effectsFactory = \Drupal::service('plugin.manager.image.effect');
-    $this->textimageFactory = \Drupal::service('textimage.factory');
-    $this->fontPlugin = \Drupal::service('plugin.manager.textimage.font')->getPlugin();
-  }
+class TextimageText extends TextimageEffectBase {
 
   /**
    * {@inheritdoc}
@@ -51,8 +33,8 @@ class TextimageText extends ImageEffectBase implements ConfigurableImageEffectIn
     return array_replace_recursive(
       array(
         'font'          => array(
-          'name'                  => config('textimage.settings')->get('default_font.name'),
-          'uri'                   => config('textimage.settings')->get('default_font.uri'),
+          'name'                  => $this->config->get('default_font.name'),
+          'uri'                   => $this->config->get('default_font.uri'),
           'size'                  => 16,
           'angle'                 => 0,
           'color'                 => '#00000000',
@@ -351,7 +333,7 @@ class TextimageText extends ImageEffectBase implements ConfigurableImageEffectIn
       '#size' => 4,
       '#min' => 0,
     );
-    $form['text']['fixed_width'] = array(
+    $form['text']['fixed_width'] = array(  // @todo does not work
       '#type'  => 'checkbox',
       '#title' => $this->t('Fixed width?'),
       '#description' => $this->t('If checked, the width will always be equal to the maximum width.'),
@@ -760,7 +742,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
               'upscale' => 0,
             ),
           );
-          $effect = $this->effectsFactory->createInstance('image_scale', $scale_data); // @todo use toolkit call directly
+          $effect = $this->effectManager->createInstance('image_scale', $scale_data); // @todo use toolkit call directly
           if (!$effect->applyEffect($wrapper)) {
             return FALSE;
           }
@@ -803,7 +785,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
 
       // Dummy image object.
       //$image = new stdClass();   @todo no longer possible to create empty images
-      $image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+      $image = $this->imageFactory->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
       $image->setWidth($dimensions['width']);
       $image->setHeight($dimensions['height']);
 // @todo     $image->info['extension'] = 'png';

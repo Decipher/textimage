@@ -8,8 +8,6 @@
 namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Image\ImageInterface;
-use Drupal\image\ConfigurableImageEffectInterface;
-use Drupal\image\ImageEffectBase;
 
 /**
  * Define the Textimage GIF transparency color.
@@ -20,7 +18,7 @@ use Drupal\image\ImageEffectBase;
  *   description = @Translation("Define a color to set GIF transparency.")
  * )
  */
-class TextimageGifTransparency extends ImageEffectBase implements ConfigurableImageEffectInterface {
+class TextimageGifTransparency extends TextimageEffectBase {
 
   /**
    * {@inheritdoc}
@@ -76,7 +74,7 @@ class TextimageGifTransparency extends ImageEffectBase implements ConfigurableIm
 
     // Stores GIF transparency color for later effects.
     if ($this->configuration['gif_transparency_color']) {
-      \Drupal::service('textimage.factory')->setState('gif_transparency_color', $this->configuration['gif_transparency_color']);
+      $this->textimageFactory->setState('gif_transparency_color', $this->configuration['gif_transparency_color']);
     }
 
     return TRUE;

@@ -101,7 +101,7 @@ class TextimageFactory {
         return Unicode::ucfirst($text);
 
       case 'ucwords':
-        return preg_replace_callback('/(\w+)/', function ($m) { return Unicode::ucfirst($m[1]); }, $text);
+        return preg_replace_callback('/(\w+)/', function ($m) { return Unicode::ucfirst($m[1]); }, $text);  // @todo change to Unicode::ucwords when #70719 is in
 
       default:
         return $text;
@@ -280,7 +280,7 @@ class TextimageFactory {
 
       // Get node (bundle) dependent field info, continue if missing.
       $node_type = $node->getType();
-      $instance_info = Field::fieldInfo()->getInstance('node', $node_type, $field_name);
+      $instance_info = Field::fieldInfo()->getInstance('node', $node_type, $field_name); // @todo inject Field???
       if (!$instance_info) {
         continue;
       }

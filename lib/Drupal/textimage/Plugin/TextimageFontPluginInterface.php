@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\textimage\Plugin\TextimageFontPluginInterface.
+ */
+
 namespace Drupal\textimage\Plugin;
 
 /**
