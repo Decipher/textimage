@@ -84,7 +84,6 @@ class TextimageBackground extends TextimageEffectBase {
     // Background color.
     $form['background'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
       '#title' => 'Background color',
       '#description'  => $this->t('Select the color you wish to use for the background of the image. This color will be placed around the image or fill the background if no image is selected.'),
     );
@@ -105,7 +104,6 @@ class TextimageBackground extends TextimageEffectBase {
     // Background image exact dimensions.
     $form['exact'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
       '#title' => 'Exact size',
       '#description'  => $this->t('Set the background image to an exact size, either width or heigth. If only one of width or heigth is set, the other dimension will be automatically calculated based on resize/scale/crop options.'),
     );
@@ -186,7 +184,6 @@ class TextimageBackground extends TextimageEffectBase {
     // Background image relative dimensions.
     $form['relative'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
       '#title' => $this->t('Relative size'),
       '#description' => $this->t('Set the background image to a relative size, based on the original image dimensions. Use to add simple borders or expand by a fixed amount. Negative values will crop the image.'),
       'topdiff' => array(

@@ -323,7 +323,6 @@ dpm($effect);
     $form['textimage_options'] = array(
       '#type' => 'details',
       '#tree' => TRUE,
-      '#collapsed' => TRUE,
       '#weight' => 10,
       '#title' => t('Textimage options'),
       '#description' => t('Define Textimage options specific for this image style.'),

@@ -110,6 +110,7 @@ class SettingsForm extends ConfigFormBase {
     $default_scheme = isset($scheme_options[$default_scheme]) ? $default_scheme : 'public';
     $form['textimage_store'] = array(
       '#type' => 'details',
+      '#open' => TRUE,
       '#title' => $this->t('Textimage store location'),
     );
     $form['textimage_store']['store_scheme'] = array(
@@ -123,6 +124,7 @@ class SettingsForm extends ConfigFormBase {
     // Fonts.
     $form['font'] = array(
       '#type' => 'details',
+      '#open' => TRUE,
       '#title' => $this->t('Fonts'),
       '#tree' => TRUE,
     );
@@ -141,6 +143,7 @@ class SettingsForm extends ConfigFormBase {
     // Background images.
     $form['background'] = array(
       '#type' => 'details',
+      '#open' => TRUE,
       '#title' => $this->t('Background images'),
       '#tree' => TRUE,
     );
@@ -153,6 +156,7 @@ class SettingsForm extends ConfigFormBase {
     // Color.
     $form['color'] = array(
       '#type' => 'details',
+      '#open' => TRUE,
       '#title' => $this->t('Colors'),
       '#tree' => TRUE,
     );
@@ -165,8 +169,6 @@ class SettingsForm extends ConfigFormBase {
     // Maintenance.
     $form['maintenance'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
       '#title' => $this->t('Maintenance'),
       '#description' => t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.'),
     );

@@ -118,7 +118,6 @@ class TextimageText extends TextimageEffectBase {
     $form['text_default'] = array(
       '#type'  => 'details',
       '#title' => $this->t('Text default'),
-      '#collapsed'   => FALSE,
       '#group'   => 'settings',
     );
     $form['text_default']['text_string'] = array(
@@ -142,7 +141,6 @@ class TextimageText extends TextimageEffectBase {
     $form['font'] = array(
       '#type'  => 'details',
       '#title' => $this->t('Font settings'),
-      '#collapsed'   => FALSE,
       '#group'   => 'settings',
     );
     $form['font'] += $this->fontPlugin->selectionElement('name', array(
@@ -180,8 +178,6 @@ class TextimageText extends TextimageEffectBase {
     // Outline.
     $form['font']['stroke'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
       '#title' => $this->t('Outline / Shadow'),
       '#description'   => $this->t('Optionally add an outline or shadow around the font. Enter the information in pixels.'),
     );
@@ -319,7 +315,6 @@ class TextimageText extends TextimageEffectBase {
     $form['text'] = array(
       '#type'  => 'details',
       '#title' => $this->t('Text settings'),
-      '#collapsed' => FALSE,
       '#group'   => 'settings',
     );
     // Inner width.
@@ -327,20 +322,20 @@ class TextimageText extends TextimageEffectBase {
       '#type'  => 'number',
       '#title' => $this->t('Maximum width'),
       '#field_suffix' => $this->t('px'),
-      '#description' => $this->t('Maximum width of the text image, inclusive of padding. Text lines wider than this will be wrapped. Leave blank to disable wrapping. <b>Note:</b> in case of rotation, the width of the final image rendered will differ, to accomodate the rotation. If you need a strict width/height, add image resize/scale/crop effects afterwards.'),
+      '#description' => $this->t('Maximum width of the text image, inclusive of padding. Text lines wider than this will be wrapped. Set to 0 to disable wrapping. <b>Note:</b> in case of rotation, the width of the final image rendered will differ, to accomodate the rotation. If you need a strict width/height, add image resize/scale/crop effects afterwards.'),
       '#default_value' => $this->configuration['text']['maximum_width'],
       '#maxlength' => 4,
       '#size' => 4,
       '#min' => 0,
     );
-    $form['text']['fixed_width'] = array(  // @todo does not work
+    $form['text']['fixed_width'] = array(
       '#type'  => 'checkbox',
       '#title' => $this->t('Fixed width?'),
       '#description' => $this->t('If checked, the width will always be equal to the maximum width.'),
       '#default_value' => $this->configuration['text']['fixed_width'],
       '#states' => array(
         'visible' => array(
-          ':input[name="data[text][maximum_width]"]' => array('value' => TRUE),
+          ':input[name="data[text][maximum_width]"]' => array('!value' => 0),
         ),
       ),
     );
@@ -385,14 +380,12 @@ class TextimageText extends TextimageEffectBase {
     $form['layout'] = array(
       '#type'  => 'details',
       '#title' => $this->t('Layout settings'),
-      '#collapsed' => FALSE,
       '#group'   => 'settings',
     );
     // Position.
     $form['layout']['position'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
+      '#open' => TRUE,
       '#title' => $this->t('Position'),
     );
     $form['layout']['position']['placement'] = array(
@@ -446,8 +439,7 @@ class TextimageText extends TextimageEffectBase {
     // Padding.
     $form['layout']['padding'] = array(
       '#type' => 'details',
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
+      '#open' => TRUE,
       '#title' => $this->t('Padding'),
       '#description' => $this->t('Specify the padding in pixels to be added around the generated text.'),
     );
