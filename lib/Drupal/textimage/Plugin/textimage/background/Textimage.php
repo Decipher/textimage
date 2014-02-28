@@ -7,7 +7,6 @@
 
 namespace Drupal\textimage\Plugin\textimage\background;
 
-use Drupal\Component\Utility\MapArray;
 use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -79,7 +78,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
       '#type'  => 'select',
       '#title'   => isset($options['#title']) ? $options['#title'] : $this->t('Background image'),
       '#description' => isset($options['#description']) ? $options['#description'] : $this->t('Select image.'),
-      '#options' => MapArray::copyValuesToKeys($image_files),
+      '#options' => array_combine($image_files, $image_files),
       '#default_value' => isset($options['background_image']['uri']) ? pathinfo($options['background_image']['uri'], PATHINFO_BASENAME) : '',
       '#element_validate' => array(array($this, 'validateSelectorUri')),
       '#states' => array(

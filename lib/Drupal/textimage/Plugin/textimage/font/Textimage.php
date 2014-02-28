@@ -7,7 +7,6 @@
 
 namespace Drupal\textimage\Plugin\textimage\font;
 
-use Drupal\Component\Utility\MapArray;
 use Drupal\Component\Utility\Unicode;
 use Drupal\textimage\Plugin\TextimageFontPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
@@ -84,7 +83,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     }
 
     // Default font.
-    $font_options = MapArray::copyValuesToKeys($fonts_list);
+    $font_options = array_combine($fonts_list, $fonts_list);
     $default_font = config('textimage.settings')->get('default_font.name'); // @todo inject
     $default_value = array_key_exists($default_font, $font_options) ? $default_font : NULL;
 

@@ -9,7 +9,6 @@
 
 namespace Drupal\textimage\Plugin\textimage\font;
 
-use Drupal\Component\Utility\MapArray;
 
 /**
  * Fonts handler for font-your-face.
