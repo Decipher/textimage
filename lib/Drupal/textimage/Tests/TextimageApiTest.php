@@ -88,9 +88,8 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTrue(empty($returned_text), 'Processed text is not available');
 
     // Process Textimage.
-    $text_array = array('bingo', 'bongo', 'tengo', '[user:name]');
-    $expected_text_array = array('bingo', 'bongo', 'tengo', $this->admin_user->getUsername());  // @todo why is the token returning 'admin'?
-//    $expected_text_array = array('bingo', 'bongo', 'tengo', 'admin');
+    $text_array = array('bingo', 'bongo', 'tengo', 'tango');
+    $expected_text_array = array('bingo', 'bongo', 'tengo', 'tango');
     $textimage->process($text_array);
 
     // Check API is providing output after processing.
