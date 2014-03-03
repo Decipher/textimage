@@ -13,8 +13,9 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Lock\DatabaseLockBackend;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Utility\Token;
-use Drupal\field\Field;
+use Drupal\field\FieldInfo;
 
 /**
  * Provides a factory for Textimage.
@@ -50,6 +51,20 @@ class TextimageFactory {
   protected $config;
 
   /**
+   * The field information service.
+   *
+   * @var \Drupal\field\FieldInfo
+   */
+  protected $fieldInfo;
+
+  /**
+   * The current user.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $currentUser;
+
+  /**
    * Constructs a new TextimageFactory object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -60,12 +75,18 @@ class TextimageFactory {
    *   the token resolution service
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
    *   the textimage cache service
+   * @param \Drupal\field\FieldInfo $field_info
+   *   the field information service
+   * @param \Drupal\Core\Session\AccountInterface $current_user
+   *   the current user
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service) {
+  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, FieldInfo $field_info, AccountInterface $current_user) {
     $this->config = $config_factory->get('textimage.settings');
     $this->lock = $lock_service;
     $this->token = $token_service;
     $this->cache = $cache_service;
+    $this->fieldInfo = $field_info;
+    $this->currentUser = $current_user;
   }
 
   /**
@@ -84,7 +105,7 @@ class TextimageFactory {
     $text = $this->token->replace(
       $text,
       array(
-        'user' => \Drupal::currentUser(),  // @todo inject service??
+        'user' => $this->currentUser,
         'node' => $node,
         'file' => $source_image_file,
       )
@@ -273,14 +294,14 @@ class TextimageFactory {
       $index = isset($sub_token_array[2]) ? $sub_token_array[2] : NULL;
 
       // Get general field info, continue if missing.
-      $field_info = Field::fieldInfo()->getField('node', $field_name);  // @todo inject Field???
+      $field_info = $this->fieldInfo->getField('node', $field_name);
       if (!$field_info) {
         continue;
       }
 
       // Get node (bundle) dependent field info, continue if missing.
       $node_type = $node->getType();
-      $instance_info = Field::fieldInfo()->getInstance('node', $node_type, $field_name); // @todo inject Field???
+      $instance_info = $this->fieldInfo->getInstance('node', $node_type, $field_name);
       if (!$instance_info) {
         continue;
       }

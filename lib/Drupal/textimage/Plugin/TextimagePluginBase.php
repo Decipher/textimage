@@ -7,7 +7,9 @@
 
 namespace Drupal\textimage\Plugin;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\PluginBase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Base plugin for Textimage.
@@ -16,11 +18,31 @@ class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInter
 
   protected $pluginType;
 
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
+  /**
+   * Textimage configuration object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ConfigFactoryInterface $config_factory) {
+    $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->pluginType = $configuration['plugin_type'];
-    $config = \Drupal::config('textimage.settings')->get($this->pluginType . '.plugin_settings.' . $plugin_id);  // @todo inject
+    $config = $this->config->get($this->pluginType . '.plugin_settings.' . $plugin_id);
     $this->setConfiguration(array_merge($this->defaultConfiguration(), is_array($config) ? $config : array()));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, array $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('config.factory')
+    );
   }
 
   public function getConfiguration() {

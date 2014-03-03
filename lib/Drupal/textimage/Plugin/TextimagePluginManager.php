@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin;
 
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\LanguageManager;
 use Drupal\Core\Plugin\DefaultPluginManager;
@@ -18,12 +19,20 @@ use Drupal\Core\Plugin\DefaultPluginManager;
 class TextimagePluginManager extends DefaultPluginManager {
 
   /**
+   * The configuration object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * {@inheritdoc}
    *
    * @param string $type
    *   The plugin type, for example Font.
    */
-  public function __construct($type, \Traversable $namespaces, CacheBackendInterface $cache_backend, LanguageManager $language_manager, ModuleHandlerInterface $module_handler) {
+  public function __construct($type, \Traversable $namespaces, CacheBackendInterface $cache_backend, LanguageManager $language_manager, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config_factory) {
+    $this->config = $config_factory->get('textimage.settings');
     parent::__construct("Plugin/textimage/$type", $namespaces, $module_handler);
     $this->alterInfo('textimage_' . $type . '_plugin_info');
     $this->setCacheBackend($cache_backend, $language_manager, 'textimage_' . $type . '_plugins');
@@ -37,7 +46,7 @@ class TextimagePluginManager extends DefaultPluginManager {
   }
 
   public function getPlugin($plugin_id = NULL) {
-    $plugin_id = $plugin_id ? $plugin_id : \Drupal::config('textimage.settings')->get($this->getType() . '.plugin_id');  // @todo inject
+    $plugin_id = $plugin_id ? $plugin_id : $this->config->get($this->getType() . '.plugin_id');
     $plugins = $this->getAvailablePlugins();
 
     // Check if plugin is available.

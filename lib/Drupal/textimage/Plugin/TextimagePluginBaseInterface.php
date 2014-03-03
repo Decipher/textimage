@@ -3,11 +3,13 @@
 namespace Drupal\textimage\Plugin;
 
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+
 
 /**
  * Textimage base plugin interface.
  */
-interface TextimagePluginBaseInterface extends ConfigurablePluginInterface {
+interface TextimagePluginBaseInterface extends ConfigurablePluginInterface, ContainerFactoryPluginInterface {
 
   /**
    * Return a form array used to configure the plugin.
