@@ -24,8 +24,8 @@ class TextimagePluginManager extends DefaultPluginManager {
    *   The plugin type, for example Font.
    */
   public function __construct($type, \Traversable $namespaces, CacheBackendInterface $cache_backend, LanguageManager $language_manager, ModuleHandlerInterface $module_handler) {
-    parent::__construct("Plugin/textimage/$type", $namespaces);
-    $this->alterInfo($module_handler, 'textimage_' . $type . '_plugin_info');
+    parent::__construct("Plugin/textimage/$type", $namespaces, $module_handler);
+    $this->alterInfo('textimage_' . $type . '_plugin_info');
     $this->setCacheBackend($cache_backend, $language_manager, 'textimage_' . $type . '_plugins');
     $this->defaults += array(
       'plugin_type' => $type,
@@ -37,7 +37,7 @@ class TextimagePluginManager extends DefaultPluginManager {
   }
 
   public function getPlugin($plugin_id = NULL) {
-    $plugin_id = $plugin_id ? $plugin_id : \Drupal::config('textimage.settings')->get($this->getType() . '.plugin_id');
+    $plugin_id = $plugin_id ? $plugin_id : \Drupal::config('textimage.settings')->get($this->getType() . '.plugin_id');  // @todo inject
     $plugins = $this->getAvailablePlugins();
 
     // Check if plugin is available.

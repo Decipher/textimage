@@ -19,7 +19,7 @@ class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInter
   public function __construct(array $configuration, $plugin_id, array $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->pluginType = $configuration['plugin_type'];
-    $config = config('textimage.settings')->get($this->pluginType . '.plugin_settings.' . $plugin_id);
+    $config = \Drupal::config('textimage.settings')->get($this->pluginType . '.plugin_settings.' . $plugin_id);  // @todo inject
     $this->setConfiguration(array_merge($this->defaultConfiguration(), is_array($config) ? $config : array()));
   }
 

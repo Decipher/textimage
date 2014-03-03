@@ -121,7 +121,7 @@ function textimage_schema() {
 function textimage_install() {
 
   // Create fonts and background directories.
-  $fonts_path = config('textimage.settings')->get('font.plugin_settings.textimage.path');
+  $fonts_path = \Drupal::config('textimage.settings')->get('font.plugin_settings.textimage.path');
   if (!file_prepare_directory($fonts_path, FILE_CREATE_DIRECTORY)) {
     _textimage_diag(
       t(
@@ -134,7 +134,7 @@ function textimage_install() {
       WATCHDOG_ERROR
     );
   }
-  $backgrounds_path = config('textimage.settings')->get('background.plugin_settings.textimage.path');
+  $backgrounds_path = \Drupal::config('textimage.settings')->get('background.plugin_settings.textimage.path');
   if (!file_prepare_directory($backgrounds_path, FILE_CREATE_DIRECTORY)) {
     _textimage_diag(
       t(

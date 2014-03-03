@@ -84,7 +84,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
 
     // Default font.
     $font_options = array_combine($fonts_list, $fonts_list);
-    $default_font = config('textimage.settings')->get('default_font.name'); // @todo inject
+    $default_font = \Drupal::config('textimage.settings')->get('default_font.name'); // @todo inject
     $default_value = array_key_exists($default_font, $font_options) ? $default_font : NULL;
 
     // Element.
