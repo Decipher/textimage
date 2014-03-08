@@ -563,7 +563,7 @@ function template_preprocess_textimage_formatter(&$variables) {
       $output = array(
         '#theme' => 'container',
         '#attributes' => $container_attributes,
-        '#children' => drupal_render($output),    // @todo remove once theme_container converted to Twig, see #2152203
+        '#children' => $output,
       );
     }
 
