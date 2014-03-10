@@ -485,9 +485,7 @@ class TextimageText extends TextimageEffectBase {
       '#default_value' => $this->configuration['layout']['background_color'],
     );
 
-    $form['#attached']['css'] = array(
-      drupal_get_path('module', 'textimage') . '/css/textimage.admin.css',
-    );
+    $form['#attached']['library'][] = 'textimage/admin.ui';
 
     $form['#element_validate'][] = array($this, 'validateForm');
 
