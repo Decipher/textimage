@@ -672,6 +672,10 @@ function _textimage_module_exists($module, $version = NULL, $comparison_operator
  * @todo - temp hack to run GD while a solution is found
  */
 function _textimage_toolkit_invoke($method, $image, array $params = array()) {
+  if ($image->getToolkitId != 'gd') {
+    _textimage_diag(t('The selected image handling toolkit %toolkit is not supported by Textimage.', array('%toolkit' => $image->getToolkitId())), WATCHDOG_ERROR);
+    return FALSE;
+  }
   $function = 'image_gd_' . $method;
   if (function_exists($function)) {
     array_unshift($params, $image);
