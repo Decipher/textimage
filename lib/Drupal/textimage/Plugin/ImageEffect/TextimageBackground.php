@@ -280,7 +280,7 @@ class TextimageBackground extends TextimageEffectBase {
         if ($new_image) {
           $image->setHeight($new_image->getHeight());
           $image->setWidth($new_image->getWidth());
-          $image->setResource($new_image->getResource());
+          $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
         }
         else {
           _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
@@ -306,7 +306,7 @@ class TextimageBackground extends TextimageEffectBase {
         if ($new_image) {
           $image->setHeight($new_image->getHeight());
           $image->setWidth($new_image->getWidth());
-          $image->setResource($new_image->getResource()); 
+          $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
         }
         break;
 

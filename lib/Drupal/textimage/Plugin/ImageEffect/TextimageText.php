@@ -924,7 +924,9 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
     );
 
     // Create the wrapper image object as a canvass for the text.
-    $wrapper = clone $image;
+    //$wrapper = clone $image;
+    $wrapper = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+    $wrapper->resize($outer_box_t->get('width'), $outer_box_t->get('height'));
     $wrapper->setWidth($outer_box_t->get('width'));
     $wrapper->setHeight($outer_box_t->get('height'));
 
