@@ -179,6 +179,7 @@ class TextimageFormatter extends FormatterBase {
           '#text' => NULL,
           '#node' => $node,
           '#source_image_file' => $item->entity,
+          '#force_hashed_filename' => TRUE,
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
           '#href' => $href,

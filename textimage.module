@@ -59,6 +59,7 @@ function textimage_theme() {
         'node' => NULL,
         'source_image_file' => NULL,
         'target_uri' => NULL,
+        'force_hashed_filename' => FALSE,
         'alt'    => '',
         'title'  => '',
         'attributes' => array(),
@@ -532,6 +533,10 @@ function template_preprocess_textimage_formatter(&$variables) {
     }
     else {
       $textimage->setCaching($variables['caching']);
+    }
+
+    if ($variables['force_hashed_filename']) {
+      $textimage->setHashedFilename(TRUE);
     }
 
     $textimage->extension($variables['extension']);
