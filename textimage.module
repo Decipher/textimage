@@ -101,10 +101,10 @@ function textimage_theme() {
  * Implements hook_menu_link_defaults().
  */
 function textimage_menu_link_defaults() {
-  $links['textimage.admin.config'] = array(
+  $links['textimage.settings'] = array(
     'link_title' => 'Textimage',
     'description' => 'Configure Textimage settings.',
-    'parent' => 'system.admin.config.media',
+    'parent' => 'system.admin_config_media',
     'route_name' => 'textimage.settings',
   );
   return $links;
