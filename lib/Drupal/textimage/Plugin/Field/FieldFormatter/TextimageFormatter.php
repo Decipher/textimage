@@ -142,10 +142,7 @@ class TextimageFormatter extends FormatterBase {
     if ($image_link_setting = $this->getSetting('image_link')) {
       switch ($image_link_setting) {
         case 'content':
-          $uri = $items->getEntity()->urlInfo();
-          // @todo Remove when theme_textimage_formatter() has support for route name.
-          $uri['path'] = $items->getEntity()->getSystemPath();
-          $href = $uri['path'];
+          $href = $items->getEntity()->getSystemPath();
           break;
 
         case 'file':
