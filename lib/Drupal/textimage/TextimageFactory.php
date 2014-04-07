@@ -122,7 +122,7 @@ class TextimageFactory {
         return Unicode::ucfirst($text);
 
       case 'ucwords':
-        return preg_replace_callback('/(\w+)/', function ($m) { return Unicode::ucfirst($m[1]); }, $text);  // @todo change to Unicode::ucwords when #70719 is in
+        return Unicode::ucwords($text);
 
       default:
         return $text;
