@@ -25,7 +25,7 @@ class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInter
    */
   protected $config;
 
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ConfigFactoryInterface $config_factory) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->pluginType = $configuration['plugin_type'];
@@ -36,7 +36,7 @@ class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInter
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, array $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,

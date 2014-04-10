@@ -55,7 +55,7 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ConfigFactoryInterface $config_factory, $image_factory, $textimage_factory, $effect_manager, $font_plugin, $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, $image_factory, $textimage_factory, $effect_manager, $font_plugin, $background_plugin) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->imageFactory = $image_factory;
@@ -69,7 +69,7 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, array $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
