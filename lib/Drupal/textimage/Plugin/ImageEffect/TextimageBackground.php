@@ -278,8 +278,6 @@ class TextimageBackground extends TextimageEffectBase {
         }
         $new_image = $this->imageFactory->get($this->configuration['background_image']['uri']); // @todo maybe not needed if calling toolkit methods directly
         if ($new_image) {
-          $image->setHeight($new_image->getHeight());
-          $image->setWidth($new_image->getWidth());
           $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
         }
         else {
@@ -304,8 +302,6 @@ class TextimageBackground extends TextimageEffectBase {
           )
         );
         if ($new_image) {
-          $image->setHeight($new_image->getHeight());
-          $image->setWidth($new_image->getWidth());
           $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
         }
         break;

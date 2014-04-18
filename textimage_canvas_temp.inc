@@ -97,12 +97,7 @@ function canvasactions_definecanvas_effect($image, array $data) {
   // All the math is done, now defer to the toolkit in use.
   $data['targetsize'] = $targetsize;
 
-  $success = _textimage_toolkit_invoke('definecanvas', $image, array($data));
-  if ($success) {
-    $image->setWidth($targetsize['width']);
-    $image->getHeight($targetsize['height']);
-  }
-  return $success;
+  return _textimage_toolkit_invoke('definecanvas', $image, array($data));
 }
 
 /**
@@ -139,8 +134,6 @@ function image_gd_definecanvas($image, array $data = array()) {
     $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
     //$canvas_object = clone $image;
     $canvas_object->getToolkit()->setResource($newcanvas);
-    $canvas_object->setWidth($targetsize['width']);
-    $canvas_object->setHeight($targetsize['height']);
     image_overlay($image, $canvas_object, $targetsize['left'], $targetsize['top'], 100, TRUE);
   }
   else {
@@ -230,8 +223,6 @@ function image_gd_overlay($image, $layer, $x, $y, $alpha = 100, $reverse = FALSE
     imagecopy($lower->getToolkit()->getResource(), $upper->getToolkit()->getResource(), $x, $y, 0, 0, $upper->getWidth(), $upper->getHeight());
     imagedestroy($upper->getToolkit()->getResource());
     $image->getToolkit()->setResource($lower->getToolkit()->getResource());
-    $image->setHeight($lower->getHeight());
-    $image->setWidth($lower->getWidth());
   }
 /*/  else {
     // imagecopy() cannot be used and we have to use the slow library.
@@ -242,8 +233,6 @@ function image_gd_overlay($image, $layer, $x, $y, $alpha = 100, $reverse = FALSE
     imagedestroy($lower->getToolkit()->getResource());
     imagedestroy($upper->getToolkit()->getResource());
     $image->getToolkit()->setResource($result_img);
-    $image->setHeight($lower->getHeight());
-    $image->setWidth($lower->getWidth());
   }*/
 
   return TRUE;

@@ -360,8 +360,6 @@ function image_gd_textimage_create_transparent($image, $width, $height, $transpa
 
   $new_image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
   //$new_image = clone $image;
-  $new_image->setWidth($width);
-  $new_image->setHeight($height);
   $new_image->getToolkit()->setResource($res);
   return $new_image;
 }

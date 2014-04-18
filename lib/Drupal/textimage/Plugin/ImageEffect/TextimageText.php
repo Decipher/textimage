@@ -776,10 +776,6 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
       // Dummy image object.
       //$image = new stdClass();   @todo no longer possible to create empty images
       $image = $this->imageFactory->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
-      $image->setWidth($dimensions['width']);
-      $image->setHeight($dimensions['height']);
-// @todo     $image->info['extension'] = 'png';
-// @todo     $image->info['mime_type'] = 'image/png';
 
       // Get the text wrapper resource.
       if (!$wrapper = $this->getTextWrapper($image, $this->configuration)) {
@@ -927,8 +923,6 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
     //$wrapper = clone $image;
     $wrapper = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
     $wrapper->resize($outer_box_t->get('width'), $outer_box_t->get('height'));
-    $wrapper->setWidth($outer_box_t->get('width'));
-    $wrapper->setHeight($outer_box_t->get('height'));
 
     // Calls image generation for the wrapper image.
     $data_textimage = array(

@@ -140,7 +140,7 @@ function textimage_install() {
       t(
         'Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup background images management.',
         array(
-          '%path' => _textimage_get_variable('backgrounds_path'),
+          '%path' => $backgrounds_path,
           '@url' => url('admin/config/media/textimage'),
         )
       ),
