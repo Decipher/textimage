@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Base plugin for Textimage.
  */
-class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInterface {
+abstract class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInterface {
 
   protected $pluginType;
 
@@ -55,6 +55,13 @@ class TextimagePluginBase extends PluginBase implements TextimagePluginBaseInter
 
   public function defaultConfiguration() {
     return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    return parent::calculateDependencies();
   }
 
   /**
