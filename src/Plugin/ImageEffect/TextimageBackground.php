@@ -313,45 +313,30 @@ class TextimageBackground extends TextimageEffectBase {
     // Handle exact sizing impacts on original image.
     if ($this->configuration['exact']['width'] || $this->configuration['exact']['height']) {
       // If current image is larger than size requested, call out to
-      // scale/resize/crop effects to reduce image size depending
+      // scale/resize/crop operations to reduce image size depending
       // on options selected.
       if ($this->configuration['exact']['width'] <= $image->getWidth() || $this->configuration['exact']['height'] <= $image->getHeight()) {
 
         switch ($this->configuration['exact']['dimensions']) {
           case 'scale':
-            $scale_data = array(
-              'data' => array(
-                'width' => $this->configuration['exact']['width'],
-                'height' => $this->configuration['exact']['height'],
-                'upscale' => 0,
-              ),
-            );
-            $effect = $this->effectManager->createInstance('image_scale', $scale_data); // @todo use toolkit call directly
-            $success = $effect->applyEffect($image);
+            $success = $image->scale($this->configuration['exact']['width'], $this->configuration['exact']['height']);
             break;
 
           case 'resize':
-            $resize_data = array(
-              'data' => array(
-                'width' => $this->configuration['exact']['width'] ? $this->configuration['exact']['width'] : $image->getWidth(),
-                'height' => $this->configuration['exact']['height'] ? $this->configuration['exact']['height'] : $image->getHeight(),
-              ),
-            );
-            $effect = $this->effectManager->createInstance('image_resize', $resize_data); // @todo use toolkit call directly
-            $success = $effect->applyEffect($image);
+            $width = $this->configuration['exact']['width'] ?: $image->getWidth();
+            $height = $this->configuration['exact']['height'] ?: $image->getHeight();
+            $success = $image->resize($width, $height);
             break;
 
           case 'crop':
-            $crop_data = array(
-              'data' => array(
-                'width' => min($this->configuration['exact']['width'], $image->getWidth()),
-                'height' => min($this->configuration['exact']['height'], $image->getHeight()),
-                'anchor' => $this->configuration['exact']['crop'],
-              ),
-            );
-            $effect = $this->effectManager->createInstance('image_crop', $crop_data); // @todo use toolkit call directly
-            $success = $effect->applyEffect($image);
+            $width = min($this->configuration['exact']['width'], $image->getWidth());
+            $height = min($this->configuration['exact']['height'], $image->getHeight());
+            list($x, $y) = explode('-', $this->configuration['exact']['crop']);
+            $x = image_filter_keyword($x, $image->getWidth(), $width);
+            $y = image_filter_keyword($y, $image->getHeight(), $height);
+            $success = $image->crop($x, $y, $width, $height);
             break;
+
         }
 
         if (!$success) {

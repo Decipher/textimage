@@ -725,15 +725,7 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
         // Check if scaling down is needed.
         list($resized, $offset_wrapper) = $this->wrapperResize($image, $wrapper, $this->configuration);
         if ($resized) {
-          $scale_data = array(
-            'data' => array(
-              'width' => $offset_wrapper['width'],
-              'height' => $offset_wrapper['height'],
-              'upscale' => 0,
-            ),
-          );
-          $effect = $this->effectManager->createInstance('image_scale', $scale_data); // @todo use toolkit call directly
-          if (!$effect->applyEffect($wrapper)) {
+          if (!$wrapper->scale($offset_wrapper['width'], $offset_wrapper['height'])) {
             return FALSE;
           }
         }

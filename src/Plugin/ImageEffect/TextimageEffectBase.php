@@ -11,6 +11,8 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\image\ConfigurableImageEffectInterface;
 use Drupal\image\ImageEffectBase;
+use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
+use Drupal\textimage\Plugin\TextimageFontPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,15 +20,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 abstract class TextimageEffectBase extends ImageEffectBase implements ConfigurableImageEffectInterface, ContainerFactoryPluginInterface {
 
-  // @todo maybe not needed if calling toolkit methods directly
-  protected $effectManager;
-
   /**
    * The Textimage factory.
    *
    * @var \Drupal\textimage\TextimageFactory
    */
   protected $textimageFactory;  // @todo maybe not needed if there's a way to store data in the Image options
+
+  // @todo maybe not needed if calling toolkit methods directly
+  protected $imageFactory;
 
   /**
    * Textimage configuration object.
@@ -42,9 +44,6 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
    */
   protected $fontPlugin;
 
-  // @todo maybe not needed if calling toolkit methods directly
-  protected $imageFactory;
-
   /**
    * The background plugin.
    *
@@ -55,15 +54,13 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, $image_factory, $textimage_factory, $effect_manager, $font_plugin, $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->imageFactory = $image_factory;
     $this->textimageFactory = $textimage_factory;
-    $this->effectManager = $effect_manager;
     $this->fontPlugin = $font_plugin;
     $this->backgroundPlugin = $background_plugin;
-
   }
 
   /**
@@ -77,7 +74,6 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
       $container->get('config.factory'),
       $container->get('image.factory'),
       $container->get('textimage.factory'),
-      $container->get('plugin.manager.image.effect'),
       $container->get('plugin.manager.textimage.font')->getPlugin(),
       $container->get('plugin.manager.textimage.background')->getPlugin()
     );
