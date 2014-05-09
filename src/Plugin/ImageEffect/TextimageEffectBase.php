@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\image\ConfigurableImageEffectInterface;
 use Drupal\image\ImageEffectBase;
@@ -27,7 +28,11 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
    */
   protected $textimageFactory;  // @todo maybe not needed if there's a way to store data in the Image options
 
-  // @todo maybe not needed if calling toolkit methods directly
+  /**
+   * The Image factory.
+   *
+   * @var \Drupal\Core\Image\ImageFactory
+   */
   protected $imageFactory;
 
   /**
@@ -54,7 +59,7 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, ImageFactory $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->imageFactory = $image_factory;

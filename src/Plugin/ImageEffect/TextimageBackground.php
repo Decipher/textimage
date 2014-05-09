@@ -272,16 +272,7 @@ class TextimageBackground extends TextimageEffectBase {
       // If a background image is selected, it will override any
       // image built thus far.
       case 'select':
-        if (!isset($this->configuration['background_image']['uri'])) {
-          _textimage_diag($this->t('Textimage could not find an image to load.'), WATCHDOG_ERROR, __FUNCTION__);
-          return FALSE;
-        }
-        $new_image = $this->imageFactory->get($this->configuration['background_image']['uri']); // @todo maybe not needed if calling toolkit methods directly
-        if ($new_image) {
-          $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
-        }
-        else {
-          _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
+        if (!_textimage_toolkit_invoke('textimage_replace', $image, array(array('uri' => $this->configuration['background_image']['uri'])))) {
           return FALSE;
         }
         break;
@@ -413,17 +404,13 @@ class TextimageBackground extends TextimageEffectBase {
     // Fetches WxH of the background image.
     switch ($this->configuration['background_image']['mode']) {
       case 'select':
-        if (!isset($this->configuration['background_image']['uri'])) {
-          _textimage_diag($this->t('Textimage could not find an image to load.'), WATCHDOG_ERROR, __FUNCTION__);
-          return;
-        }
-        $new_image = $this->imageFactory->get($this->configuration['background_image']['uri']); // @todo use toolkit??
-        if (!$new_image) {
+        $image = $this->imageFactory->get($this->configuration['background_image']['uri']);
+        if (!$image->isExisting()) {
           _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
           return;
         }
-        $width = $new_image->getWidth();
-        $height = $new_image->getHeight();
+        $width = $image->getWidth();
+        $height = $image->getHeight();
         break;
 
       // If passing through the image from the last effect, retain

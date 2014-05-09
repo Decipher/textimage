@@ -4,12 +4,47 @@
  * GD2 toolkit for image manipulation within Textimage.
  */
 
+use Drupal\Core\StreamWrapper\LocalStream;
+use Drupal\textimage\Component\BoundingBox;
+use Drupal\textimage\Plugin\ImageEffect\TextimageText;
+
+/**
+ * Replaces the image resource with one loaded from a file.
+ */
+function image_gd_textimage_replace($image, $data = array()) {
+  if (!isset($data['uri'])) {
+    _textimage_diag(t('No image to load specified.'), WATCHDOG_ERROR, __FUNCTION__);
+    return FALSE;
+  }
+
+  $image_data = @getimagesize($data['uri']);
+
+  if ($image_data) {    // @todo type checking && in_array($data[2], static::supportedTypes())
+    $function = 'imagecreatefrom' . image_type_to_extension($image_data[2], FALSE);
+    if (function_exists($function) && $resource = $function($data['uri'])) {
+      if (!imageistruecolor($resource)) {
+        // Convert indexed images to true color, so that filters work
+        // correctly and don't result in unnecessary dither.
+        $new_resource = $image->getToolkit()->createTmp($image_data[2], imagesx($resource), imagesy($resource));
+        imagecopy($new_resource, $resource, 0, 0, 0, 0, imagesx($resource), imagesy($resource));
+        imagedestroy($resource);
+        $resource = $new_resource;
+      }
+      $image->getToolkit()->setResource($resource);
+      return TRUE;
+    }
+  }
+
+  _textimage_diag(t('Textimage failed loading image %image', array('%image' => $data['uri'])), WATCHDOG_ERROR, __FUNCTION__);
+  return FALSE;
+}
+
 /**
  * Return the path of the font file, in a format usable by GD.
  */
 function image_gd_textimage_get_font_path($image, $data = array()) {
   $font_wrapper = file_stream_wrapper_get_instance_by_uri($data['font_uri']);
-  if ($font_wrapper instanceof \Drupal\Core\StreamWrapper\LocalStream) {
+  if ($font_wrapper instanceof LocalStream) {
     return $font_wrapper->realpath(); // @todo remove
   }
   else {
@@ -38,15 +73,15 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
 
   // Draw and fill the outer text box, if required.
   if ($data['layout']['background_color']) {
-    \Drupal\textimage\Plugin\ImageEffect\TextimageText::drawRectangle($image, $data['outer_box'], $data['layout']['background_color']);
+    TextimageText::drawRectangle($image, $data['outer_box'], $data['layout']['background_color']);
   }
 
   // In debug mode, visually display the text boxes.
   if ($data['debug_visuals']) {
-    \Drupal\textimage\Plugin\ImageEffect\TextimageText::drawBox($image, $data['inner_box'], $data['layout']['background_color'], TRUE);
-    \Drupal\textimage\Plugin\ImageEffect\TextimageText::drawBox($image, $data['outer_box'], $data['layout']['background_color'], TRUE);
+    TextimageText::drawBox($image, $data['inner_box'], $data['layout']['background_color'], TRUE);
+    TextimageText::drawBox($image, $data['outer_box'], $data['layout']['background_color'], TRUE);
     // Wrapper.
-    \Drupal\textimage\Plugin\ImageEffect\TextimageText::drawBox(
+    TextimageText::drawBox(
       $image,
       array(
         0, 0,
@@ -75,7 +110,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
   foreach ($data['text_lines'] as $text_line) {
 
     // This text line's box size.
-    $text_line_box = \Drupal\textimage\Plugin\ImageEffect\TextimageText::getBoundingBox($image, $text_line, 1, $data['font']['size'], $data['font']['uri']);
+    $text_line_box = TextimageText::getBoundingBox($image, $text_line, 1, $data['font']['size'], $data['font']['uri']);
     $text_line_box->set('height', $data['line_height']);
 
     // Manage text alignment within the line.
@@ -158,7 +193,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
 
     // In debug mode, display a polygon enclosing the text line.
     if ($data['debug_visuals']) {
-      \Drupal\textimage\Plugin\ImageEffect\TextimageText::drawDebugBox($image, $text_line_box_t, $data['layout']['background_color'], TRUE);
+      TextimageText::drawDebugBox($image, $text_line_box_t, $data['layout']['background_color'], TRUE);
     }
 
     // Add interline spacing (leading) before next iteration.
@@ -177,7 +212,7 @@ function image_gd_textimage_text_to_image($image, $data = array()) {
  */
 function image_gd_textimage_get_bounding_box($image, $data = array()) {
 
-  $box = new \Drupal\textimage\Component\BoundingBox();
+  $box = new BoundingBox();
 
   // Need to calculate the height independently from primitive as
   // lack of descending/ascending characters will limit the height.
