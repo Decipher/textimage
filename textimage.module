@@ -613,7 +613,7 @@ function _textimage_diag($message, $severity, $caller = NULL, $user_messages = T
     $message = t("@message - Function: @caller", array('@message' => $message, '@caller' => $caller));
   }
   if ($severity <= WATCHDOG_NOTICE) {
-    watchdog('textimage', $message, array(), $severity);
+    \Drupal::logger('textimage')->log($severity, $message);
   }
   if ($severity <= \Drupal::config('textimage.settings')->get('message_level') && $user_messages) {
     switch ($severity) {
@@ -674,6 +674,6 @@ function _textimage_toolkit_invoke($method, $image, array $params = array()) {
     array_unshift($params, $image);
     return call_user_func_array($function, $params);
   }
-  watchdog('image', 'The selected image handling toolkit %toolkit can not correctly process %function.', array('%toolkit' => $image->getToolkitId(), '%function' => $function), WATCHDOG_ERROR);
+  \Drupal::logger('textimage')->error('The selected image handling toolkit %toolkit can not correctly process %function.', array('%toolkit' => $image->getToolkitId(), '%function' => $function));
   return FALSE;
 }

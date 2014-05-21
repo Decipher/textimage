@@ -272,7 +272,8 @@ class TextimageBackground extends TextimageEffectBase {
       // If a background image is selected, it will override any
       // image built thus far.
       case 'select':
-        if (!_textimage_toolkit_invoke('textimage_replace', $image, array(array('uri' => $this->configuration['background_image']['uri'])))) {
+        $background_image = $this->imageFactory->get($this->configuration['background_image']['uri']);
+        if (!_textimage_toolkit_invoke('textimage_replace', $image, array($background_image))) {
           return FALSE;
         }
         break;
@@ -286,6 +287,7 @@ class TextimageBackground extends TextimageEffectBase {
       // a transparent 1x1 image.
       case '':
       default:
+        // @todo should not be a new image but just an opration that changes the resource
         $new_image = _textimage_toolkit_invoke('textimage_create_transparent', $image, array(
             1,
             1,

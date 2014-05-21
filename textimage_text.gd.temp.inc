@@ -4,39 +4,24 @@
  * GD2 toolkit for image manipulation within Textimage.
  */
 
+use Drupal\Core\Image\ImageInterface;
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Plugin\ImageEffect\TextimageText;
 
 /**
- * Replaces the image resource with one loaded from a file.
+ * Replaces the image resource with one in a different image.
  */
-function image_gd_textimage_replace($image, $data = array()) {
-  if (!isset($data['uri'])) {
-    _textimage_diag(t('No image to load specified.'), WATCHDOG_ERROR, __FUNCTION__);
+function image_gd_textimage_replace($image, ImageInterface $replacement_image) {
+  if (!$replacement_image->isExisting()) {
+    _textimage_diag(t('Invalid image at @source.', array('@source' => $replacement_image->getSource())), WATCHDOG_ERROR, __FUNCTION__);
     return FALSE;
   }
 
-  $image_data = @getimagesize($data['uri']);
-
-  if ($image_data) {    // @todo type checking && in_array($data[2], static::supportedTypes())
-    $function = 'imagecreatefrom' . image_type_to_extension($image_data[2], FALSE);
-    if (function_exists($function) && $resource = $function($data['uri'])) {
-      if (!imageistruecolor($resource)) {
-        // Convert indexed images to true color, so that filters work
-        // correctly and don't result in unnecessary dither.
-        $new_resource = $image->getToolkit()->createTmp($image_data[2], imagesx($resource), imagesy($resource));
-        imagecopy($new_resource, $resource, 0, 0, 0, 0, imagesx($resource), imagesy($resource));
-        imagedestroy($resource);
-        $resource = $new_resource;
-      }
-      $image->getToolkit()->setResource($resource);
-      return TRUE;
-    }
-  }
-
-  _textimage_diag(t('Textimage failed loading image %image', array('%image' => $data['uri'])), WATCHDOG_ERROR, __FUNCTION__);
-  return FALSE;
+  imagedestroy($image->getToolkit()->getResource());
+  $image->getToolkit()->setResource($replacement_image->getToolkit()->getResource());
+  // @todo $image->getToolkit()->setType($replacement_image->getToolkit()->getType());
+  return TRUE;
 }
 
 /**
@@ -57,7 +42,7 @@ function image_gd_textimage_get_font_path($image, $data = array()) {
  */
 function image_gd_textimage_text_to_image($image, $data = array()) {
 
-  // Create the image resource, fill transparent.
+  // Create the image resource, fill transparent.  @todo should be got as null from factory, then filled in blank (see XXXX)
   $new_image = _textimage_toolkit_invoke('textimage_create_transparent', $image, array(
       $image->getWidth(),
       $image->getHeight(),
@@ -393,6 +378,7 @@ function image_gd_textimage_create_transparent($image, $width, $height, $transpa
     imagefill($res, 0, 0, imagecolorallocate($res, 255, 255, 255));
   }
 
+  // @todo should not create an image here, just changing the resource (see XXXX)
   $new_image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
   //$new_image = clone $image;
   $new_image->getToolkit()->setResource($res);

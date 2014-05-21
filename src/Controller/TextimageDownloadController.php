@@ -114,7 +114,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     
     // Don't try to send file if it is missing.
     if (!file_exists($image_uri)) {
-      watchdog('textimage', 'Teximage image at %source_image_path not found.',  array('%source_image_path' => $image_uri));
+      \Drupal::logger('textimage')->notice('Textimage image at %source_image_path not found.',  array('%source_image_path' => $image_uri));
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
