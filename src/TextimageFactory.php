@@ -15,7 +15,6 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Utility\Token;
-use Drupal\field\FieldInfo;
 
 /**
  * Provides a factory for Textimage.
@@ -51,13 +50,6 @@ class TextimageFactory {
   protected $config;
 
   /**
-   * The field information service.
-   *
-   * @var \Drupal\field\FieldInfo
-   */
-  protected $fieldInfo;
-
-  /**
    * The current user.
    *
    * @var \Drupal\Core\Session\AccountInterface
@@ -75,17 +67,14 @@ class TextimageFactory {
    *   the token resolution service
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
    *   the textimage cache service
-   * @param \Drupal\field\FieldInfo $field_info
-   *   the field information service
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   the current user
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, FieldInfo $field_info, AccountInterface $current_user) {
+  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user) {
     $this->config = $config_factory->get('textimage.settings');
     $this->lock = $lock_service;
     $this->token = $token_service;
     $this->cache = $cache_service;
-    $this->fieldInfo = $field_info;
     $this->currentUser = $current_user;
   }
 
@@ -293,21 +282,13 @@ class TextimageFactory {
       // Get requested sequence, default to NULL.
       $index = isset($sub_token_array[2]) ? $sub_token_array[2] : NULL;
 
-      // Get general field info, continue if missing.
-      $field_info = $this->fieldInfo->getField('node', $field_name);
-      if (!$field_info) {
-        continue;
-      }
-
-      // Get node (bundle) dependent field info, continue if missing.
-      $node_type = $node->getType();
-      $instance_info = $this->fieldInfo->getInstance('node', $node_type, $field_name);
-      if (!$instance_info) {
+      // Get field info, continue if missing.
+      if (!$field_info = $node->getFieldDefinition($field_name)) {
         continue;
       }
 
       // Get info on component providing formatting, continue if missing.
-      $entity_display = entity_get_display('node', $node_type, $display_mode);
+      $entity_display = entity_get_display('node', $node->getType(), $display_mode);
       if (!$entity_display) {
         continue;
       }
@@ -331,7 +312,7 @@ class TextimageFactory {
         $items = $node->get($field_name);
 
         // Invoke Textimage API functions to return the token value requested.
-        if ($field_info->module == 'text') {
+        if ($field_info->getField()->module == 'text') {  // @todo watchout here as it should be 'getProvider'
           // Text field. Get sanitized text items and return a single image.
           $text = $this->getTextFieldText($items);
           try {
@@ -361,7 +342,7 @@ class TextimageFactory {
             }
           }
         }
-        elseif ($field_info->module == 'image') {
+        elseif ($field_info->getField()->module == 'image') {   // @todo watchout here as it should be 'getProvider'
           // Image field. Get a separate Textimage from each of the images
           // in the field.
           try {
