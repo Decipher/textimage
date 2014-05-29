@@ -46,7 +46,7 @@ class Textimage {
   /**
    * Textimage id.
    *
-   * It is a MD5 hash of the textimage effects and data.
+   * It is a SHA256 hash of the textimage effects and data.
    *
    * @var string
    *
@@ -346,7 +346,7 @@ class Textimage {
    * Return the Textimage id.
    *
    * @return string
-   *   A MD5 hash.
+   *   A SHA256 hash.
    */
   public function id() {
     return $this->processed ? $this->id : NULL;
@@ -513,12 +513,12 @@ class Textimage {
       'forceHashedFilename' => $this->forceHashedFilename,
     );
 
-    // Get md5 hash, being the Textimage id, for cache checking.
+    // Get SHA256 hash, being the Textimage id, for cache checking.
     $hash_input = array(
       'effects_outline'     => $this->effects,
       'image_data'          => $this->imageData,
     );
-    $this->id = md5(serialize($hash_input));
+    $this->id = hash('sha256', serialize($hash_input));
 
     // Check cache and/or store and return if db and file hit.
     if ($this->caching && $this->getCached()) {
@@ -657,7 +657,7 @@ class Textimage {
       }
     }
     else {
-      $base_name = md5(session_id() . microtime()) . '.' . $this->extension;
+      $base_name = hash('sha256', session_id() . microtime()) . '.' . $this->extension;
       $this->uri = $this->factory->getStorePath('uncached/') . $base_name;
     }
 

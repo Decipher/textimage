@@ -59,9 +59,9 @@ function textimage_schema() {
     'description' => 'Metadata for stored Textimage images.',
     'fields' => array(
       'tiid' => array(
-        'description' => 'Primary key; MD5 hash of effects and image variables.',
+        'description' => 'Primary key; SHA256 hash of effects and image variables.',
         'type' => 'varchar',
-        'length'   => 32,
+        'length'   => 64,
         'not null' => TRUE,
       ),
       'is_void' => array(
