@@ -54,12 +54,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
-    $elements = $this->xpath(
-      '//img[@src = :src]',
-      array(
-        ':src' => $textimage_url,
-      )
-    );
+    $elements = $this->cssSelect("img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value, 'Textimage has expected alt attribute.');
     $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value, 'Textimage has expected title attribute.');
@@ -68,14 +63,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_link'] = 'content';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet('node/' . $nid);
-    $elements = $this->xpath(
-      '//a[contains(@href, :href)]/img[@src = :src]',
-      array(
-        ':href' => 'node/' . $nid,
-        ':src' => $textimage_url,
-      )
-    );
+    $href = 'node/' . $nid;
+    $this->drupalGet($href);
+    $elements = $this->cssSelect("a[href*='$href'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value, 'Textimage has expected alt attribute.');
     $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value, 'Textimage has expected title attribute.');
@@ -87,13 +77,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
-    $elements = $this->xpath(
-      '//a[@href = :href]/img[@src = :src]',
-      array(
-        ':href' => $textimage_url,
-        ':src' => $textimage_url,
-      )
-    );
+    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->admin_user->getUsername(), 'Textimage has expected alt attribute.');
     $this->assertEqual($elements[0]['title'], 'Title: ' . $this->admin_user->getUsername(), 'Textimage has expected title attribute.');
