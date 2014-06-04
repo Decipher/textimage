@@ -21,17 +21,23 @@ use Drupal\Core\Field\FormatterBase;
  *     "text",
  *     "text_with_summary",
  *     "text_long",
- *     "image",
- *   },
- *   settings = {
- *     "image_style" = "",
- *     "image_link" = "",
- *     "image_alt" = "",
- *     "image_title" = "",
+ *     "image"
  *   }
  * )
  */
 class TextimageFormatter extends FormatterBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function defaultSettings() {
+    return array(
+      'image_style' => '',
+      'image_link' => '',
+      'image_alt' => '',
+      'image_title' => '',
+    ) + parent::defaultSettings();
+  }
 
   /**
    * {@inheritdoc}
