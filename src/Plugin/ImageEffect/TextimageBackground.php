@@ -57,7 +57,7 @@ class TextimageBackground extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function getForm() {
+  public function buildConfigurationForm(array $form, array &$form_state) {
     $form = array();
 
     // Background image mode.
@@ -223,16 +223,15 @@ class TextimageBackground extends TextimageEffectBase {
       $form['relative']['#collapsed'] = TRUE;
     }
 
-    $form['#element_validate'][] = array($this, 'validateForm');
-
     return $form;
   }
 
   /**
-   * Settings for 'textimage_background' image effect - form validation.
+   * {@inheritdoc}
    */
-  public function validateForm($element, &$form_state, $form) {
-    $v = &$form_state['values']['data'];
+  public function validateConfigurationForm(array &$form, array &$form_state) {
+    parent::validateConfigurationForm($form, $form_state);
+    $v = &$form_state['values'];
     if ($v['background_image']['mode'] <> 'select') {
       unset(
         $v['background_image']['fid'],

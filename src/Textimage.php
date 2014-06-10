@@ -576,7 +576,7 @@ class Textimage {
     }
 
     // Build a runtime-only style.
-    $runtime_style = $this->buildStyleFromEffects($effects);
+    $runtime_style = $this->factory->buildStyleFromEffects($effects);
 
     // Reset state.
     $this->factory->setState();
@@ -802,35 +802,6 @@ class Textimage {
       ->key(array('tiid' => $this->id))
       ->fields($stored_image)
       ->execute();
-  }
-
-  /**
-   * Builds an image style from an array of effects.
-   *
-   * The runtime style object does not get saved to db. It is used to be
-   * passed to ImageStyle::createDerivative() to build an image derivative.
-   *
-   * @param array $effects
-   *   an array of image effects
-   *
-   * @return \Drupal\image\ImageStyleInterface
-   *   an image style object
-   */
-  protected function buildStyleFromEffects($effects) {
-    $style = entity_create('image_style', array());
-    $effect_bag = $style->getEffects();
-    // Update the bag with the changes occurred to the effects.
-    foreach ($effects as $e) {
-      $effect_bag->updateConfiguration($e);
-    }
-    $effect_bag->sort();
-    // Scan bag and merge with effects' defaults.
-    foreach ($effect_bag->getConfiguration() as $instance_id => $effect_config) {
-      $default_config = $effect_bag->get($instance_id)->defaultConfiguration();
-      $effect_config['data'] = array_replace_recursive($default_config, $effect_config['data']);
-      $effect_bag->updateConfiguration($effect_config);
-    }
-    return $style;
   }
 
 }

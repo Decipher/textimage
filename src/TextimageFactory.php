@@ -15,6 +15,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Utility\Token;
+use Drupal\image\ImageEffectManager;
 
 /**
  * Provides a factory for Textimage.
@@ -34,6 +35,13 @@ class TextimageFactory {
    * @var \Drupal\Core\Utility\Token
    */
   protected $token;
+
+  /**
+   * The image effect manager service.
+   *
+   * @var \Drupal\image\ImageEffectManager
+   */
+  protected $imageEffectManager;
 
   /**
    * The textimage cache service.
@@ -69,13 +77,16 @@ class TextimageFactory {
    *   the textimage cache service
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   the current user
+   * @param \Drupal\image\ImageEffectManager $image_effect_manager
+   *   the image effect manager service
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user) {
+  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager) {
     $this->config = $config_factory->get('textimage.settings');
     $this->lock = $lock_service;
     $this->token = $token_service;
     $this->cache = $cache_service;
     $this->currentUser = $current_user;
+    $this->imageEffectManager = $image_effect_manager;
   }
 
   /**
@@ -83,6 +94,30 @@ class TextimageFactory {
    */
   public function getTextimage() {
     return new Textimage($this, $this->lock, $this->cache);
+  }
+
+  /**
+   * Builds an image style from an array of effects.
+   *
+   * The runtime style object does not get saved. It is used to be
+   * passed to ImageStyle::createDerivative() to build an image derivative.
+   *
+   * @param array $effects
+   *   an array of image effects
+   *
+   * @return \Drupal\image\ImageStyleInterface
+   *   an image style object
+   */
+  public function buildStyleFromEffects($effects) {
+    $style = entity_create('image_style', array());
+    foreach ($effects as $effect) {
+      $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
+      $default_config = $effect_instance->defaultConfiguration();
+      $effect['data'] = array_replace_recursive($default_config, $effect['data']);
+      $style->addImageEffect($effect);
+    }
+    $style->getEffects()->sort();
+    return $style;
   }
 
   /**

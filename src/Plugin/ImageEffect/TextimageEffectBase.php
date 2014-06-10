@@ -10,8 +10,7 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\image\ConfigurableImageEffectInterface;
-use Drupal\image\ImageEffectBase;
+use Drupal\image\ConfigurableImageEffectBase;
 use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
 use Drupal\textimage\Plugin\TextimageFontPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -19,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Base class for Textimage image effects.
  */
-abstract class TextimageEffectBase extends ImageEffectBase implements ConfigurableImageEffectInterface, ContainerFactoryPluginInterface {
+abstract class TextimageEffectBase extends ConfigurableImageEffectBase implements ContainerFactoryPluginInterface {
 
   /**
    * The Textimage factory.
@@ -82,6 +81,14 @@ abstract class TextimageEffectBase extends ImageEffectBase implements Configurab
       $container->get('plugin.manager.textimage.font')->getPlugin(),
       $container->get('plugin.manager.textimage.background')->getPlugin()
     );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, array &$form_state) {
+    parent::submitConfigurationForm($form, $form_state);
+    $this->configuration = $form_state['values'];
   }
 
 }

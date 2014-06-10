@@ -35,7 +35,9 @@ class TextimageGifTransparency extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function getForm() {
+  public function buildConfigurationForm(array $form, array &$form_state) {
+    $form = array();
+
     // GIF transparency color.
     $form['gif_transparency_color'] = array(
       '#type' => 'textimage_color',
@@ -71,12 +73,10 @@ class TextimageGifTransparency extends TextimageEffectBase {
    * {@inheritdoc}
    */
   public function applyEffect(ImageInterface $image) {
-
     // Stores GIF transparency color for later effects.
     if ($this->configuration['gif_transparency_color']) {
       $this->textimageFactory->setState('gif_transparency_color', $this->configuration['gif_transparency_color']);
     }
-
     return TRUE;
   }
 

@@ -77,7 +77,8 @@ class TextimageText extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function getForm() {
+  public function buildConfigurationForm(array $form, array &$form_state) {
+    $form = array();
 
     // --- Preview effect.
     $this->configuration['preview_bar']['debug_visuals'] = empty($this->configuration['preview_bar']['debug_visuals']) ? FALSE : TRUE;
@@ -487,8 +488,6 @@ class TextimageText extends TextimageEffectBase {
 
     $form['#attached']['library'][] = 'textimage/admin.ui';
 
-    $form['#element_validate'][] = array($this, 'validateForm');
-
     return $form;
   }
 
@@ -496,17 +495,19 @@ class TextimageText extends TextimageEffectBase {
    * AJAX callback.
    */
   public function processAjaxPreview($form, $form_state) {
+unset($form_state['values']['data']['data_back']['data_back']); // @todo use configuration
     $response = new AjaxResponse();
-    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state['values']['data_back'])));
+    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state['values']['data']['data_back'])));
     return $response;
   }
 
   /**
-   * Settings for 'textimage_text' image effect - form validation.
+   * {@inheritdoc}
    */
-  public function validateForm($element, &$form_state, $form) {
-    $v = &$form_state['values']['data'];
-$savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
+  public function validateConfigurationForm(array &$form, array &$form_state) {
+    parent::validateConfigurationForm($form, $form_state);
+    $v = &$form_state['values'];
+$savex=$form_state['values']['preview_bar']['debug_visuals']; // @todo use configuration
     // Get x-y position from the anchor element.
     list($v['layout']['position']['x_pos'], $v['layout']['position']['y_pos']) = explode('-', $v['layout']['position']['placement']);
     unset ($v['layout']['position']['placement']);
@@ -553,8 +554,16 @@ $savex=$form_state['values']['data']['preview_bar']['debug_visuals'];
       ),
       'text_string'            => $v['text_default']['text_string'],
     );
-    $form_state['values']['data_back'] = $form_state['values']['data'];
-    $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex;
+$form_state['values']['data_back'] = $v; // @todo use configuration
+$form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // @todo use configuration
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, array &$form_state) {
+    parent::submitConfigurationForm($form, $form_state);
+    unset($this->configuration['data_back']);  // @todo use configuration
   }
 
   /**
