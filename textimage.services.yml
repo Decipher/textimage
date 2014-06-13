@@ -8,13 +8,13 @@ services:
     arguments: [textimage]
   plugin.manager.textimage.font:
     class: Drupal\textimage\Plugin\TextimagePluginManager
-    arguments: [font, '@container.namespaces', '@cache.discovery', '@language_manager', '@module_handler', '@config.factory']
+    arguments: [font, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
   plugin.manager.textimage.background:
     class: Drupal\textimage\Plugin\TextimagePluginManager
-    arguments: [background, '@container.namespaces', '@cache.discovery', '@language_manager', '@module_handler', '@config.factory']
+    arguments: [background, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
   plugin.manager.textimage.color:
     class: Drupal\textimage\Plugin\TextimagePluginManager
-    arguments: [color, '@container.namespaces', '@cache.discovery', '@language_manager', '@module_handler', '@config.factory']
+    arguments: [color, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
   textimage.factory:
     class: Drupal\textimage\TextimageFactory
     arguments: ['@config.factory', '@lock', '@token', '@cache.textimage', '@current_user', '@plugin.manager.image.effect']

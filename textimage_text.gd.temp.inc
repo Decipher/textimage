@@ -13,14 +13,14 @@ use Drupal\textimage\Plugin\ImageEffect\TextimageText;
  * Replaces the image resource with one in a different image.
  */
 function image_gd_textimage_replace($image, ImageInterface $replacement_image) {
-  if (!$replacement_image->isExisting()) {
+  if (!$replacement_image->isValid()) {
     _textimage_diag(t('Invalid image at @source.', array('@source' => $replacement_image->getSource())), WATCHDOG_ERROR, __FUNCTION__);
     return FALSE;
   }
 
   imagedestroy($image->getToolkit()->getResource());
   $image->getToolkit()->setResource($replacement_image->getToolkit()->getResource());
-  // @todo $image->getToolkit()->setType($replacement_image->getToolkit()->getType());
+  $image->getToolkit()->setType($replacement_image->getToolkit()->getType());
   return TRUE;
 }
 

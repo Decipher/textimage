@@ -406,7 +406,7 @@ class TextimageBackground extends TextimageEffectBase {
     switch ($this->configuration['background_image']['mode']) {
       case 'select':
         $image = $this->imageFactory->get($this->configuration['background_image']['uri']);
-        if (!$image->isExisting()) {
+        if (!$image->isValid()) {
           _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
           return;
         }

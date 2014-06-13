@@ -31,11 +31,11 @@ class TextimagePluginManager extends DefaultPluginManager {
    * @param string $type
    *   The plugin type, for example Font.
    */
-  public function __construct($type, \Traversable $namespaces, CacheBackendInterface $cache_backend, LanguageManager $language_manager, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config_factory) {
+  public function __construct($type, \Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config_factory) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct("Plugin/textimage/$type", $namespaces, $module_handler);
     $this->alterInfo('textimage_' . $type . '_plugin_info');
-    $this->setCacheBackend($cache_backend, $language_manager, 'textimage_' . $type . '_plugins');
+    $this->setCacheBackend($cache_backend, 'textimage_' . $type . '_plugins');
     $this->defaults += array(
       'plugin_type' => $type,
     );
