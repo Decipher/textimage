@@ -347,7 +347,7 @@ class TextimageFactory {
         $items = $node->get($field_name);
 
         // Invoke Textimage API functions to return the token value requested.
-        if ($field_info->getField()->module == 'text') {  // @todo watchout here as it should be 'getProvider'
+        if ($field_info->getFieldStorageDefinition()->module == 'text') {  // @todo watchout here as it should be 'getProvider'
           // Text field. Get sanitized text items and return a single image.
           $text = $this->getTextFieldText($items);
           try {
@@ -377,7 +377,7 @@ class TextimageFactory {
             }
           }
         }
-        elseif ($field_info->getField()->module == 'image') {   // @todo watchout here as it should be 'getProvider'
+        elseif ($field_info->getFieldStorageDefinition()->module == 'image') {   // @todo watchout here as it should be 'getProvider'
           // Image field. Get a separate Textimage from each of the images
           // in the field.
           try {

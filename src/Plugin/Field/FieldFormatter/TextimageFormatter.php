@@ -137,7 +137,7 @@ class TextimageFormatter extends FormatterBase {
   public function viewElements(FieldItemListInterface $items) {
 
     $instance = $items->getFieldDefinition();
-    $field = $instance->getField();
+    $field = $instance->getFieldStorageDefinition();
     
     // If formatting a node, store entity for passing to theme.
     // The node entity will be used for the detokening of text.
