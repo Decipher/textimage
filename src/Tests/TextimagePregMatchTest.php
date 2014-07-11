@@ -10,22 +10,12 @@ namespace Drupal\textimage\Tests;
 use Drupal\simpletest\UnitTestBase;
 use Drupal\textimage\Component\TextUtility;
 
-
 /**
- * Checks that TextUtility::drupalPregMatch() function works as expected.
+ * Tests the UTF-8 character-based wrapper of the preg_match function.
+ *
+ * @group Textimage
  */
 class TextimagePregMatchTest extends UnitTestBase {
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'UTF-8 character-based variant of preg_match()',
-      'description' => 'Unit tests for the UTF-8 character-based wrapper of the preg_match() function.',
-      'group' => 'Textimage',
-    );
-  }
 
   /**
    * Performs the tests for the offset argument.

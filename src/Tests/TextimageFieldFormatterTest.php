@@ -9,19 +9,10 @@ namespace Drupal\textimage\Tests;
 
 /**
  * Test Textimage formatter on node display.
+ *
+ * @group Textimage
  */
 class TextimageFieldFormatterTest extends TextimageTestBase {
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Textimage field formatter',
-      'description' => 'Test Textimage display formatter',
-      'group' => 'Textimage',
-    );
-  }
 
   /**
    * Test Textimage formatter on node display.

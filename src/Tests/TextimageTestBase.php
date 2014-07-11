@@ -2,7 +2,6 @@
 
 /**
  * @file
-
  * Textimage test case script.
  */
 
@@ -11,7 +10,7 @@ namespace Drupal\textimage\Tests;
 use Drupal\simpletest\WebTestBase;
 
 /**
- * Functional tests for Textimage.
+ * Base test class for Textimage tests.
  */
 abstract class TextimageTestBase extends WebTestBase {
 

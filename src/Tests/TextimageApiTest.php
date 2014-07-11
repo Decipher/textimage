@@ -11,19 +11,10 @@ use Drupal\textimage\TextimageException;
 
 /**
  * Functional tests for Textimage API.
+ *
+ * @group Textimage
  */
 class TextimageApiTest extends TextimageTestBase {
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Textimage API',
-      'description' => 'Functionality of the Textimage API',
-      'group' => 'Textimage',
-    );
-  }
 
   /**
    * Test functionality of the API.

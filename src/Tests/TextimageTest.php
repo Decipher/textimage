@@ -8,20 +8,11 @@
 namespace Drupal\textimage\Tests;
 
 /**
- * Functional tests for Textimage.
+ * Basic functionality of the Textimage module.
+ *
+ * @group Textimage
  */
 class TextimageTest extends TextimageTestBase {
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Textimage functionality',
-      'description' => 'Basic functionality of the Textimage module',
-      'group' => 'Textimage',
-    );
-  }
 
   /**
    * Test functionality of the module.
