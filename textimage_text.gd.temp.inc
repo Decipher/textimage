@@ -7,6 +7,7 @@
 use Drupal\Core\Image\ImageInterface;
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\textimage\Component\BoundingBox;
+use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Plugin\ImageEffect\TextimageText;
 
 /**
@@ -264,60 +265,15 @@ function image_gd_textimage_text_stroke($image, $data = array()) {
 }
 
 /**
- * Draw a polygon.
- *
- * @param object $image
- *   Image
- * @param array $data
- *   Effect data, an array:
- *    points - the polygon point coordinates array
- *    num_points - the number of polygon points
- *    fill_color - the rgba color of the polygon fill
- *    border_color - the rgba color of the polygon line
- */
-function image_gd_textimage_draw_polygon($image, $data = array()) {
-  if ($data['fill_color']) {
-    $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['fill_color'])));
-    $success = imagefilledpolygon($image->getToolkit()->getResource(), $data['points'], $data['num_points'], $color);
-    if (!$success) {
-      return FALSE;
-    }
-  }
-  if ($data['border_color']) {
-    $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['border_color'])));
-    $success = imagepolygon($image->getToolkit()->getResource(), $data['points'], $data['num_points'], $color);
-    if (!$success) {
-      return FALSE;
-    }
-  }
-}
-
-/**
- * Draw a line.
- */
-function image_gd_textimage_draw_line($image, $data = array()) {
-  $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['rgba'])));
-  return imageline($image->getToolkit()->getResource(), $data['a'][0], $data['a'][1], $data['b'][0], $data['b'][1], $color);
-}
-
-/**
- * Draw an ellipse.
- */
-function image_gd_textimage_draw_ellipse($image, $data = array()) {
-  $color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['rgba'])));
-  return imagefilledellipse($image->getToolkit()->getResource(), $data['c'][0], $data['c'][1], $data['width'], $data['height'], $color);
-}
-
-/**
  * Get a GD imagecolor.
  */
 function image_gd_textimage_imagecolor($image, $data = array()) {
   if ($image->getMimeType() == 'image/png') {
-    list($r, $g, $b, $alpha) = array_values(imagecache_actions_hex2rgba($data['rgba']));
+    list($r, $g, $b, $alpha) = array_values(ColorUtility::hexToRgba($data['rgba']));
     return imagecolorallocatealpha($image->getToolkit()->getResource(), $r, $g, $b, $alpha);
   }
   else {
-    list($r, $g, $b) = array_values(imagecache_actions_hex2rgba($data['rgba']));
+    list($r, $g, $b) = array_values(ColorUtility::hexToRgba($data['rgba']));
     return imagecolorallocate($image->getToolkit()->getResource(), $r, $g, $b);
   }
 }
@@ -397,7 +353,7 @@ function image_gd_textimage_create_transparent($image, $width, $height, $transpa
  */
 function image_gd_textimage_set_transparency($image, $color) {
   if ($color) {
-    list($r, $g, $b) = array_values(imagecache_actions_hex2rgba($color));
+    list($r, $g, $b) = array_values(ColorUtility::hexToRgba($color));
     $transparent = imagecolorallocate($image->getToolkit()->getResource(), $r, $g, $b);
     imagecolortransparent($image->getToolkit()->getResource(), $transparent);
   }

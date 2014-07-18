@@ -1280,7 +1280,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
       'border_color' => NULL,
       'fill_color' => $rgba,
     );
-    return _textimage_toolkit_invoke('textimage_draw_polygon', $image, array($data));
+    return $image->apply('textimage_draw_polygon', $data);
   }
 
   /**
@@ -1312,7 +1312,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
       'border_color' => $rgba,
       'fill_color' => NULL,
     );
-    return _textimage_toolkit_invoke('textimage_draw_polygon', $image, array($data));
+    return $image->apply('textimage_draw_polygon', $data);
   }
 
   /**
@@ -1349,11 +1349,13 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
 
     // Draw diagonal.
     $data = array(
-      'a' => array($points[0], $points[1]),
-      'b' => array($points[4], $points[5]),
-      'rgba' => $rgba,
+      'x1' => $points[0],
+      'y1' => $points[1],
+      'x2' => $points[4],
+      'y2' => $points[5],
+      'color' => $rgba,
     );
-    _textimage_toolkit_invoke('textimage_draw_line', $image, array($data));
+    $image->apply('textimage_draw_line', $data);
 
     // Conspicuous points.
     $orange = '#FF640000';
@@ -1365,21 +1367,24 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     for ($i = 0; $i < 8; $i += 2) {
       $col = $i < 4 ? $orange : $yellow;
       $data = array(
-        'c' => array($points[$i], $points[$i + 1]),
+        'cx' => $points[$i],
+        'cy' => $points[$i + 1],
         'width' => $dotsize,
         'height' => $dotsize,
-        'rgba' => $col,
+        'color' => $col,
       );
-      _textimage_toolkit_invoke('textimage_draw_ellipse', $image, array($data));
+      $image->apply('textimage_draw_ellipse', $data);
     }
 
     // Font baseline.
+    $basepoint = $box->get('basepoint');
     $data = array(
-      'c' => $box->get('basepoint'),
+      'cx' => $basepoint[0],
+      'cy' => $basepoint[1],
       'width' => $dotsize,
       'height' => $dotsize,
-      'rgba' => $green,
+      'color' => $green,
     );
-    _textimage_toolkit_invoke('textimage_draw_ellipse', $image, array($data));
+    $image->apply('textimage_draw_ellipse', $data);
   }
 }

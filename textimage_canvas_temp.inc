@@ -1,58 +1,6 @@
 <?php
 
-/**
- * Convert a hex string to its RGBA (Red, Green, Blue, Alpha) integer
- * components.
- *
- * Stolen from imageapi D6 2011-01
- *
- * @param string $hex
- *   A string specifing an RGB color in the formats:
- *   '#ABC','ABC','#ABCD','ABCD','#AABBCC','AABBCC','#AABBCCDD','AABBCCDD'
- *
- * @return array
- *   An array with four elements for red, green, blue, and alpha.
- */
-function imagecache_actions_hex2rgba($hex) {
-  $hex = ltrim($hex, '#');
-  if (preg_match('/^[0-9a-f]{3}$/i', $hex)) {
-    // 'FA3' is the same as 'FFAA33' so r=FF, g=AA, b=33
-    $r = str_repeat($hex{0}, 2);
-    $g = str_repeat($hex{1}, 2);
-    $b = str_repeat($hex{2}, 2);
-    $a = '0';
-  }
-  elseif (preg_match('/^[0-9a-f]{6}$/i', $hex)) {
-    // #FFAA33 or r=FF, g=AA, b=33
-    list($r, $g, $b) = str_split($hex, 2);
-    $a = '0';
-  }
-  elseif (preg_match('/^[0-9a-f]{8}$/i', $hex)) {
-    // #FFAA33 or r=FF, g=AA, b=33
-    list($r, $g, $b, $a) = str_split($hex, 2);
-  }
-  elseif (preg_match('/^[0-9a-f]{4}$/i', $hex)) {
-    // 'FA37' is the same as 'FFAA3377' so r=FF, g=AA, b=33, a=77
-    $r = str_repeat($hex{0}, 2);
-    $g = str_repeat($hex{1}, 2);
-    $b = str_repeat($hex{2}, 2);
-    $a = str_repeat($hex{3}, 2);
-  }
-  else {
-    // error: invalid hex string, @todo: set form error.
-    return FALSE;
-  }
-
-  $r = hexdec($r);
-  $g = hexdec($g);
-  $b = hexdec($b);
-  $a = hexdec($a);
-  // alpha over 127 is illegal. assume they meant half that.
-  if ($a > 127) {
-    $a = (int) $a/2;
-  }
-  return array('red' => $r, 'green' => $g, 'blue' => $b, 'alpha' => $a);
-}
+use Drupal\textimage\Component\ColorUtility;
 
 /**
  * Image effect callback for the define canvas effect.
@@ -90,7 +38,7 @@ function canvasactions_definecanvas_effect($image, array $data) {
   }
 
   // Convert from hex (as it is stored in the UI).
-  if ($data['RGB']['HEX'] && $deduced = imagecache_actions_hex2rgba($data['RGB']['HEX'])) {
+  if ($data['RGB']['HEX'] && $deduced = ColorUtility::hexToRgba($data['RGB']['HEX'])) {
     $data['RGB'] = array_merge($data['RGB'], $deduced);
   }
 
