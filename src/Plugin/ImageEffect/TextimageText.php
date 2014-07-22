@@ -14,6 +14,7 @@ use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\gd\GDTextimageOperationBase; // @todo NO!!
 
 /**
  * Define the Textimage text.
@@ -886,7 +887,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     // ---------------------------------------
 
     // Get inner box, for horizontal text, unpadded.
-    $inner_box = static::getBoundingBox($image, $data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
+    $inner_box = GDTextimageOperationBase::getTextBoundingBox($data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
 
     // Adjust to fixed width, if requested.
     if ($data['text']['fixed_width'] && !empty($data['text']['maximum_width'])) {
@@ -1184,36 +1185,6 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
   }
 
   /**
-   * Return a text bounding box.
-   *
-   * @param object $image
-   *   Image object.
-   * @param string $text
-   *   Text string in UTF-8 encoding.
-   * @param int $lines
-   *   The number of lines the text is composed of.
-   * @param int $font_size
-   *   Font size.
-   * @param string $font_uri
-   *   URI of the TrueType font to use.
-   * @param float $angle
-   *   Text rotation angle.
-   *
-   * @return TextimageTextbox
-   *   Textbox object.
-   */
-  public static function getBoundingBox($image, $text, $lines, $font_size, $font_uri, $angle = 0) {
-    $data = array(
-      'size' => $font_size,
-      'angle' => $angle,
-      'fontfile' => $font_uri,
-      'text' => $text,
-      'lines' => $lines,
-    );
-    return _textimage_toolkit_invoke('textimage_get_bounding_box', $image, array($data));
-  }
-
-  /**
    * Measure text box width.
    *
    * @param object $image
@@ -1231,7 +1202,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
    *   An associative array of box measurements.
    */
   protected static function measureTextWidth($image, $text, $lines, $font_size, $font_uri) {
-    $box = static::getBoundingBox($image, $text, $lines, $font_size, $font_uri);
+    $box = GDTextimageOperationBase::getTextBoundingBox($text, $lines, $font_size, $font_uri);
     return $box->get('width');
   }
 

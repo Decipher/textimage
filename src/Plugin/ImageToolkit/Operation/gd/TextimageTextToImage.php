@@ -9,7 +9,6 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\ColorUtility;
-use Drupal\textimage\Plugin\ImageEffect\TextimageText;
 
 /**
  * Defines Textimage GD2 text-to-image operation.
@@ -145,7 +144,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     foreach ($arguments['text_lines'] as $text_line) {
 
       // This text line's box size.
-      $text_line_box = TextimageText::getBoundingBox($this->getToolkit()->getImage(), $text_line, 1, $arguments['font']['size'], $arguments['font']['uri']); // @todo use a method in the parent class
+      $text_line_box = static::getTextBoundingBox($text_line, 1, $arguments['font']['size'], $arguments['font']['uri']); // @todo use a method in the parent class
       $text_line_box->set('height', $arguments['line_height']);
 
       // Manage text alignment within the line.
@@ -211,7 +210,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
           'bottom'      => $stroke_bottom,
           'left'        => $stroke_left,
         );
-        _textimage_toolkit_invoke('textimage_text_stroke', $this->getToolkit()->getImage(), array($data_stroke)); // @todo use image->apply
+        $this->getToolkit()->apply('textimage_text_stroke', $data_stroke);
       }
 
       // Overlays the text.

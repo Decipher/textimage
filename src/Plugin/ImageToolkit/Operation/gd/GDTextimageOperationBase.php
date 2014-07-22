@@ -9,6 +9,7 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
+use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\ColorUtility;
 
 /**
@@ -19,7 +20,7 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   /**
    * Return the path of the font file, in a format usable by GD.
    */
-  public static function getFontPath($font_uri) { // @todo change to protected non-static
+  protected static function getFontPath($font_uri) { // @todo change to non-static
     $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
     if ($font_wrapper instanceof LocalStream) {
       $ret = $font_wrapper->realpath(); // @todo remove
@@ -28,9 +29,37 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
       $ret = is_file($font_uri) ? $font_uri : NULL;
     }
     if (!$ret) {
-      _textimage_diag($this->t("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)), WATCHDOG_ERROR, __FUNCTION__);
+      _textimage_diag(t("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)), WATCHDOG_ERROR, __FUNCTION__);
     }
     return $ret;
+  }
+
+  /**
+   * Return the bounding box of a text using TrueType fonts.
+   */
+  public static function getTextBoundingBox($text, $lines, $font_size, $font_uri, $angle = 0) { // @todo change to protected non-static
+    $box = new BoundingBox();
+    $fontfile = static::getFontPath($font_uri);
+
+    // Need to calculate the height independently from primitive as
+    // lack of descending/ascending characters will limit the height.
+    // So to have uniformity we take a dummy string with ascending and
+    // descending characters to set to max height possible.
+    $box->set('points', imagettfbbox($font_size, 0, $fontfile, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ'));
+    $height = $lines * $box->get('height');
+
+    // Now get the box for full text to get width.
+    $box->set('points', imagettfbbox($font_size, 0, $fontfile, $text));
+
+    // Reset height.
+    $box->set('height', $height);
+
+    // Rotate if angle specified.
+    if ($angle) {
+      $box = $box->getTranslatedBox($angle);
+    }
+
+    return $box;
   }
 
   /**
