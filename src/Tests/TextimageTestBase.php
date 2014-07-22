@@ -99,23 +99,22 @@ abstract class TextimageTestBase extends WebTestBase {
    *   The name of the new field (all lowercase), exclude the "field_" prefix.
    * @param $type_name
    *   The node type that this field will be added to.
-   * @param $field_settings
-   *   A list of field settings that will be added to the defaults.
+   * @param $storage_settings
+   *   A list of field storage settings that will be added to the defaults.
    * @param $instance_settings
    *   A list of instance settings that will be added to the instance defaults.
    * @param $widget_settings
    *   A list of widget settings that will be added to the widget defaults.
    */
-  protected function createTextimageField($name, $type_name, $field_settings = array(), $instance_settings = array(), $widget_settings = array()) {
+  protected function createTextimageField($name, $type_name, $storage_settings = array(), $instance_settings = array(), $widget_settings = array()) {
     $field = array(
       'name' => $name,
       'entity_type' => 'node',
       'type' => 'text',
-      'settings' => array(),
-      'cardinality' => !empty($field_settings['cardinality']) ? $field_settings['cardinality'] : 1,
+      'settings' => $storage_settings,
+      'cardinality' => !empty($storage_settings['cardinality']) ? $storage_settings['cardinality'] : 1,
     );
-    $field['settings'] = array_merge($field['settings'], $field_settings);
-    entity_create('field_config', $field)->save();
+    entity_create('field_storage_config', $field)->save();
 
     $instance = array(
       'field_name' => $field['name'],
