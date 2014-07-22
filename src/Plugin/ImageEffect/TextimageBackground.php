@@ -272,7 +272,7 @@ class TextimageBackground extends TextimageEffectBase {
       // image built thus far.
       case 'select':
         $background_image = $this->imageFactory->get($this->configuration['background_image']['uri']);
-        if (!_textimage_toolkit_invoke('textimage_replace', $image, array($background_image))) {
+        if (!$image->apply('textimage_replace_image', array('replacement_image' => $background_image))) {
           return FALSE;
         }
         break;

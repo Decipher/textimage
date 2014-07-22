@@ -5,193 +5,10 @@
  */
 
 use Drupal\Core\Image\ImageInterface;
-use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Plugin\ImageEffect\TextimageText;
-
-/**
- * Replaces the image resource with one in a different image.
- */
-function image_gd_textimage_replace($image, ImageInterface $replacement_image) {
-  if (!$replacement_image->isValid()) {
-    _textimage_diag(t('Invalid image at @source.', array('@source' => $replacement_image->getSource())), WATCHDOG_ERROR, __FUNCTION__);
-    return FALSE;
-  }
-
-  imagedestroy($image->getToolkit()->getResource());
-  $image->getToolkit()->setResource($replacement_image->getToolkit()->getResource());
-  $image->getToolkit()->setType($replacement_image->getToolkit()->getType());
-  return TRUE;
-}
-
-/**
- * Return the path of the font file, in a format usable by GD.
- */
-function image_gd_textimage_get_font_path($image, $data = array()) {
-  $font_wrapper = file_stream_wrapper_get_instance_by_uri($data['font_uri']);
-  if ($font_wrapper instanceof LocalStream) {
-    return $font_wrapper->realpath(); // @todo remove
-  }
-  else {
-    return is_file($data['font_uri']) ? $data['font_uri'] : NULL;
-  }
-}
-
-/**
- * Creates a new image resource and overlays the text over it.
- */
-function image_gd_textimage_text_to_image($image, $data = array()) {
-
-  // Create the image resource, fill transparent.  @todo should be got as null from factory, then filled in blank (see XXXX)
-  $new_image = _textimage_toolkit_invoke('textimage_create_transparent', $image, array(
-      $image->getWidth(),
-      $image->getHeight(),
-      $data['gif_transparency_color'],
-    )
-  );
-  if ($new_image) {
-    $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
-  }
-  else {
-    return FALSE;
-  }
-
-  // Draw and fill the outer text box, if required.
-  if ($data['layout']['background_color']) {
-    TextimageText::drawRectangle($image, $data['outer_box'], $data['layout']['background_color']);
-  }
-
-  // In debug mode, visually display the text boxes.
-  if ($data['debug_visuals']) {
-    TextimageText::drawBox($image, $data['inner_box'], $data['layout']['background_color'], TRUE);
-    TextimageText::drawBox($image, $data['outer_box'], $data['layout']['background_color'], TRUE);
-    // Wrapper.
-    TextimageText::drawBox(
-      $image,
-      array(
-        0, 0,
-        $image->getWidth() - 1, 0,
-        $image->getWidth() - 1, $image->getHeight() - 1,
-        0, $image->getHeight() - 1,
-      ),
-      '#000000'
-    );
-  }
-
-  // Foreground text color.
-  $foreground_color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['font']['color'])));
-
-  // Determine if outline/shadow is required.
-  $outline = $shadow = FALSE;
-  if ($data['font']['stroke_mode'] == 'outline' && ($data['font']['outline_top'] || $data['font']['outline_right'] || $data['font']['outline_bottom'] || $data['font']['outline_left']) && $data['font']['stroke_color']) {
-    $outline = TRUE;
-  }
-  elseif ($data['font']['stroke_mode'] == 'shadow' && ($data['font']['shadow_x_offset'] || $data['font']['shadow_y_offset'] || $data['font']['shadow_width'] || $data['font']['shadow_height']) && $data['font']['stroke_color']) {
-    $shadow = TRUE;
-  }
-
-  // Process each of the text lines.
-  $current_y = 0;
-  foreach ($data['text_lines'] as $text_line) {
-
-    // This text line's box size.
-    $text_line_box = TextimageText::getBoundingBox($image, $text_line, 1, $data['font']['size'], $data['font']['uri']);
-    $text_line_box->set('height', $data['line_height']);
-
-    // Manage text alignment within the line.
-    $x_delta = $data['inner_width'] - $text_line_box->get('width');
-    $current_y += $data['line_height'];
-    switch ($data['text']['align']) {
-      case 'center':
-        $x_offset = round($x_delta / 2);
-        break;
-
-      case 'right':
-        $x_offset = $x_delta;
-        break;
-
-      case 'left':
-      default:
-        $x_offset = 0;
-        break;
-
-    }
-
-    // Get details for the rotated/translated text line box.
-    $text_line_box_t = $text_line_box->getTranslatedBox(
-      $data['font']['angle'],
-      array(
-        $data['layout']['padding_left'] + $x_offset,
-        $data['layout']['padding_top'] + $current_y - $data['line_height'],
-      ),
-      $data['topLeftCornerPosition']
-    );
-    list($x_pos, $y_pos) = $text_line_box_t->get('basepoint');
-
-    // Overlays the text outline/shadow, if required.
-    if ($outline || $shadow) {
-      $stroke_color = _textimage_toolkit_invoke('textimage_imagecolor', $image, array(array('rgba' => $data['font']['stroke_color'])));
-      if ($outline) {
-        $stroke_x_pos = $x_pos;
-        $stroke_y_pos = $y_pos;
-        $stroke_top = $data['font']['outline_top'];
-        $stroke_right = $data['font']['outline_right'];
-        $stroke_bottom = $data['font']['outline_bottom'];
-        $stroke_left = $data['font']['outline_left'];
-      }
-      elseif ($shadow) {
-        $stroke_x_pos = $x_pos + $data['font']['shadow_x_offset'];
-        $stroke_y_pos = $y_pos + $data['font']['shadow_y_offset'];
-        $stroke_top = 0;
-        $stroke_right = $data['font']['shadow_width'];
-        $stroke_bottom = $data['font']['shadow_height'];
-        $stroke_left = 0;
-      }
-      $data_stroke = array(
-        'size'        => $data['font']['size'],
-        'angle'       => -$data['font']['angle'],
-        'fontfile'    => $data['font']['uri'],
-        'text'        => $text_line,
-        'x'           => $stroke_x_pos,
-        'y'           => $stroke_y_pos,
-        'textcolor'   => $foreground_color,
-        'strokecolor' => $stroke_color,
-        'top'         => $stroke_top,
-        'right'       => $stroke_right,
-        'bottom'      => $stroke_bottom,
-        'left'        => $stroke_left,
-      );
-      _textimage_toolkit_invoke('textimage_text_stroke', $image, array($data_stroke));
-    }
-
-    // Overlays the text.
-    imagettftext(
-      $image->getToolkit()->getResource(),
-      $data['font']['size'],
-      -$data['font']['angle'],
-      $x_pos,
-      $y_pos,
-      $foreground_color,
-      $data['font']['uri'],
-      $text_line
-    );
-
-    // In debug mode, display a polygon enclosing the text line.
-    if ($data['debug_visuals']) {
-      TextimageText::drawDebugBox($image, $text_line_box_t, $data['layout']['background_color'], TRUE);
-    }
-
-    // Add interline spacing (leading) before next iteration.
-    $current_y += $data['text']['line_spacing'];
-  }
-
-  // Finalise image.
-  imagealphablending($image->getToolkit()->getResource(), TRUE);
-  imagesavealpha($image->getToolkit()->getResource(), TRUE);
-
-  return TRUE;
-}
+use Drupal\textimage\Plugin\ImageToolkit\Operation\gd\GDTextimageOperationBase;
 
 /**
  * Return the bounding box of a text using TrueType fonts.
@@ -200,15 +17,17 @@ function image_gd_textimage_get_bounding_box($image, $data = array()) {
 
   $box = new BoundingBox();
 
+  $fontfile = GDTextimageOperationBase::getFontPath($data['fontfile']);
+
   // Need to calculate the height independently from primitive as
   // lack of descending/ascending characters will limit the height.
   // So to have uniformity we take a dummy string with ascending and
   // descending characters to set to max height possible.
-  $box->set('points', imagettfbbox($data['size'], 0, $data['fontfile'], 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ'));
+  $box->set('points', imagettfbbox($data['size'], 0, $fontfile, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ'));
   $height = $data['lines'] * $box->get('height');
 
   // Now get the box for full text to get width.
-  $box->set('points', imagettfbbox($data['size'], 0, $data['fontfile'], $data['text']));
+  $box->set('points', imagettfbbox($data['size'], 0, $fontfile, $data['text']));
 
   // Reset height.
   $box->set('height', $height);
@@ -244,6 +63,7 @@ function image_gd_textimage_get_bounding_box($image, $data = array()) {
  * @see http://www.johnciacia.com/2010/01/04/using-php-and-gd-to-add-border-to-text/
  */
 function image_gd_textimage_text_stroke($image, $data = array()) {
+  $fontfile = GDTextimageOperationBase::getFontPath($data['fontfile']);
   for ($c1 = ($data['x'] - abs($data['left'])); $c1 <= ($data['x'] + abs($data['right'])); $c1++) {
     for ($c2 = ($data['y'] - abs($data['top'])); $c2 <= ($data['y'] + abs($data['bottom'])); $c2++) {
       $bg = imagettftext(
@@ -253,7 +73,7 @@ function image_gd_textimage_text_stroke($image, $data = array()) {
         $c1,
         $c2,
         $data['strokecolor'],
-        $data['fontfile'],
+        $fontfile,
         $data['text']
       );
       if ($bg == FALSE) {
@@ -262,20 +82,6 @@ function image_gd_textimage_text_stroke($image, $data = array()) {
     }
   }
   return TRUE;
-}
-
-/**
- * Get a GD imagecolor.
- */
-function image_gd_textimage_imagecolor($image, $data = array()) {
-  if ($image->getMimeType() == 'image/png') {
-    list($r, $g, $b, $alpha) = array_values(ColorUtility::hexToRgba($data['rgba']));
-    return imagecolorallocatealpha($image->getToolkit()->getResource(), $r, $g, $b, $alpha);
-  }
-  else {
-    list($r, $g, $b) = array_values(ColorUtility::hexToRgba($data['rgba']));
-    return imagecolorallocate($image->getToolkit()->getResource(), $r, $g, $b);
-  }
 }
 
 /**

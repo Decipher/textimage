@@ -7,6 +7,8 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
+use Drupal\textimage\Component\ColorUtility;
+
 /**
  * Defines Textimage GD2 draw polygon operation.
  *
@@ -28,18 +30,25 @@ class TextimageDrawPolygon extends GDTextimageOperationBase {
       'points' => array(
         'description' => 'An array containing the polygon vertices',
       ),
-      'num_points' => array(
-        'description' => 'Total number of points (vertices)',
-      ),
       'fill_color' => array(
         'description' => 'The RGBA color of the polygon fill',
         'required' => FALSE,
         'default' => NULL,
       ),
+      'fill_color_luma' => array(
+        'description' => 'If TRUE, convert RGBA of the polygon fill to best match using luma',
+        'required' => FALSE,
+        'default' => FALSE,
+      ),
       'border_color' => array(
         'description' => 'The RGBA color of the polygon line',
         'required' => FALSE,
         'default' => NULL,
+      ),
+      'border_color_luma' => array(
+        'description' => 'If TRUE, convert RGBA of the polygon line to best match using luma',
+        'required' => FALSE,
+        'default' => FALSE,
       ),
     );
   }
@@ -47,14 +56,30 @@ class TextimageDrawPolygon extends GDTextimageOperationBase {
   /**
    * {@inheritdoc}
    */
+  protected function validateArguments(array $arguments) {
+    // Check color.
+    if ($arguments['fill_color'] && $arguments['fill_color_luma']) {
+      $arguments['fill_color'] = ColorUtility::matchLuma($arguments['fill_color']);
+    }
+    if ($arguments['border_color'] && $arguments['border_color_luma']) {
+      $arguments['border_color'] = ColorUtility::matchLuma($arguments['border_color']);
+    }
+
+    return $arguments;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function execute(array $arguments) {
+    $num_points = (int) count($arguments['points']) / 2;
     if ($arguments['fill_color']) {
       $color = $this->getImageColor($arguments['fill_color']);
-      return imagefilledpolygon($this->getToolkit()->getResource(), $arguments['points'], $arguments['num_points'], $color);
+      return imagefilledpolygon($this->getToolkit()->getResource(), $arguments['points'], $num_points, $color);
     }
     if ($arguments['border_color']) {
       $color = $this->getImageColor($arguments['border_color']);
-      return imagepolygon($this->getToolkit()->getResource(), $arguments['points'], $arguments['num_points'], $color);
+      return imagepolygon($this->getToolkit()->getResource(), $arguments['points'], $num_points, $color);
     }
   }
 

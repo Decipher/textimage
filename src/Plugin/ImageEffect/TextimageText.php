@@ -694,7 +694,11 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
                 $image_new['width'] - 1, $frame['top'] - 1,
                 0, $frame['top'] - 1,
               );
-              static::drawRectangle($image, $points, $main_bg_color);
+              $data = array(
+                'points' => $points,
+                'fill_color' => $main_bg_color,
+              );
+              $image->apply('textimage_draw_polygon', $data);
             }
             // Bottom rectangle.
             if ($frame['bottom']) {
@@ -704,7 +708,11 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
                 $image_new['width'] - 1, $image_new['height'] - 1,
                 0, $image_new['height'] - 1,
               );
-              static::drawRectangle($image, $points, $main_bg_color);
+              $data = array(
+                'points' => $points,
+                'fill_color' => $main_bg_color,
+              );
+              $image->apply('textimage_draw_polygon', $data);
             }
             // Left rectangle.
             if ($frame['left']) {
@@ -714,7 +722,11 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
                 $frame['left'] - 1, $frame['top'] + $image_height - 1,
                 0, $frame['top'] + $image_height - 1,
               );
-              static::drawRectangle($image, $points, $main_bg_color);
+              $data = array(
+                'points' => $points,
+                'fill_color' => $main_bg_color,
+              );
+              $image->apply('textimage_draw_polygon', $data);
             }
             // Right rectangle.
             if ($frame['right']) {
@@ -724,7 +736,11 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
                 $image_new['width'] - 1, $frame['top'] + $image_height - 1,
                 $frame['left'] + $image_width, $frame['top'] + $image_height - 1,
               );
-              static::drawRectangle($image, $points, $main_bg_color);
+              $data = array(
+                'points' => $points,
+                'fill_color' => $main_bg_color,
+              );
+              $image->apply('textimage_draw_polygon', $data);
             }
           }
         }
@@ -808,23 +824,6 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
    * by the textimage_text_effect_dimensions() function.
    */
   protected function getTextWrapper($image, array $data) {
-
-    // Check font path.
-    $font_uri = $data['font']['uri'];
-    $data['font']['uri'] = static::getFontPath($image, $data['font']['uri']);
-    if (!$data['font']['uri']) {
-      _textimage_diag(
-        $this->t(
-          "Textimage could not find the font file @fontfile for font @fontname",
-          array(
-            '@fontfile' => $font_uri,
-            '@fontname' => $data['font']['name'],
-          )
-        ),
-        WATCHDOG_ERROR,
-        __FUNCTION__);
-      return NULL;
-    }
 
     // If the effect is executed outside of the context of Textimage
     // (e.g. by the core Image module), then the text_string has not been
@@ -941,7 +940,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
       'gif_transparency_color' => $this->textimageFactory->getState('gif_transparency_color'),
     );
-    if (!_textimage_toolkit_invoke('textimage_text_to_image', $wrapper, array($data_textimage))) {
+    if (!$wrapper->apply('textimage_text_to_image', $data_textimage)) {
       return NULL;
     }
     return $wrapper;
@@ -1185,24 +1184,6 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
   }
 
   /**
-   * Return the path of the font file, in a format usable by current toolkit.
-   *
-   * @param object $image
-   *   Image object.
-   * @param string $font_uri
-   *   URI of the TrueType font to use.
-   *
-   * @return string
-   *   Fully qualified font file path.
-   */
-  protected static function getFontPath($image, $font_uri) {
-    $data = array(
-      'font_uri' => $font_uri,
-    );
-    return _textimage_toolkit_invoke('textimage_get_font_path', $image, array($data));
-  }
-
-  /**
    * Return a text bounding box.
    *
    * @param object $image
@@ -1254,137 +1235,4 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     return $box->get('width');
   }
 
-  /**
-   * Draw a rectangle.
-   *
-   * @param object $image
-   *   Image object.
-   * @param array $points
-   *   Box points coordinates array.
-   * @param string $rgba
-   *   RGBA color of the rectangle.
-   * @param bool $luma
-   *   if TRUE, convert RGBA to best match using luma.
-   */
-  public static function drawRectangle($image, $points, $rgba, $luma = FALSE) {
-
-    // Check color.
-    if ($rgba && $luma) {
-      $rgba = ColorUtility::matchLuma($rgba);
-    }
-
-    // Invoke toolkit.
-    $data = array(
-      'points' => $points,
-      'num_points' => 4,
-      'border_color' => NULL,
-      'fill_color' => $rgba,
-    );
-    return $image->apply('textimage_draw_polygon', $data);
-  }
-
-  /**
-   * Draw a box.
-   *
-   * @param object $image
-   *   Image object.
-   * @param array $points
-   *   Box points coordinates array.
-   * @param string $rgba
-   *   RGBA color of the rectangle.
-   * @param bool $luma
-   *   if TRUE, convert RGBA to best match using luma.
-   */
-  public static function drawBox($image, $points, $rgba, $luma = FALSE) {
-
-    // Check color.
-    if (!$rgba) {
-      $rgba = '#00000000';
-    }
-    elseif ($luma) {
-      $rgba = ColorUtility::matchLuma($rgba);
-    }
-
-    // Invoke toolkit.
-    $data = array(
-      'points' => $points,
-      'num_points' => 4,
-      'border_color' => $rgba,
-      'fill_color' => NULL,
-    );
-    return $image->apply('textimage_draw_polygon', $data);
-  }
-
-  /**
-   * Display a polygon enclosing the text line, and conspicuous points.
-   *
-   * Credit to Ruquay K Calloway
-   *
-   * @param object $image
-   *   Image object.
-   * @param TextimageTextbox $box
-   *   Textbox object to draw (inclusing basepoint).
-   * @param string $rgba
-   *   RGBA color of the rectangle.
-   * @param bool $luma
-   *   if TRUE, convert RGBA to best match using luma.
-   *
-   * @see http://ruquay.com/sandbox/imagettf
-   */
-  public static function drawDebugBox($image, BoundingBox $box, $rgba, $luma = FALSE) {
-
-    // Check color.
-    if (!$rgba) {
-      $rgba = '#00000000';
-    }
-    elseif ($luma) {
-      $rgba = ColorUtility::matchLuma($rgba);
-    }
-
-    // Retrieve points.
-    $points = $box->get('points');
-
-    // Draw box.
-    static::drawBox($image, $points, $rgba);
-
-    // Draw diagonal.
-    $data = array(
-      'x1' => $points[0],
-      'y1' => $points[1],
-      'x2' => $points[4],
-      'y2' => $points[5],
-      'color' => $rgba,
-    );
-    $image->apply('textimage_draw_line', $data);
-
-    // Conspicuous points.
-    $orange = '#FF640000';
-    $yellow = '#FFFF0000';
-    $green  = '#00FF0000';
-    $dotsize = 6;
-
-    // Box corners.
-    for ($i = 0; $i < 8; $i += 2) {
-      $col = $i < 4 ? $orange : $yellow;
-      $data = array(
-        'cx' => $points[$i],
-        'cy' => $points[$i + 1],
-        'width' => $dotsize,
-        'height' => $dotsize,
-        'color' => $col,
-      );
-      $image->apply('textimage_draw_ellipse', $data);
-    }
-
-    // Font baseline.
-    $basepoint = $box->get('basepoint');
-    $data = array(
-      'cx' => $basepoint[0],
-      'cy' => $basepoint[1],
-      'width' => $dotsize,
-      'height' => $dotsize,
-      'color' => $green,
-    );
-    $image->apply('textimage_draw_ellipse', $data);
-  }
 }
