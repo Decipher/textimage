@@ -63,8 +63,8 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
         $arguments['exact']['height'] = $this->getToolkit()->getHeight();
       }
 
-      $targetsize['width'] = imagecache_actions_percent_filter($arguments['exact']['width'], $this->getToolkit()->getWidth());
-      $targetsize['height'] = imagecache_actions_percent_filter($arguments['exact']['height'], $this->getToolkit()->getHeight());
+      $targetsize['width'] = $this->percentFilter($arguments['exact']['width'], $this->getToolkit()->getWidth());
+      $targetsize['height'] = $this->percentFilter($arguments['exact']['height'], $this->getToolkit()->getHeight());
 
       $targetsize['left'] = image_filter_keyword($arguments['exact']['xpos'], $targetsize['width'], $this->getToolkit()->getWidth());
       $targetsize['top'] = image_filter_keyword($arguments['exact']['ypos'], $targetsize['height'], $this->getToolkit()->getHeight());
@@ -126,6 +126,28 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     }
 
     return TRUE;
+  }
+
+  /**
+   * Computes a length based on a length specification and an actual length.
+   *
+   * Examples:
+   *  (50, 400) returns 50; (50%, 400) returns 200;
+   *  (50, null) returns 50; (50%, null) returns null;
+   *  (null, null) returns null; (null, 100) returns null.
+   *
+   * @param string|null $length_specification
+   *   The length specification. An integer constant or a % specification.
+   * @param int|null $current_length
+   *   The current length. May be null.
+   *
+   * @return int|null
+   */
+  protected function percentFilter($length_specification, $current_length) {
+    if (strpos($length_specification, '%') !== FALSE) {
+      $length_specification =  $current_length !== NULL ? str_replace('%', '', $length_specification) * 0.01 * $current_length : NULL;
+    }
+    return $length_specification;
   }
 
 }

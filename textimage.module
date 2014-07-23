@@ -10,9 +10,6 @@ use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Textimage;
 use Drupal\Core\Routing\RouteMatchInterface;
 
-// @todo remove
-require_once 'textimage_canvas_temp.inc';
-
 /**
  * Define constants.
  */
