@@ -286,16 +286,11 @@ class TextimageBackground extends TextimageEffectBase {
       // a transparent 1x1 image.
       case '':
       default:
-        // @todo should not be a new image but just an opration that changes the resource
-        $new_image = _textimage_toolkit_invoke('textimage_create_transparent', $image, array(
-            1,
-            1,
-            $this->textimageFactory->getState('gif_transparency_color'),
-          )
-        );
-        if ($new_image) {
-          $image->getToolkit()->setResource($new_image->getToolkit()->getResource());
-        }
+        $image->apply('textimage_create_transparent', array(
+          'width' => 1,
+          'height' => 1,
+          'transparent' => $this->textimageFactory->getState('gif_transparency_color'),
+        ));
         break;
 
     }
@@ -384,7 +379,7 @@ class TextimageBackground extends TextimageEffectBase {
 
     // Reset transparency color for .gif format.
     if ($image->getMimeType() == 'image/gif') {
-      _textimage_toolkit_invoke('textimage_set_transparency', $image, array($this->textimageFactory->getState('gif_transparency_color'))); // @todo
+      $image->apply('textimage_set_transparency', array('color' => $this->textimageFactory->getState('gif_transparency_color')));
     }
 
     return $success;

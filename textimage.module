@@ -12,7 +12,6 @@ use Drupal\Core\Routing\RouteMatchInterface;
 
 // @todo remove
 require_once 'textimage_canvas_temp.inc';
-require_once 'textimage_text.gd.temp.inc';
 
 /**
  * Define constants.

@@ -75,17 +75,13 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    */
   protected function execute(array $arguments) {
 
-    // Create the image resource, fill transparent.  @todo should be got as null from factory, then filled in blank (see XXXX)
-    $new_image = _textimage_toolkit_invoke('textimage_create_transparent', $this->getToolkit()->getImage(), array( // @todo use image->apply
-        $this->getToolkit()->getWidth(),
-        $this->getToolkit()->getHeight(),
-        $arguments['gif_transparency_color'],
-      )
-    );
-    if ($new_image) {
-      $this->getToolkit()->setResource($new_image->getToolkit()->getResource());
-    }
-    else {
+    // Create the image resource, fill transparent.
+    $ret = $this->getToolkit()->apply('textimage_create_transparent', array(
+      'width' => $this->getToolkit()->getWidth(),
+      'height' => $this->getToolkit()->getHeight(),
+      'transparent' => $arguments['gif_transparency_color'],
+    ));
+    if (!$ret) {
       return FALSE;
     }
 

@@ -777,7 +777,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
 
     // Reset transparency color for .gif format.
     if ($image->getMimeType() == 'image/gif') {
-      _textimage_toolkit_invoke('textimage_set_transparency', $image, array($this->textimageFactory->getState('gif_transparency_color')));
+      $image->apply('textimage_set_transparency', array('color' => $this->textimageFactory->getState('gif_transparency_color')));
     }
 
     return TRUE;
