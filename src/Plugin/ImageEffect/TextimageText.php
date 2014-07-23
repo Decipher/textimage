@@ -673,8 +673,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
         // Check wrapper image overflowing the original image.
         list($resized, $offset_wrapper) = $this->backgroundImageResize($image, $wrapper, $this->configuration, $image_new, $frame);
         if ($resized) {
-          // Call out to canvasactions_definecanvas_effect(), transparent
-          // background.
+          // Apply textimage_define_canvas, transparent background.
           $canvas_data = array(
             'RGB' => array(
               'HEX' => NULL,
@@ -682,7 +681,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
             'under' => TRUE,
             'exact' => $image_new,
           );
-          if (!canvasactions_definecanvas_effect($image, $canvas_data)) {
+          if (!$image->apply('textimage_define_canvas', $canvas_data)) {
             return FALSE;
           }
           // Color fill the frame with carried on background color.

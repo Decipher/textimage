@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * @file
+ * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageDefineCanvas.
+ */
+
+namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
+
+use Drupal\textimage\Component\ColorUtility;
+
+/**
+ * Defines Textimage GD2 define canvas operation.
+ *
+ * @todo temp while imagecache_action develops
+ *
+ * @ImageToolkitOperation(
+ *   id = "textimage_gd_textimage_define_canvas",
+ *   toolkit = "gd",
+ *   operation = "textimage_define_canvas",
+ *   label = @Translation("Textimage define canvas image"),
+ *   description = @Translation("Defines a canvas for the image.")
+ * )
+ */
+class TextimageDefineCanvas extends GDTextimageOperationBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function arguments() {
+    return array(
+      'RGB' => array(
+        'description' => 'Color',
+      ),
+      'under' => array(
+        'description' => '???',
+      ),
+      'exact' => array(
+        'description' => 'Exact dimensions canvas',
+        'required' => FALSE,
+        'default' => NULL,
+      ),
+      'relative' => array(
+        'description' => 'Relative dimensions canvas',
+        'required' => FALSE,
+        'default' => NULL,
+      ),
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function validateArguments(array $arguments) {
+    $targetsize = array();
+    // May be given either exact or relative dimensions.
+    if ($arguments['exact'] && ($arguments['exact']['width'] || $arguments['exact']['height'])) {
+      // Allows only one dimension to be used if the other is unset.
+      if (!$arguments['exact']['width']) {
+        $arguments['exact']['width'] = $this->getToolkit()->getWidth();
+      }
+      if (!$arguments['exact']['height']) {
+        $arguments['exact']['height'] = $this->getToolkit()->getHeight();
+      }
+
+      $targetsize['width'] = imagecache_actions_percent_filter($arguments['exact']['width'], $this->getToolkit()->getWidth());
+      $targetsize['height'] = imagecache_actions_percent_filter($arguments['exact']['height'], $this->getToolkit()->getHeight());
+
+      $targetsize['left'] = image_filter_keyword($arguments['exact']['xpos'], $targetsize['width'], $this->getToolkit()->getWidth());
+      $targetsize['top'] = image_filter_keyword($arguments['exact']['ypos'], $targetsize['height'], $this->getToolkit()->getHeight());
+
+    }
+    else {
+      // Calculate relative size.
+      $targetsize['width'] = $this->getToolkit()->getWidth() + $arguments['relative']['leftdiff'] + $arguments['relative']['rightdiff'];
+      $targetsize['height'] = $this->getToolkit()->getHeight() + $arguments['relative']['topdiff'] + $arguments['relative']['bottomdiff'];
+      $targetsize['left'] = $arguments['relative']['leftdiff'];
+      $targetsize['top'] = $arguments['relative']['topdiff'];
+    }
+
+    // Convert from hex (as it is stored in the UI).
+    if ($arguments['RGB']['HEX'] && $deduced = ColorUtility::hexToRgba($arguments['RGB']['HEX'])) {
+      $arguments['RGB'] = array_merge($arguments['RGB'], $deduced);
+    }
+
+    // All the math is done, now defer to the toolkit in use.
+    $arguments['targetsize'] = $targetsize;
+
+    return $arguments;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function execute(array $arguments) {
+    $targetsize = $arguments['targetsize'];
+    $RGB = $arguments['RGB'];
+
+    $newcanvas = imagecreatetruecolor($targetsize['width'], $targetsize['height']);
+    imagesavealpha($newcanvas, TRUE);
+    imagealphablending($newcanvas, FALSE);
+    imagesavealpha($this->getToolkit()->getResource(), TRUE);
+    if ($RGB['HEX']) {
+      // Set color, allow it to define transparency, or assume opaque.
+      $background = imagecolorallocatealpha($newcanvas, $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
+    }
+    else {
+      // No color, attempt transparency, assume white.
+      $background = imagecolorallocatealpha($newcanvas, 255, 255, 255, 127);
+    }
+    imagefilledrectangle($newcanvas, 0, 0, $targetsize['width'], $targetsize['height'], $background);
+
+    if ($arguments['under']) {
+      $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+      $canvas_object->getToolkit()->setResource($newcanvas);
+      image_overlay($this->getToolkit()->getImage(), $canvas_object, $targetsize['left'], $targetsize['top'], 100, TRUE);
+    }
+    else {
+      $this->getToolkit()->setResource($newcanvas);
+    }
+
+    return TRUE;
+  }
+
+}

@@ -333,8 +333,7 @@ class TextimageBackground extends TextimageEffectBase {
       }
     }
 
-    // If resizing, call out to canvasactions_definecanvas_effect()
-    // to finalise layout.
+    // If resizing, apply textimage_define_canvas to finalise layout.
     if ($this->configuration['exact']['width'] || $this->configuration['exact']['height'] || $this->configuration['relative']['leftdiff'] || $this->configuration['relative']['rightdiff'] || $this->configuration['relative']['topdiff'] || $this->configuration['relative']['bottomdiff']) {
       $canvas_data = array(
         'RGB' => array(
@@ -360,10 +359,10 @@ class TextimageBackground extends TextimageEffectBase {
         if (!$canvas_data['RGB']['HEX']) {
           $canvas_data['RGB']['HEX'] = $this->textimageFactory->getState('gif_transparency_color');
         }
-        $success = canvasactions_definecanvas_effect($image, $canvas_data); // @todo
+        $success = $image->apply('textimage_define_canvas', $canvas_data);
       }
       else {
-        $success = canvasactions_definecanvas_effect($image, $canvas_data); // @todo
+        $success = $image->apply('textimage_define_canvas', $canvas_data);
       }
     }
 
