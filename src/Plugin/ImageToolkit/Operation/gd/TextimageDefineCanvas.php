@@ -113,7 +113,13 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     if ($arguments['under']) {
       $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
       $canvas_object->getToolkit()->setResource($newcanvas);
-      image_overlay($this->getToolkit()->getImage(), $canvas_object, $targetsize['left'], $targetsize['top'], 100, TRUE);
+      $overlay_data = array(
+        'layer' => $canvas_object,
+        'x' => $targetsize['left'],
+        'y' => $targetsize['top'],
+        'reverse' => TRUE,
+      );
+      $this->getToolkit()->apply('textimage_overlay', $overlay_data);
     }
     else {
       $this->getToolkit()->setResource($newcanvas);

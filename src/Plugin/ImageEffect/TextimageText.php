@@ -769,7 +769,12 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
 
     // Finally, lay the wrapper over the source image.
     if (!empty($offset_wrapper)) {
-      if (!image_overlay($image, $wrapper, $offset_wrapper['xpos'], $offset_wrapper['ypos'])) {
+      $overlay_data = array(
+        'layer' => $wrapper,
+        'x' => $offset_wrapper['xpos'],
+        'y' => $offset_wrapper['ypos'],
+      );
+      if (!$image->apply('textimage_overlay', $overlay_data)) {
         return FALSE;
       }
     }
