@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
-use Drupal\textimage\Component\ColorUtility;
+use Drupal\Core\Utility\Color;
 
 /**
  * Defines Textimage GD2 create transparent operation.
@@ -47,44 +47,28 @@ class TextimageCreateTransparent extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    $res = imagecreatetruecolor($arguments['width'], $arguments['height']);
-    if ($this->getToolkit()->getMimeType() == 'image/png') {
-      imagealphablending($res, FALSE);
-      $transparency = imagecolorallocatealpha($res, 0, 0, 0, 127);
-      imagefill($res, 0, 0, $transparency);
-      imagealphablending($res, TRUE);
-      imagesavealpha($res, TRUE);
-    }
-    elseif ($this->getToolkit()->getMimeType() == 'image/gif') {
-      if (empty($transparent)) {
+    $data = array(
+      'width' => $arguments['width'],
+      'height' => $arguments['height'],
+      'mimetype' => $this->getToolkit()->getMimeType(),
+    );
+    if ($this->getToolkit()->getMimeType() == 'image/gif') {
+      if (empty($arguments['transparent'])) {
         // Grab transparent color index from image resource.
-        if ($this->getToolkit()->getResource() && $transparent = imagecolortransparent($this->getToolkit()->getResource()) >= 0) {
+        if ($this->getToolkit()->getResource() && $transparent_color = imagecolortransparent($this->getToolkit()->getResource()) >= 0) {
           // The original has a transparent color, allocate to the new image.
-          $transparent_color = imagecolorsforindex($this->getToolkit()->getResource(), $transparent);
-          $transparent = imagecolorallocate($res, $transparent_color['red'], $transparent_color['green'], $transparent_color['blue']);
+          $data['transparent_color'] = Color::rgbToHex(imagecolorsforindex($this->getToolkit()->getResource(), $transparent_color));
         }
         else {
-          // No incoming image or no transparency channel, no color specified,
-          // fill white.
-          $transparent = imagecolorallocate($res, 255, 255, 255);
+          $data['transparent_color'] = NULL;
         }
       }
       else {
         // Get transparent from the input argument.
-        $transparent = imagecolorallocate($res, $transparent['red'], $transparent['green'], $transparent['blue']);
-      }
-      // Flood with our transparent color.
-      if ($transparent >= 0) {
-        imagefill($res, 0, 0, $transparent);
-        imagecolortransparent($res, $transparent);
+        $data['transparent_color'] = Color::rgbToHex($arguments['transparent']);
       }
     }
-    else {
-      imagefill($res, 0, 0, imagecolorallocate($res, 255, 255, 255));
-    }
-
-    $this->getToolkit()->setResource($res);
-    return TRUE;
+    return $this->getToolkit()->apply('set_new', $data);
   }
 
 }

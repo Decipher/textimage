@@ -8,25 +8,12 @@
 namespace Drupal\textimage\Component;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Utility\Color;
 
 /**
  * Textimage - Color handling methods.
  */
 abstract class ColorUtility {
-
-  /**
-   * Converts an RGB triplet to a hex color.
-   *
-   * Copy of Color module's _color_pack() function to reduce dependencies.
-   */
-  public static function pack($rgb, $normalize = FALSE) {
-    $out = 0;
-    foreach ($rgb as $k => $v) {
-      $out |= (($v * ($normalize ? 255 : 1)) << (16 - $k * 8));
-    }
-
-    return '#' . str_pad(dechex($out), 6, 0, STR_PAD_LEFT);
-  }
 
   /**
    * Determine best match to over/underlay a defined color.
@@ -47,7 +34,7 @@ abstract class ColorUtility {
       // Dark colors - white.
       $d = 255;
     }
-    return static::pack(array($d, $d, $d));
+    return Color::rgbToHex(array($d, $d, $d));
   }
 
   /**
