@@ -51,10 +51,10 @@ class TextimageOverlay extends GDTextimageOperationBase {
         'required' => FALSE,
         'default' => 100,
       ),
-      'reverse' => array(
-        'description' => 'Flag to indicate the \'overlay\' actually goes under the image',
+      'layer_on_top' => array(
+        'description' => 'Flag to indicate if the layer goes on top of the current image.',
         'required' => FALSE,
-        'default' => FALSE,
+        'default' => TRUE,
       ),
     );
   }
@@ -63,13 +63,13 @@ class TextimageOverlay extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function validateArguments(array $arguments) {
-    if ($arguments['reverse']) {
-      $arguments['x'] = $this->keywordFilter($arguments['x'], $arguments['layer']->getWidth(), $this->getToolkit()->getWidth());
-      $arguments['y'] = $this->keywordFilter($arguments['y'], $arguments['layer']->getHeight(), $this->getToolkit()->getHeight());
-    }
-    else {
+    if ($arguments['layer_on_top']) {
       $arguments['x'] = $this->keywordFilter($arguments['x'], $this->getToolkit()->getWidth(), $arguments['layer']->getWidth());
       $arguments['y'] = $this->keywordFilter($arguments['y'], $this->getToolkit()->getHeight(), $arguments['layer']->getHeight());
+    }
+    else {
+      $arguments['x'] = $this->keywordFilter($arguments['x'], $arguments['layer']->getWidth(), $this->getToolkit()->getWidth());
+      $arguments['y'] = $this->keywordFilter($arguments['y'], $arguments['layer']->getHeight(), $this->getToolkit()->getHeight());
     }
 
     return $arguments;
@@ -79,26 +79,30 @@ class TextimageOverlay extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
+    if ($arguments['layer_on_top']) {
+      $width = $arguments['layer']->getWidth();
+      $height = $arguments['layer']->getHeight();
+      $upper = $arguments['layer']->getToolkit()->getResource();
+      $lower = $this->getToolkit()->getResource();
+    }
+    else {
+      $width = $this->getToolkit()->getWidth();
+      $height = $this->getToolkit()->getHeight();
+      $upper = $this->getToolkit()->getResource();
+      $lower = $arguments['layer']->getToolkit()->getResource();
+    }
     // If the given alpha is 100%, we can use imagecopy - which actually works,
     // is more efficient, and seems to retain the overlays partial transparency.
     // Still does not work great for indexed gifs though?
-    if ($arguments['reverse']) {
-      $upper = $this->getToolkit()->getImage();
-      $lower = $arguments['layer'];
-    }
-    else {
-      $upper = $arguments['layer'];
-      $lower = $this->getToolkit()->getImage();
-    }
 //    if ($arguments['alpha'] == 100 && ($upper->getMimeType() != 'image/gif')) {
     if ($arguments['alpha'] == 100) {
-      imagealphablending($lower->getToolkit()->getResource(), TRUE);
-      imagesavealpha($lower->getToolkit()->getResource(), TRUE);
-      imagealphablending($upper->getToolkit()->getResource(), TRUE);
-      imagesavealpha($upper->getToolkit()->getResource(), TRUE);
-      imagecopy($lower->getToolkit()->getResource(), $upper->getToolkit()->getResource(), $arguments['x'], $arguments['y'], 0, 0, $upper->getWidth(), $upper->getHeight());
-      imagedestroy($upper->getToolkit()->getResource());
-      $this->getToolkit()->setResource($lower->getToolkit()->getResource());
+      imagealphablending($lower, TRUE);
+      imagesavealpha($lower, TRUE);
+      imagealphablending($upper, TRUE);
+      imagesavealpha($upper, TRUE);
+      imagecopy($lower, $upper, $arguments['x'], $arguments['y'], 0, 0, $width, $height);
+      imagedestroy($upper);
+      $this->getToolkit()->setResource($lower);
     }
   /*/  else {
       // imagecopy() cannot be used and we have to use the slow library.

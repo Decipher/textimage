@@ -112,9 +112,9 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
 
     $overlay_data = array(
       'layer' => $canvas_image,
+      'layer_on_top' => FALSE,
       'x' => $targetsize['left'],
       'y' => $targetsize['top'],
-      'reverse' => TRUE,
     );
     $this->getToolkit()->apply('textimage_overlay', $overlay_data);
 
