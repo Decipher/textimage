@@ -74,7 +74,7 @@ class TextimageTextStroke extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    $fontfile = static::getFontPath($arguments['fontfile']); // @todo move to instance
+    $fontfile = $this->getFontPath($arguments['fontfile']);
     for ($c1 = ($arguments['x'] - abs($arguments['left'])); $c1 <= ($arguments['x'] + abs($arguments['right'])); $c1++) {
       for ($c2 = ($arguments['y'] - abs($arguments['top'])); $c2 <= ($arguments['y'] + abs($arguments['bottom'])); $c2++) {
         $bg = imagettftext(

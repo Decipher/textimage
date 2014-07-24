@@ -9,6 +9,7 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Image\ImageFactory;
+use Drupal\Core\ImageToolkit\ImageToolkitOperationManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\image\ConfigurableImageEffectBase;
 use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
@@ -35,6 +36,13 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   protected $imageFactory;
 
   /**
+   * The image toolkit operation manager.
+   *
+   * @var \Drupal\Core\ImageToolkit\ImageToolkitOperationManagerInterface
+   */
+  protected $imageOperationManager;
+
+  /**
    * Textimage configuration object.
    *
    * @var \Drupal\Core\Config\Config
@@ -58,10 +66,11 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, ImageFactory $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, ImageFactory $image_factory, ImageToolkitOperationManagerInterface $image_operation_manager, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->imageFactory = $image_factory;
+    $this->imageOperationManager =  $image_operation_manager;
     $this->textimageFactory = $textimage_factory;
     $this->fontPlugin = $font_plugin;
     $this->backgroundPlugin = $background_plugin;
@@ -77,6 +86,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
       $plugin_definition,
       $container->get('config.factory'),
       $container->get('image.factory'),
+      $container->get('image.toolkit.operation.manager'),
       $container->get('textimage.factory'),
       $container->get('plugin.manager.textimage.font')->getPlugin(),
       $container->get('plugin.manager.textimage.background')->getPlugin()

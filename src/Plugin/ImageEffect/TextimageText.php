@@ -891,7 +891,8 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     // ---------------------------------------
 
     // Get inner box, for horizontal text, unpadded.
-    $inner_box = GDTextimageOperationBase::getTextBoundingBox($data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
+    $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
+    $inner_box = $operation->getTextBoundingBox($data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
 
     // Adjust to fixed width, if requested.
     if ($data['text']['fixed_width'] && !empty($data['text']['maximum_width'])) {
@@ -1130,6 +1131,9 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
    *   Text string, with newline characters to separate each line.
    */
   public static function wrapText($image, $text, $font_size, $font_uri, $maximum_width) {
+    // The toolkit operation with the getBoundingBox() method.
+    $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
+
     // State variables for the search interval.
     $end = 0;
     $begin = 0;
@@ -1148,7 +1152,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
 
       // Fetch text, removing trailing white-space, and measure it.
       $line  = preg_replace('/[' . TextUtility::PREG_CLASS_SEPARATOR . ']+$/u', '', Unicode::substr($text, $begin, $end - $begin));
-      $width = static::measureTextWidth($image, $line, 1, $font_size, $font_uri);
+      $width = static::measureTextWidth($operation, $line, 1, $font_size, $font_uri);
 
       // See if line extends past the available space.
       if ($width > $maximum_width) {
@@ -1157,7 +1161,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
           // Cut off letters until it fits.
           while (Unicode::strlen($line) > 0 && $width > $maximum_width) {
             $line  = Unicode::substr($line, 0, -1);
-            $width = static::measureTextWidth($image, $line, 1, $font_size, $font_uri);
+            $width = static::measureTextWidth($operation, $line, 1, $font_size, $font_uri);
           }
           // If no fit was found, the image is too narrow.
           $fit = Unicode::strlen($line) ? $begin + Unicode::strlen($line) : $end;
@@ -1191,8 +1195,8 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
   /**
    * Measure text box width.
    *
-   * @param object $image
-   *   Image object.
+   * @param @todo $operation
+   *   A image toolkit operation object.
    * @param string $text
    *   Text string in UTF-8 encoding.
    * @param int $lines
@@ -1205,8 +1209,8 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
    * @return array
    *   An associative array of box measurements.
    */
-  protected static function measureTextWidth($image, $text, $lines, $font_size, $font_uri) {
-    $box = GDTextimageOperationBase::getTextBoundingBox($text, $lines, $font_size, $font_uri);
+  protected static function measureTextWidth($operation, $text, $lines, $font_size, $font_uri) {
+    $box = $operation->getTextBoundingBox($text, $lines, $font_size, $font_uri);
     return $box->get('width');
   }
 

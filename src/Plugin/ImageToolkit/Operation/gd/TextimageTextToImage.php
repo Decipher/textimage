@@ -29,43 +29,43 @@ class TextimageTextToImage extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'font' => array(
-        'description' => 'An array containing the polygon vertices',
+        'description' => '@todo',
       ),
       'layout' => array(
-        'description' => 'Total number of points (vertices)',
+        'description' => '@todo',
       ),
       'text' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'text_lines' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'inner_width' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'inner_height' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'inner_basepoint' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'topLeftCornerPosition' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'inner_box' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'outer_box' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'line_height' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'debug_visuals' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
       'gif_transparency_color' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => '@todo',
       ),
     );
   }
@@ -140,7 +140,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     foreach ($arguments['text_lines'] as $text_line) {
 
       // This text line's box size.
-      $text_line_box = static::getTextBoundingBox($text_line, 1, $arguments['font']['size'], $arguments['font']['uri']); // @todo use a method in the parent class
+      $text_line_box = $this->getTextBoundingBox($text_line, 1, $arguments['font']['size'], $arguments['font']['uri']);
       $text_line_box->set('height', $arguments['line_height']);
 
       // Manage text alignment within the line.
@@ -217,7 +217,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
         $x_pos,
         $y_pos,
         $foreground_color,
-        static::getFontPath($arguments['font']['uri']), // @todo move to instance
+        $this->getFontPath($arguments['font']['uri']),
         $text_line
       );
 

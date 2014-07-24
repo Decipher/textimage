@@ -20,7 +20,7 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   /**
    * Return the path of the font file, in a format usable by GD.
    */
-  protected static function getFontPath($font_uri) { // @todo change to non-static
+  protected function getFontPath($font_uri) {
     $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
     if ($font_wrapper instanceof LocalStream) {
       $ret = $font_wrapper->realpath(); // @todo remove
@@ -29,7 +29,7 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
       $ret = is_file($font_uri) ? $font_uri : NULL;
     }
     if (!$ret) {
-      _textimage_diag(t("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)), WATCHDOG_ERROR, __FUNCTION__);
+      _textimage_diag($this->t("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)), WATCHDOG_ERROR, __FUNCTION__);
     }
     return $ret;
   }
@@ -37,9 +37,9 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   /**
    * Return the bounding box of a text using TrueType fonts.
    */
-  public static function getTextBoundingBox($text, $lines, $font_size, $font_uri, $angle = 0) { // @todo change to protected non-static
+  public function getTextBoundingBox($text, $lines, $font_size, $font_uri, $angle = 0) {
     $box = new BoundingBox();
-    $fontfile = static::getFontPath($font_uri);
+    $fontfile = $this->getFontPath($font_uri);
 
     // Need to calculate the height independently from primitive as
     // lack of descending/ascending characters will limit the height.
