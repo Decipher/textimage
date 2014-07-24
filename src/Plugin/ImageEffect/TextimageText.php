@@ -678,7 +678,6 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
             'RGB' => array(
               'HEX' => NULL,
             ),
-            'under' => TRUE,
             'exact' => $image_new,
           );
           if (!$image->apply('textimage_define_canvas', $canvas_data)) {

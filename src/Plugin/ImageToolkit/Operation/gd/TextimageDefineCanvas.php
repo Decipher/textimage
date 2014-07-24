@@ -32,9 +32,6 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
       'RGB' => array(
         'description' => 'Color',
       ),
-      'under' => array(
-        'description' => '???',
-      ),
       'exact' => array(
         'description' => 'Exact dimensions canvas',
         'required' => FALSE,
@@ -96,34 +93,37 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     $targetsize = $arguments['targetsize'];
     $RGB = $arguments['RGB'];
 
-    $newcanvas = imagecreatetruecolor($targetsize['width'], $targetsize['height']);
-    imagesavealpha($newcanvas, TRUE);
-    imagealphablending($newcanvas, FALSE);
-    imagesavealpha($this->getToolkit()->getResource(), TRUE);
+    $old_res = $this->getToolkit()->getResource();
+
+    $data = array(
+      'width' => $targetsize['width'],
+      'height' => $targetsize['height'],
+      'mimetype' => $this->getToolkit()->getMimeType(),
+    );
+    $this->getToolkit()->apply('set_new', $data);
+
     if ($RGB['HEX']) {
       // Set color, allow it to define transparency, or assume opaque.
-      $background = imagecolorallocatealpha($newcanvas, $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
+      $background = imagecolorallocatealpha($this->getToolkit()->getResource(), $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
     }
     else {
       // No color, attempt transparency, assume white.
-      $background = imagecolorallocatealpha($newcanvas, 255, 255, 255, 127);
+      $background = imagecolorallocatealpha($this->getToolkit()->getResource(), 255, 255, 255, 127);
     }
-    imagefilledrectangle($newcanvas, 0, 0, $targetsize['width'], $targetsize['height'], $background);
+    imagefilledrectangle($this->getToolkit()->getResource(), 0, 0, $targetsize['width'], $targetsize['height'], $background);
 
-    if ($arguments['under']) {
-      $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
-      $canvas_object->getToolkit()->setResource($newcanvas);
-      $overlay_data = array(
-        'layer' => $canvas_object,
-        'x' => $targetsize['left'],
-        'y' => $targetsize['top'],
-        'reverse' => TRUE,
-      );
-      $this->getToolkit()->apply('textimage_overlay', $overlay_data);
-    }
-    else {
-      $this->getToolkit()->setResource($newcanvas);
-    }
+    $newcanvas = $this->getToolkit()->getResource();
+    $this->getToolkit()->setResource($old_res);
+
+    $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+    $canvas_object->getToolkit()->setResource($newcanvas);
+    $overlay_data = array(
+      'layer' => $canvas_object,
+      'x' => $targetsize['left'],
+      'y' => $targetsize['top'],
+      'reverse' => TRUE,
+    );
+    $this->getToolkit()->apply('textimage_overlay', $overlay_data);
 
     return TRUE;
   }

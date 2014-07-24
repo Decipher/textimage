@@ -339,7 +339,6 @@ class TextimageBackground extends TextimageEffectBase {
         'RGB' => array(
           'HEX' => $this->configuration['background']['color'],
         ),
-        'under' => TRUE,
         'exact' => array(
           'width' => $this->configuration['exact']['width'],
           'height' => $this->configuration['exact']['height'],
