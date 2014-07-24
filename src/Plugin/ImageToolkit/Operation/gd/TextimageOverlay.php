@@ -90,7 +90,8 @@ class TextimageOverlay extends GDTextimageOperationBase {
       $upper = $arguments['layer'];
       $lower = $this->getToolkit()->getImage();
     }
-    if ($arguments['alpha'] == 100 && ($upper->getMimeType() != 'image/gif')) {
+//    if ($arguments['alpha'] == 100 && ($upper->getMimeType() != 'image/gif')) {
+    if ($arguments['alpha'] == 100) {
       imagealphablending($lower->getToolkit()->getResource(), TRUE);
       imagesavealpha($lower->getToolkit()->getResource(), TRUE);
       imagealphablending($upper->getToolkit()->getResource(), TRUE);

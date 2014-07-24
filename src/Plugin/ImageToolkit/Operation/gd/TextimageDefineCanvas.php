@@ -93,32 +93,25 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     $targetsize = $arguments['targetsize'];
     $RGB = $arguments['RGB'];
 
-    $old_res = $this->getToolkit()->getResource();
-
+    $canvas_image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
     $data = array(
       'width' => $targetsize['width'],
       'height' => $targetsize['height'],
       'mimetype' => $this->getToolkit()->getMimeType(),
     );
-    $this->getToolkit()->apply('set_new', $data);
-
+    $canvas_image->apply('set_new', $data);
     if ($RGB['HEX']) {
       // Set color, allow it to define transparency, or assume opaque.
-      $background = imagecolorallocatealpha($this->getToolkit()->getResource(), $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
+      $background = imagecolorallocatealpha($canvas_image->getToolkit()->getResource(), $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
     }
     else {
       // No color, attempt transparency, assume white.
-      $background = imagecolorallocatealpha($this->getToolkit()->getResource(), 255, 255, 255, 127);
+      $background = imagecolorallocatealpha($canvas_image->getToolkit()->getResource(), 255, 255, 255, 127);
     }
-    imagefilledrectangle($this->getToolkit()->getResource(), 0, 0, $targetsize['width'], $targetsize['height'], $background);
+    imagefilledrectangle($canvas_image->getToolkit()->getResource(), 0, 0, $targetsize['width'], $targetsize['height'], $background);
 
-    $newcanvas = $this->getToolkit()->getResource();
-    $this->getToolkit()->setResource($old_res);
-
-    $canvas_object = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
-    $canvas_object->getToolkit()->setResource($newcanvas);
     $overlay_data = array(
-      'layer' => $canvas_object,
+      'layer' => $canvas_image,
       'x' => $targetsize['left'],
       'y' => $targetsize['top'],
       'reverse' => TRUE,
