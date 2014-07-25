@@ -14,7 +14,6 @@ use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Component\ColorUtility;
-use Drupal\textimage\Plugin\ImageToolkit\Operation\gd\GDTextimageOperationBase; // @todo NO!!
 
 /**
  * Define the Textimage text.
@@ -674,13 +673,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
         list($resized, $offset_wrapper) = $this->backgroundImageResize($image, $wrapper, $this->configuration, $image_new, $frame);
         if ($resized) {
           // Apply textimage_define_canvas, transparent background.
-          $canvas_data = array(
-            'RGB' => array(
-              'HEX' => NULL,
-            ),
-            'exact' => $image_new,
-          );
-          if (!$image->apply('textimage_define_canvas', $canvas_data)) {
+          if (!$image->apply('textimage_define_canvas', array('exact' => $image_new))) {
             return FALSE;
           }
           // Color fill the frame with carried on background color.

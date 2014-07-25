@@ -337,9 +337,7 @@ class TextimageBackground extends TextimageEffectBase {
     // If resizing, apply textimage_define_canvas to finalise layout.
     if ($this->configuration['exact']['width'] || $this->configuration['exact']['height'] || $this->configuration['relative']['leftdiff'] || $this->configuration['relative']['rightdiff'] || $this->configuration['relative']['topdiff'] || $this->configuration['relative']['bottomdiff']) {
       $canvas_data = array(
-        'RGB' => array(
-          'HEX' => $this->configuration['background']['color'],
-        ),
+        'background_color' => $this->configuration['background']['color'],
         'exact' => array(
           'width' => $this->configuration['exact']['width'],
           'height' => $this->configuration['exact']['height'],
@@ -354,16 +352,11 @@ class TextimageBackground extends TextimageEffectBase {
         ),
       );
 
-      if ($image->getMimeType() == 'image/gif') {
-        // For .gif format, if transparent background set transparency color.
-        if (!$canvas_data['RGB']['HEX']) {
-          $canvas_data['RGB']['HEX'] = $this->textimageFactory->getState('gif_transparency_color');
-        }
-        $success = $image->apply('textimage_define_canvas', $canvas_data);
+      if ($image->getMimeType() == 'image/gif' && !$canvas_data['background_color']) {
+        // For .gif format, if transparent background set transparency color. // @todo check
+        $canvas_data['background_color'] = $this->textimageFactory->getState('gif_transparency_color');
       }
-      else {
-        $success = $image->apply('textimage_define_canvas', $canvas_data);
-      }
+      $success = $image->apply('textimage_define_canvas', $canvas_data);
     }
 
     if (!$success) {

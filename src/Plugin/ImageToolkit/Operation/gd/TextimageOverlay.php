@@ -12,16 +12,6 @@ use Drupal\textimage\Component\ColorUtility;
 /**
  * Defines Textimage GD2 overlay operation.
  *
- * @todo temp while imagecache_action develops
- *
- * NOTE that the PHP libraries are not great at merging images SO we include a
- * library that does it pixel-by-pixel which is INCREDIBLY inefficient. If this
- * can be improved, in a way that supports all transparency, please let us know!
- *
- * A watermark is layer onto image, return the image. An underlay is image onto
- * layer, return the layer. Almost identical, but seeing as we work with
- * resource handles, the handle needs to be swapped before returning.
- *
  * @ImageToolkitOperation(
  *   id = "textimage_gd_textimage_overlay",
  *   toolkit = "gd",
@@ -40,21 +30,16 @@ class TextimageOverlay extends GDTextimageOperationBase {
       'layer' => array(
         'description' => 'Image object to be placed over or under the current image',
       ),
+      'layer_on_top' => array(
+        'description' => 'Flag to indicate if the layer goes on top of the current image.',
+        'required' => FALSE,
+        'default' => TRUE,
+      ),
       'x' => array(
         'description' => 'x-position of the overlay',
       ),
       'y' => array(
         'description' => 'y-position of the overlay',
-      ),
-      'alpha' => array(   // @todo remove, but check overlay on different mime formats
-        'description' => 'Transparency of the overlay from 0-100. 0 is totally transparent. 100 (default) is totally opaque.',
-        'required' => FALSE,
-        'default' => 100,
-      ),
-      'layer_on_top' => array(
-        'description' => 'Flag to indicate if the layer goes on top of the current image.',
-        'required' => FALSE,
-        'default' => TRUE,
       ),
     );
   }
@@ -91,30 +76,13 @@ class TextimageOverlay extends GDTextimageOperationBase {
       $upper = $this->getToolkit()->getResource();
       $lower = $arguments['layer']->getToolkit()->getResource();
     }
-    // If the given alpha is 100%, we can use imagecopy - which actually works,
-    // is more efficient, and seems to retain the overlays partial transparency.
-    // Still does not work great for indexed gifs though?
-//    if ($arguments['alpha'] == 100 && ($upper->getMimeType() != 'image/gif')) {
-    if ($arguments['alpha'] == 100) {
-      imagealphablending($lower, TRUE);
-      imagesavealpha($lower, TRUE);
-      imagealphablending($upper, TRUE);
-      imagesavealpha($upper, TRUE);
-      imagecopy($lower, $upper, $arguments['x'], $arguments['y'], 0, 0, $width, $height);
-      imagedestroy($upper);
-      $this->getToolkit()->setResource($lower);
-    }
-  /*/  else {
-      // imagecopy() cannot be used and we have to use the slow library.
-      module_load_include('inc', 'imagecache_actions', 'watermark');
-      $watermark = new watermark();
-      $result_img = $watermark->create_watermark($lower->getToolkit()->getResource(), $upper->getToolkit()->getResource(), $arguments['x'], $arguments['y'], $arguments['alpha']);
-      // Watermark creates a new image resource, so clean up both old images.
-      imagedestroy($lower->getToolkit()->getResource());
-      imagedestroy($upper->getToolkit()->getResource());
-      $image->getToolkit()->setResource($result_img);
-    }*/
-
+    imagealphablending($lower, TRUE);
+    imagesavealpha($lower, TRUE);
+    imagealphablending($upper, TRUE);
+    imagesavealpha($upper, TRUE);
+    imagecopy($lower, $upper, $arguments['x'], $arguments['y'], 0, 0, $width, $height);
+    imagedestroy($upper);
+    $this->getToolkit()->setResource($lower);
     return TRUE;
   }
 

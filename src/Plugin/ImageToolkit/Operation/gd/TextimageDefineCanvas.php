@@ -29,8 +29,10 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
    */
   protected function arguments() {
     return array(
-      'RGB' => array( // @todo pass a #rrggbbaa string, not HEX
+      'background_color' => array(
         'description' => 'Color',
+        'required' => FALSE,
+        'default' => NULL,
       ),
       'exact' => array(
         'description' => 'Exact dimensions canvas',
@@ -75,11 +77,6 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
       $targetsize['top'] = $arguments['relative']['topdiff'];
     }
 
-    // Convert from hex (as it is stored in the UI).  @todo remove
-    if ($arguments['RGB']['HEX'] && $deduced = ColorUtility::hexToRgba($arguments['RGB']['HEX'])) {
-      $arguments['RGB'] = array_merge($arguments['RGB'], $deduced);
-    }
-
     // All the math is done, now defer to the toolkit in use.
     $arguments['targetsize'] = $targetsize;
 
@@ -91,18 +88,13 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
    */
   protected function execute(array $arguments) {
     $targetsize = $arguments['targetsize'];
-    $RGB = $arguments['RGB'];
 
-    $canvas_image = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
-    $data = array(
-      'width' => $targetsize['width'],
-      'height' => $targetsize['height'],
-      'mimetype' => $this->getToolkit()->getMimeType(),
-    );
-    $canvas_image->apply('set_new', $data);
-    if ($RGB['HEX']) {
+    $canvas_image = \Drupal::service('image.factory')->get();  // @todo inject
+    $canvas_image->apply('set_new', array('width' => $targetsize['width'], 'height' => $targetsize['height'], 'mimetype' => $this->getToolkit()->getMimeType())); // @todo not sure we need to set the mimetype
+    if ($arguments['background_color']) {
       // Set color, allow it to define transparency, or assume opaque.
-      $background = imagecolorallocatealpha($canvas_image->getToolkit()->getResource(), $RGB['red'], $RGB['green'], $RGB['blue'], $RGB['alpha']);
+      $rgba = ColorUtility::hexToRgba($arguments['background_color']);
+      $background = imagecolorallocatealpha($canvas_image->getToolkit()->getResource(), $rgba['red'], $rgba['green'], $rgba['blue'], $rgba['alpha']);
     }
     else {
       // No color, attempt transparency, assume white.
@@ -110,15 +102,7 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     }
     imagefilledrectangle($canvas_image->getToolkit()->getResource(), 0, 0, $targetsize['width'], $targetsize['height'], $background);
 
-    $overlay_data = array(
-      'layer' => $canvas_image,
-      'layer_on_top' => FALSE,
-      'x' => $targetsize['left'],
-      'y' => $targetsize['top'],
-    );
-    $this->getToolkit()->apply('textimage_overlay', $overlay_data);
-
-    return TRUE;
+    return $this->getToolkit()->apply('textimage_overlay', array('layer' => $canvas_image, 'layer_on_top' => FALSE, 'x' => $targetsize['left'], 'y' => $targetsize['top']));
   }
 
   /**
