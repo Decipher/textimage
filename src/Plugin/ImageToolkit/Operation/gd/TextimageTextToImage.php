@@ -64,7 +64,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       'debug_visuals' => array(
         'description' => '@todo',
       ),
-      'gif_transparency_color' => array(
+      'gif_transparency_color' => array(   // @todo maybe this can be dropped as used only for the wrapper which (?) can always be truecolor image/png
         'description' => '@todo',
       ),
     );
@@ -76,10 +76,9 @@ class TextimageTextToImage extends GDTextimageOperationBase {
   protected function execute(array $arguments) {
 
     // Create the image resource, fill transparent.
-    $ret = $this->getToolkit()->apply('textimage_create_transparent', array(
+    $ret = $this->getToolkit()->apply('set_new', array(
       'width' => $this->getToolkit()->getWidth(),
       'height' => $this->getToolkit()->getHeight(),
-      'transparent' => $arguments['gif_transparency_color'],
     ));
     if (!$ret) {
       return FALSE;

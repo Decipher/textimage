@@ -46,7 +46,7 @@ class TextimageOverlay extends GDTextimageOperationBase {
       'y' => array(
         'description' => 'y-position of the overlay',
       ),
-      'alpha' => array(
+      'alpha' => array(   // @todo remove, but check overlay on different mime formats
         'description' => 'Transparency of the overlay from 0-100. 0 is totally transparent. 100 (default) is totally opaque.',
         'required' => FALSE,
         'default' => 100,

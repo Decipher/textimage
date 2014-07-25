@@ -29,7 +29,7 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
    */
   protected function arguments() {
     return array(
-      'RGB' => array(
+      'RGB' => array( // @todo pass a #rrggbbaa string, not HEX
         'description' => 'Color',
       ),
       'exact' => array(
@@ -75,7 +75,7 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
       $targetsize['top'] = $arguments['relative']['topdiff'];
     }
 
-    // Convert from hex (as it is stored in the UI).
+    // Convert from hex (as it is stored in the UI).  @todo remove
     if ($arguments['RGB']['HEX'] && $deduced = ColorUtility::hexToRgba($arguments['RGB']['HEX'])) {
       $arguments['RGB'] = array_merge($arguments['RGB'], $deduced);
     }

@@ -282,14 +282,15 @@ class TextimageBackground extends TextimageEffectBase {
       case 'passthrough':
         break;
 
-      // If explicitly requested not to have a background image, create
-      // a transparent 1x1 image.
+      // If explicitly requested not to have a background image, set image
+      // to transparent 1x1.
       case '':
       default:
-        $image->apply('textimage_create_transparent', array(
+        $image->apply('set_new', array(
           'width' => 1,
           'height' => 1,
-          'transparent' => $this->textimageFactory->getState('gif_transparency_color'),
+          'mimetype' => $image->getMimeType(),
+          'transparent_color' => $this->textimageFactory->getState('gif_transparency_color'),
         ));
         break;
 
