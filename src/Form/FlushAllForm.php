@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Form;
 
 use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\Core\Url;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -73,8 +74,8 @@ class FlushAllForm extends ConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getCancelRoute() {
-    return array('route_name' => 'textimage.settings');
+  public function getCancelUrl() {
+    return new Url('textimage.settings');
   }
 
   /**
