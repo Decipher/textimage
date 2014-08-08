@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\textimage\font;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\textimage\Plugin\TextimageFontPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -35,7 +36,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
   /**
    * {@inheritdoc}
    */
-  public function configurationForm(array $form, array &$form_state, array $options = array()) {
+  public function configurationForm(array $form, FormStateInterface $form_state, array $options = array()) {
     $element['path'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Path'),
@@ -56,7 +57,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
   /**
    * @todo
    */
-  public function validatePath($element, &$form_state, $form) {
+  public function validatePath($element, FormStateInterface $form_state, $form) {
     if (!is_dir($element['#value'])) {
       form_set_error(implode('][', $element['#parents']), $form_state, $this->t('Invalid directory specified.'));
     }

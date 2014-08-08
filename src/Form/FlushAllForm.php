@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Form;
 
 use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -81,9 +82,9 @@ class FlushAllForm extends ConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, array &$form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->textimageFactory->flushAll();
-    $form_state['redirect_route']['route_name'] = 'textimage.settings';
+    $form_state->setRedirect('textimage.settings');
   }
 
 }

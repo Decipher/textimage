@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageEffect;
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 
 /**
@@ -35,7 +36,7 @@ class TextimageGifTransparency extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, array &$form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = array();
 
     // GIF transparency color.

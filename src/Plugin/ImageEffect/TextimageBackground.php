@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageEffect;
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 
 /**
@@ -57,7 +58,7 @@ class TextimageBackground extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, array &$form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = array();
 
     // Background image mode.
@@ -229,7 +230,7 @@ class TextimageBackground extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, array &$form_state) {
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
     $v = &$form_state['values'];
     if ($v['background_image']['mode'] <> 'select') {

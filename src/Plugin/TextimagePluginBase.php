@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -75,7 +76,7 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
     return $this->pluginType;
   }
 
-  public function configurationForm(array $form, array &$form_state, array $options = array()) {
+  public function configurationForm(array $form, FormStateInterface $form_state, array $options = array()) {
     return array();
   }
 

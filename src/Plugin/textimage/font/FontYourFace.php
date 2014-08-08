@@ -9,6 +9,7 @@
 
 namespace Drupal\textimage\Plugin\textimage\font;
 
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Fonts handler for font-your-face.
@@ -28,7 +29,7 @@ class FontYourFace extends Textimage {
   /**
    * {@inheritdoc}
    */
-  public function configurationForm(array $form, array &$form_state, array $options = array()) {
+  public function configurationForm(array $form, FormStateInterface $form_state, array $options = array()) {
     // No configuration needed.
     return array();
   }

@@ -10,6 +10,7 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
@@ -77,7 +78,7 @@ class TextimageText extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, array &$form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = array();
 
     // --- Preview effect.
@@ -494,7 +495,7 @@ class TextimageText extends TextimageEffectBase {
   /**
    * AJAX callback.
    */
-  public function processAjaxPreview($form, $form_state) {
+  public function processAjaxPreview($form, FormStateInterface $form_state) {
 unset($form_state['values']['data']['data_back']['data_back']); // @todo use configuration
     $response = new AjaxResponse();
     $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state['values']['data']['data_back'])));
@@ -504,7 +505,7 @@ unset($form_state['values']['data']['data_back']['data_back']); // @todo use con
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, array &$form_state) {
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
     $v = &$form_state['values'];
 $savex=$form_state['values']['preview_bar']['debug_visuals']; // @todo use configuration
@@ -561,7 +562,7 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
   /**
    * {@inheritdoc}
    */
-  public function submitConfigurationForm(array &$form, array &$form_state) {
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::submitConfigurationForm($form, $form_state);
     unset($this->configuration['data_back']);  // @todo use configuration
   }

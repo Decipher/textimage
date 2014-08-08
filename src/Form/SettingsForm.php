@@ -11,6 +11,7 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\textimage\Plugin\TextimagePluginManager;
 use Drupal\textimage\Plugin\TextimagePluginBaseInterface;
 use Drupal\textimage\TextimageFactory;
@@ -85,7 +86,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, array &$form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
 
     $plugin = array();
 
@@ -196,7 +197,7 @@ class SettingsForm extends ConfigFormBase {
    * @return array
    *   The form structure.
    */
-  protected function buildPluginForm(array $form, array &$form_state, TextimagePluginBaseInterface $plugin, array $options) {
+  protected function buildPluginForm(array $form, FormStateInterface $form_state, TextimagePluginBaseInterface $plugin, array $options) {
     $type = $plugin->getType();
     $ajax_settings = array(
       'callback' => array($this, 'processAjax'),
@@ -216,11 +217,11 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, array &$form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
 
     // Redirect to cleanup if required.
     if ($form_state['triggering_element']['#name'] == 'flush_all') {
-      $form_state['redirect'] = 'admin/config/media/textimage/cleanup';
+      $form_state->setRedirect('textimage.flush_all');
       return;
     }
 
@@ -257,7 +258,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * AJAX callback.
    */
-  public function processAjax($form, $form_state) {
+  public function processAjax($form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $status_messages = array('#theme' => 'status_messages');
     $response->addCommand(new HtmlCommand('#console', drupal_render($status_messages)));

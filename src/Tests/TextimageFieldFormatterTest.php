@@ -20,11 +20,11 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   function testTextimageFieldFormatter() {
 
     // Create a text field for Textimage test.
-    $field_name = strtolower($this->randomName());
+    $field_name = strtolower($this->randomMachineName());
     $this->createTextimageField($field_name, 'article');
 
     // Create a new node.
-    $field_value = $this->randomName(20);
+    $field_value = $this->randomMachineName(20);
     $nid = $this->createTextimageNode($field_name, $field_value, 'article');
     $node = node_load($nid, TRUE);
 

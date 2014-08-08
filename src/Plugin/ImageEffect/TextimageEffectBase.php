@@ -8,12 +8,14 @@
 namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\ImageToolkit\ImageToolkitOperationManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\image\ConfigurableImageEffectBase;
 use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
 use Drupal\textimage\Plugin\TextimageFontPluginInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -66,9 +68,9 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, ImageFactory $image_factory, ImageToolkitOperationManagerInterface $image_operation_manager, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $logger, ConfigFactoryInterface $config_factory, ImageFactory $image_factory, ImageToolkitOperationManagerInterface $image_operation_manager, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
     $this->config = $config_factory->get('textimage.settings');
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $logger);
     $this->imageFactory = $image_factory;
     $this->imageOperationManager =  $image_operation_manager;
     $this->textimageFactory = $textimage_factory;
@@ -84,6 +86,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('logger.factory')->get('image'),
       $container->get('config.factory'),
       $container->get('image.factory'),
       $container->get('image.toolkit.operation.manager'),
@@ -96,7 +99,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   /**
    * {@inheritdoc}
    */
-  public function submitConfigurationForm(array &$form, array &$form_state) {
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::submitConfigurationForm($form, $form_state);
     $this->configuration = $form_state['values'];
   }
