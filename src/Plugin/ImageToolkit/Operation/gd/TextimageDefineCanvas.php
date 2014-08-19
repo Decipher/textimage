@@ -89,19 +89,25 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
   protected function execute(array $arguments) {
     $targetsize = $arguments['targetsize'];
 
+    // Prepare the canvas.
     $canvas_image = \Drupal::service('image.factory')->get();  // @todo inject
     $canvas_image->apply('set_new', array('width' => $targetsize['width'], 'height' => $targetsize['height'], 'mimetype' => $this->getToolkit()->getMimeType())); // @todo not sure we need to set the mimetype
-    if ($arguments['background_color']) {
-      // Set color, allow it to define transparency, or assume opaque.
-      $rgba = ColorUtility::hexToRgba($arguments['background_color']);
-      $background = imagecolorallocatealpha($canvas_image->getToolkit()->getResource(), $rgba['red'], $rgba['green'], $rgba['blue'], $rgba['alpha']);
-    }
-    else {
-      // No color, attempt transparency, assume white.
-      $background = imagecolorallocatealpha($canvas_image->getToolkit()->getResource(), 255, 255, 255, 127);
-    }
-    imagefilledrectangle($canvas_image->getToolkit()->getResource(), 0, 0, $targetsize['width'], $targetsize['height'], $background);
+    $data = array(
+      'fill_color' => $arguments['background_color'],
+      'points' => array(
+        0,
+        $targetsize['height'] - 1,
+        $targetsize['width'] - 1,
+        $targetsize['height'] - 1,
+        $targetsize['width'] - 1,
+        0,
+        0,
+        0,
+      ),
+    );
+    $canvas_image->apply('textimage_draw_polygon', $data);
 
+    // Overlay the current image on the canvas.
     return $this->getToolkit()->apply('textimage_overlay', array('layer' => $canvas_image, 'layer_on_top' => FALSE, 'x' => $targetsize['left'], 'y' => $targetsize['top']));
   }
 
