@@ -75,7 +75,7 @@ class Media extends TextimagePluginBase implements TextimageBackgroundPluginInte
     $backgroundPlugin = \Drupal::service('plugin.manager.textimage.background')->getPlugin();
     $v = &$form_state['values']['data'];
     if ($v['background_image']['mode'] == 'select' && !$v['background_image']['fid']['fid']) {
-      form_set_error('background_image', $form_state, t('Select an image, or choose another option for the background image.'));
+      $form_state->setErrorByName('background_image', t('Select an image, or choose another option for the background image.'));
       return;
     }
     if (isset($v['background_image']['fid'])) {

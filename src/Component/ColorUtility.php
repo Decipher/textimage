@@ -7,8 +7,8 @@
 
 namespace Drupal\textimage\Component;
 
+use Drupal\Component\Utility\Color;
 use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Utility\Color;
 
 /**
  * Textimage - Color handling methods.

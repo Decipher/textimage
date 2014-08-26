@@ -138,7 +138,7 @@ class TextimageColor extends FormElement {
   /**
    * Validates a 'textimage_color' form element.
    */
-  public static function validateTextimageColor(&$element, FormStateInterface $form_state, &$complete_form) {
+  public static function validateTextimageColor(&$element, FormStateInterface $form_state, &$complete_form) { // @todo use valueCallback instead?
     // Normalize returned element values to a rgba hex value.
     if ($element['#allow_transparent'] && $element['container']['transparent']['#value']) {
       $element['#value'] = NULL;

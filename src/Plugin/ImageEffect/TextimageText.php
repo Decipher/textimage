@@ -394,15 +394,15 @@ class TextimageText extends TextimageEffectBase {
       '#type' => 'radios',
       '#title' => $this->t('Placement'),
       '#options' => array(
-        'left-top'      => $this->t('Top') . ' ' . $this->t('Left'),
-        'center-top'    => $this->t('Top') . ' ' . $this->t('Center'),
-        'right-top'     => $this->t('Top') . ' ' . $this->t('Right'),
-        'left-center'   => $this->t('Center') . ' ' . $this->t('Left'),
+        'left-top' => $this->t('Top left'),
+        'center-top' => $this->t('Top center'),
+        'right-top' => $this->t('Top right'),
+        'left-center' => $this->t('Center left'),
         'center-center' => $this->t('Center'),
-        'right-center'  => $this->t('Center') . ' ' . $this->t('Right'),
-        'left-bottom'   => $this->t('Bottom') . ' ' . $this->t('Left'),
-        'center-bottom' => $this->t('Bottom') . ' ' . $this->t('Center'),
-        'right-bottom'  => $this->t('Bottom') . ' ' . $this->t('Right'),
+        'right-center' => $this->t('Center right'),
+        'left-bottom' => $this->t('Bottom left'),
+        'center-bottom' => $this->t('Bottom center'),
+        'right-bottom' => $this->t('Bottom right'),
       ),
       '#theme' => 'image_anchor',
       '#default_value' => implode('-', array($this->configuration['layout']['x_pos'], $this->configuration['layout']['y_pos'])),
@@ -628,10 +628,11 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
         '#border_color' => 'matchLuma',
       );
     }
+
     return array(
       '#theme' => 'textimage_text_summary',
       '#data' => $data,
-    );
+    ) + parent::getSummary();
   }
 
   /**

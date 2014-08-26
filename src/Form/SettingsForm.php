@@ -89,16 +89,14 @@ class SettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $plugin = array();
-
-    $v = isset($form_state['values']) ? $form_state['values'] : NULL;
-    $ajaxing = $v ? TRUE : FALSE;
+    $ajaxing = (bool) $form_state->getValues();
 
     // Loops through plugin factory to get plugins.
     foreach ($this->pluginFactory as $type => $pluginFactory) {
-      $plugin_id = $ajaxing ? $v[$type]['plugin_id'] : $this->config->get($type . '.plugin_id');
+      $plugin_id = $ajaxing ? $form_state->getValue(array($type, 'plugin_id')) : $this->config->get($type . '.plugin_id');
       $plugin[$type] = $this->pluginFactory[$type]->getPlugin($plugin_id);
-      if ($ajaxing && isset($v[$type]['plugin_settings'])) {
-        $plugin[$type]->setConfiguration($v[$type]['plugin_settings']);
+      if ($ajaxing && $form_state->hasValue(array($type, 'plugin_settings'))) {
+        $plugin[$type]->setConfiguration($form_state->getValue(array($type, 'plugin_settings')));
       }
     }
 
@@ -226,27 +224,27 @@ class SettingsForm extends ConfigFormBase {
     }
 
     // Overall module flush if storage scheme gets changed.
-    if ($form_state['values']['store_scheme'] != $this->config->get('store_scheme')) {
+    if ($form_state->getValue('store_scheme') != $this->config->get('store_scheme')) {
       $this->textimageFactory->flushAll();
     }
 
     // Main Textimage store location.
-    $this->config->set('store_scheme', $form_state['values']['store_scheme']);
+    $this->config->set('store_scheme', $form_state->getValue('store_scheme'));
 
     // Loops through plugin factory to save settings.
     foreach ($this->pluginFactory as $type => $pluginFactory) {
-      $plugin = $pluginFactory->getPlugin($form_state['values'][$type]['plugin_id']);
-      if (isset($form_state['values'][$type]['plugin_settings'])) {
-        $plugin->setConfiguration($form_state['values'][$type]['plugin_settings']);
+      $plugin = $pluginFactory->getPlugin($form_state->getValue(array($type, 'plugin_id')));
+      if ($form_state->hasValue(array($type, 'plugin_settings'))) {
+        $plugin->setConfiguration($form_state->getValue(array($type, 'plugin_settings')));
       }
       $this->config
         ->set($type . '.plugin_id', $plugin->getPluginId())
         ->set($type . '.plugin_settings.' . $plugin->getPluginId(), $plugin->getConfiguration());
-      if ($type == 'font' && !empty($form_state['values']['font']['default_font_name'])) {
+      if ($type == 'font' && !$form_state->isValueEmpty(array('font', 'default_font_name'))) {
         // Default font.
         $this->config
-          ->set('default_font.name', $form_state['values']['font']['default_font_name'])
-          ->set('default_font.uri', $plugin->getUri($form_state['values']['font']['default_font_name']));
+          ->set('default_font.name', $form_state->getValue(array('font', 'default_font_name')))
+          ->set('default_font.uri', $plugin->getUri($form_state->getValue(array('font', 'default_font_name'))));
       }
     }
 

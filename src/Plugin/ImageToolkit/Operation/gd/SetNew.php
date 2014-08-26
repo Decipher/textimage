@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
-use Drupal\Core\Utility\Color;
+use Drupal\Component\Utility\Color;
 
 /**
  * Defines GD2 set new image operation.

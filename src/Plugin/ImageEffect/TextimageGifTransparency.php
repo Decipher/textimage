@@ -1,5 +1,19 @@
 <?php
 
+
+
+
+// @todo drop this and replace with a setting on background + inheritihing from current resource
+
+
+
+
+
+
+
+
+
+
 /**
  * @file
  * Contains \Drupal\textimage\Plugin\ImageEffect\TextimageGifTransparency.
@@ -64,10 +78,11 @@ class TextimageGifTransparency extends TextimageEffectBase {
         '#border_color' => 'matchLuma',
       );
     }
+
     return array(
       '#theme' => 'textimage_gif_transparency_summary',
       '#data' => $data,
-    );
+    ) + parent::getSummary();
   }
 
   /**

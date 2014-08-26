@@ -51,7 +51,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
 
   public function validatePath($element, FormStateInterface $form_state, $form) {
     if (!is_dir($element['#value'])) {
-      form_set_error(implode('][', $element['#parents']), $form_state, $this->t('Invalid directory specified.'));
+      $form_state->setErrorByName(implode('][', $element['#parents']), $this->t('Invalid directory specified.'));
     }
   }
 
@@ -97,7 +97,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     if ($v['background_image']['mode'] == 'select') {
       $file_path = $this->configuration['path'] . '/' . $element['#value'];
       if (!file_exists($file_path)) {
-        form_set_error(implode('][', $element['#parents']), $form_state, $this->t('The file selected does not exist.'));
+        $form_state->setErrorByName(implode('][', $element['#parents']), $this->t('The file selected does not exist.'));
       }
       else {
         $form_state['values']['data']['background_image']['uri'] = $file_path;

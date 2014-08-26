@@ -133,15 +133,15 @@ class TextimageBackground extends TextimageEffectBase {
       '#type' => 'radios',
       '#title' => $this->t('Position'),
       '#options' => array(
-        'left-top'      => $this->t('Top') . ' ' . $this->t('Left'),
-        'center-top'    => $this->t('Top') . ' ' . $this->t('Center'),
-        'right-top'     => $this->t('Top') . ' ' . $this->t('Right'),
-        'left-center'   => $this->t('Center') . ' ' . $this->t('Left'),
+        'left-top' => $this->t('Top left'),
+        'center-top' => $this->t('Top center'),
+        'right-top' => $this->t('Top right'),
+        'left-center' => $this->t('Center left'),
         'center-center' => $this->t('Center'),
-        'right-center'  => $this->t('Center') . ' ' . $this->t('Right'),
-        'left-bottom'   => $this->t('Bottom') . ' ' . $this->t('Left'),
-        'center-bottom' => $this->t('Bottom') . ' ' . $this->t('Center'),
-        'right-bottom'  => $this->t('Bottom') . ' ' . $this->t('Right'),
+        'right-center' => $this->t('Center right'),
+        'left-bottom' => $this->t('Bottom left'),
+        'center-bottom' => $this->t('Bottom center'),
+        'right-bottom' => $this->t('Bottom right'),
       ),
       '#theme' => 'image_anchor',
       '#default_value' => implode('-', array($this->configuration['exact']['xpos'], $this->configuration['exact']['ypos'])),
@@ -162,15 +162,15 @@ class TextimageBackground extends TextimageEffectBase {
       '#type' => 'radios',
       '#title' => $this->t('Crop anchor'),
       '#options' => array(
-        'left-top'      => $this->t('Top') . ' ' . $this->t('Left'),
-        'center-top'    => $this->t('Top') . ' ' . $this->t('Center'),
-        'right-top'     => $this->t('Top') . ' ' . $this->t('Right'),
-        'left-center'   => $this->t('Center') . ' ' . $this->t('Left'),
+        'left-top' => $this->t('Top left'),
+        'center-top' => $this->t('Top center'),
+        'right-top' => $this->t('Top right'),
+        'left-center' => $this->t('Center left'),
         'center-center' => $this->t('Center'),
-        'right-center'  => $this->t('Center') . ' ' . $this->t('Right'),
-        'left-bottom'   => $this->t('Bottom') . ' ' . $this->t('Left'),
-        'center-bottom' => $this->t('Bottom') . ' ' . $this->t('Center'),
-        'right-bottom'  => $this->t('Bottom') . ' ' . $this->t('Right'),
+        'right-center' => $this->t('Center right'),
+        'left-bottom' => $this->t('Bottom left'),
+        'center-bottom' => $this->t('Bottom center'),
+        'right-bottom' => $this->t('Bottom right'),
       ),
       '#theme' => 'image_anchor',
       '#default_value' => $this->configuration['exact']['crop'],
@@ -256,10 +256,11 @@ class TextimageBackground extends TextimageEffectBase {
         '#border_color' => 'matchLuma',
       );
     }
+
     return array(
       '#theme' => 'textimage_background_effect_summary',
       '#data' => $data,
-    );
+    ) + parent::getSummary();
   }
 
   /**

@@ -59,7 +59,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
    */
   public function validatePath($element, FormStateInterface $form_state, $form) {
     if (!is_dir($element['#value'])) {
-      form_set_error(implode('][', $element['#parents']), $form_state, $this->t('Invalid directory specified.'));
+      $form_state->setErrorByName(implode('][', $element['#parents']), $this->t('Invalid directory specified.'));
     }
   }
 
