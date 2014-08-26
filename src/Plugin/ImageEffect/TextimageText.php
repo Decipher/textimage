@@ -773,11 +773,6 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
       }
     }
 
-    // Reset transparency color for .gif format.
-    if ($image->getMimeType() == 'image/gif') {
-      $image->apply('textimage_set_transparency', array('color' => $this->textimageFactory->getState('gif_transparency_color')));
-    }
-
     return TRUE;
   }
 
@@ -938,7 +933,6 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
       'outer_box' => $outer_box_t->get('points'),
       'line_height' => $line_height,
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
-      'gif_transparency_color' => $this->textimageFactory->getState('gif_transparency_color'),
     );
     if (!$wrapper->apply('textimage_text_to_image', $data_textimage)) {
       return NULL;

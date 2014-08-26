@@ -64,9 +64,6 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       'debug_visuals' => array(
         'description' => '@todo',
       ),
-      'gif_transparency_color' => array(   // @todo maybe this can be dropped as used only for the wrapper which (?) can always be truecolor image/png
-        'description' => '@todo',
-      ),
     );
   }
 

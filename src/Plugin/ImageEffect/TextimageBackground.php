@@ -35,6 +35,7 @@ class TextimageBackground extends TextimageEffectBase {
         'background' => array(
           'color' => NULL,
           'repeat' => TRUE,
+          'gif_transparent_color' => NULL,  // @todo add ui
         ),
         'exact' => array(
           'width'    => '',
@@ -291,8 +292,8 @@ class TextimageBackground extends TextimageEffectBase {
         $image->apply('set_new', array(
           'width' => 1,
           'height' => 1,
-          'mimetype' => $image->getMimeType(),
-          'transparent_color' => $this->textimageFactory->getState('gif_transparency_color'),
+          'mimetype' => $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to 
+          'transparent_color' => $this->configuration['background']['gif_transparent_color'],
         ));
         break;
 
@@ -354,9 +355,9 @@ class TextimageBackground extends TextimageEffectBase {
         ),
       );
 
-      if ($image->getMimeType() == 'image/gif' && !$canvas_data['background_color']) {
-        // For .gif format, if transparent background set transparency color. // @todo check
-        $canvas_data['background_color'] = $this->textimageFactory->getState('gif_transparency_color');
+      if ($image->getMimeType() == 'image/gif' && !$this->configuration['background']['color']) {
+        // For .gif format, if transparent background set transparency color.
+        $canvas_data['background_color'] = $this->configuration['background']['gif_transparent_color'];
       }
       $success = $image->apply('textimage_define_canvas', $canvas_data);
     }
@@ -369,11 +370,6 @@ class TextimageBackground extends TextimageEffectBase {
     // Stores background color for later effects.
     if ($this->configuration['background']['repeat']) {
       $this->textimageFactory->setState('background_color', $this->configuration['background']['color']);
-    }
-
-    // Reset transparency color for .gif format.
-    if ($image->getMimeType() == 'image/gif') {
-      $image->apply('textimage_set_transparency', array('color' => $this->textimageFactory->getState('gif_transparency_color')));
     }
 
     return $success;
