@@ -91,10 +91,14 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
 
     // Prepare the canvas.
     $canvas_image = \Drupal::service('image.factory')->get();  // @todo inject
-    $canvas_image->apply('set_new', array('width' => $targetsize['width'], 'height' => $targetsize['height'], 'mimetype' => $this->getToolkit()->getMimeType())); // @todo not sure we need to set the mimetype
+    $data = array(
+      'width' => $targetsize['width'],
+      'height' => $targetsize['height'],
+    );
+    $canvas_image->apply('textimage_set_new', $data);
     $data = array(
       'fill_color' => $arguments['background_color'],
-      'points' => array(
+      'points' => array( // @todo add helper method dimensionsToPoints
         0,
         $targetsize['height'] - 1,
         $targetsize['width'] - 1,

@@ -29,7 +29,7 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
       $ret = is_file($font_uri) ? $font_uri : NULL;
     }
     if (!$ret) {
-      _textimage_diag($this->t("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)), WATCHDOG_ERROR, __FUNCTION__);
+      $this->logger->error("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri));
     }
     return $ret;
   }

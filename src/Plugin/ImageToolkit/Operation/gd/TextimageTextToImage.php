@@ -73,7 +73,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
   protected function execute(array $arguments) {
 
     // Create the image resource, fill transparent.
-    $ret = $this->getToolkit()->apply('set_new', array(
+    $ret = $this->getToolkit()->apply('textimage_set_new', array(
       'width' => $this->getToolkit()->getWidth(),
       'height' => $this->getToolkit()->getHeight(),
     ));

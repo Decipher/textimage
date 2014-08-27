@@ -75,11 +75,6 @@ function textimage_theme() {
       'variables' => array('data' => NULL),
       'template' => 'textimage-text-summary',
     ),
-    // Textimage GIF transparency effect - summary.
-    'textimage_gif_transparency_summary' => array(
-      'variables' => array('data' => NULL),
-      'template' => 'textimage-gif-transparency-summary',
-    ),
     // Render a color information box and string.
     'textimage_color_detail' => array(
       'variables' => array(
@@ -92,18 +87,6 @@ function textimage_theme() {
   );
 
   return $theme;
-}
-
-/**
- * Implements hook_permission().
- */
-function textimage_permission() {
-  return array(
-    'generate textimage url derivatives' => array(
-      'title' => t('Generate Textimage URL derivatives'),
-      'description' => t('Allows users to generate Textimage derivatives directly from an URL request.'),
-    ),
-  );
 }
 
 /**

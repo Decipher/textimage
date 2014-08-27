@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\SetNew.
+ * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageSetNew.
  */
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
@@ -13,14 +13,14 @@ use Drupal\Component\Utility\Color;
  * Defines GD2 set new image operation.
  *
  * @ImageToolkitOperation(
- *   id = "textimage_gd_set_new",
+ *   id = "textimage_gd_textimage_set_new",
  *   toolkit = "gd",
- *   operation = "set_new",
+ *   operation = "textimage_set_new",
  *   label = @Translation("Set a new image"),
  *   description = @Translation("Creates a new transparent resource and sets it for the image.")
  * )
  */
-class SetNew extends GDTextimageOperationBase {
+class TextimageSetNew extends GDTextimageOperationBase {
 
   /**
    * {@inheritdoc}
@@ -88,7 +88,6 @@ class SetNew extends GDTextimageOperationBase {
     }
 
     $this->getToolkit()->setResource($res);
-    //$this->getToolkit()->getImage()->setValid(TRUE); // @todo
     return TRUE;
   }
 

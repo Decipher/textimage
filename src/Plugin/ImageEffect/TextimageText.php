@@ -785,8 +785,12 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     if ($this->configuration['layout']['overflow_action'] == 'extend') {
 
       // Dummy image object.
-      //$image = new stdClass();   @todo no longer possible to create empty images
-      $image = $this->imageFactory->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
+      $image = $this->imageFactory->get();
+      $data = array(
+        'width' => 1,
+        'height' => 1,
+      );
+      $image->apply('textimage_set_new', $data);
 
       // Get the text wrapper resource.
       if (!$wrapper = $this->getTextWrapper($image, $this->configuration)) {
@@ -915,9 +919,12 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     );
 
     // Create the wrapper image object as a canvass for the text.
-    //$wrapper = clone $image;
-    $wrapper = \Drupal::service('image.factory')->get(drupal_get_path('module', 'textimage') . '/misc/images/base.png'); // @todo no longer possible to get dummy images
-    $wrapper->resize($outer_box_t->get('width'), $outer_box_t->get('height'));
+    $wrapper = $this->imageFactory->get();
+    $data_new = array(
+      'width' => $outer_box_t->get('width'),
+      'height' => $outer_box_t->get('height'),
+    );
+    $wrapper->apply('textimage_set_new', $data_new);
 
     // Calls image generation for the wrapper image.
     $data_textimage = array(

@@ -289,7 +289,7 @@ class TextimageBackground extends TextimageEffectBase {
       // to transparent 1x1.
       case '':
       default:
-        $image->apply('set_new', array(
+        $image->apply('textimage_set_new', array(
           'width' => 1,
           'height' => 1,
           'mimetype' => $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to 
@@ -331,7 +331,7 @@ class TextimageBackground extends TextimageEffectBase {
         }
 
         if (!$success) {
-          _textimage_diag($this->t('Textimage failed image processing.'), WATCHDOG_ERROR, __FUNCTION__);
+          $this->logger->error('Textimage failed processing \'textimage_background\' effect.');
           return FALSE;
         }
       }
@@ -355,6 +355,7 @@ class TextimageBackground extends TextimageEffectBase {
         ),
       );
 
+      // @todo need to check this if transparency is coming from existing image or defined in UI
       if ($image->getMimeType() == 'image/gif' && !$this->configuration['background']['color']) {
         // For .gif format, if transparent background set transparency color.
         $canvas_data['background_color'] = $this->configuration['background']['gif_transparent_color'];
@@ -363,7 +364,7 @@ class TextimageBackground extends TextimageEffectBase {
     }
 
     if (!$success) {
-      _textimage_diag($this->t('Textimage failed image processing.'), WATCHDOG_ERROR, __FUNCTION__);
+      $this->logger->error('Textimage failed processing \'textimage_background\' effect.');
       return FALSE;
     }
 
@@ -392,7 +393,7 @@ class TextimageBackground extends TextimageEffectBase {
       case 'select':
         $image = $this->imageFactory->get($this->configuration['background_image']['uri']);
         if (!$image->isValid()) {
-          _textimage_diag($this->t('Textimage failed loading image %image', array('%image' => $this->configuration['background_image']['uri'])), WATCHDOG_ERROR, __FUNCTION__);
+          $this->logger->error('Textimage failed to load image file %image', array('%image' => $this->configuration['background_image']['uri']));
           return;
         }
         $width = $image->getWidth();
@@ -448,7 +449,7 @@ class TextimageBackground extends TextimageEffectBase {
             return;
 
         }
-        _textimage_diag($this->t('Textimage image dimensions resizing failed.'), WATCHDOG_ERROR, __FUNCTION__);
+        $this->logger->error('\'textimage_background\' image dimensions transform failed.');
         return FALSE;
       }
     }
