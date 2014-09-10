@@ -94,6 +94,7 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     $data = array(
       'width' => $targetsize['width'],
       'height' => $targetsize['height'],
+      // @todo need to manage if the image has a transparent color already
     );
     $canvas_image->apply('textimage_set_new', $data);
     $data = array(

@@ -494,6 +494,10 @@ class Textimage {
       }
     }
     $this->text = $processed_text;
+    if(empty($this->text)) {
+      _textimage_diag(t("Textimage had no text to process."), WATCHDOG_ERROR, NULL, $this->userMessages);
+      return $this;
+    }
 
     // Remove default text from effects outline, as actual runtime text goes
     // separately to the hash.

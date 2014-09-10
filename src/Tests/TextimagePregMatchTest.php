@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Tests;
 
-use Drupal\simpletest\UnitTestBase;
+use Drupal\simpletest\DrupalUnitTestBase;
 use Drupal\textimage\Component\TextUtility;
 
 /**
@@ -15,7 +15,7 @@ use Drupal\textimage\Component\TextUtility;
  *
  * @group Textimage
  */
-class TextimagePregMatchTest extends UnitTestBase {
+class TextimagePregMatchTest extends DrupalUnitTestBase {
 
   /**
    * Performs the tests for the offset argument.

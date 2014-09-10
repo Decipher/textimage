@@ -6,9 +6,11 @@
  */
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\image\ImageStyleInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Textimage;
-use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Define constants.
@@ -230,31 +232,20 @@ function textimage_metatag_token_types_alter(&$options) {
   }
 }
 
-// **** D8 specific ****
-/*function textimage_entity_info(&$entity_info) {
-  if (isset($entity_info['image_style'])) {
-    $entity_info['image_style']['textimage'] = array('bingo' => 'bongo');
+/**
+ * Implements hook_image_style_presave().
+ */
+function textimage_image_style_presave(ImageStyleInterface $style) {
+  // Identify and store whether the image style is relevant for Textimage.
+  foreach ($style->getEffects() as $effect) {
+    $definition = $effect->getPluginDefinition();
+    if ($definition['provider'] == 'textimage') {
+      $style->setThirdPartySetting('textimage', 'is_relevant', TRUE);
+      return;
+    }
   }
-}*/
-
-/*function textimage_image_style_presave(\Drupal\Core\Entity\EntityInterface $entity) {
-
-  //dpm($entity);
-  $entity->set('textimage', 'BingoBongo');
-//  dpm($entity);
-
-}*/
-
-//function textimage_textimage_style_load($entities) {
-
-//  dpm($entity_type);
-//  $entity->set('textimage', 'BingoBongo');
-//  dpm($entities);
-/*  foreach ($entities as $entity) {
-    dpm($entity->name . ' . ' . $entity->isTextimage());
-  }*/
-
-//}
+  $style->setThirdPartySetting('textimage', 'is_relevant', FALSE);
+}
 
 /* test hook for derivative creation */
 /*function textimage_image_style_create_derivative($style, $original_uri, $derivative_uri) {
@@ -272,14 +263,12 @@ function textimage_metatag_token_types_alter(&$options) {
   );
 }*/
 
-// **** END D8 specific ****
-
 /**
  * Implements hook_form_FORM_ID_alter().
  *
  * @see _textimage_image_style_form_form_alter()
  */
-function textimage_form_image_style_form_alter(&$form, &$form_state, $form_id) {
+//function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_state, $form_id) {
 /*$style = $form_state['controller']->getEntity();
 dpm($style);
 $effects = $style->getEffects();
@@ -288,7 +277,8 @@ dpm($effect);
 };*/
 
 /*  if (...::isTextimage($form_state['image_style'])) {*/
-    $form['textimage_options'] = array(
+
+/*    $form['textimage_options'] = array(
       '#type' => 'details',
       '#tree' => TRUE,
       '#weight' => 10,
@@ -309,23 +299,30 @@ dpm($effect);
       '#default_value' => 'public',
     );
     // Adds a submit handler to deal with textimage options.
-//    $form['#submit'][] = '_textimage_image_style_form_textimage_submit';
+    $form['#submit'][] = '_textimage_image_style_form_textimage_submit';
+    $style = $form_state->getFormObject()->getEntity();
+//    $style->setThirdPartySetting('textimage', 'uri_scheme', 'public');
+//    $style->save();
   /*}*/
-}
+//}
 
 /**
  * Submit handler to deal with a style's Textimage options.
  *
  * @see _textimage_image_style_form_form_alter()
  */
-/*function _textimage_image_style_form_textimage_submit($form, &$form_state) {
-  $style = ...:get($form_state['values']['name']);
+//function _textimage_image_style_form_textimage_submit($form, FormStateInterface $form_state) {
+/*  $style = ...:get($form_state['values']['name']);
   // Update Textimage-specific style options.
   if ($style) {
     $style['textimage']['uri_scheme'] = $form_state['values']['textimage_options']['uri_scheme'];
     image_style_save($style);
-  }
-}*/
+  }*/
+/*debug('bingo');
+  $style = $form['entity'];
+  $style->setThirdPartySetting('textimage', 'uri_scheme', 'public');
+debug('bongo');*/
+//}
 
 /**
  * Textimage functions.

@@ -886,6 +886,9 @@ $form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // 
     // Get inner box, for horizontal text, unpadded.
     $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
     $inner_box = $operation->getTextBoundingBox($data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
+    if (!$inner_box) {
+      return NULL;
+    }
 
     // Adjust to fixed width, if requested.
     if ($data['text']['fixed_width'] && !empty($data['text']['maximum_width'])) {

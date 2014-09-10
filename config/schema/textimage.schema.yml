@@ -1,0 +1,12 @@
+# Schema for the Textimage module.
+
+image_style.third_party.textimage:
+  type: mapping
+  label: 'Textimage settings for image styles'
+  mapping:
+    is_relevant:
+      type: boolean
+      label: 'Identify if the image style is relevant for Textimage'
+    uri_scheme:
+      type: string
+      label: 'Textimage derivative scheme destination'

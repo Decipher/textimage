@@ -38,13 +38,15 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
    * Return the bounding box of a text using TrueType fonts.
    */
   public function getTextBoundingBox($text, $lines, $font_size, $font_uri, $angle = 0) {
-    $box = new BoundingBox();
-    $fontfile = $this->getFontPath($font_uri);
+    if (!$fontfile = $this->getFontPath($font_uri)) {
+      return NULL;
+    }
 
     // Need to calculate the height independently from primitive as
     // lack of descending/ascending characters will limit the height.
     // So to have uniformity we take a dummy string with ascending and
     // descending characters to set to max height possible.
+    $box = new BoundingBox();
     $box->set('points', imagettfbbox($font_size, 0, $fontfile, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ'));
     $height = $lines * $box->get('height');
 
