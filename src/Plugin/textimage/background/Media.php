@@ -35,7 +35,7 @@ class Media extends TextimagePluginBase implements TextimageBackgroundPluginInte
     if (_textimage_module_exists('media', TEXTIMAGE_MEDIA_MIN_VERSION)) {
       $backgrounds_handling_module_options['media'] = $this->t('Media');
     }
-    $backgrounds_handling_module_option_selected = isset($form_state['values']['backgrounds_handling_module']) ? $form_state['values']['backgrounds_handling_module'] : $this->config->get('backgrounds_handling_module');
+    $backgrounds_handling_module_option_selected = $form_state->hasValue('backgrounds_handling_module') ? $form_state->getValue('backgrounds_handling_module') : $this->config->get('backgrounds_handling_module');
   }
 
   /**
@@ -73,20 +73,20 @@ class Media extends TextimagePluginBase implements TextimageBackgroundPluginInte
 
   public function validateSelectorUri($element, &$form_state, $form) {
     $backgroundPlugin = \Drupal::service('plugin.manager.textimage.background')->getPlugin();
-    $v = &$form_state['values']['data'];
+    $v = $form_state->getValue('data');
     if ($v['background_image']['mode'] == 'select' && !$v['background_image']['fid']['fid']) {
       $form_state->setErrorByName('background_image', t('Select an image, or choose another option for the background image.'));
       return;
     }
     if (isset($v['background_image']['fid'])) {
-      $v['background_image']['fid'] = $v['background_image']['fid']['fid'];
+      $form_state->setValue(array('data', 'background_image', 'fid'), $v['background_image']['fid']['fid']);
       $file = file_load($v['background_image']['fid']);
-      $v['background_image']['uri'] = $file->uri;
+      $form_state->setValue(array('data', 'background_image', 'uri'), $file->uri);
     }
     if (!isset($v['background_image']['fid']) and isset($v['background_image']['uri'])) {
       $pluginConfiguration = $backgroundPlugin->getConfiguration();
       $path = $pluginConfiguration['path'];
-      $v['background_image']['uri'] = $path . '/' . $v['background_image']['uri'];
+      $form_state->setValue(array('data', 'background_image', 'uri'), $path . '/' . $v['background_image']['uri']);
     }
   }
 

@@ -218,7 +218,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     // Redirect to cleanup if required.
-    if ($form_state['triggering_element']['#name'] == 'flush_all') {
+    if ($form_state->getTriggeringElement()['#name'] == 'flush_all') {
       $form_state->setRedirect('textimage.flush_all');
       return;
     }

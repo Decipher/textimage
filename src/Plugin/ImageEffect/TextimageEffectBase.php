@@ -96,12 +96,4 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
     );
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::submitConfigurationForm($form, $form_state);
-    $this->configuration = $form_state['values'];
-  }
-
 }

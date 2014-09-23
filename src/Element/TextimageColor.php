@@ -33,9 +33,6 @@ class TextimageColor extends FormElement {
       '#process' => array(
         array($class, 'processTextimageColor'),
       ),
-      '#element_validate' => array(
-        array($class, 'validateTextimageColor'),
-      ),
     );
   }
 
@@ -43,6 +40,26 @@ class TextimageColor extends FormElement {
    * {@inheritdoc}
    */
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
+    if ($input !== FALSE && $input !== NULL) {
+      // Normalize returned element values to a rgba hex value.
+      $val = NULL;
+      if ($element['#allow_transparent'] && !empty($input['container']['transparent'])) {
+        return NULL;
+      }
+      elseif ($element['#allow_transparent'] || $element['#allow_opacity']) {
+        $val = Unicode::strtoupper($input['container']['hex']);
+      }
+      else {
+        $val = Unicode::strtoupper($input['hex']);
+      }
+      if ($val[0] <> '#') {
+        $val = '#' . $val;
+      }
+      if ($element['#allow_opacity']) {
+        $val .= ColorUtility::opacityToAlpha($input['container']['opacity']);
+      }
+      return $val;
+    }
     return NULL;
   }
 
@@ -133,35 +150,6 @@ class TextimageColor extends FormElement {
     );
 
     return $element;
-  }
-
-  /**
-   * Validates a 'textimage_color' form element.
-   */
-  public static function validateTextimageColor(&$element, FormStateInterface $form_state, &$complete_form) { // @todo use valueCallback instead?
-    // Normalize returned element values to a rgba hex value.
-    if ($element['#allow_transparent'] && $element['container']['transparent']['#value']) {
-      $element['#value'] = NULL;
-    }
-    elseif ($element['#allow_transparent'] || $element['#allow_opacity']) {
-      $element['#value'] = Unicode::strtoupper($element['container']['hex']['#value']);
-    }
-    else {
-      $element['#value'] = Unicode::strtoupper($element['hex']['#value']);
-    }
-    if ($element['#value'] && $element['#value'][0] <> '#') {
-      $element['#value'] = '#' . $element['#value'];
-    }
-    if ($element['#value'] && $element['#allow_opacity']) {
-      $element['#value'] .= ColorUtility::opacityToAlpha($element['container']['opacity']['#value']);
-    }
-
-    // Replace the element value in the parent form with the normalized value.
-    $value = &$form_state['values']; // @todo use method
-    foreach ($element['#parents'] as $path) {
-      $value = &$value[$path];
-    }
-    $value = $element['#value'];
   }
 
 }

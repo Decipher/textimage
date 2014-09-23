@@ -9,6 +9,7 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
+use Drupal\textimage\Element\TextimageColor;
 
 /**
  * Define the Textimage background canvas.
@@ -35,13 +36,12 @@ class TextimageBackground extends TextimageEffectBase {
         'background' => array(
           'color' => NULL,
           'repeat' => TRUE,
-          'gif_transparent_color' => NULL,  // @todo add ui
+          'gif_transparent_color' => NULL,
         ),
         'exact' => array(
           'width'    => '',
           'height'   => '',
-          'xpos' => 'center',
-          'ypos' => 'center',
+          'position' => 'center-center',
           'dimensions' => 'scale',
           'crop' => 'center-center',
         ),
@@ -102,6 +102,14 @@ class TextimageBackground extends TextimageEffectBase {
       '#description' => $this->t('If checked, this color will be used as a filler in case Textimage effects applied later need to extend the size of the image.'),
       '#default_value' => $this->configuration['background']['repeat'],
     );
+    $form['background']['gif_transparent_color'] = array(
+      '#type' => 'textimage_color',
+      '#title' => $this->t('Transparent color for GIF images'),
+      '#description'  => $this->t('Indicate a color to be used for transparency of GIF image files. Leave blank to use the color of the image being processed, if it has one.'),
+      '#allow_transparent' => TRUE, // @todo change #allow_transparent to #allow_null and make the 'transparent' text customisable
+      '#allow_opacity' => FALSE,
+      '#default_value' => $this->configuration['background']['gif_transparent_color'],
+    );
 
     // Background image exact dimensions.
     $form['exact'] = array(
@@ -145,7 +153,7 @@ class TextimageBackground extends TextimageEffectBase {
         'right-bottom' => $this->t('Bottom right'),
       ),
       '#theme' => 'image_anchor',
-      '#default_value' => implode('-', array($this->configuration['exact']['xpos'], $this->configuration['exact']['ypos'])),
+      '#default_value' => $this->configuration['exact']['position'],
       '#description' => $this->t('Position of the image on the resulting canvas, if the background image selected is smaller than the canvas.'),
     );
     $form['exact']['dimensions'] = array(
@@ -233,15 +241,25 @@ class TextimageBackground extends TextimageEffectBase {
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
-    $v = &$form_state['values'];
-    if ($v['background_image']['mode'] <> 'select') {
+
+    // @todo - is there a better solution??
+    $background_color = TextimageColor::valueCallback($form['data']['background']['color'], $form_state->getValue(['background', 'color']), $form_state);
+    $form_state->setValue(['background', 'color'], $background_color);
+    $gif_transparent_color = TextimageColor::valueCallback($form['data']['background']['gif_transparent_color'], $form_state->getValue(['background', 'gif_transparent_color']), $form_state);
+    $form_state->setValue(['background', 'gif_transparent_color'], $gif_transparent_color);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $this->configuration = $form_state->getValues();
+    if ($this->configuration['background_image']['mode'] !== 'select') {
       unset(
-        $v['background_image']['fid'],
-        $v['background_image']['uri']
+        $this->configuration['background_image']['fid'],
+        $this->configuration['background_image']['uri']
       );
     }
-    list($v['exact']['xpos'], $v['exact']['ypos']) = explode('-', $v['exact']['position']);
-    unset ($v['exact']['position']);
   }
 
   /**
@@ -275,14 +293,14 @@ class TextimageBackground extends TextimageEffectBase {
       // image built thus far.
       case 'select':
         $background_image = $this->imageFactory->get($this->configuration['background_image']['uri']);
-        if (!$image->apply('textimage_replace_image', array('replacement_image' => $background_image))) {
+        if (!$image->apply('textimage_replace_image', array('replacement_image' => $background_image))) {  // @todo add gif transparent
           return FALSE;
         }
         break;
 
       // If passing through the image from the last effect, no special
       // treatment needed.
-      case 'passthrough':
+      case 'passthrough': // @todo add gif transparent
         break;
 
       // If explicitly requested not to have a background image, set image
@@ -292,7 +310,7 @@ class TextimageBackground extends TextimageEffectBase {
         $image->apply('textimage_set_new', array(
           'width' => 1,
           'height' => 1,
-          'mimetype' => $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to 
+          'mimetype' => $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to
           'transparent_color' => $this->configuration['background']['gif_transparent_color'],
         ));
         break;
@@ -339,13 +357,14 @@ class TextimageBackground extends TextimageEffectBase {
 
     // If resizing, apply textimage_define_canvas to finalise layout.
     if ($this->configuration['exact']['width'] || $this->configuration['exact']['height'] || $this->configuration['relative']['leftdiff'] || $this->configuration['relative']['rightdiff'] || $this->configuration['relative']['topdiff'] || $this->configuration['relative']['bottomdiff']) {
+      list($xpos, $ypos) = explode('-', $this->configuration['exact']['position']);
       $canvas_data = array(
         'background_color' => $this->configuration['background']['color'],
         'exact' => array(
           'width' => $this->configuration['exact']['width'],
           'height' => $this->configuration['exact']['height'],
-          'xpos' => $this->configuration['exact']['xpos'],
-          'ypos' => $this->configuration['exact']['ypos'],
+          'xpos' => $xpos,
+          'ypos' => $ypos,
         ),
         'relative' => array(
           'leftdiff' => $this->configuration['relative']['leftdiff'],
@@ -355,11 +374,6 @@ class TextimageBackground extends TextimageEffectBase {
         ),
       );
 
-      // @todo need to check this if transparency is coming from existing image or defined in UI
-      if ($image->getMimeType() == 'image/gif' && !$this->configuration['background']['color']) {
-        // For .gif format, if transparent background set transparency color.
-        $canvas_data['background_color'] = $this->configuration['background']['gif_transparent_color'];
-      }
       $success = $image->apply('textimage_define_canvas', $canvas_data);
     }
 

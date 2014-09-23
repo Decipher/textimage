@@ -93,14 +93,13 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
   }
 
   public function validateSelectorUri($element, FormStateInterface $form_state, $form) {
-    $v = &$form_state['values']['data'];
-    if ($v['background_image']['mode'] == 'select') {
+    if ($form_state->getValue(array('data', 'background_image', 'mode')) == 'select') {
       $file_path = $this->configuration['path'] . '/' . $element['#value'];
       if (!file_exists($file_path)) {
         $form_state->setErrorByName(implode('][', $element['#parents']), $this->t('The file selected does not exist.'));
       }
       else {
-        $form_state['values']['data']['background_image']['uri'] = $file_path;
+        $form_state->setValue(array('data', 'background_image', 'uri'), $file_path);
       }
     }
   }

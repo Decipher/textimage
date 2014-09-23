@@ -496,9 +496,9 @@ class TextimageText extends TextimageEffectBase {
    * AJAX callback.
    */
   public function processAjaxPreview($form, FormStateInterface $form_state) {
-unset($form_state['values']['data']['data_back']['data_back']); // @todo use configuration
+$form_state->setValue(array('data', 'data_back', 'data_back'), NULL); // @todo use configuration
     $response = new AjaxResponse();
-    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state['values']['data']['data_back'])));
+    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state->getValue(array('data', 'data_back')))));
     return $response;
   }
 
@@ -507,8 +507,8 @@ unset($form_state['values']['data']['data_back']['data_back']); // @todo use con
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
-    $v = &$form_state['values'];
-$savex=$form_state['values']['preview_bar']['debug_visuals']; // @todo use configuration
+    $v = $form_state->getValues();
+$savex=$form_state->getValue(array('preview_bar', 'debug_visuals')); // @todo use configuration
     // Get x-y position from the anchor element.
     list($v['layout']['position']['x_pos'], $v['layout']['position']['y_pos']) = explode('-', $v['layout']['position']['placement']);
     unset ($v['layout']['position']['placement']);
@@ -516,7 +516,7 @@ $savex=$form_state['values']['preview_bar']['debug_visuals']; // @todo use confi
     // Get the font URI.
     $font_uri = !empty($v['font']['name']) ? $this->fontPlugin->getUri($v['font']['name']) : NULL;
 
-    $v = array(
+    $this->configuration = array(
       'font'   => array(
         'name'                 => !empty($v['font']['name']) ? $v['font']['name'] : NULL,
         'uri'                  => $font_uri,
@@ -555,16 +555,8 @@ $savex=$form_state['values']['preview_bar']['debug_visuals']; // @todo use confi
       ),
       'text_string'            => $v['text_default']['text_string'],
     );
-$form_state['values']['data_back'] = $v; // @todo use configuration
-$form_state['values']['data_back']['preview_bar']['debug_visuals'] = $savex; // @todo use configuration
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::submitConfigurationForm($form, $form_state);
-    unset($this->configuration['data_back']);  // @todo use configuration
+$form_state->setValue(array('data_back'), $v); // @todo use configuration
+$form_state->setValue(array('data_back', 'preview_bar', 'debug_visuals'), $savex); // @todo use configuration
   }
 
   /**
