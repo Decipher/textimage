@@ -41,6 +41,10 @@ class TextimageColor extends FormElement {
    */
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
     if ($input !== FALSE && $input !== NULL) {
+      // Make sure element properties are set.
+      $element['#allow_transparent'] = isset($element['#allow_transparent']) ? $element['#allow_transparent'] : FALSE;
+      $element['#allow_opacity'] = isset($element['#allow_opacity']) ? $element['#allow_opacity'] : FALSE;
+
       // Normalize returned element values to a rgba hex value.
       $val = NULL;
       if ($element['#allow_transparent'] && !empty($input['container']['transparent'])) {

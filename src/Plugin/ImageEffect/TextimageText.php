@@ -15,6 +15,7 @@ use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Element\TextimageColor;
 
 /**
  * Define the Textimage text.
@@ -496,9 +497,8 @@ class TextimageText extends TextimageEffectBase {
    * AJAX callback.
    */
   public function processAjaxPreview($form, FormStateInterface $form_state) {
-$form_state->setValue(array('data', 'data_back', 'data_back'), NULL); // @todo use configuration
     $response = new AjaxResponse();
-    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state->getValue(array('data', 'data_back')))));
+    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state->getValue(['data', 'ajax_config']))));
     return $response;
   }
 
@@ -507,56 +507,67 @@ $form_state->setValue(array('data', 'data_back', 'data_back'), NULL); // @todo u
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
-    $v = $form_state->getValues();
-$savex=$form_state->getValue(array('preview_bar', 'debug_visuals')); // @todo use configuration
+
     // Get x-y position from the anchor element.
-    list($v['layout']['position']['x_pos'], $v['layout']['position']['y_pos']) = explode('-', $v['layout']['position']['placement']);
-    unset ($v['layout']['position']['placement']);
+    list($x_pos, $y_pos) = explode('-', $form_state->getValue(['layout', 'position', 'placement']));
 
     // Get the font URI.
-    $font_uri = !empty($v['font']['name']) ? $this->fontPlugin->getUri($v['font']['name']) : NULL;
+    $font_uri = $form_state->hasValue(['font', 'name']) ? $this->fontPlugin->getUri($form_state->getValue(['font', 'name'])) : NULL;
+
+    // @todo - is there a better solution??
+    $font_color = TextimageColor::valueCallback($form['data']['font']['color'], $form_state->getValue(['font', 'color']), $form_state);
+    $stroke_color = TextimageColor::valueCallback($form['data']['font']['stroke']['color'], $form_state->getValue(['font', 'stroke', 'color']), $form_state);
+    $background_color = TextimageColor::valueCallback($form['data']['layout']['background_color'], $form_state->getValue(['layout', 'background_color']), $form_state);
 
     $this->configuration = array(
       'font'   => array(
-        'name'                 => !empty($v['font']['name']) ? $v['font']['name'] : NULL,
+        'name'                 => $form_state->hasValue(['font', 'name']) ? $form_state->getValue(['font', 'name']) : NULL,
         'uri'                  => $font_uri,
-        'size'                 => $v['font']['size'],
-        'angle'                => $v['font']['angle'],
-        'color'                => $v['font']['color'],
-        'stroke_mode'          => $v['font']['stroke']['mode'],
-        'stroke_color'         => $v['font']['stroke']['color'],
-        'outline_top'          => $v['font']['stroke']['top'],
-        'outline_right'        => $v['font']['stroke']['right'],
-        'outline_bottom'       => $v['font']['stroke']['bottom'],
-        'outline_left'         => $v['font']['stroke']['left'],
-        'shadow_x_offset'      => $v['font']['stroke']['x_offset'],
-        'shadow_y_offset'      => $v['font']['stroke']['y_offset'],
-        'shadow_width'         => $v['font']['stroke']['width'],
-        'shadow_height'        => $v['font']['stroke']['height'],
+        'size'                 => $form_state->getValue(['font', 'size']),
+        'angle'                => $form_state->getValue(['font', 'angle']),
+        'color'                => $font_color,
+        'stroke_mode'          => $form_state->getValue(['font', 'stroke', 'mode']),
+        'stroke_color'         => $stroke_color,
+        'outline_top'          => $form_state->getValue(['font', 'stroke', 'top']),
+        'outline_right'        => $form_state->getValue(['font', 'stroke', 'right']),
+        'outline_bottom'       => $form_state->getValue(['font', 'stroke', 'bottom']),
+        'outline_left'         => $form_state->getValue(['font', 'stroke', 'left']),
+        'shadow_x_offset'      => $form_state->getValue(['font', 'stroke', 'x_offset']),
+        'shadow_y_offset'      => $form_state->getValue(['font', 'stroke', 'y_offset']),
+        'shadow_width'         => $form_state->getValue(['font', 'stroke', 'width']),
+        'shadow_height'        => $form_state->getValue(['font', 'stroke', 'height']),
       ),
       'layout' => array(
-        'padding_top'          => $v['layout']['padding']['top'],
-        'padding_right'        => $v['layout']['padding']['right'],
-        'padding_bottom'       => $v['layout']['padding']['bottom'],
-        'padding_left'         => $v['layout']['padding']['left'],
-        'x_pos'                => $v['layout']['position']['x_pos'],
-        'y_pos'                => $v['layout']['position']['y_pos'],
-        'x_offset'             => $v['layout']['position']['x_offset'],
-        'y_offset'             => $v['layout']['position']['y_offset'],
-        'overflow_action'      => $v['layout']['position']['overflow_action'],
-        'background_color'     => $v['layout']['background_color'],
+        'padding_top'          => $form_state->getValue(['layout', 'padding', 'top']),
+        'padding_right'        => $form_state->getValue(['layout', 'padding', 'right']),
+        'padding_bottom'       => $form_state->getValue(['layout', 'padding', 'bottom']),
+        'padding_left'         => $form_state->getValue(['layout', 'padding', 'left']),
+        'x_pos'                => $x_pos,
+        'y_pos'                => $y_pos,
+        'x_offset'             => $form_state->getValue(['layout', 'position', 'x_offset']),
+        'y_offset'             => $form_state->getValue(['layout', 'position', 'y_offset']),
+        'overflow_action'      => $form_state->getValue(['layout', 'position', 'overflow_action']),
+        'background_color'     => $background_color,
       ),
       'text'   => array(
-        'maximum_width'        => $v['text']['maximum_width'],
-        'fixed_width'          => $v['text']['fixed_width'],
-        'align'                => $v['text']['align'],
-        'case_format'          => $v['text']['case_format'],
-        'line_spacing'         => $v['text']['line_spacing'],
+        'maximum_width'        => $form_state->getValue(['text', 'maximum_width']),
+        'fixed_width'          => $form_state->getValue(['text', 'fixed_width']),
+        'align'                => $form_state->getValue(['text', 'align']),
+        'case_format'          => $form_state->getValue(['text', 'case_format']),
+        'line_spacing'         => $form_state->getValue(['text', 'line_spacing']),
       ),
-      'text_string'            => $v['text_default']['text_string'],
+      'text_string'            => $form_state->getValue(['text_default', 'text_string']),
     );
-$form_state->setValue(array('data_back'), $v); // @todo use configuration
-$form_state->setValue(array('data_back', 'preview_bar', 'debug_visuals'), $savex); // @todo use configuration
+
+// @todo only on ajax
+$form_state->setValue(['ajax_config'], $this->configuration);
+$form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_state->getValue(['preview_bar', 'debug_visuals']));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
   }
 
   /**

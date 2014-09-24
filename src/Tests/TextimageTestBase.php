@@ -126,8 +126,8 @@ abstract class TextimageTestBase extends WebTestBase {
       'settings' => array(),
     );
     $instance['settings'] = array_merge($instance['settings'], $instance_settings);
-    $field_instance_config = entity_create('field_instance_config', $instance);
-    $field_instance_config->save();
+    $field_config = entity_create('field_config', $instance);
+    $field_config->save();
 
     entity_get_form_display('node', $type_name, 'default')
       ->setComponent($field['name'], array(
@@ -140,7 +140,7 @@ abstract class TextimageTestBase extends WebTestBase {
       ->setComponent($field['name'])
       ->save();
 
-    return $field_instance_config;
+    return $field_config;
 
   }
 
