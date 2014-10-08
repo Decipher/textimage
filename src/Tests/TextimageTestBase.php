@@ -107,37 +107,33 @@ abstract class TextimageTestBase extends WebTestBase {
    *   A list of widget settings that will be added to the widget defaults.
    */
   protected function createTextimageField($name, $type_name, $storage_settings = array(), $instance_settings = array(), $widget_settings = array()) {
-    $field = array(
-      'name' => $name,
+    entity_create('field_storage_config', array(
+      'field_name' => $name,
       'entity_type' => 'node',
       'type' => 'text',
       'settings' => $storage_settings,
       'cardinality' => !empty($storage_settings['cardinality']) ? $storage_settings['cardinality'] : 1,
-    );
-    entity_create('field_storage_config', $field)->save();
+    ))->save();
 
-    $instance = array(
-      'field_name' => $field['name'],
+    $field_config = entity_create('field_config', array(
+      'field_name' => $name,
       'label' => $name,
       'entity_type' => 'node',
       'bundle' => $type_name,
       'required' => !empty($instance_settings['required']),
       'description' => !empty($instance_settings['description']) ? $instance_settings['description'] : '',
-      'settings' => array(),
-    );
-    $instance['settings'] = array_merge($instance['settings'], $instance_settings);
-    $field_config = entity_create('field_config', $instance);
-    $field_config->save();
+      'settings' => $instance_settings,
+    ))->save();
 
     entity_get_form_display('node', $type_name, 'default')
-      ->setComponent($field['name'], array(
+      ->setComponent($name, array(
         'type' => 'text_textfield',
         'settings' => $widget_settings,
       ))
       ->save();
 
     entity_get_display('node', $type_name, 'default')
-      ->setComponent($field['name'])
+      ->setComponent($name)
       ->save();
 
     return $field_config;

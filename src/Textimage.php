@@ -780,7 +780,7 @@ class Textimage {
     $data = array(
       'uri' => $this->uri,
     );
-    $tags = array('tiid' => TRUE);
+    $tags = array('tiid' => '1');  // @todo whats the logic???
     if (isset($this->style) && $this->style->id()) {
       $tags['style'] = $this->style->id();
     }

@@ -32,7 +32,7 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
     case 'textimage.settings':
       $output = '<p>';
       $output .= t('Textimage provides image effects to generate images with overlaid text. ');
-      $output .= t('Use <a href="@image">Image styles</a> features to create Image styles. ', array('@image' => url('admin/config/media/image-styles')));  // @todo use route
+      $output .= t('Use <a href="@image">Image styles</a> features to create Image styles. ', array('@image' => _url('admin/config/media/image-styles')));  // @todo use route
       $output .= t('Adding Textimage effects to a style will identify it as relevant for Textimage. ');
       $output .= t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
       $output .= '</p>';

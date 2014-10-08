@@ -75,7 +75,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
         $this->t(
           'No fonts available. Make sure at least one font is available in the directory specified in the <a href="!url">configuration page</a>.',
           array(
-            '!url' => url('admin/config/media/textimage'),
+            '!url' => _url('admin/config/media/textimage'), // @todo convert to route
           )
         ),
         WATCHDOG_WARNING
