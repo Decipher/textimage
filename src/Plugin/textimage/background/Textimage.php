@@ -67,7 +67,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
         $this->t(
           'No background images available. Make sure at least one image is available in the directory specified in the <a href="!url">configuration page</a>.',
           array(
-            '!url' => _url('admin/config/media/textimage'), // @todo convert to route
+            '!url' => $this->urlGenerator->generateFromRoute('textimage.settings'),
           )
         ),
         WATCHDOG_WARNING

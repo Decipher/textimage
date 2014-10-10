@@ -12,6 +12,9 @@ use Drupal\textimage\Component\ColorUtility;
 /**
  * Defines Textimage GD2 overlay operation.
  *
+ * Much of the code in this class is taken from the imagecache_action module
+ * for Drupal 7.
+ *
  * @ImageToolkitOperation(
  *   id = "textimage_gd_textimage_overlay",
  *   toolkit = "gd",

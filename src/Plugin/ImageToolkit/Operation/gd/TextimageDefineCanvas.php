@@ -12,7 +12,8 @@ use Drupal\textimage\Component\ColorUtility;
 /**
  * Defines Textimage GD2 define canvas operation.
  *
- * @todo temp while imagecache_action develops
+ * Much of the code in this class is taken from the imagecache_action module
+ * for Drupal 7.
  *
  * @ImageToolkitOperation(
  *   id = "textimage_gd_textimage_define_canvas",
@@ -77,7 +78,7 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
       $targetsize['top'] = $arguments['relative']['topdiff'];
     }
 
-    // All the math is done, now defer to the toolkit in use.
+    // All the math is done.
     $arguments['targetsize'] = $targetsize;
 
     return $arguments;

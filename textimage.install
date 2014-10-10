@@ -19,7 +19,7 @@ function textimage_requirements($phase) {
       'title' => t('Private file wrapper'),
       'value' => t('Undefined'),
       'severity' => REQUIREMENT_ERROR,
-      'description' => t('Textimage requires access to a private area for file storage. Ensure that a path is specified for "Private file system path" visiting the <a href="@url">File system</a> configuration page, or, alternatively, that a "private" writeable stream wrapper is defined elsewhere.', array('@url' => _url('admin/config/media/file-system'))), // @todo convert to route
+      'description' => t('Textimage requires access to a private area for file storage. Ensure that a path is specified for "Private file system path" visiting the <a href="@url">File system</a> configuration page, or, alternatively, that a "private" writeable stream wrapper is defined elsewhere.', array('@url' => \Drupal::url('system.file_system_settings'))),
     );
   }
 
@@ -128,7 +128,7 @@ function textimage_install() {
         'Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup font management.',
         array(
           '%path' => $fonts_path,
-          '@url' => _url('admin/config/media/textimage'), // @todo convert to route
+          '@url' => \Drupal::url('textimage.settings'),
         )
       ),
       WATCHDOG_ERROR
@@ -141,7 +141,7 @@ function textimage_install() {
         'Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup background images management.',
         array(
           '%path' => $backgrounds_path,
-          '@url' => _url('admin/config/media/textimage'), // @todo convert to route
+          '@url' => \Drupal::url('textimage.settings'),
         )
       ),
       WATCHDOG_ERROR
