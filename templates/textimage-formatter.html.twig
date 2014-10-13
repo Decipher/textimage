@@ -9,8 +9,22 @@
  * @ingroup theme
  */
 #}
-{% if textimage_output %}
-  {{ textimage_output }}
+{% spaceless %}
+{% if image %}
+  {% if href %}
+    <a {{ anchor_attributes }}">
+  {% endif %}
+    {% if image_container_attributes %}
+      <div {{ image_container_attributes }}>
+    {% endif %}
+    {{ image }}
+    {% if image_container_attributes %}
+      </div>
+    {% endif %}
+  {% if href %}
+    </a>
+  {% endif %}
 {% else %}
   {{ 'Image not available.'|t }}
 {% endif %}
+{% endspaceless %}

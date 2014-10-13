@@ -169,10 +169,11 @@ class TextimageApiTest extends TextimageTestBase {
       '#alt' => 'Alternate text',
       '#title' => 'Textimage title',
       '#attributes' => array('class' => 'textimage-test'),
-      '#image_container_attributes' => array('class' => 'textimage-container-test'),
+      '#image_container_attributes' => array('class' => ['textimage-container-test']),
       '#href' => $textimage->getUrl(),
     );
     $this->drupalSetContent(drupal_render($output));
+    $this->verbose($this->getRawContent());
     $url = $textimage->getUrl();
     $elements = $this->cssSelect("a[href='$url'] div.textimage-container-test img[src='$url']");
     $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');

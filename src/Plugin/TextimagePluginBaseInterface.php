@@ -10,7 +10,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 /**
  * Textimage base plugin interface.
  */
-interface TextimagePluginBaseInterface extends ConfigurablePluginInterface, ContainerFactoryPluginInterface {
+interface TextimagePluginBaseInterface extends ConfigurablePluginInterface, ContainerFactoryPluginInterface { // @todo add pluginforminterface
 
   /**
    * Return a form array used to configure the plugin.

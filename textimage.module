@@ -8,6 +8,7 @@
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Template\Attribute;
 use Drupal\image\ImageStyleInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Textimage;
@@ -65,17 +66,14 @@ function textimage_theme() {
         'image_container_attributes' => array(),
         'href' => '',
       ),
-      'template' => 'textimage-formatter',
     ),
     // Textimage background image effect - summary.
     'textimage_background_effect_summary' => array(
       'variables' => array('data' => NULL),
-      'template' => 'textimage-background-summary',
     ),
     // Textimage text image effect - summary.
     'textimage_text_summary' => array(
       'variables' => array('data' => NULL),
-      'template' => 'textimage-text-summary',
     ),
     // Render a color information box and string.
     'textimage_color_detail' => array(
@@ -84,7 +82,6 @@ function textimage_theme() {
         'border' => FALSE,
         'border_color' => '#000000',
       ),
-      'template' => 'textimage-color-detail',
     ),
   );
 
@@ -334,7 +331,6 @@ dpm($effect);
  * Default template: textimage-formatter.html.twig.
  */
 function template_preprocess_textimage_formatter(&$variables) {
-
   $output = array();
 
   // Get URI to image file.
@@ -377,45 +373,37 @@ function template_preprocess_textimage_formatter(&$variables) {
   // Render through image theme.
   if ($image_uri) {
     $image = \Drupal::service('image.factory')->get($image_uri);
+    $title = \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['node'], $variables['source_image_file']);
+    $url = file_create_url($image_uri);
+
+    // Build anchor link data if needed.
+    if ($variables['href']) {
+      $variables['anchor_attributes'] = new Attribute([
+        'title' => $title,
+        'href' => ($variables['href'] == '#textimage_derivative_url#') ? $url : $variables['href'],
+      ]);
+    }
+    // Replace occurrences of #textimage_derivative_url# with the actual URL
+    // in the image container attributes.
+    if (!empty($variables['image_container_attributes'])) {
+      foreach ($variables['image_container_attributes'] as &$attribute) {
+        foreach ($attribute as $key => $value) {
+          $attribute[$key] = str_replace('#textimage_derivative_url#', $url, $value);
+        }
+      }
+      $variables['image_container_attributes'] = new Attribute($variables['image_container_attributes']);
+    }
     // Get the <img>.
-    $output = array(
+    $variables['image'] = array(
       '#theme' => 'image__textimage',
       '#uri' => $image_uri,
       '#width' => $image->getWidth(),
       '#height' => $image->getHeight(),
       '#alt' => \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['node'], $variables['source_image_file']),
-      '#title' => \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['node'], $variables['source_image_file']),
+      '#title' => $title,
       '#attributes' => $variables['attributes'],
     );
-    $image_url = file_create_url($image_uri);
-
-    // Wrap the <img> in a container if requested.
-    if (!empty($variables['image_container_attributes'])) {
-      $container_attributes = array();
-      foreach ($variables['image_container_attributes'] as $key => $value) {
-        $container_attributes[$key] = str_replace('#textimage_derivative_url#', $image_url, $value);
-      }
-      $output = array(
-        '#theme' => 'container',
-        '#attributes' => $container_attributes,
-        '#children' => $output,
-      );
-    }
-
-    // Use the output to build a link if href specified.
-    if ($variables['href']) {
-      $output = array(
-        '#type' => 'link',
-        '#title' => $output,
-        '#href' => ($variables['href'] == '#textimage_derivative_url#') ? $image_url : $variables['href'],
-        '#options' => array(
-          'html' => TRUE,
-        ),
-      );
-    }
   }
-
-  $variables['textimage_output'] = $output;
 }
 
 /**
