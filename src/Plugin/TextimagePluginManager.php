@@ -59,7 +59,7 @@ class TextimagePluginManager extends DefaultPluginManager {
             '@plugin_id' => $plugin_id,
           )
         ),
-        WATCHDOG_ERROR,
+        'error',
         __FUNCTION__
       );
     }

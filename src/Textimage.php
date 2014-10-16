@@ -226,11 +226,11 @@ class Textimage {
         $this->set('effects', $effects);
       }
       else {
-        _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $image_style_name)), WATCHDOG_ERROR, NULL, $this->userMessages);
+        _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $image_style_name)), 'error', NULL, $this->userMessages);
       }
     }
     else {
-      _textimage_diag(t("Image style not specified while processing a Textimage."), WATCHDOG_ERROR, NULL, $this->userMessages);
+      _textimage_diag(t("Image style not specified while processing a Textimage."), 'error', NULL, $this->userMessages);
     }
     return $this;
   }
@@ -454,7 +454,7 @@ class Textimage {
 
     // Effects must be loaded.
     if(empty($this->effects)) {
-      _textimage_diag(t("Textimage had no image effects to process."), WATCHDOG_ERROR, NULL, $this->userMessages);
+      _textimage_diag(t("Textimage had no image effects to process."), 'error', NULL, $this->userMessages);
       return $this;
     }
 
@@ -495,7 +495,7 @@ class Textimage {
     }
     $this->text = $processed_text;
     if(empty($this->text)) {
-      _textimage_diag(t("Textimage had no text to process."), WATCHDOG_ERROR, NULL, $this->userMessages);
+      _textimage_diag(t("Textimage had no text to process."), 'error', NULL, $this->userMessages);
       return $this;
     }
 
@@ -596,10 +596,10 @@ class Textimage {
     // Generate the image.
     if (!$this->processed = $runtime_style->createDerivative($source, $this->uri)) {
       if (isset($this->style)) {
-        _textimage_diag(t("Textimage failed to build an image for image style '@style'.", array('@style' => $this->style->id())), WATCHDOG_ERROR, NULL, $this->userMessages);
+        _textimage_diag(t("Textimage failed to build an image for image style '@style'.", array('@style' => $this->style->id())), 'error', NULL, $this->userMessages);
       }
       else {
-        _textimage_diag(t("Textimage failed to build an image."), WATCHDOG_ERROR, NULL, $this->userMessages);
+        _textimage_diag(t("Textimage failed to build an image."), 'error', NULL, $this->userMessages);
       }
     }
 
@@ -691,7 +691,7 @@ class Textimage {
             '@file_name' => Unicode::substr($file_name, 0, 60),
           )
         ),
-        WATCHDOG_DEBUG,
+        'debug',
         NULL,
         $this->userMessages
       );
@@ -715,7 +715,7 @@ class Textimage {
             '@file_name' => Unicode::substr($file_name, 0, 60),
           )
         ),
-        WATCHDOG_DEBUG,
+        'debug',
         NULL,
         $this->userMessages
       );

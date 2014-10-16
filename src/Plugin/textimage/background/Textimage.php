@@ -70,7 +70,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
             '!url' => $this->urlGenerator->generateFromRoute('textimage.settings'),
           )
         ),
-        WATCHDOG_WARNING
+        'warning'
       );
     }
 

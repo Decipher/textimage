@@ -5,6 +5,8 @@
  * Textimage - Installation scripts.
  */
 
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+
 /**
  * Implements hook_requirements().
  */
@@ -13,7 +15,7 @@ function textimage_requirements($phase) {
   $requirements = array();
 
   // Check a private wrapper exists and is writeable.
-  $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE);
+  $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   if (!isset($wrappers['private'])) {
     $requirements['textimage_private_wrapper'] = array(
       'title' => t('Private file wrapper'),
@@ -131,7 +133,7 @@ function textimage_install() {
           '@url' => \Drupal::url('textimage.settings'),
         )
       ),
-      WATCHDOG_ERROR
+      'error'
     );
   }
   $backgrounds_path = \Drupal::config('textimage.settings')->get('background.plugin_settings.textimage.path');
@@ -144,7 +146,7 @@ function textimage_install() {
           '@url' => \Drupal::url('textimage.settings'),
         )
       ),
-      WATCHDOG_ERROR
+      'error'
     );
   }
 }
@@ -154,7 +156,7 @@ function textimage_install() {
  */
 function textimage_uninstall() {
   // Delete the textimage directory from each registered wrapper.
-  $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE);
+  $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
     file_unmanaged_delete_recursive($wrapper . '://textimage');
   }

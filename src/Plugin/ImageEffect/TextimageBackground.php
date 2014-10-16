@@ -277,7 +277,7 @@ class TextimageBackground extends TextimageEffectBase {
     }
 
     return array(
-      '#theme' => 'textimage_background_effect_summary',
+      '#theme' => 'textimage_background_summary',
       '#data' => $data,
     ) + parent::getSummary();
   }
@@ -307,12 +307,12 @@ class TextimageBackground extends TextimageEffectBase {
       // to transparent 1x1.
       case '':
       default:
-        $image->apply('textimage_set_new', array(
+        $image->apply('create_new', [
           'width' => 1,
           'height' => 1,
-          'mimetype' => $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to
+          'extension' => 'png', // $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to
           'transparent_color' => $this->configuration['background']['gif_transparent_color'],
-        ));
+        ]);
         break;
 
     }

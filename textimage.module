@@ -8,6 +8,7 @@
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\image\ImageStyleInterface;
 use Drupal\textimage\Component\ColorUtility;
@@ -68,7 +69,7 @@ function textimage_theme() {
       ),
     ),
     // Textimage background image effect - summary.
-    'textimage_background_effect_summary' => array(
+    'textimage_background_summary' => array(
       'variables' => array('data' => NULL),
     ),
     // Textimage text image effect - summary.
@@ -157,10 +158,10 @@ function textimage_cron() {
   // Remove temporary, uncached, image files.
   if (file_exists($uncached_dir)) {
     if (file_unmanaged_delete_recursive($uncached_dir)) {
-      _textimage_diag(t("Textimage temporary image files removed."), WATCHDOG_NOTICE);
+      _textimage_diag(t("Textimage temporary image files removed."), 'notice');
     }
     else {
-      _textimage_diag(t("Textimage could not remove temporary image files."), WATCHDOG_ERROR, __FUNCTION__);
+      _textimage_diag(t("Textimage could not remove temporary image files."), 'error', __FUNCTION__);
     }
   }
 }
@@ -202,7 +203,7 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
   }
   // Jumps out with a warning if node is not available.
   if (!isset($data['node'])) {
-    _textimage_diag(t('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens))), WATCHDOG_WARNING);
+    _textimage_diag(t('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens))), 'warning');
     return array();
   }
   // Process tokens.
@@ -441,18 +442,18 @@ function _textimage_diag($message, $severity, $caller = NULL, $user_messages = T
   if ($caller) {
     $message = t("@message - Function: @caller", array('@message' => $message, '@caller' => $caller));
   }
-  if ($severity <= WATCHDOG_NOTICE) {
-    \Drupal::logger('textimage')->log($severity, $message);
+  if (in_array($severity, ['notice', 'warning', 'error'])) {
+    \Drupal::logger('textimage')->$severity($message);
   }
   if ($severity <= \Drupal::config('textimage.settings')->get('message_level') && $user_messages) {
     switch ($severity) {
-      case WATCHDOG_DEBUG:
-      case WATCHDOG_INFO:
-      case WATCHDOG_NOTICE:
+      case 'debug':
+      case 'info':
+      case 'notice':
         $type = 'status';
         break;
 
-      case WATCHDOG_WARNING:
+      case 'warning':
         $type = 'warning';
         break;
 

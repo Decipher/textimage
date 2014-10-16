@@ -793,7 +793,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
         'width' => 1,
         'height' => 1,
       );
-      $image->apply('textimage_set_new', $data);
+      $image->apply('create_new', $data);
 
       // Get the text wrapper resource.
       if (!$wrapper = $this->getTextWrapper($image, $this->configuration)) {
@@ -930,7 +930,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       'width' => $outer_box_t->get('width'),
       'height' => $outer_box_t->get('height'),
     );
-    $wrapper->apply('textimage_set_new', $data_new);
+    $wrapper->apply('create_new', $data_new);
 
     // Calls image generation for the wrapper image.
     $data_textimage = array(

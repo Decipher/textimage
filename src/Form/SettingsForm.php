@@ -12,6 +12,8 @@ use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\textimage\Plugin\TextimagePluginManager;
 use Drupal\textimage\Plugin\TextimagePluginBaseInterface;
 use Drupal\textimage\TextimageFactory;
@@ -30,6 +32,13 @@ class SettingsForm extends ConfigFormBase {
   protected $textimageFactory;
 
   /**
+   * The stream wrapper manager.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManager
+   */
+  protected $streamWrapperManager;
+
+  /**
    * An array of Textimage plugin factories.
    *
    * @var array
@@ -43,6 +52,8 @@ class SettingsForm extends ConfigFormBase {
    *   The Textimage factory.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
+   *   The stream wrapper manager.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $font_plugin_factory
    *   The font plugin factory.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $background_plugin_factory
@@ -50,7 +61,7 @@ class SettingsForm extends ConfigFormBase {
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $color_plugin_factory
    *   The color plugin factory.
    */
-  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, StreamWrapperManager $stream_wrapper_manager, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
     parent::__construct($config_factory);
     $this->textimageFactory = $textimage_factory;
     // Loops through the function args to build the array of Textimage
@@ -61,6 +72,7 @@ class SettingsForm extends ConfigFormBase {
       }
     }
     $this->config = $this->config('textimage.settings');
+    $this->streamWrapperManager = $stream_wrapper_manager;
   }
 
   /**
@@ -70,6 +82,7 @@ class SettingsForm extends ConfigFormBase {
     return new static(
       $container->get('textimage.factory'),
       $container->get('config.factory'),
+      $container->get('stream_wrapper_manager'),
       $container->get('plugin.manager.textimage.font'),
       $container->get('plugin.manager.textimage.background'),
       $container->get('plugin.manager.textimage.color')
@@ -101,10 +114,7 @@ class SettingsForm extends ConfigFormBase {
     }
 
     // Main Textimage store location.
-    $scheme_options = array();
-    foreach (file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE) as $scheme => $stream_wrapper) {
-      $scheme_options[$scheme] = $stream_wrapper['name'];
-    }
+    $scheme_options = $this->streamWrapperManager->getNames(StreamWrapperInterface::WRITE_VISIBLE);
     $default_scheme = $this->config->get('store_scheme');
     $default_scheme = isset($scheme_options[$default_scheme]) ? $default_scheme : 'public';
     $form['textimage_store'] = array(

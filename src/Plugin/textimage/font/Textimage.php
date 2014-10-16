@@ -78,7 +78,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
             '!url' => $this->urlGenerator->generateFromRoute('textimage.settings'),
           )
         ),
-        WATCHDOG_WARNING
+        'warning'
       );
       return array();
     }

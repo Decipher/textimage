@@ -225,7 +225,7 @@ class TextimageFactory {
     }
     $this->cache->deleteAll();
     db_truncate('textimage_store')->execute();
-    _textimage_diag(t('All Textimage images were removed.'), WATCHDOG_NOTICE);
+    _textimage_diag(t('All Textimage images were removed.'), 'notice');
   }
 
   /**
@@ -373,7 +373,7 @@ class TextimageFactory {
                   '@node_title' => $node->getTitle(),
                 )
               );
-              _textimage_diag($msg, WATCHDOG_WARNING);
+              _textimage_diag($msg, 'warning');
             }
           }
         }
@@ -416,7 +416,7 @@ class TextimageFactory {
                   '@node_title' => $node->getTitle(),
                 )
               );
-              _textimage_diag($msg, WATCHDOG_WARNING);
+              _textimage_diag($msg, 'warning');
             }
           }
         }
