@@ -11,6 +11,7 @@ namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\textimage\TextimageFactory;
 
 /**
  * Plugin implementation of the 'textimage' formatter.
@@ -46,13 +47,12 @@ class TextimageFormatter extends FormatterBase {
   public function settingsForm(array $form, FormStateInterface $form_state) {
 
     // Image style setting.
-// @todo filter only Textimage relevant styles
-    $image_styles = image_style_options(FALSE); // @todo remove
+//    $image_styles = \Drupal::service('textimage.factory')->getTextimageStyleOptions(); // @todo inject?
+$image_styles = image_style_options(FALSE); // @todo remove
     $element['image_style'] = array(
       '#title' => t('Image style'),
       '#type' => 'select',
       '#default_value' => $this->getSetting('image_style'),
-// @todo remove      '#empty_option' => t('None (original image)'),
       '#options' => $image_styles,
       '#required' => TRUE,
       '#description' => t('Only Textimage relevant image styles can be selected.'),
@@ -73,7 +73,7 @@ class TextimageFormatter extends FormatterBase {
 
     // Image alt and title attribute settings.
     $element['image_alt'] = array(
-      '#title' => t('Alternate text'),
+      '#title' => t('Alternative text'),
       '#type' => 'textfield',
       '#default_value' => $this->getSetting('image_alt'),
       '#description' => t('This text will be used by screen readers, search engines, or when the image cannot be loaded.') . ' ' . t('Tokens can be used.'),
@@ -96,8 +96,8 @@ class TextimageFormatter extends FormatterBase {
   public function settingsSummary() {
     $summary = array();
 
-// @todo filter only Textimage relevant styles
-    $image_styles = image_style_options(FALSE); // @todo remove
+//    $image_styles = \Drupal::service('textimage.factory')->getTextimageStyleOptions(); // @todo inject?
+$image_styles = image_style_options(FALSE); // @todo remove
     // Unset possible 'No defined styles' option.
     unset($image_styles['']);
     // Styles could be lost because of enabled/disabled modules that defines
@@ -121,7 +121,7 @@ class TextimageFormatter extends FormatterBase {
 
     // Display this setting only if alt text is specified.
     if ($this->getSetting('image_alt')) {
-      $summary[] = t('Alternate text: @image_alt', array('@image_alt' => $this->getSetting('image_alt')));
+      $summary[] = t('Alternative text: @image_alt', array('@image_alt' => $this->getSetting('image_alt')));
     }
 
     // Display this setting only if title is specified.

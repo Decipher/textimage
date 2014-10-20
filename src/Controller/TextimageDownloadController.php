@@ -79,8 +79,11 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    */
   public function urlDeliver($text_string, ImageStyleInterface $image_style) {
     // Check if the style exists.
-    if (empty($image_style)) {   // @todo should be a textimage style
+    if (empty($image_style)) {
       throw new NotFoundHttpException('Could not find the image style requested.');
+    }
+    if (!$this->textimageFactory->isTextimage($image_style)) {
+      throw new NotFoundHttpException('The image style requested is not relevant for Textimage.');
     }
     /* @todo
     if ($style['textimage']['uri_scheme'] != 'public') {

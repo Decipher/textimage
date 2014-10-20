@@ -567,7 +567,7 @@ class Textimage {
     // background.
     $source = isset($this->sourceImageFile) ? $this->sourceImageFile->uri : NULL;
     if (!$source) {
-      $source = drupal_get_path('module', 'textimage') . '/misc/images/base.' . $this->extension;
+      $source = drupal_get_path('module', 'textimage') . '/misc/images/base.' . $this->extension; // @todo uase a single file for any extension
       $cleanup_effect = array();
       $cleanup_effect['id'] = 'textimage_background';
       $cleanup_effect['weight'] = -90; // @todo better
