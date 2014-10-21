@@ -201,7 +201,7 @@ class Textimage {
    * @return self
    */
   public function style(ImageStyleInterface $image_style) {
-    if (TRUE) { // @todo check it is Textimage relevant
+    if ($this->factory->isTextimage($image_style)) {
       $this->set('style', $image_style);
       $effects = @$this->style->getEffects()->getConfiguration();
       $this->set('effects', $effects);
@@ -220,10 +220,8 @@ class Textimage {
   public function styleByName($image_style_name) {
     if ($image_style_name) {
       // Retrieve Textimage style.
-      if ($image_style = entity_load('image_style', $image_style_name)) {  // @todo check it is Textimage relevant
-        $this->set('style', $image_style);
-        $effects = @$this->style->getEffects()->getConfiguration();
-        $this->set('effects', $effects);
+      if ($image_style = entity_load('image_style', $image_style_name)) {
+        return $this->style($image_style);
       }
       else {
         _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $image_style_name)), 'error', NULL, $this->userMessages);

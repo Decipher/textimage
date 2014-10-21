@@ -11,7 +11,6 @@ namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\textimage\TextimageFactory;
 
 /**
  * Plugin implementation of the 'textimage' formatter.
@@ -47,8 +46,7 @@ class TextimageFormatter extends FormatterBase {
   public function settingsForm(array $form, FormStateInterface $form_state) {
 
     // Image style setting.
-//    $image_styles = \Drupal::service('textimage.factory')->getTextimageStyleOptions(); // @todo inject?
-$image_styles = image_style_options(FALSE); // @todo remove
+    $image_styles = \Drupal::service('textimage.factory')->getTextimageStyleOptions();
     $element['image_style'] = array(
       '#title' => t('Image style'),
       '#type' => 'select',
@@ -96,8 +94,7 @@ $image_styles = image_style_options(FALSE); // @todo remove
   public function settingsSummary() {
     $summary = array();
 
-//    $image_styles = \Drupal::service('textimage.factory')->getTextimageStyleOptions(); // @todo inject?
-$image_styles = image_style_options(FALSE); // @todo remove
+    $image_styles = \Drupal::service('textimage.factory')->getTextimageStyleOptions();
     // Unset possible 'No defined styles' option.
     unset($image_styles['']);
     // Styles could be lost because of enabled/disabled modules that defines

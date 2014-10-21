@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Controller;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\image\ImageStyleInterface;
@@ -85,23 +86,17 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     if (!$this->textimageFactory->isTextimage($image_style)) {
       throw new NotFoundHttpException('The image style requested is not relevant for Textimage.');
     }
-    /* @todo
-    if ($style['textimage']['uri_scheme'] != 'public') {
-      throw new AccessDeniedHttpException('URL delivery of Textimage images not allowed for this image style.');
-      drupal_access_denied();
-    }*/
     
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
     // @todo make separator configurable
     $text = explode('---', $text_string);
 
     // Manage the [extension].
-    // @todo use Unicode
     $last_text = array_pop($text);
     $offset = strrpos($last_text, '.');
-    if ($offset && (strlen($last_text) - $offset) <= 5) {
-      $extension = substr($last_text, $offset + 1);
-      $text[] = substr($last_text, 0, $offset);
+    if ($offset && (Unicode::strlen($last_text) - $offset) <= 5) {
+      $extension = Unicode::substr($last_text, $offset + 1);
+      $text[] = Unicode::substr($last_text, 0, $offset);
     }
     else {
       $extension = 'png';
@@ -113,7 +108,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       ->style($image_style)
       ->extension($extension)
       ->process($text)
-      ->getUri();
+      ->getUri(); // @todo hmm no we should not generate the derivative yet
     
     // Don't try to send file if it is missing.
     if (!file_exists($image_uri)) {
@@ -128,7 +123,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     // @todo should check the old lab02
     $scheme = file_uri_scheme($image_uri);
     if ($scheme == 'private') {
-      if (file_exists($derivative_uri)) { // @todo not this
+      if (file_exists($image_uri)) { // @todo not this
         return parent::download($request, $scheme);
       }
       else {

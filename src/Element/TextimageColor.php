@@ -98,7 +98,7 @@ class TextimageColor extends FormElement {
     $hex = $transparent ? '#FFFFFF' : Unicode::substr($element['#default_value'], 0, 7);
     $opacity = $transparent ? 100 : ColorUtility::rgbaToOpacity($element['#default_value']);
 
-    $colorPlugin = \Drupal::service('plugin.manager.textimage.color')->getPlugin(); // @todo inject?
+    $colorPlugin = \Drupal::service('plugin.manager.textimage.color')->getPlugin();
 
     if ($element['#allow_transparent'] || $element['#allow_opacity']) {
       // More sub-fields are needed to define the color, wrap them in a
