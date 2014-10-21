@@ -5,21 +5,13 @@ namespace Drupal\textimage\Plugin;
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Plugin\PluginFormInterface;
 
 
 /**
  * Textimage base plugin interface.
  */
-interface TextimagePluginBaseInterface extends ConfigurablePluginInterface, ContainerFactoryPluginInterface { // @todo add pluginforminterface
-
-  /**
-   * Return a form array used to configure the plugin.
-   *
-   * @return array
-   *   Render array of the configuration form.
-   */
-  public function configurationForm(array $form, FormStateInterface $form_state, array $options = array());
-
+interface TextimagePluginBaseInterface extends ConfigurablePluginInterface, ContainerFactoryPluginInterface, PluginFormInterface {
   /**
    * Return a form element to select the plugin content.
    *

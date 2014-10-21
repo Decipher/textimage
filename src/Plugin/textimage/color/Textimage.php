@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\textimage\color;
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\textimage\Plugin\TextimageColorPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -23,6 +24,13 @@ use Drupal\textimage\Plugin\TextimagePluginBase;
  * )
  */
 class Textimage extends TextimagePluginBase implements TextimageColorPluginInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    return array();
+  }
 
   /**
    * {@inheritdoc}

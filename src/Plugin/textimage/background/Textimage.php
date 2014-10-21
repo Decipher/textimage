@@ -35,7 +35,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
   /**
    * {@inheritdoc}
    */
-  public function configurationForm(array $form, FormStateInterface $form_state, array $options = array()) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $element['path'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Path'),

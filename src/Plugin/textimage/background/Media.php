@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\textimage\background;
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -24,6 +25,13 @@ use Drupal\textimage\Plugin\TextimagePluginBase;
  * )
  */
 class Media extends TextimagePluginBase implements TextimageBackgroundPluginInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    return array();
+  }
 
   /**
    * {@inheritdoc}

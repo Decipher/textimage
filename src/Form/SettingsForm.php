@@ -134,14 +134,10 @@ class SettingsForm extends ConfigFormBase {
     $form['font'] = array(
       '#type' => 'details',
       '#open' => TRUE,
-      '#title' => $this->t('Fonts'),
+      '#title' => $this->t('Fonts manager'),
       '#tree' => TRUE,
     );
-    $form['font'] += $this->buildPluginForm($form, $form_state, $plugin['font'],
-      array(
-        '#title'   => $this->t('Fonts manager'),
-      )
-    );
+    $form['font'] += $this->buildPluginForm($form_state, $plugin['font']);
 
     // Default font.
     $form['font'] += $plugin['font']->selectionElement('default_font_name', array(
@@ -153,27 +149,19 @@ class SettingsForm extends ConfigFormBase {
     $form['background'] = array(
       '#type' => 'details',
       '#open' => TRUE,
-      '#title' => $this->t('Background images'),
+      '#title' => $this->t('Background images manager'),
       '#tree' => TRUE,
     );
-    $form['background'] += $this->buildPluginForm($form, $form_state, $plugin['background'],
-      array(
-        '#title'   => $this->t('Background images manager'),
-      )
-    );
+    $form['background'] += $this->buildPluginForm($form_state, $plugin['background']);
 
     // Color.
     $form['color'] = array(
       '#type' => 'details',
       '#open' => TRUE,
-      '#title' => $this->t('Colors'),
+      '#title' => $this->t('Color manager'),
       '#tree' => TRUE,
     );
-    $form['color'] += $this->buildPluginForm($form, $form_state, $plugin['color'],
-      array(
-        '#title'   => $this->t('Color manager'),
-      )
-    );
+    $form['color'] += $this->buildPluginForm($form_state, $plugin['color']);
 
     // Maintenance.
     $form['maintenance'] = array(
@@ -193,32 +181,26 @@ class SettingsForm extends ConfigFormBase {
   /**
    * Builds a portion of the form to capture plugin selection and settings.
    *
-   * @param array $form
-   *   An associative array containing the structure of the form.
    * @param array $form_state
    *   An associative array containing the current state of the form.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $plugin
    *   A Textimage plugin object.
-   * @param array $options
-   *   An associative array of options.
    *
    * @return array
    *   The form structure.
    */
-  protected function buildPluginForm(array $form, FormStateInterface $form_state, TextimagePluginBaseInterface $plugin, array $options) {
+  protected function buildPluginForm(FormStateInterface $form_state, TextimagePluginBaseInterface $plugin) {
     $type = $plugin->getType();
-    $ajax_settings = array(
-      'callback' => array($this, 'processAjax'),
-    );
+    $ajax_settings = ['callback' => [$this, 'processAjax']];
     $element['plugin_id'] = array(
       '#type'    => 'radios',
-      '#title'   => $options['#title'],
       '#options' => $this->pluginFactory[$type]->getPluginOptions(),
       '#default_value' => $plugin->getPluginId(),
       '#required'    => TRUE,
       '#ajax'  => $ajax_settings,
     );
-    $element['plugin_settings'] = $plugin->configurationForm($form, $form_state, array('#ajax' => $ajax_settings));
+    $element['plugin_settings'] = $plugin->buildConfigurationForm(array(), $form_state);
+    $plugin->addConfigurationFormAjax($element['plugin_settings'], $ajax_settings); // @todo see this
     return $element;
   }
 
