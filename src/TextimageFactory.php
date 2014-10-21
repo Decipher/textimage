@@ -15,7 +15,9 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Utility\Token;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
+use Drupal\image\ImageStyleInterface;
 
 /**
  * Provides a factory for Textimage.
@@ -200,22 +202,50 @@ class TextimageFactory {
   }
 
   /**
+   * Check if an image style is Textimage relevant.
+   *
+   * @param \Drupal\image\ImageStyleInterface $image_style
+   *   The image style to check.
+   *
+   * @return bool
+   *   TRUE if style is Textimage relevant, otherwise FALSE
+   */
+  public function isTextimage(ImageStyleInterface $image_style) {
+    return (bool) $image_style->getThirdPartySetting('textimage', 'is_relevant', FALSE);
+  }
+
+  /**
+   * Gets an array of Textimage image styles suitable for select list options.
+   *
+   * @return
+   *   Array of image styles both key and value are set to style name.
+   */
+  public function getTextimageStyleOptions() {
+    $image_styles = entity_load_multiple('image_style');
+    $options = array();
+    foreach ($image_styles as $name => $image_style) {
+      if ($this->isTextimage($image_style)) {
+        $options[$name] = $image_style->label();
+      }
+    }
+    if (empty($options)) {
+      $options[''] = t('No defined styles');
+    }
+    return $options;
+  }
+
+  /**
    * Cleanup Textimage.
    *
    * This will remove all image files generated via Textimage, flush all
    * the image styles, clear all cache and all store entries on the db.
    */
   public function flushAll() {
-  /*  foreach (image_styles() as $style) {
-      if (...:isTextimage($style)) {
-        image_style_flush($style);
+    $image_styles = entity_load_multiple('image_style');
+    foreach ($image_styles as $image_style) {
+      if ($this->isTextimage($image_style)) {
+        $image_style->flush();
       }
-    }*/
-    if (file_exists('public://textimage')) {
-      file_unmanaged_delete_recursive('public://textimage');  // @todo temp
-    }
-    if (file_exists('private://textimage')) {
-      file_unmanaged_delete_recursive('private://textimage');  // @todo temp
     }
     if (file_exists($this->getStorePath('unstyled_hashed'))) {
       file_unmanaged_delete_recursive($this->getStorePath('unstyled_hashed'));
@@ -223,7 +253,7 @@ class TextimageFactory {
     if (file_exists($this->getStorePath('uncached'))) {
       file_unmanaged_delete_recursive($this->getStorePath('uncached'));
     }
-    $this->cache->deleteAll();
+    $this->cache->deleteAll(); // @todo check cache tags
     db_truncate('textimage_store')->execute();
     _textimage_diag(t('All Textimage images were removed.'), 'notice');
   }
