@@ -362,8 +362,7 @@ class TextimageText extends TextimageEffectBase {
       '#default_value' => $this->configuration['text']['line_spacing'],
       '#maxlength' => 4,
       '#size' => 4,
-      '#min' => 0,  // @todo can be negative??
-      '#description' => $this->t('Specify the space in pixels to be added between text lines (Leading).'),
+      '#description' => $this->t('Specify the space in pixels to be added between text lines (Leading). Can be negative.'),
     );
     $form['text']['case_format'] = array(
       '#type'  => 'select',
@@ -592,7 +591,6 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       '#effects' => array(
         array(
           'id' => 'textimage_text',
-          'weight' => -5,  // @todo better
           'data' => $data,
         ),
       ),
@@ -864,7 +862,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
     // Perform text wrapping, if necessary.
     if ($data['text']['maximum_width'] > 0) {
-      $data['text_string'] = static::wrapText(
+      $data['text_string'] = $this->wrapText(
         $image,
         $data['text_string'],
         $data['font']['size'],
@@ -1131,7 +1129,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    * @return string
    *   Text string, with newline characters to separate each line.
    */
-  public static function wrapText($image, $text, $font_size, $font_uri, $maximum_width) {
+  protected function wrapText($image, $text, $font_size, $font_uri, $maximum_width) {
     // The toolkit operation with the getBoundingBox() method.
     $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
 
