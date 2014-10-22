@@ -71,7 +71,6 @@ class SettingsForm extends ConfigFormBase {
         $this->pluginFactory[$arg->getType()] = $arg;
       }
     }
-    $this->config = $this->config('textimage.settings');
     $this->streamWrapperManager = $stream_wrapper_manager;
   }
 
@@ -106,7 +105,7 @@ class SettingsForm extends ConfigFormBase {
 
     // Loops through plugin factory to get plugins.
     foreach ($this->pluginFactory as $type => $pluginFactory) {
-      $plugin_id = $ajaxing ? $form_state->getValue(array($type, 'plugin_id')) : $this->config->get($type . '.plugin_id');
+      $plugin_id = $ajaxing ? $form_state->getValue(array($type, 'plugin_id')) : $this->config('textimage.settings')->get($type . '.plugin_id');
       $plugin[$type] = $this->pluginFactory[$type]->getPlugin($plugin_id);
       if ($ajaxing && $form_state->hasValue(array($type, 'plugin_settings'))) {
         $plugin[$type]->setConfiguration($form_state->getValue(array($type, 'plugin_settings')));
@@ -115,7 +114,7 @@ class SettingsForm extends ConfigFormBase {
 
     // Main Textimage store location.
     $scheme_options = $this->streamWrapperManager->getNames(StreamWrapperInterface::WRITE_VISIBLE);
-    $default_scheme = $this->config->get('store_scheme');
+    $default_scheme = $this->config('textimage.settings')->get('store_scheme');
     $default_scheme = isset($scheme_options[$default_scheme]) ? $default_scheme : 'public';
     $form['textimage_store'] = array(
       '#type' => 'details',
@@ -216,12 +215,12 @@ class SettingsForm extends ConfigFormBase {
     }
 
     // Overall module flush if storage scheme gets changed.
-    if ($form_state->getValue('store_scheme') != $this->config->get('store_scheme')) {
+    if ($form_state->getValue('store_scheme') != $this->config('textimage.settings')->get('store_scheme')) {
       $this->textimageFactory->flushAll();
     }
 
     // Main Textimage store location.
-    $this->config->set('store_scheme', $form_state->getValue('store_scheme'));
+    $this->config('textimage.settings')->set('store_scheme', $form_state->getValue('store_scheme'));
 
     // Loops through plugin factory to save settings.
     foreach ($this->pluginFactory as $type => $pluginFactory) {
@@ -229,18 +228,18 @@ class SettingsForm extends ConfigFormBase {
       if ($form_state->hasValue(array($type, 'plugin_settings'))) {
         $plugin->setConfiguration($form_state->getValue(array($type, 'plugin_settings')));
       }
-      $this->config
+      $this->config('textimage.settings')
         ->set($type . '.plugin_id', $plugin->getPluginId())
         ->set($type . '.plugin_settings.' . $plugin->getPluginId(), $plugin->getConfiguration());
       if ($type == 'font' && !$form_state->isValueEmpty(array('font', 'default_font_name'))) {
         // Default font.
-        $this->config
+        $this->config('textimage.settings')
           ->set('default_font.name', $form_state->getValue(array('font', 'default_font_name')))
           ->set('default_font.uri', $plugin->getUri($form_state->getValue(array('font', 'default_font_name'))));
       }
     }
 
-    $this->config->save();
+    $this->config('textimage.settings')->save();
 
     parent::submitForm($form, $form_state);
   }

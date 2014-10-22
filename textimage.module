@@ -245,82 +245,45 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
   $style->setThirdPartySetting('textimage', 'is_relevant', FALSE);
 }
 
-/* test hook for derivative creation */
-/*function textimage_image_style_create_derivative($style, $original_uri, $derivative_uri) {
-  ....TextimageFactory::setState();
-  watchdog(
-    'image',
-    t(
-      'Creating derivative image: %derivative for style: %style from image: %original',
-      array(
-        '%style' => $style->id(),
-        '%derivative' => $derivative_uri,
-        '%original' => $original_uri,
-      )
-    )
-  );
-}*/
-
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Make alterations to the core 'image_style_form' form.
  *
- * @see _textimage_image_style_form_form_alter()
+ * A fieldset is added if the image style is Textimage relevant.
  */
-//function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-/*$style = $'controller']->getEntity();
-dpm($style);
-$effects = $style->getEffects();
-foreach ($effects->sort() as $effect) {
-dpm($effect);
-};*/
-
-/*  if (...::isTextimage($form_state'])) {*/
-
-/*    $form['textimage_options'] = array(
+function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $image_style = $form_state->getFormObject()->getEntity();
+  if (\Drupal::service('textimage.factory')->isTextimage($image_style)) {
+    $form['textimage_options'] = array(
       '#type' => 'details',
-      '#tree' => TRUE,
       '#weight' => 10,
+      '#tree' => TRUE,
+      '#open' => FALSE,
       '#title' => t('Textimage options'),
       '#description' => t('Define Textimage options specific for this image style.'),
     );
     // Define file storage wrapper used for the style images.
-    $scheme_options = array();
-    foreach (file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE) as $scheme => $stream_wrapper) {
-      $scheme_options[$scheme] = $stream_wrapper['name'];
-    }
+    $scheme_options = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::WRITE_VISIBLE);
     $form['textimage_options']['uri_scheme'] = array(
       '#type' => 'radios',
       '#options' => $scheme_options,
       '#title' => t('Image destination'),
       '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
-//  @todo     '#default_value' => $form_state']['textimage']['uri_scheme'],
-      '#default_value' => 'public',
+      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', 'public'),
     );
-    // Adds a submit handler to deal with textimage options.
-    $form['#submit'][] = '_textimage_image_style_form_textimage_submit';
-    $style = $form_state->getFormObject()->getEntity();
-//    $style->setThirdPartySetting('textimage', 'uri_scheme', 'public');
-//    $style->save();
-  /*}*/
-//}
+    // Adds a validate handler to deal with textimage options.
+    $form['#validate'][] = '_textimage_form_image_style_form_validate';
+  }
+}
 
 /**
  * Submit handler to deal with a style's Textimage options.
  *
  * @see _textimage_image_style_form_form_alter()
  */
-//function _textimage_image_style_form_textimage_submit($form, FormStateInterface $form_state) {
-/*  $style = ...:get($form_state['values']['name']);
-  // Update Textimage-specific style options.
-  if ($style) {
-    $style['textimage']['uri_scheme'] = $form_state']['textimage_options']['uri_scheme'];
-    image_style_save($style);
-  }*/
-/*
-  $style = $form['entity'];
-  $style->setThirdPartySetting('textimage', 'uri_scheme', 'public');
-*/
-//}
+function _textimage_form_image_style_form_validate($form, FormStateInterface $form_state) {
+  $image_style = $form_state->getFormObject()->getEntity();
+  $image_style->setThirdPartySetting('textimage', 'uri_scheme', $form_state->getValue(['textimage_options', 'uri_scheme']));
+}
 
 /**
  * Textimage functions.

@@ -112,15 +112,8 @@ class TextimageApiTest extends TextimageTestBase {
     // Check processed text is stored in image data.
     $this->assertTrue($expected_text_array == $image_data['text'], 'Processed text stored in image data');
 
-    // Check dummy textimage_background effect is not stored in the outline.
+    // Check count of effects is as expected.
     $this->assertTrue(count($effects_outline) == 6, 'Expected number of effects in the outline');
-    $is_background = FALSE;
-    foreach ($effects_outline as $effect) {
-      if ($effect['id'] == 'textimage_background') {
-        $is_background = TRUE;
-      }
-    }
-    $this->assertFalse($is_background, 'Dummy textimage_background effect is not stored in the outline');
 
     // Check processed text is not stored in the effects outline.
     foreach ($effects_outline as $effect) {

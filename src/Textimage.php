@@ -559,22 +559,12 @@ class Textimage {
     }
 
     // If no source image specified, we are processing a pure Textimage
-    // request. In that case we need to use a source dummy 1x1 image stored
-    // in textimage/misc/images, and prepend an additional
-    // 'textimage_background' effect to ensure we start with a clean
-    // background.
+    // request. In that case we create a new 1x1 image to ensure we start
+    // with a clean background.
     $source = isset($this->sourceImageFile) ? $this->sourceImageFile->uri : NULL;
+    $image = \Drupal::service('image.factory')->get($source); // @todo inject
     if (!$source) {
-      $source = drupal_get_path('module', 'textimage') . '/misc/images/base.' . $this->extension; // @todo uase a single file for any extension
-      $cleanup_effect = array();
-      $cleanup_effect['id'] = 'textimage_background';
-      $cleanup_effect['weight'] = -90; // @todo better
-      $cleanup_effect['data'] = array(
-        'background_image' => array(
-          'mode' => '',
-        ),
-      );
-      $effects[] = $cleanup_effect;
+      $image->createNew(1, 1, $this->extension); // @todo add gif transparent color
     }
 
     // Build a runtime-only style.
@@ -592,7 +582,7 @@ class Textimage {
     }
 
     // Generate the image.
-    if (!$this->processed = $runtime_style->createDerivative($source, $this->uri)) {
+    if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->uri)) {
       if (isset($this->style)) {
         _textimage_diag(t("Textimage failed to build an image for image style '@style'.", array('@style' => $this->style->id())), 'error', NULL, $this->userMessages);
       }
@@ -619,6 +609,37 @@ class Textimage {
     // Stop the image generation timer.
     Timer::stop('Textimage::process');
 
+  }
+
+  /**
+   * @todo remove if #2359443 gets in
+   */
+  protected function createDerivativeFromImage($style, $image, $derivative_uri) {
+    // Get the folder for the final location of this style.
+    $directory = drupal_dirname($derivative_uri);
+
+    // Build the destination folder tree if it doesn't already exist.
+    if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      \Drupal::logger('image')->error('Failed to create Textimage directory: %directory', array('%directory' => $directory));
+      return FALSE;
+    }
+
+    if (!$image->isValid()) {
+      return FALSE;
+    }
+
+    foreach ($style->getEffects() as $effect) {
+      $effect->applyEffect($image);
+    }
+
+    if (!$image->save($derivative_uri)) {
+      if (file_exists($derivative_uri)) {
+        \Drupal::logger('image')->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', array('%destination' => $derivative_uri));
+      }
+      return FALSE;
+    }
+
+    return TRUE;
   }
 
   /**
@@ -720,9 +741,9 @@ class Textimage {
       return FALSE;
     }
 
+    $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme', 'public');
     $base_name = $file_name . '.' . $this->extension;
-// @todo   $this->uri = $textimage_style['textimage']['uri_scheme'] . '://textimage/' . $this->style->id() . '/' . $base_name;
-    $this->uri = 'public' . '://textimage/' . $this->style->id() . '/' . $base_name;
+    $this->uri = $scheme . '://textimage/' . $this->style->id() . '/' . $base_name;
     return TRUE;
   }
 
