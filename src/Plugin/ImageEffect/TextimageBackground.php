@@ -442,7 +442,7 @@ class TextimageBackground extends TextimageEffectBase {
               'height' => $this->configuration['exact']['height'],
               'upscale' => 0,
             );
-            image_scale_dimensions($dimensions, $scale_data);
+            image_scale_dimensions($dimensions, $scale_data); // @todo this is D7 :(
             return;
 
           case 'resize':
@@ -450,7 +450,7 @@ class TextimageBackground extends TextimageEffectBase {
               'width' => $this->configuration['exact']['width'] ? $this->configuration['exact']['width'] : $width,
               'height' => $this->configuration['exact']['height'] ? $this->configuration['exact']['height'] : $height,
             );
-            image_resize_dimensions($dimensions, $resize_data);
+            image_resize_dimensions($dimensions, $resize_data); // @todo this is D7 :(
             return;
 
           case 'crop':
@@ -459,7 +459,7 @@ class TextimageBackground extends TextimageEffectBase {
               'height' => min($this->configuration['exact']['height'], $height),
               'anchor' => $this->configuration['exact']['crop'],
             );
-            image_resize_dimensions($dimensions, $crop_data);
+            image_resize_dimensions($dimensions, $crop_data); // @todo this is D7 :(
             return;
 
         }

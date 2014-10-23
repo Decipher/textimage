@@ -26,13 +26,6 @@ use Drupal\textimage\Plugin\TextimagePluginBase;
  */
 class JQueryColorpicker extends TextimagePluginBase implements TextimageColorPluginInterface {
 
-  /**
-   * {@inheritdoc}
-   */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    return array();
-  }
-
   public function selectionElement($name, array $options = array()) {
     $element[$name] = array(
       '#title' => t('Color'),

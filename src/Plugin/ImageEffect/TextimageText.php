@@ -819,8 +819,8 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
   /**
    * Get the image containing the text.
    *
-   * This is separated from textimage_text_effect() so that it can also be used
-   * by the textimage_text_effect_dimensions() function.
+   * This is separated from ::applyEffect() so that it can also be used
+   * by the ::transformDimensions() method.
    */
   protected function getTextWrapper($image, array $data) {
 

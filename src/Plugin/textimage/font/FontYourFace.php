@@ -29,7 +29,7 @@ class FontYourFace extends Textimage {
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state, array $ajax_settings = []) {
     return array();
   }
 
@@ -37,7 +37,7 @@ class FontYourFace extends Textimage {
    * {@inheritdoc}
    */
   public static function isAvailable() {
-    return TRUE; // @todo check module!!
+    return FALSE; // @todo check module!!
   }
 
   /**

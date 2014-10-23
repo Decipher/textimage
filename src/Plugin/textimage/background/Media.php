@@ -29,13 +29,6 @@ class Media extends TextimagePluginBase implements TextimageBackgroundPluginInte
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    return array();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public static function isAvailable() {
     return FALSE; // @todo check module!!
     $backgrounds_handling_module_options = array();

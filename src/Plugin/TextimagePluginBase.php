@@ -120,17 +120,19 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
   /**
    * {@inheritdoc}
    */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state, array $ajax_settings = []) {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) { }
 
   /**
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) { }
-
-  /**
-   * @todo
-   */
-  public function addConfigurationFormAjax(array &$form, array $options = array()) { }
 
   /**
    * @todo

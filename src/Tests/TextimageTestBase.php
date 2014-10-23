@@ -55,7 +55,7 @@ abstract class TextimageTestBase extends WebTestBase {
     // Set default font.
     $this->drupalGet($this->textimageAdmin);
     $edit = array(
-      'font[default_font_name]' => 'Old Standard TT Regular',
+      'settings[font][default_font_name]' => 'Old Standard TT Regular',
     );
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
 

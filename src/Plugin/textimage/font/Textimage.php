@@ -36,7 +36,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state, array $ajax_settings = []) {
     $element['path'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Path'),
@@ -48,16 +48,10 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
         $this->t('Location of the directory where the fonts are stored.') . ' ' .
         $this->t('Relative paths will be resolved relative to the Drupal installation directory.'),
     );
-    return $element;
-  }
-
-  /**
-   * @todo
-   */
-  public function addConfigurationFormAjax(array &$form, array $options = array()) {
-    if ($options) {
-      $form['path']['#ajax'] = $options;
+    if ($ajax_settings) {
+      $element['path']['#ajax'] = $ajax_settings;
     }
+    return $element;
   }
 
   /**

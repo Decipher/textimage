@@ -28,13 +28,6 @@ class Textimage extends TextimagePluginBase implements TextimageColorPluginInter
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    return array();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function selectionElement($name, array $options = array()) {
     $element[$name] = array(
       '#type' => 'color',
