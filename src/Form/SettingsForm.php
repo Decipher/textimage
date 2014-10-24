@@ -39,10 +39,24 @@ class SettingsForm extends ConfigFormBase {
   protected $streamWrapperManager;
 
   /**
-   * @todo
+   * The font plugin manager.
+   *
+   * @var \Drupal\textimage\Plugin\TextimagePluginManager
    */
   protected $fontManager;
+
+  /**
+   * The background plugin manager.
+   *
+   * @var \Drupal\textimage\Plugin\TextimagePluginManager
+   */
   protected $backgroundManager;
+
+  /**
+   * The color plugin manager.
+   *
+   * @var \Drupal\textimage\Plugin\TextimagePluginManager
+   */
   protected $colorManager;
 
   /**
@@ -54,19 +68,19 @@ class SettingsForm extends ConfigFormBase {
    *   The factory for configuration objects.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
    *   The stream wrapper manager.
-   * @param \Drupal\textimage\Plugin\TextimagePluginManager $font_plugin_factory
-   *   The font plugin factory.
-   * @param \Drupal\textimage\Plugin\TextimagePluginManager $background_plugin_factory
-   *   The background images plugin factory.
-   * @param \Drupal\textimage\Plugin\TextimagePluginManager $color_plugin_factory
-   *   The color plugin factory.
+   * @param \Drupal\textimage\Plugin\TextimagePluginManager $font_plugin_manager
+   *   The font plugin manager.
+   * @param \Drupal\textimage\Plugin\TextimagePluginManager $background_plugin_manager
+   *   The background images plugin manager.
+   * @param \Drupal\textimage\Plugin\TextimagePluginManager $color_plugin_manager
+   *   The color plugin manager.
    */
-  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, StreamWrapperManager $stream_wrapper_manager, TextimagePluginManager $font_plugin_factory, TextimagePluginManager $background_plugin_factory, TextimagePluginManager $color_plugin_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, StreamWrapperManager $stream_wrapper_manager, TextimagePluginManager $font_plugin_manager, TextimagePluginManager $background_plugin_manager, TextimagePluginManager $color_plugin_manager) {
     parent::__construct($config_factory);
     $this->textimageFactory = $textimage_factory;
-    $this->fontManager = $font_plugin_factory;
-    $this->backgroundManager = $background_plugin_factory;
-    $this->colorManager = $color_plugin_factory;
+    $this->fontManager = $font_plugin_manager;
+    $this->backgroundManager = $background_plugin_manager;
+    $this->colorManager = $color_plugin_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
   }
 
@@ -96,25 +110,27 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-    $plugin = array();
     $ajaxing = (bool) $form_state->getValues();
 
-    $font_plugin_id = $ajaxing ? $form_state->getValue(array('settings', 'font', 'plugin_id')) : $this->config('textimage.settings')->get('font.plugin_id');
+    // Font plugin.
+    $font_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'font', 'plugin_id']) : $this->config('textimage.settings')->get('font.plugin_id');
     $font_plugin = $this->fontManager->getPlugin($font_plugin_id);
-    if ($ajaxing && $form_state->hasValue(array('settings', 'font', 'plugin_settings'))) {
-      $font_plugin->setConfiguration($form_state->getValue(array('settings', 'font', 'plugin_settings')));
+    if ($ajaxing && $form_state->hasValue(['settings', 'font', 'plugin_settings'])) {
+      $font_plugin->setConfiguration($form_state->getValue(['settings', 'font', 'plugin_settings']));
     }
 
-    $background_plugin_id = $ajaxing ? $form_state->getValue(array('settings', 'background', 'plugin_id')) : $this->config('textimage.settings')->get('background.plugin_id');
+    // Background plugin.
+    $background_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'background', 'plugin_id']) : $this->config('textimage.settings')->get('background.plugin_id');
     $background_plugin = $this->backgroundManager->getPlugin($background_plugin_id);
-    if ($ajaxing && $form_state->hasValue(array('settings', 'background', 'plugin_settings'))) {
-      $background_plugin->setConfiguration($form_state->getValue(array('settings', 'background', 'plugin_settings')));
+    if ($ajaxing && $form_state->hasValue(['settings', 'background', 'plugin_settings'])) {
+      $background_plugin->setConfiguration($form_state->getValue(['settings', 'background', 'plugin_settings']));
     }
 
-    $color_plugin_id = $ajaxing ? $form_state->getValue(array('settings', 'color', 'plugin_id')) : $this->config('textimage.settings')->get('color.plugin_id');
+    // Color plugin.
+    $color_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'color', 'plugin_id']) : $this->config('textimage.settings')->get('color.plugin_id');
     $color_plugin = $this->colorManager->getPlugin($color_plugin_id);
-    if ($ajaxing && $form_state->hasValue(array('settings', 'color', 'plugin_settings'))) {
-      $color_plugin->setConfiguration($form_state->getValue(array('settings', 'color', 'plugin_settings')));
+    if ($ajaxing && $form_state->hasValue(['settings', 'color', 'plugin_settings'])) {
+      $color_plugin->setConfiguration($form_state->getValue(['settings', 'color', 'plugin_settings']));
     }
 
     // AJAX messages
@@ -124,6 +140,8 @@ class SettingsForm extends ConfigFormBase {
         'id' => 'textimage-ajax-messages',
       ],
     );
+
+    // Main part of settings form.
     $form['settings'] = array(
       '#type' => 'container',
       '#tree' => TRUE,
@@ -239,9 +257,9 @@ class SettingsForm extends ConfigFormBase {
     $this->config('textimage.settings')->set('store_scheme', $form_state->getValue(['settings', 'textimage_store', 'store_scheme']));
 
     // Font plugin.
-    $font_plugin = $this->fontManager->getPlugin($form_state->getValue(array('settings', 'font', 'plugin_id')));
-    if ($form_state->hasValue(array('settings', 'font', 'plugin_settings'))) {
-      $font_plugin->setConfiguration($form_state->getValue(array('settings', 'font', 'plugin_settings')));
+    $font_plugin = $this->fontManager->getPlugin($form_state->getValue(['settings', 'font', 'plugin_id']));
+    if ($form_state->hasValue(['settings', 'font', 'plugin_settings'])) {
+      $font_plugin->setConfiguration($form_state->getValue(['settings', 'font', 'plugin_settings']));
     }
     $this->config('textimage.settings')
       ->set('font.plugin_id', $font_plugin->getPluginId())
@@ -249,22 +267,22 @@ class SettingsForm extends ConfigFormBase {
 
     // Default font.
     $this->config('textimage.settings')
-      ->set('default_font.name', $form_state->getValue(array('settings', 'font', 'default_font_name')))
-      ->set('default_font.uri', $font_plugin->getUri($form_state->getValue(array('settings', 'font', 'default_font_name'))));
+      ->set('default_font.name', $form_state->getValue(['settings', 'font', 'default_font_name']))
+      ->set('default_font.uri', $font_plugin->getUri($form_state->getValue(['settings', 'font', 'default_font_name'])));
 
     // Background plugin.
-    $background_plugin = $this->backgroundManager->getPlugin($form_state->getValue(array('settings', 'background', 'plugin_id')));
-    if ($form_state->hasValue(array('settings', 'background', 'plugin_settings'))) {
-      $background_plugin->setConfiguration($form_state->getValue(array('settings', 'background', 'plugin_settings')));
+    $background_plugin = $this->backgroundManager->getPlugin($form_state->getValue(['settings', 'background', 'plugin_id']));
+    if ($form_state->hasValue(['settings', 'background', 'plugin_settings'])) {
+      $background_plugin->setConfiguration($form_state->getValue(['settings', 'background', 'plugin_settings']));
     }
     $this->config('textimage.settings')
       ->set('background.plugin_id', $background_plugin->getPluginId())
       ->set('background.plugin_settings.' . $background_plugin->getPluginId(), $background_plugin->getConfiguration());
 
     // Color plugin.
-    $color_plugin = $this->colorManager->getPlugin($form_state->getValue(array('settings', 'color', 'plugin_id')));
-    if ($form_state->hasValue(array('settings', 'color', 'plugin_settings'))) {
-      $color_plugin->setConfiguration($form_state->getValue(array('settings', 'color', 'plugin_settings')));
+    $color_plugin = $this->colorManager->getPlugin($form_state->getValue(['settings', 'color', 'plugin_id']));
+    if ($form_state->hasValue(['settings', 'color', 'plugin_settings'])) {
+      $color_plugin->setConfiguration($form_state->getValue(['settings', 'color', 'plugin_settings']));
     }
     $this->config('textimage.settings')
       ->set('color.plugin_id', $color_plugin->getPluginId())

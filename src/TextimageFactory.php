@@ -12,6 +12,7 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Utility\Token;
@@ -23,6 +24,13 @@ use Drupal\image\ImageStyleInterface;
  * Provides a factory for Textimage.
  */
 class TextimageFactory {
+
+  /**
+   * The image factory service.
+   *
+   * @var \Drupal\Core\Image\ImageFactory
+   */
+  protected $imageFactory;
 
   /**
    * The lock service.
@@ -71,6 +79,8 @@ class TextimageFactory {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   the config factory
+   * @param \Drupal\Core\Image\ImageFactory $image_factory
+   *   The image factory cache service.
    * @param \Drupal\Core\Lock\DatabaseLockBackend $lock_service
    *   the lock service
    * @param \Drupal\Core\Utility\Token $token_service
@@ -82,8 +92,9 @@ class TextimageFactory {
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
    *   the image effect manager service
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager) {
     $this->config = $config_factory->get('textimage.settings');
+    $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
     $this->token = $token_service;
     $this->cache = $cache_service;
@@ -95,7 +106,7 @@ class TextimageFactory {
    * Get a Textimage, building the image if necessary.
    */
   public function getTextimage() {
-    return new Textimage($this, $this->lock, $this->cache);
+    return new Textimage($this, $this->imageFactory, $this->lock, $this->cache);
   }
 
   /**

@@ -13,6 +13,7 @@ use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Utility\Token;
 use Drupal\image\ImageStyleInterface;
@@ -23,11 +24,18 @@ use Drupal\node\NodeInterface;
 class Textimage {
 
   /**
-   * The textimage factory service.
+   * The image factory service.
+   *
+   * @var \Drupal\Core\Image\ImageFactory
+   */
+  protected $imageFactory;
+
+  /**
+   * The Textimage factory service.
    *
    * @var \Drupal\textimage\TextimageFactory
    */
-  protected $factory;
+  protected $textimageFactory;
 
   /**
    * The textimage cache service.
@@ -159,10 +167,18 @@ class Textimage {
   /**
    * Constructs a Textimage object.
    *
-   * @param @todo
+   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   *   The Textimage factory.
+   * @param \Drupal\Core\Image\ImageFactory $image_factory
+   *   The image factory cache service.
+   * @param \Drupal\Core\Lock\DatabaseLockBackend $lock
+   *   The lock service.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   The Textimage cache service.
    */
-  public function __construct(TextimageFactory $factory, DatabaseLockBackend $lock, CacheBackendInterface $cache) {
-    $this->factory = $factory;
+  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, DatabaseLockBackend $lock, CacheBackendInterface $cache) {
+    $this->textimageFactory = $textimage_factory;
+    $this->imageFactory = $image_factory;
     $this->lock = $lock;
     $this->cache = $cache;
   }
@@ -201,7 +217,7 @@ class Textimage {
    * @return self
    */
   public function style(ImageStyleInterface $image_style) {
-    if ($this->factory->isTextimage($image_style)) {
+    if ($this->textimageFactory->isTextimage($image_style)) {
       $this->set('style', $image_style);
       $effects = @$this->style->getEffects()->getConfiguration();
       $this->set('effects', $effects);
@@ -481,10 +497,10 @@ class Textimage {
         if ($text_item) {
           // Replace any tokens in text with run-time values.
           $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-          $processed_text[] = $this->factory->processTextString($text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
+          $processed_text[] = $this->textimageFactory->processTextString($text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
         }
         elseif ($default_text_item) {
-          $processed_text[] = $this->factory->processTextString($default_text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
+          $processed_text[] = $this->textimageFactory->processTextString($default_text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
         }
         else {
           $processed_text[] = t('* Missing text *');
@@ -511,7 +527,7 @@ class Textimage {
       'text'                => $this->text,
       'filemime'            => file_get_mimetype('dummy.' . $this->extension),
       'extension'           => $this->extension,
-      'source'              => $this->sourceImageFile ? $this->sourceImageFile->uri : NULL,
+      'source'              => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
       'forceHashedFilename' => $this->forceHashedFilename,
     );
 
@@ -561,18 +577,18 @@ class Textimage {
     // If no source image specified, we are processing a pure Textimage
     // request. In that case we create a new 1x1 image to ensure we start
     // with a clean background.
-    $source = isset($this->sourceImageFile) ? $this->sourceImageFile->uri : NULL;
-    $image = \Drupal::service('image.factory')->get($source); // @todo inject
+    $source = isset($this->sourceImageFile) ? $this->sourceImageFile->getFileUri() : NULL;
+    $image = $this->imageFactory->get($source);
     if (!$source) {
       $image->createNew(1, 1, $this->extension); // @todo add gif transparent color
     }
 
     // Build a runtime-only style.
-    $runtime_style = $this->factory->buildStyleFromEffects($effects);
+    $runtime_style = $this->textimageFactory->buildStyleFromEffects($effects);
 
     // Reset state.
-    $this->factory->setState();
-    $this->factory->setState('building_module', 'textimage');
+    $this->textimageFactory->setState();
+    $this->textimageFactory->setState('building_module', 'textimage');
 
     // Try a lock to the file generation process. If cannot get the lock,
     // return success if the file exists already. Otherwise return failure.
@@ -597,7 +613,7 @@ class Textimage {
     }
 
     // Reset state.
-    $this->factory->setState();
+    $this->textimageFactory->setState();
 
     // Saves db imagestore data.
     if ($this->processed && $this->caching) {
@@ -673,15 +689,15 @@ class Textimage {
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
-        $this->uri = $this->factory->getStorePath('styled_hashed/') . $this->style->id() . '/' . $base_name;
+        $this->uri = $this->textimageFactory->getStorePath('styled_hashed/') . $this->style->id() . '/' . $base_name;
       }
       else {
-        $this->uri = $this->factory->getStorePath('unstyled_hashed/') . $base_name;
+        $this->uri = $this->textimageFactory->getStorePath('unstyled_hashed/') . $base_name;
       }
     }
     else {
       $base_name = hash('sha256', session_id() . microtime()) . '.' . $this->extension;
-      $this->uri = $this->factory->getStorePath('uncached/') . $base_name;
+      $this->uri = $this->textimageFactory->getStorePath('uncached/') . $base_name;
     }
 
   }

@@ -91,11 +91,12 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     $targetsize = $arguments['targetsize'];
 
     // Prepare the canvas.
-    $canvas_image = \Drupal::service('image.factory')->get();  // @todo inject
+    $canvas_image = \Drupal::service('image.factory')->get();
     $data = array(
       'width' => $targetsize['width'],
       'height' => $targetsize['height'],
-      // @todo need to manage if the image has a transparent color already
+      'extension' => image_type_to_extension($this->getToolkit()->getType(), FALSE),
+      'transparent_color' => $this->getToolkit()->getTransparentColor(),
     );
     $canvas_image->apply('create_new', $data);
     $data = array(

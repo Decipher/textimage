@@ -1,7 +1,5 @@
 <?php
 
-// @todo revise if #2063373 gets in
-
 /**
  * @file
  * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageReplaceImage.
@@ -9,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
+use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
 
 /**
@@ -35,21 +34,28 @@ class TextimageReplaceImage extends GDTextimageOperationBase {
     );
   }
 
-  // @todo validate arguments replacement image should be a ImageInterface object
+  /**
+   * {@inheritdoc}
+   */
+  protected function validateArguments(array $arguments) {
+    // Ensure replacement_image is an expected ImageInterface object.
+    if (!$arguments['replacement_image'] instanceof ImageInterface) {
+      throw new \InvalidArgumentException(String::format("Replacement image passed to the 'textimage_replace_image' is invalid"));
+    }
+    // Ensure replacement_image is a valid image.
+    if (!$arguments['replacement_image']->isValid()) {
+      throw new \InvalidArgumentException(String::format('Invalid image at @source.', array('@source' => $arguments['replacement_image']->getSource())));
+    }
+    return $arguments;
+  }
 
   /**
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    if (!$arguments['replacement_image']->isValid()) {
-      $this->logger->error('Invalid image at @source.', array('@source' => $arguments['replacement_image']->getSource()));
-      return FALSE;
-    }
-
     imagedestroy($this->getToolkit()->getResource());
     $this->getToolkit()->setResource($arguments['replacement_image']->getToolkit()->getResource());
     $this->getToolkit()->setType($arguments['replacement_image']->getToolkit()->getType());
-
     return TRUE;
   }
 

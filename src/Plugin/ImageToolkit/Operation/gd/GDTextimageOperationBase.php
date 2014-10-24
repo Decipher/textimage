@@ -23,7 +23,7 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   protected function getFontPath($font_uri) {
     $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
     if ($font_wrapper instanceof LocalStream) {
-      $ret = $font_wrapper->realpath(); // @todo remove
+      $ret = $font_wrapper->realpath();
     }
     else {
       $ret = is_file($font_uri) ? $font_uri : NULL;
@@ -68,14 +68,8 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
    * Gets a GD imagecolor.
    */
   protected function getImageColor($color) {
-    if ($this->getToolkit()->getMimeType() == 'image/png') {
-      list($r, $g, $b, $alpha) = array_values(ColorUtility::hexToRgba($color));
-      return imagecolorallocatealpha($this->getToolkit()->getResource(), $r, $g, $b, $alpha);
-    }
-    else {
-      list($r, $g, $b) = array_values(ColorUtility::hexToRgba($color));
-      return imagecolorallocate($this->getToolkit()->getResource(), $r, $g, $b);
-    }
+    list($r, $g, $b, $alpha) = array_values(ColorUtility::hexToRgba($color));
+    return imagecolorallocatealpha($this->getToolkit()->getResource(), $r, $g, $b, $alpha);
   }
 
 }
