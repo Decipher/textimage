@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
+use Drupal\Component\Utility\String;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
 
