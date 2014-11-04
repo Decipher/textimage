@@ -75,14 +75,13 @@ class TextimageDrawRectangle extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    $num_points = (int) count($arguments['rectangle']->getCorners()) / 2;
     if ($arguments['fill_color']) {
       $color = $this->getImageColor($arguments['fill_color']);
-      return imagefilledpolygon($this->getToolkit()->getResource(), $arguments['rectangle']->getCorners(), $num_points, $color);
+      return imagefilledpolygon($this->getToolkit()->getResource(), $this->getRectangleCorners($arguments['rectangle']), 4, $color);
     }
     if ($arguments['border_color']) {
       $color = $this->getImageColor($arguments['border_color']);
-      return imagepolygon($this->getToolkit()->getResource(), $arguments['rectangle']->getCorners(), $num_points, $color);
+      return imagepolygon($this->getToolkit()->getResource(), $this->getRectangleCorners($arguments['rectangle']), 4, $color);
     }
   }
 

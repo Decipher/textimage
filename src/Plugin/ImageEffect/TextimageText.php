@@ -918,14 +918,14 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
         $data['layout']['padding_left'],
         $data['layout']['padding_top'],
       ),
-      $outer_rect_t->getPoint('topLeftCornerPosition')  // @todo rename sth like rotation_offset
+      $outer_rect_t->getRotationOffset()
     );
 
     // Create the wrapper image object as a canvass for the text.
     $wrapper = $this->imageFactory->get();
     $data_new = array(
-      'width' => $outer_rect_t->getWidth(),  // @todo getBoundingWidth
-      'height' => $outer_rect_t->getHeight(),  // @todo getBoundingHeight
+      'width' => $outer_rect_t->getBoundingWidth(),
+      'height' => $outer_rect_t->getBoundingHeight(),
     );
     $wrapper->apply('create_new', $data_new);
 
@@ -935,10 +935,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       'layout' => $data['layout'],
       'text' => $data['text'],
       'text_lines' => $text_lines,
-      'inner_width' => $inner_box_width,
-      'inner_height' => $inner_box_height,
       'inner_basepoint' => $height_info['basepoint'],
-      'topLeftCornerPosition' => $outer_rect_t->getPoint('topLeftCornerPosition'),
       'inner_box' => $inner_rect_t,
       'outer_box' => $outer_rect_t,
       'line_height' => $line_height,

@@ -40,16 +40,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       'text_lines' => array(
         'description' => '@todo',
       ),
-      'inner_width' => array(
-        'description' => '@todo',
-      ),
-      'inner_height' => array(
-        'description' => '@todo',
-      ),
       'inner_basepoint' => array(
-        'description' => '@todo',
-      ),
-      'topLeftCornerPosition' => array(
         'description' => '@todo',
       ),
       'inner_box' => array(
@@ -71,6 +62,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
+//$arguments['debug_visuals'] = TRUE;
     // Create the image resource, fill transparent.
     $ret = $this->getToolkit()->apply('create_new', array(
       'width' => $this->getToolkit()->getWidth(),
@@ -135,7 +127,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       $text_line_rect->setPoint('basepoint', $arguments['inner_basepoint']);
 
       // Manage text alignment within the line.
-      $x_delta = $arguments['inner_width'] - $text_line_rect->getWidth();
+      $x_delta = $arguments['inner_box']->getWidth() - $text_line_rect->getWidth();
       $current_y += $arguments['line_height'];
       switch ($arguments['text']['align']) {
         case 'center':
@@ -160,7 +152,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
           $arguments['layout']['padding_left'] + $x_offset,
           $arguments['layout']['padding_top'] + $current_y - $arguments['line_height'],
         ),
-        $arguments['topLeftCornerPosition']
+        $arguments['outer_box']->getRotationOffset()
       );
       list($x_pos, $y_pos) = $text_line_rect_t->getPoint('basepoint');
 
@@ -253,7 +245,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     }
 
     // Retrieve points.
-    $points = $box->getCorners();
+    $points = $this->getRectangleCorners($box);
 
     // Draw box.
     $data = array(
