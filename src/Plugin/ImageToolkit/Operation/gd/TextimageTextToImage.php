@@ -62,7 +62,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-//$arguments['debug_visuals'] = TRUE;
+// $arguments['debug_visuals'] = TRUE; // @todo
     // Create the image resource, fill transparent.
     $ret = $this->getToolkit()->apply('create_new', array(
       'width' => $this->getToolkit()->getWidth(),
@@ -146,15 +146,9 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       }
 
       // Get details for the rotated/translated text line box.
-      $text_line_rect_t = $text_line_rect->getTranslatedRectangle(
-        $arguments['font']['angle'],
-        array(
-          $arguments['layout']['padding_left'] + $x_offset,
-          $arguments['layout']['padding_top'] + $current_y - $arguments['line_height'],
-        ),
-        $arguments['outer_box']->getRotationOffset()
-      );
-      list($x_pos, $y_pos) = $text_line_rect_t->getPoint('basepoint');
+      $offset = [$arguments['layout']['padding_left'] + $x_offset, $arguments['layout']['padding_top'] + $current_y - $arguments['line_height']];
+      $text_line_rect->translateRectangle($arguments['font']['angle'], $offset, $arguments['outer_box']->getRotationOffset());
+      list($x_pos, $y_pos) = $text_line_rect->getPoint('basepoint');
 
       // Overlays the text outline/shadow, if required.
       if ($outline || $shadow) {
@@ -206,7 +200,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
 
       // In debug mode, display a polygon enclosing the text line.
       if ($arguments['debug_visuals']) {
-        $this->drawDebugBox($text_line_rect_t, $arguments['layout']['background_color'], TRUE);
+        $this->drawDebugBox($text_line_rect, $arguments['layout']['background_color'], TRUE);
       }
 
       // Add interline spacing (leading) before next iteration.

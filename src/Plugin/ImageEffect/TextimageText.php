@@ -906,26 +906,20 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // Manage leading (line spacing), adding total line spacing to height.
     $inner_box_height = ($height_info['height'] * $num_lines) + ($data['text']['line_spacing'] * ($num_lines - 1));
 
-    // Get inner and outer box rectangles.
-    $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
+    // Get outer box.
     $outer_rect = new Rectangle($inner_box_width + $data['layout']['padding_right'] + $data['layout']['padding_left'], $inner_box_height + $data['layout']['padding_top'] + $data['layout']['padding_bottom']);
+    $outer_rect->translateRectangle($data['font']['angle']);
 
-    // Get the rotated/translated box rectangles.
-    $outer_rect_t = $outer_rect->getTranslatedRectangle($data['font']['angle']);
-    $inner_rect_t = $inner_rect->getTranslatedRectangle(
-      $data['font']['angle'],
-      array(
-        $data['layout']['padding_left'],
-        $data['layout']['padding_top'],
-      ),
-      $outer_rect_t->getRotationOffset()
-    );
+    // Get inner box.
+    $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
+    $offset = [$data['layout']['padding_left'], $data['layout']['padding_top']];
+    $inner_rect->translateRectangle($data['font']['angle'], $offset, $outer_rect->getRotationOffset());
 
     // Create the wrapper image object as a canvass for the text.
     $wrapper = $this->imageFactory->get();
     $data_new = array(
-      'width' => $outer_rect_t->getBoundingWidth(),
-      'height' => $outer_rect_t->getBoundingHeight(),
+      'width' => $outer_rect->getBoundingWidth(),
+      'height' => $outer_rect->getBoundingHeight(),
     );
     $wrapper->apply('create_new', $data_new);
 
@@ -936,8 +930,8 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       'text' => $data['text'],
       'text_lines' => $text_lines,
       'inner_basepoint' => $height_info['basepoint'],
-      'inner_box' => $inner_rect_t,
-      'outer_box' => $outer_rect_t,
+      'inner_box' => $inner_rect,
+      'outer_box' => $outer_rect,
       'line_height' => $line_height,
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
     );

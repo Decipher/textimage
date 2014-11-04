@@ -12,11 +12,61 @@ namespace Drupal\textimage\Component;
  */
 class Rectangle {
 
+  /**
+   * An array of point coordinates, keyed by an id.
+   *
+   * Canonical points are:
+   * 'c_a' - bottom left corner of the rectangle
+   * 'c_b' - bottom right corner of the rectangle
+   * 'c_c' - top right corner of the rectangle
+   * 'c_d' - top left corner of the rectangle
+   * 'o_a' - bottom left corner of the bounding rectangle, once the rectangle
+   *         is rotated
+   * 'o_c' - top right corner of the bounding rectangle, once the rectangle
+   *         is rotated
+   * Additional points can be added through the setPoint() method. These will
+   * be subject to translation/rotation with the rest of the points when
+   * getTranslatedRectangle() method is executed.
+   *
+   * @var array
+   */
   protected $points = [];
+
+  /**
+   * The width of the rectangle.
+   *
+   * The width is not influenced by rotation/translation.
+   *
+   * @var int
+   */
   protected $width = 0;
+
+  /**
+   * The width of the rectangle.
+   *
+   * The width is not influenced by rotation/translation.
+   *
+   * @var int
+   */
   protected $height = 0;
 
+  /**
+   * The angle at which the rectangle has been rotated.
+   *
+   * @var float
+   */
   protected $angle = 0;
+
+  /**
+   * The offset needed to reposition the rectangle fully into first quadrant.
+   *
+   * Rotating a rectangle which is sticking to axes in the first quadrant
+   * results in some of its corners to shift to other quadrants. The x/y
+   * offset required to reposition it fully in the first quadrant is stored
+   * here.
+   *
+   * @var array
+   */
   protected $rotationOffset = [0, 0];
 
   /**
@@ -34,22 +84,14 @@ class Rectangle {
   }
 
   /**
-   * @todo
-   */
-  public function setPoint($id, array $coords = [0, 0]) {
-    $this->points[$id] = $coords;
-    return $this;
-  }
-
-  /**
-   * @todo
-   */
-  public function getPoint($id) {
-    return $this->points[$id];
-  }
-
-  /**
-   * @todo
+   * Sets a rectangle from its width and height.
+   *
+   * @param int $width
+   *   The width of the rectangle.
+   * @param int $height
+   *   The height of the rectangle.
+   *
+   * @return $this
    */
   public function setFromDimensions($width, $height) {
     $this->setFromCorners([
@@ -61,25 +103,19 @@ class Rectangle {
     return $this;
   }
 
-/*  public function setFromDimensions($width, $height, $angle = 0) {
-    $this->width = $width;
-    $this->height = $height;
-    $this->setPoint('center');
-    $diag = sqrt(pow($this->width, 2) + pow($this->height, 2));
-    $radius = $diag / 2;
-    $wd = $this->width / $diag;
-    $a = acos($wd);
-    $r = deg2rad($angle);
-    $this->setPoint('c_a', [-cos($a - $r) * $radius, -sin($a - $r) * $radius]);
-    $this->setPoint('c_b', [cos($a + $r) * $radius, -sin($a + $r) * $radius]);
-    $this->setPoint('c_c', [cos($a - $r) * $radius, sin($a - $r) * $radius]);
-    $this->setPoint('c_d', [-cos($a + $r) * $radius, sin($a + $r) * $radius]);
-    $this->determineBoundingCorners();
-    return $this;
-  }*/
-
   /**
-   * @todo
+   * Sets a rectangle from the coordinates of its corners.
+   *
+   * @param array $corners
+   *   An associative array of point coordinates. The keys 'c_a', 'c_b',
+   *   'c_c' and 'c_d' represent each of the four a, b, c, d corners of the
+   *   rectangle in the format
+   *   D +-----------------+ C
+   *     |                 |
+   *     |                 |
+   *   A +-----------------+ B
+   *
+   * @return $this
    */
   public function setFromCorners(array $corners) {
     $this
@@ -91,6 +127,34 @@ class Rectangle {
     $this->width = $this->getBoundingWidth();
     $this->height = $this->getBoundingHeight();
     return $this;
+  }
+
+  /**
+   * Sets a point and its coordinates.
+   *
+   * @param string $id
+   *   The point ID.
+   * @param array $coords
+   *   An array of x, y coordinates.
+   *
+   * @return $this
+   */
+  public function setPoint($id, array $coords = [0, 0]) {
+    $this->points[$id] = $coords;
+    return $this;
+  }
+
+  /**
+   * Gets the coordinates of a point.
+   *
+   * @param string $id
+   *   The point ID.
+   *
+   * @return array
+   *   An array of x, y coordinates.
+   */
+  public function getPoint($id) {
+    return $this->points[$id];
   }
 
   /**
@@ -129,7 +193,14 @@ class Rectangle {
   }
 
   /**
-   * @todo
+   * Translates a point by an offset.
+   *
+   * @param array $point
+   *   An array of x, y coordinates.
+   * @param array $offset
+   *   Offset array (x, y).
+   *
+   * @return $this
    */
   protected function translatePoint(array &$point, array $offset) {
     $point[0] += $offset[0];
@@ -138,19 +209,16 @@ class Rectangle {
   }
 
   /**
-   * Translate a point, by an offset and a rotation angle.
+   * Rotates a point, by an offset and a rotation angle.
    *
-   * @param int $x
-   *   x coordinate of the point
-   * @param int $y
-   *   y coordinate of the point
+   * @param array $point
+   *   An array of x, y coordinates.
    * @param float $angle
-   *   rotation angle
+   *   Rotation angle.
    * @param array $offset
-   *   offset array (x, y)
+   *   Offset array (x, y).
    *
-   * @return array
-   *   array with x,y translated coordinates
+   * @return $this
    */
   protected function rotatePoint(&$point, $angle, $offset) {
     $rad = deg2rad($angle);
@@ -163,75 +231,102 @@ class Rectangle {
   }
 
   /**
-   * Get a rotated box object.
-   *
-   * @param float $angle
-   *   rotation angle
-   * @param array $offset
-   *   offset requested before rotation
-   * @param array $rotation_offset
-   *   position of top left corner for rotation
-   */
-  public function getTranslatedRectangle($angle, $offset = NULL, $rotation_offset = NULL) {
-    $output = clone $this;
-    if ($offset) {
-      $output->translateAllPoints($offset);
-    }
-    if ($angle) {
-      $output->angle = $angle;
-      $output->rotateAllPoints($angle, $rotation_offset);
-      if (!$rotation_offset) {
-        $output->determineBoundingCorners();
-        $output->rotationOffset = [-$output->points['o_a'][0], -$output->points['o_a'][1]];
-        $output->translateAllPoints($output->rotationOffset);
-      }
-    }
-    return $output;
-  }
-
-  /**
-   * Rotate the rectangle and any additional point.
+   * Translates and/or rotates a rectangle.
    *
    * @param float $angle
    *   Rotation angle.
-   * @param array $rotation_offset
-   *   Translation offset array (x, y) coming from previous rotation.
+   * @param array|null $offset
+   *   (Optional) Offset x, y to be applied (before rotation).
+   * @param array|null $rotation_offset
+   *   (Optional) Additional offset x, y for rotation.
    */
-  protected function rotateAllPoints($angle, $rotation_offset) {
-    foreach ($this->points as &$point) {
-      $this->rotatePoint($point, $angle, $rotation_offset);
+  public function translateRectangle($angle, $offset = NULL, $rotation_offset = NULL) {
+    if ($offset) {
+      $this->translateAllPoints($offset);
     }
+    if ($angle) {
+      $this->angle = $angle;
+      $this->rotateAllPoints($angle, $rotation_offset);
+      if (!$rotation_offset) {
+        $this->determineBoundingCorners();
+        $this->rotationOffset = [-$this->points['o_a'][0], -$this->points['o_a'][1]];
+        $this->translateAllPoints($this->rotationOffset);
+      }
+    }
+    return $this;
   }
 
   /**
-   * Translate the box by an offset.
+   * Rotates the rectangle and any additional point.
+   *
+   * @param float $angle
+   *   Rotation angle.
+   * @param array $offset
+   *   Translation offset array (x, y) coming from previous rotation.
+   *
+   * @return $this
+   */
+  protected function rotateAllPoints($angle, $offset) {
+    foreach ($this->points as &$point) {
+      $this->rotatePoint($point, $angle, $offset);
+    }
+    return $this;
+  }
+
+  /**
+   * Translates the rectangle and any additional point.
    *
    * @param array $offset
-   *   offset array (x, y)
+   *   Offset array (x, y).
+   *
+   * @return $this
    */
   protected function translateAllPoints($offset) {
     foreach ($this->points as &$point) {
       $this->translatePoint($point, $offset);
     }
+    return $this;
   }
 
   /**
-   * @todo
+   * Calculates the corners of the bounding rectangle.
+   *
+   * The bottom left ('o_a') and top right ('o_c') corners of the bounding
+   * rectangle of a rotated rectangle are needed to determine the bounding
+   * width and height, and to calculate rotation-induced offest.
+   *
+   * @return $this
    */
   protected function determineBoundingCorners() {
     $this
-      ->setPoint(
-        'o_a', [
+      ->setPoint('o_a', [
           min($this->points['c_a'][0], $this->points['c_b'][0], $this->points['c_c'][0], $this->points['c_d'][0]),
           min($this->points['c_a'][1], $this->points['c_b'][1], $this->points['c_c'][1], $this->points['c_d'][1])
         ]
       )
-      ->setPoint(
-        'o_c', [
+      ->setPoint('o_c', [
           max($this->points['c_a'][0], $this->points['c_b'][0], $this->points['c_c'][0], $this->points['c_d'][0]),
           max($this->points['c_a'][1], $this->points['c_b'][1], $this->points['c_c'][1], $this->points['c_d'][1])
         ]
       );
     return $this;
   }
+
+/*  public function setFromDimensions($width, $height, $angle = 0) {
+    $this->width = $width;
+    $this->height = $height;
+    $this->setPoint('center');
+    $diag = sqrt(pow($this->width, 2) + pow($this->height, 2));
+    $radius = $diag / 2;
+    $wd = $this->width / $diag;
+    $a = acos($wd);
+    $r = deg2rad($angle);
+    $this->setPoint('c_a', [-cos($a - $r) * $radius, -sin($a - $r) * $radius]);
+    $this->setPoint('c_b', [cos($a + $r) * $radius, -sin($a + $r) * $radius]);
+    $this->setPoint('c_c', [cos($a - $r) * $radius, sin($a - $r) * $radius]);
+    $this->setPoint('c_d', [-cos($a + $r) * $radius, sin($a + $r) * $radius]);
+    $this->determineBoundingCorners();
+    return $this;
+  }*/
+
 }
