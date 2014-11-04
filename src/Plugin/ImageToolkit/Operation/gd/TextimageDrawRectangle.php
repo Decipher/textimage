@@ -2,33 +2,34 @@
 
 /**
  * @file
- * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageDrawPolygon.
+ * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageDrawRectangle.
  */
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Component\Rectangle;
 
 /**
- * Defines Textimage GD2 draw polygon operation.
+ * Defines Textimage GD2 draw rectangle operation.
  *
  * @ImageToolkitOperation(
- *   id = "textimage_gd_textimage_draw_polygon",
+ *   id = "textimage_gd_textimage_draw_rectangle",
  *   toolkit = "gd",
- *   operation = "textimage_draw_polygon",
- *   label = @Translation("Textimage Draw Polygon"),
- *   description = @Translation("Draws on the image a poligon, optionally filling it in with a specified color.")
+ *   operation = "textimage_draw_rectangle",
+ *   label = @Translation("Textimage Draw Rectangle"),
+ *   description = @Translation("Draws on the image a rectangle, optionally filling it in with a specified color.")
  * )
  */
-class TextimageDrawPolygon extends GDTextimageOperationBase {
+class TextimageDrawRectangle extends GDTextimageOperationBase {
 
   /**
    * {@inheritdoc}
    */
   protected function arguments() {
     return array(
-      'points' => array(
-        'description' => 'An array containing the polygon vertices',
+      'rectangle' => array(
+        'description' => 'A Rectangle object',
       ),
       'fill_color' => array(
         'description' => 'The RGBA color of the polygon fill',
@@ -57,6 +58,8 @@ class TextimageDrawPolygon extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function validateArguments(array $arguments) {
+    // @todo check rectangle class
+
     // Check color.
     if ($arguments['fill_color'] && $arguments['fill_color_luma']) {
       $arguments['fill_color'] = ColorUtility::matchLuma($arguments['fill_color']);
@@ -72,14 +75,14 @@ class TextimageDrawPolygon extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    $num_points = (int) count($arguments['points']) / 2;
+    $num_points = (int) count($arguments['rectangle']->getCorners()) / 2;
     if ($arguments['fill_color']) {
       $color = $this->getImageColor($arguments['fill_color']);
-      return imagefilledpolygon($this->getToolkit()->getResource(), $arguments['points'], $num_points, $color);
+      return imagefilledpolygon($this->getToolkit()->getResource(), $arguments['rectangle']->getCorners(), $num_points, $color);
     }
     if ($arguments['border_color']) {
       $color = $this->getImageColor($arguments['border_color']);
-      return imagepolygon($this->getToolkit()->getResource(), $arguments['points'], $num_points, $color);
+      return imagepolygon($this->getToolkit()->getResource(), $arguments['rectangle']->getCorners(), $num_points, $color);
     }
   }
 

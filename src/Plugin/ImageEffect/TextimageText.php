@@ -12,9 +12,9 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
-use Drupal\textimage\Component\BoundingBox;
-use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Component\Rectangle;
+use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Element\TextimageColor;
 
 /**
@@ -682,60 +682,61 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
           // Color fill the frame with carried on background color.
           if ($main_bg_color = $this->textimageFactory->getState('background_color')) {
             // Top rectangle.
+            $rectangle = new Rectangle();
             if ($frame['top']) {
-              $points = array(
-                0, 0,
-                $image_new['width'] - 1, 0,
-                $image_new['width'] - 1, $frame['top'] - 1,
-                0, $frame['top'] - 1,
-              );
+              $rectangle->setFromCorners([
+                'c_d' => [0, 0],
+                'c_c' => [$image_new['width'] - 1, 0],
+                'c_b' => [$image_new['width'] - 1, $frame['top'] - 1],
+                'c_a' => [0, $frame['top'] - 1],
+              ]);
               $data = array(
-                'points' => $points,
+                'rectangle' => $rectangle,
                 'fill_color' => $main_bg_color,
               );
-              $image->apply('textimage_draw_polygon', $data);
+              $image->apply('textimage_draw_rectangle', $data);
             }
             // Bottom rectangle.
             if ($frame['bottom']) {
-              $points = array(
-                0, $image_height + $frame['top'],
-                $image_new['width'] - 1, $image_height + $frame['top'],
-                $image_new['width'] - 1, $image_new['height'] - 1,
-                0, $image_new['height'] - 1,
-              );
+              $rectangle->setFromCorners([
+                'c_d' => [0, $image_height + $frame['top']],
+                'c_c' => [$image_new['width'] - 1, $image_height + $frame['top']],
+                'c_b' => [$image_new['width'] - 1, $image_new['height'] - 1],
+                'c_a' => [0, $image_new['height'] - 1],
+              ]);
               $data = array(
-                'points' => $points,
+                'rectangle' => $rectangle,
                 'fill_color' => $main_bg_color,
               );
-              $image->apply('textimage_draw_polygon', $data);
+              $image->apply('textimage_draw_rectangle', $data);
             }
             // Left rectangle.
             if ($frame['left']) {
-              $points = array(
-                0, $frame['top'],
-                $frame['left'] - 1, $frame['top'],
-                $frame['left'] - 1, $frame['top'] + $image_height - 1,
-                0, $frame['top'] + $image_height - 1,
-              );
+              $rectangle->setFromCorners([
+                'c_d' => [0, $frame['top']],
+                'c_c' => [$frame['left'] - 1, $frame['top']],
+                'c_b' => [$frame['left'] - 1, $frame['top'] + $image_height - 1],
+                'c_a' => [0, $frame['top'] + $image_height - 1],
+              ]);
               $data = array(
-                'points' => $points,
+                'rectangle' => $rectangle,
                 'fill_color' => $main_bg_color,
               );
-              $image->apply('textimage_draw_polygon', $data);
+              $image->apply('textimage_draw_rectangle', $data);
             }
             // Right rectangle.
             if ($frame['right']) {
-              $points = array(
-                $frame['left'] + $image_width, $frame['top'],
-                $image_new['width'] - 1, $frame['top'],
-                $image_new['width'] - 1, $frame['top'] + $image_height - 1,
-                $frame['left'] + $image_width, $frame['top'] + $image_height - 1,
-              );
+              $rectangle->setFromCorners([
+                'c_d' => [$frame['left'] + $image_width, $frame['top']],
+                'c_c' => [$image_new['width'] - 1, $frame['top']],
+                'c_b' => [$image_new['width'] - 1, $frame['top'] + $image_height - 1],
+                'c_a' => [$frame['left'] + $image_width, $frame['top'] + $image_height - 1],
+              ]);
               $data = array(
-                'points' => $points,
+                'rectangle' => $rectangle,
                 'fill_color' => $main_bg_color,
               );
-              $image->apply('textimage_draw_polygon', $data);
+              $image->apply('textimage_draw_rectangle', $data);
             }
           }
         }
@@ -881,52 +882,50 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // Inner box   - the exact bounding box of the text.
     // Outer box   - the box where the inner box is - can be different because
     //               of padding.
-    // Wrapper     - the canvass where the outer box is laid.
+    // Wrapper     - the canvas where the outer box is laid.
     // ---------------------------------------
 
-    // Get inner box, for horizontal text, unpadded.
+    // Get an instance of the image toolkit operation object where
+    // needed methods are available.
     $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
-    $inner_box = $operation->getTextBoundingBox($data['text_string'], $num_lines, $data['font']['size'], $data['font']['uri']);
-    if (!$inner_box) {
-      return NULL;
-    }
 
-    // Adjust to fixed width, if requested.
+    // Get inner box details, for horizontal text, unpadded.
+    // If fixed width, set to configuration, otherwise get width from the font
+    // bounding box.
     if ($data['text']['fixed_width'] && !empty($data['text']['maximum_width'])) {
-      $inner_box->set('width', $data['text']['maximum_width'] - $data['layout']['padding_left'] - $data['layout']['padding_right']);
+      $inner_box_width = $data['text']['maximum_width'] - $data['layout']['padding_left'] - $data['layout']['padding_right'];
+    }
+    else {
+      $inner_box_width = $operation->getTextWidth($data['text_string'], $data['font']['size'], $data['font']['uri']);
     }
 
-    // Determine average text line height.
-    $line_height = round($inner_box->get('height') / $num_lines);
+    // Determine line height.
+    $height_info = $operation->getTextHeightInfo($data['font']['size'], $data['font']['uri']);  // @todo better name of this method
+    $line_height = $height_info['height'];
 
     // Manage leading (line spacing), adding total line spacing to height.
-    if ($data['text']['line_spacing']) {
-      $inner_box->set('height', $inner_box->get('height') + ($data['text']['line_spacing'] * ($num_lines - 1)));
-    }
+    $inner_box_height = ($height_info['height'] * $num_lines) + ($data['text']['line_spacing'] * ($num_lines - 1));
 
-    // Apply padding to get outer box.
-    $outer_box = clone $inner_box;
-    $outer_box->set('width', $outer_box->get('width') + $data['layout']['padding_right'] + $data['layout']['padding_left']);
-    $outer_box->set('height', $outer_box->get('height') + $data['layout']['padding_top'] + $data['layout']['padding_bottom']);
+    // Get inner and outer box rectangles.
+    $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
+    $outer_rect = new Rectangle($inner_box_width + $data['layout']['padding_right'] + $data['layout']['padding_left'], $inner_box_height + $data['layout']['padding_top'] + $data['layout']['padding_bottom']);
 
-    // Get details for the rotated/translated boxes.
-    $outer_box_t = $outer_box->getTranslatedBox(
-      $data['font']['angle']
-    );
-    $inner_box_t = $inner_box->getTranslatedBox(
+    // Get the rotated/translated box rectangles.
+    $outer_rect_t = $outer_rect->getTranslatedRectangle($data['font']['angle']);
+    $inner_rect_t = $inner_rect->getTranslatedRectangle(
       $data['font']['angle'],
       array(
         $data['layout']['padding_left'],
         $data['layout']['padding_top'],
       ),
-      $outer_box_t->get('topLeftCornerPosition')
+      $outer_rect_t->getPoint('topLeftCornerPosition')  // @todo rename sth like rotation_offset
     );
 
     // Create the wrapper image object as a canvass for the text.
     $wrapper = $this->imageFactory->get();
     $data_new = array(
-      'width' => $outer_box_t->get('width'),
-      'height' => $outer_box_t->get('height'),
+      'width' => $outer_rect_t->getWidth(),  // @todo getBoundingWidth
+      'height' => $outer_rect_t->getHeight(),  // @todo getBoundingHeight
     );
     $wrapper->apply('create_new', $data_new);
 
@@ -936,12 +935,12 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       'layout' => $data['layout'],
       'text' => $data['text'],
       'text_lines' => $text_lines,
-      'inner_width' => $inner_box->get('width'),
-      'inner_height' => $inner_box->get('height'),
-      'inner_basepoint' => $inner_box->get('basepoint'),
-      'topLeftCornerPosition' => $outer_box_t->get('topLeftCornerPosition'),
-      'inner_box' => $inner_box_t->get('points'),
-      'outer_box' => $outer_box_t->get('points'),
+      'inner_width' => $inner_box_width,
+      'inner_height' => $inner_box_height,
+      'inner_basepoint' => $height_info['basepoint'],
+      'topLeftCornerPosition' => $outer_rect_t->getPoint('topLeftCornerPosition'),
+      'inner_box' => $inner_rect_t,
+      'outer_box' => $outer_rect_t,
       'line_height' => $line_height,
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
     );
@@ -1130,7 +1129,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *   Text string, with newline characters to separate each line.
    */
   protected function wrapText($image, $text, $font_size, $font_uri, $maximum_width) {
-    // The toolkit operation with the getBoundingBox() method.
+    // The toolkit operation with the getTextWidth() method.
     $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
 
     // State variables for the search interval.
@@ -1151,7 +1150,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
       // Fetch text, removing trailing white-space, and measure it.
       $line  = preg_replace('/[' . TextUtility::PREG_CLASS_SEPARATOR . ']+$/u', '', Unicode::substr($text, $begin, $end - $begin));
-      $width = static::measureTextWidth($operation, $line, 1, $font_size, $font_uri);
+      $width = $operation->getTextWidth($line, $font_size, $font_uri);
 
       // See if line extends past the available space.
       if ($width > $maximum_width) {
@@ -1160,7 +1159,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
           // Cut off letters until it fits.
           while (Unicode::strlen($line) > 0 && $width > $maximum_width) {
             $line  = Unicode::substr($line, 0, -1);
-            $width = static::measureTextWidth($operation, $line, 1, $font_size, $font_uri);
+            $width = $operation->getTextWidth($line, $font_size, $font_uri);
           }
           // If no fit was found, the image is too narrow.
           $fit = Unicode::strlen($line) ? $begin + Unicode::strlen($line) : $end;
@@ -1189,28 +1188,6 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       }
     }
     return $text;
-  }
-
-  /**
-   * Measure text box width.
-   *
-   * @param @todo $operation
-   *   A image toolkit operation object.
-   * @param string $text
-   *   Text string in UTF-8 encoding.
-   * @param int $lines
-   *   The number of lines the text is composed of.
-   * @param int $font_size
-   *   Font size.
-   * @param string $font_uri
-   *   URI of the TrueType font to use.
-   *
-   * @return array
-   *   An associative array of box measurements.
-   */
-  protected static function measureTextWidth($operation, $text, $lines, $font_size, $font_uri) {
-    $box = $operation->getTextBoundingBox($text, $lines, $font_size, $font_uri);
-    return $box->get('width');
   }
 
 }

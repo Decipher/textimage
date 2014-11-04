@@ -9,7 +9,6 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
-use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\ColorUtility;
 
 /**
@@ -35,33 +34,39 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   }
 
   /**
-   * Return the bounding box of a text using TrueType fonts.
+   * Return the width of a text using TrueType fonts.
    */
-  public function getTextBoundingBox($text, $lines, $font_size, $font_uri, $angle = 0) {
-    if (!$fontfile = $this->getFontPath($font_uri)) {
+  public function getTextWidth($text, $font_size, $font_uri) {
+    // Get fully qualified font file information.
+    if (!$font_file = $this->getFontPath($font_uri)) {
       return NULL;
     }
+    // Get the bounding box for $text to get width.
+    $points = imagettfbbox($font_size, 0, $font_file, $text);
+    // Return bounding box width.
+    return (abs($points[4] - $points[6]) + 1);
+  }
 
-    // Need to calculate the height independently from primitive as
-    // lack of descending/ascending characters will limit the height.
-    // So to have uniformity we take a dummy string with ascending and
-    // descending characters to set to max height possible.
-    $box = new BoundingBox();
-    $box->set('points', imagettfbbox($font_size, 0, $fontfile, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ'));
-    $height = $lines * $box->get('height');
-
-    // Now get the box for full text to get width.
-    $box->set('points', imagettfbbox($font_size, 0, $fontfile, $text));
-
-    // Reset height.
-    $box->set('height', $height);
-
-    // Rotate if angle specified.
-    if ($angle) {
-      $box = $box->getTranslatedBox($angle);
+  /**
+   * Return the height and basepoint of a text using TrueType fonts.
+   *
+   * Need to calculate the height independently from primitive as
+   * lack of descending/ascending characters will limit the height.
+   * So to have uniformity we take a dummy string with ascending and
+   * descending characters to set to max height possible.
+   */
+  public function getTextHeightInfo($font_size, $font_uri) {
+    // Get fully qualified font file information.
+    if (!$font_file = $this->getFontPath($font_uri)) {
+      return NULL;
     }
-
-    return $box;
+    // Get the bounding box for $text to get height.
+    $points = imagettfbbox($font_size, 0, $font_file, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ');
+    $height = (abs($points[5] - $points[1]) + 1);
+    return [
+      'height' => $height,
+      'basepoint' => [$points[6], -$points[7]],
+    ];
   }
 
   /**

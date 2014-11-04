@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Component\Rectangle;
 
 /**
  * Defines Textimage GD2 define canvas operation.
@@ -100,19 +101,10 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     );
     $canvas_image->apply('create_new', $data);
     $data = array(
+      'rectangle' => new Rectangle($targetsize['width'], $targetsize['height']),
       'fill_color' => $arguments['background_color'],
-      'points' => array( // @todo add helper method dimensionsToPoints
-        0,
-        $targetsize['height'] - 1,
-        $targetsize['width'] - 1,
-        $targetsize['height'] - 1,
-        $targetsize['width'] - 1,
-        0,
-        0,
-        0,
-      ),
     );
-    $canvas_image->apply('textimage_draw_polygon', $data);
+    $canvas_image->apply('textimage_draw_rectangle', $data);
 
     // Overlay the current image on the canvas.
     return $this->getToolkit()->apply('textimage_overlay', array('layer' => $canvas_image, 'layer_on_top' => FALSE, 'x' => $targetsize['left'], 'y' => $targetsize['top']));

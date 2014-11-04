@@ -7,8 +7,8 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
-use Drupal\textimage\Component\BoundingBox;
 use Drupal\textimage\Component\ColorUtility;
+use Drupal\textimage\Component\Rectangle;
 
 /**
  * Defines Textimage GD2 text-to-image operation.
@@ -71,7 +71,6 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-
     // Create the image resource, fill transparent.
     $ret = $this->getToolkit()->apply('create_new', array(
       'width' => $this->getToolkit()->getWidth(),
@@ -84,39 +83,34 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     // Draw and fill the outer text box, if required.
     if ($arguments['layout']['background_color']) {
       $data = array(
-        'points' => $arguments['outer_box'],
+        'rectangle' => $arguments['outer_box'],
         'fill_color' => $arguments['layout']['background_color'],
       );
-      $this->getToolkit()->apply('textimage_draw_polygon', $data);
+      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
     }
 
     // In debug mode, visually display the text boxes.
     if ($arguments['debug_visuals']) {
       // Inner box.
       $data = array(
-        'points' => $arguments['inner_box'],
+        'rectangle' => $arguments['inner_box'],
         'border_color' => $arguments['layout']['background_color'],
         'border_color_luma' => TRUE,
       );
-      $this->getToolkit()->apply('textimage_draw_polygon', $data);
+      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
       // Outer box.
       $data = array(
-        'points' => $arguments['outer_box'],
+        'rectangle' => $arguments['outer_box'],
         'border_color' => $arguments['layout']['background_color'],
         'border_color_luma' => TRUE,
       );
-      $this->getToolkit()->apply('textimage_draw_polygon', $data);
+      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
       // Wrapper.
       $data = array(
-        'points' => array(
-          0, 0,
-          $this->getToolkit()->getWidth() - 1, 0,
-          $this->getToolkit()->getWidth() - 1, $this->getToolkit()->getHeight() - 1,
-          0, $this->getToolkit()->getHeight() - 1,
-        ),
+        'rectangle' => new Rectangle($this->getToolkit()->getWidth(), $this->getToolkit()->getHeight()),
         'border_color' => '#000000',
       );
-      $this->getToolkit()->apply('textimage_draw_polygon', $data);
+      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
     }
 
     // Foreground text color.
@@ -135,12 +129,13 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     $current_y = 0;
     foreach ($arguments['text_lines'] as $text_line) {
 
-      // This text line's box size.
-      $text_line_box = $this->getTextBoundingBox($text_line, 1, $arguments['font']['size'], $arguments['font']['uri']);
-      $text_line_box->set('height', $arguments['line_height']);
+      // This text line's width.
+      $text_line_width = $this->getTextWidth($text_line, $arguments['font']['size'], $arguments['font']['uri']);
+      $text_line_rect = new Rectangle($text_line_width, $arguments['line_height']);
+      $text_line_rect->setPoint('basepoint', $arguments['inner_basepoint']);
 
       // Manage text alignment within the line.
-      $x_delta = $arguments['inner_width'] - $text_line_box->get('width');
+      $x_delta = $arguments['inner_width'] - $text_line_rect->getWidth();
       $current_y += $arguments['line_height'];
       switch ($arguments['text']['align']) {
         case 'center':
@@ -159,7 +154,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       }
 
       // Get details for the rotated/translated text line box.
-      $text_line_box_t = $text_line_box->getTranslatedBox(
+      $text_line_rect_t = $text_line_rect->getTranslatedRectangle(
         $arguments['font']['angle'],
         array(
           $arguments['layout']['padding_left'] + $x_offset,
@@ -167,7 +162,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
         ),
         $arguments['topLeftCornerPosition']
       );
-      list($x_pos, $y_pos) = $text_line_box_t->get('basepoint');
+      list($x_pos, $y_pos) = $text_line_rect_t->getPoint('basepoint');
 
       // Overlays the text outline/shadow, if required.
       if ($outline || $shadow) {
@@ -219,7 +214,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
 
       // In debug mode, display a polygon enclosing the text line.
       if ($arguments['debug_visuals']) {
-        $this->drawDebugBox($text_line_box_t, $arguments['layout']['background_color'], TRUE);
+        $this->drawDebugBox($text_line_rect_t, $arguments['layout']['background_color'], TRUE);
       }
 
       // Add interline spacing (leading) before next iteration.
@@ -247,7 +242,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    *
    * @see http://ruquay.com/sandbox/imagettf
    */
-  protected function drawDebugBox(BoundingBox $box, $rgba, $luma = FALSE) {
+  protected function drawDebugBox(Rectangle $box, $rgba, $luma = FALSE) {
 
     // Check color.
     if (!$rgba) {
@@ -258,14 +253,14 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     }
 
     // Retrieve points.
-    $points = $box->get('points');
+    $points = $box->getCorners();
 
     // Draw box.
     $data = array(
-      'points' => $points,
+      'rectangle' => $box,
       'border_color' => $rgba,
     );
-    $this->getToolkit()->apply('textimage_draw_polygon', $data);
+    $this->getToolkit()->apply('textimage_draw_rectangle', $data);
 
     // Draw diagonal.
     $data = array(
@@ -297,7 +292,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     }
 
     // Font baseline.
-    $basepoint = $box->get('basepoint');
+    $basepoint = $box->getPoint('basepoint');
     $data = array(
       'cx' => $basepoint[0],
       'cy' => $basepoint[1],
