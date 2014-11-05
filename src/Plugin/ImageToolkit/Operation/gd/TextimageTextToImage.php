@@ -146,8 +146,9 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       }
 
       // Get details for the rotated/translated text line box.
-      $offset = [$arguments['layout']['padding_left'] + $x_offset, $arguments['layout']['padding_top'] + $current_y - $arguments['line_height']];
-      $text_line_rect->translateRectangle($arguments['font']['angle'], $offset, $arguments['outer_box']->getRotationOffset());
+      $text_line_rect->translate([$arguments['layout']['padding_left'] + $x_offset, $arguments['layout']['padding_top'] + $current_y - $arguments['line_height']]);
+      $text_line_rect->rotate($arguments['font']['angle']);
+      $text_line_rect->translate($arguments['outer_box']->getRotationOffset());
       list($x_pos, $y_pos) = $text_line_rect->getPoint('basepoint');
 
       // Overlays the text outline/shadow, if required.
@@ -176,7 +177,6 @@ class TextimageTextToImage extends GDTextimageOperationBase {
           'text'        => $text_line,
           'x'           => $stroke_x_pos,
           'y'           => $stroke_y_pos,
-          'textcolor'   => $foreground_color,
           'strokecolor' => $stroke_color,
           'top'         => $stroke_top,
           'right'       => $stroke_right,

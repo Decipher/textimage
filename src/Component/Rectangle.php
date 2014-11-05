@@ -220,39 +220,13 @@ class Rectangle {
    *
    * @return $this
    */
-  protected function rotatePoint(&$point, $angle, $offset) {
+  protected function rotatePoint(&$point, $angle) {
     $rad = deg2rad($angle);
     $sin = sin($rad);
     $cos = cos($rad);
     list($x, $y) = $point;
-    $point[0] = round($x * $cos + $y * -$sin) + $offset[0];
-    $point[1] = round($y * $cos - $x * -$sin) + $offset[1];
-    return $this;
-  }
-
-  /**
-   * Translates and/or rotates a rectangle.
-   *
-   * @param float $angle
-   *   Rotation angle.
-   * @param array|null $offset
-   *   (Optional) Offset x, y to be applied (before rotation).
-   * @param array|null $rotation_offset
-   *   (Optional) Additional offset x, y for rotation.
-   */
-  public function translateRectangle($angle, $offset = NULL, $rotation_offset = NULL) {
-    if ($offset) {
-      $this->translateAllPoints($offset);
-    }
-    if ($angle) {
-      $this->angle = $angle;
-      $this->rotateAllPoints($angle, $rotation_offset);
-      if (!$rotation_offset) {
-        $this->determineBoundingCorners();
-        $this->rotationOffset = [-$this->points['o_a'][0], -$this->points['o_a'][1]];
-        $this->translateAllPoints($this->rotationOffset);
-      }
-    }
+    $point[0] = round($x * $cos + $y * -$sin);
+    $point[1] = round($y * $cos - $x * -$sin);
     return $this;
   }
 
@@ -261,14 +235,15 @@ class Rectangle {
    *
    * @param float $angle
    *   Rotation angle.
-   * @param array $offset
-   *   Translation offset array (x, y) coming from previous rotation.
-   *
-   * @return $this
    */
-  protected function rotateAllPoints($angle, $offset) {
-    foreach ($this->points as &$point) {
-      $this->rotatePoint($point, $angle, $offset);
+  public function rotate($angle) {
+    if ($angle) {
+      $this->angle = $angle;
+      foreach ($this->points as &$point) {
+        $this->rotatePoint($point, $angle);
+      }
+      $this->determineBoundingCorners();
+      $this->rotationOffset = [-$this->points['o_a'][0], -$this->points['o_a'][1]];
     }
     return $this;
   }
@@ -281,9 +256,11 @@ class Rectangle {
    *
    * @return $this
    */
-  protected function translateAllPoints($offset) {
-    foreach ($this->points as &$point) {
-      $this->translatePoint($point, $offset);
+  public function translate($offset) {
+    if ($offset[0] || $offset[1]) {
+      foreach ($this->points as &$point) {
+        $this->translatePoint($point, $offset);
+      }
     }
     return $this;
   }

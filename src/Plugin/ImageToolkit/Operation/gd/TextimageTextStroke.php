@@ -49,9 +49,6 @@ class TextimageTextStroke extends GDTextimageOperationBase {
       'y' => array(
         'description' => 'Lower left corner of the text',
       ),
-      'textcolor' => array(
-        'description' => '??? @todo',
-      ),
       'strokecolor' => array(
         'description' => 'the rgba color of the text border',
       ),

@@ -41,7 +41,7 @@ class TextimageReplaceImage extends GDTextimageOperationBase {
   protected function validateArguments(array $arguments) {
     // Ensure replacement_image is an expected ImageInterface object.
     if (!$arguments['replacement_image'] instanceof ImageInterface) {
-      throw new \InvalidArgumentException(String::format("Replacement image passed to the 'textimage_replace_image' is invalid"));
+      throw new \InvalidArgumentException(String::format("Replacement image passed to the 'textimage_replace_image' operation is invalid"));
     }
     // Ensure replacement_image is a valid image.
     if (!$arguments['replacement_image']->isValid()) {

@@ -908,12 +908,14 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
     // Get outer box.
     $outer_rect = new Rectangle($inner_box_width + $data['layout']['padding_right'] + $data['layout']['padding_left'], $inner_box_height + $data['layout']['padding_top'] + $data['layout']['padding_bottom']);
-    $outer_rect->translateRectangle($data['font']['angle']);
+    $outer_rect->rotate($data['font']['angle']);
+    $outer_rect->translate($outer_rect->getRotationOffset());
 
     // Get inner box.
     $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
-    $offset = [$data['layout']['padding_left'], $data['layout']['padding_top']];
-    $inner_rect->translateRectangle($data['font']['angle'], $offset, $outer_rect->getRotationOffset());
+    $inner_rect->translate([$data['layout']['padding_left'], $data['layout']['padding_top']]);
+    $inner_rect->rotate($data['font']['angle']);
+    $inner_rect->translate($outer_rect->getRotationOffset());
 
     // Create the wrapper image object as a canvass for the text.
     $wrapper = $this->imageFactory->get();
