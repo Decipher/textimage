@@ -135,7 +135,7 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) { }
 
   /**
-   * @todo
+   * {@inheritdoc}
    */
   public function selectionElement($name, array $options = array()) {
     return array();

@@ -232,7 +232,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
 
     // Check color.
     if (!$rgba) {
-      $rgba = '#00000000';
+      $rgba = '#000000FF';
     }
     elseif ($luma) {
       $rgba = ColorUtility::matchLuma($rgba);
@@ -259,9 +259,9 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     $this->getToolkit()->apply('textimage_draw_line', $data);
 
     // Conspicuous points.
-    $orange = '#FF640000';
-    $yellow = '#FFFF0000';
-    $green  = '#00FF0000';
+    $orange = '#FF6400FF';
+    $yellow = '#FFFF00FF';
+    $green  = '#00FF00FF';
     $dotsize = 6;
 
     // Box corners.

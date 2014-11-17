@@ -7,6 +7,8 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
+use Drupal\Component\Utility\Color;
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
 use Drupal\textimage\Component\ColorUtility;
@@ -78,8 +80,36 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
    * @todo
    */
   protected function getImageColor($color) {
-    list($r, $g, $b, $alpha) = array_values(ColorUtility::hexToRgba($color));
+    list($r, $g, $b, $alpha) = array_values($this->hexToRgba($color));
     return imagecolorallocatealpha($this->getToolkit()->getResource(), $r, $g, $b, $alpha);
+  }
+
+  /**
+   * Convert a RGBA hex to its RGBA integer GD components.
+   *
+   * GD expects a value between 0 and 127 for alpha, where 0 indicates
+   * completely opaque while 127 indicates completely transparent.
+   * RGBA hexadecimal notation has #00 for transparent and #FF for
+   * fully opaque.
+   *
+   * @param string $hex
+   *   A string specifing an RGBA color in the format '#RRGGBBAA'.
+   *
+   * @return array
+   *   An array with four elements for red, green, blue, and alpha.
+   */
+  public function hexToRgba($hex) {
+    $rgbHex = Unicode::substr($hex, 0, 7);
+    try {
+      $rgb = Color::hexToRgb($rgbHex);
+      $opacity = ColorUtility::rgbaToOpacity($hex);
+      $alpha = 127 - floor(($opacity / 100) * 127);
+      $rgb['alpha'] = $alpha;
+      return $rgb;
+    }
+    catch (\InvalidArgumentException $e) {
+      return FALSE;
+    }
   }
 
   /**
