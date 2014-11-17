@@ -105,18 +105,6 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       $this->getToolkit()->apply('textimage_draw_rectangle', $data);
     }
 
-    // Foreground text color.
-    $foreground_color = $this->getImageColor($arguments['font']['color']);
-
-    // Determine if outline/shadow is required.
-    $outline = $shadow = FALSE;
-    if ($arguments['font']['stroke_mode'] == 'outline' && ($arguments['font']['outline_top'] || $arguments['font']['outline_right'] || $arguments['font']['outline_bottom'] || $arguments['font']['outline_left']) && $arguments['font']['stroke_color']) {
-      $outline = TRUE;
-    }
-    elseif ($arguments['font']['stroke_mode'] == 'shadow' && ($arguments['font']['shadow_x_offset'] || $arguments['font']['shadow_y_offset'] || $arguments['font']['shadow_width'] || $arguments['font']['shadow_height']) && $arguments['font']['stroke_color']) {
-      $shadow = TRUE;
-    }
-
     // Process each of the text lines.
     $current_y = 0;
     foreach ($arguments['text_lines'] as $text_line) {
@@ -149,54 +137,14 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       $text_line_rect->translate([$arguments['layout']['padding_left'] + $x_offset, $arguments['layout']['padding_top'] + $current_y - $arguments['line_height']]);
       $text_line_rect->rotate($arguments['font']['angle']);
       $text_line_rect->translate($arguments['outer_box']->getRotationOffset());
-      list($x_pos, $y_pos) = $text_line_rect->getPoint('basepoint');
 
-      // Overlays the text outline/shadow, if required.
-      if ($outline || $shadow) {
-        $stroke_color = $this->getImageColor($arguments['font']['stroke_color']);
-        if ($outline) {
-          $stroke_x_pos = $x_pos;
-          $stroke_y_pos = $y_pos;
-          $stroke_top = $arguments['font']['outline_top'];
-          $stroke_right = $arguments['font']['outline_right'];
-          $stroke_bottom = $arguments['font']['outline_bottom'];
-          $stroke_left = $arguments['font']['outline_left'];
-        }
-        elseif ($shadow) {
-          $stroke_x_pos = $x_pos + $arguments['font']['shadow_x_offset'];
-          $stroke_y_pos = $y_pos + $arguments['font']['shadow_y_offset'];
-          $stroke_top = 0;
-          $stroke_right = $arguments['font']['shadow_width'];
-          $stroke_bottom = $arguments['font']['shadow_height'];
-          $stroke_left = 0;
-        }
-        $data_stroke = array(
-          'size'        => $arguments['font']['size'],
-          'angle'       => -$arguments['font']['angle'],
-          'fontfile'    => $arguments['font']['uri'],
-          'text'        => $text_line,
-          'x'           => $stroke_x_pos,
-          'y'           => $stroke_y_pos,
-          'strokecolor' => $stroke_color,
-          'top'         => $stroke_top,
-          'right'       => $stroke_right,
-          'bottom'      => $stroke_bottom,
-          'left'        => $stroke_left,
-        );
-        $this->getToolkit()->apply('textimage_text_stroke', $data_stroke);
-      }
-
-      // Overlays the text.
-      imagettftext(
-        $this->getToolkit()->getResource(),
-        $arguments['font']['size'],
-        -$arguments['font']['angle'],
-        $x_pos,
-        $y_pos,
-        $foreground_color,
-        $this->getFontPath($arguments['font']['uri']),
-        $text_line
+      // Overlay the text onto the image.
+      $data = array(
+        'font'        => $arguments['font'],
+        'text'        => $text_line,
+        'basepoint'   => $text_line_rect->getPoint('basepoint'),
       );
+      $this->getToolkit()->apply('textimage_text_overlay', $data);
 
       // In debug mode, display a polygon enclosing the text line.
       if ($arguments['debug_visuals']) {

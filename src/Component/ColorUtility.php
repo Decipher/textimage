@@ -59,7 +59,7 @@ abstract class ColorUtility {
    *   Opacity as percentage (0 = transparent, 100 = fully opaque).
    *
    * @return string|null
-   *   Opacity as HEX.
+   *   Opacity as HEX (#00 = transparent, #FF = fully opaque).
    */
   public static function opacityToAlpha($value) {
     if (!$value || $value < 0 || $value > 100) {
