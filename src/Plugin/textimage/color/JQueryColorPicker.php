@@ -26,13 +26,12 @@ use Drupal\textimage\Plugin\TextimagePluginBase;
  */
 class JQueryColorpicker extends TextimagePluginBase implements TextimageColorPluginInterface {
 
-  public function selectionElement($name, array $options = array()) {
-    $element[$name] = array(
+  public function selectionElement(array $options = array()) {
+    return array(
       '#title' => t('Color'),
       '#type' => 'jquery_colorpicker',
       '#default_value' => Unicode::substr($options['#default_value'], -6),
     );
-    return $element;
   }
 
   /**

@@ -15,15 +15,13 @@ interface TextimagePluginBaseInterface extends ConfigurablePluginInterface, Cont
   /**
    * Return a form element to select the plugin content.
    *
-   * @param string $name
-   *   Name of the form element.
    * @param array $options
    *   (Optional) An array of additional Form API keys and values.
    *
    * @return array
    *   Render array of the form element.
    */
-  public function selectionElement($name, array $options = array());
+  public function selectionElement(array $options = array());
 
   /**
    * Get the plugin Textimage type.

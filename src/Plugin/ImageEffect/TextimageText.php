@@ -145,9 +145,10 @@ class TextimageText extends TextimageEffectBase {
       '#title' => $this->t('Font settings'),
       '#group'   => 'settings',
     );
-    $form['font'] += $this->fontPlugin->selectionElement('name', array(
+    $form['font']['name'] = $this->fontPlugin->selectionElement(array(
       '#title' => $this->t('Font'),
       '#description' => $this->t('Select the font to be used in this image.'),
+      '#default_value' => $this->configuration['font']['name'],
     ));
     $form['font']['size'] = array(
       '#type'  => 'number',

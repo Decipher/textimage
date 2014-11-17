@@ -19,8 +19,8 @@ use Drupal\textimage\Component\TextUtility;
  *   id = "textimage_gd_textimage_text_to_image",
  *   toolkit = "gd",
  *   operation = "textimage_text_to_image",
- *   label = @Translation("Overlays text over the image"),
- *   description = @Translation("Creates a new image resource and overlays the text over it.")
+ *   label = @Translation("Overlays text over an image"),
+ *   description = @Translation("Overlays text over a GD resource.")
  * )
  */
 class TextimageTextToImage extends GDTextimageOperationBase {
@@ -31,19 +31,19 @@ class TextimageTextToImage extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'font' => array(
-        'description' => '@todo',
+        'description' => 'Font metadata.',
       ),
       'layout' => array(
-        'description' => '@todo',
+        'description' => 'Layout metadata.',
       ),
       'text' => array(
-        'description' => '@todo',
+        'description' => 'Text metadata.',
       ),
       'text_string' => array(
-        'description' => '@todo',
+        'description' => 'Actual text string to be placed on the image.',
       ),
       'debug_visuals' => array(
-        'description' => '@todo',
+        'description' => 'Indicates if text bounding boxes need to be visualised. Only used in debugging.',
       ),
     );
   }
@@ -115,7 +115,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     }
 
     // Determine line height.
-    $height_info = $this->getTextHeightInfo($arguments['font']['size'], $arguments['font']['uri']);  // @todo better name of this method
+    $height_info = $this->getTextHeightInfo($arguments['font']['size'], $arguments['font']['uri']);
     $line_height = $height_info['height'];
 
     // Manage leading (line spacing), adding total line spacing to height.
@@ -148,19 +148,20 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       $this->getToolkit()->apply('textimage_draw_rectangle', $data_rectangle);
     }
 
+//$arguments['debug_visuals']=TRUE; // @todo
     // In debug mode, visually display the text boxes.
     if ($arguments['debug_visuals']) {
       // Inner box.
       $data = array(
         'rectangle' => $inner_rect,
-        'border_color' => $arguments['layout']['background_color'],
+        'border_color' => $arguments['layout']['background_color'] ?: '#FFFFFF',
         'border_color_luma' => TRUE,
       );
       $this->getToolkit()->apply('textimage_draw_rectangle', $data);
       // Outer box.
       $data = array(
         'rectangle' => $outer_rect,
-        'border_color' => $arguments['layout']['background_color'],
+        'border_color' => $arguments['layout']['background_color'] ?: '#FFFFFF',
         'border_color_luma' => TRUE,
       );
       $this->getToolkit()->apply('textimage_draw_rectangle', $data);
@@ -233,8 +234,8 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    *
    * Credit to Ruquay K Calloway
    *
-   * @param TextimageTextbox $box
-   *   Textbox object to draw (inclusing basepoint).
+   * @param \Drupal\textimage\Component\Rectangle $rect
+   *   A Rectangle object, including basepoint.
    * @param string $rgba
    *   RGBA color of the rectangle.
    * @param bool $luma
@@ -242,7 +243,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    *
    * @see http://ruquay.com/sandbox/imagettf
    */
-  protected function drawDebugBox(Rectangle $box, $rgba, $luma = FALSE) {
+  protected function drawDebugBox(Rectangle $rect, $rgba, $luma = FALSE) {
 
     // Check color.
     if (!$rgba) {
@@ -253,11 +254,11 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     }
 
     // Retrieve points.
-    $points = $this->getRectangleCorners($box);
+    $points = $this->getRectangleCorners($rect);
 
     // Draw box.
     $data = array(
-      'rectangle' => $box,
+      'rectangle' => $rect,
       'border_color' => $rgba,
     );
     $this->getToolkit()->apply('textimage_draw_rectangle', $data);
@@ -292,7 +293,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     }
 
     // Font baseline.
-    $basepoint = $box->getPoint('basepoint');
+    $basepoint = $rect->getPoint('basepoint');
     $data = array(
       'cx' => $basepoint[0],
       'cy' => $basepoint[1],

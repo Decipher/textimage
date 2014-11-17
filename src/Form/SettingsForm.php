@@ -186,9 +186,10 @@ class SettingsForm extends ConfigFormBase {
     $form['settings']['font']['plugin_settings'] = $font_plugin->buildConfigurationForm(array(), $form_state, $ajax_settings);
 
     // Default font.
-    $form['settings']['font'] += $font_plugin->selectionElement('default_font_name', array(
+    $form['settings']['font']['default_font_name'] = $font_plugin->selectionElement(array(
       '#title' => $this->t('Default font'),
       '#description' => $this->t('Select the default font to be used by Textimage.'),
+      '#default_value' => $this->config('textimage.settings')->get('default_font.name'),
     ));
 
     // Background images.

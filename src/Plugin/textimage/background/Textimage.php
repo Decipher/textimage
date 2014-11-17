@@ -58,7 +58,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
   /**
    * {@inheritdoc}
    */
-  public function selectionElement($name, array $options = array()) {
+  public function selectionElement(array $options = array()) {
 
     // Get list of images.
     $image_files = $this->getList();
@@ -75,7 +75,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     }
 
     // Element.
-    $element[$name] = array(
+    return array(
       '#type'  => 'select',
       '#title'   => isset($options['#title']) ? $options['#title'] : $this->t('Background image'),
       '#description' => isset($options['#description']) ? $options['#description'] : $this->t('Select image.'),
@@ -88,8 +88,6 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
         ),
       ),
     );
-
-    return $element;
   }
 
   public function validateSelectorUri($element, FormStateInterface $form_state, $form) {

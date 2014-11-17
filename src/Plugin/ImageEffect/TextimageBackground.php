@@ -81,7 +81,7 @@ class TextimageBackground extends TextimageEffectBase {
       '#default_value' => $this->configuration['background_image']['mode'],
     );
     // Background image selection.
-    $form['background_image'] += $this->backgroundPlugin->selectionElement('uri', $this->configuration);
+    $form['background_image']['uri'] = $this->backgroundPlugin->selectionElement($this->configuration);
 
     // Background color.
     $form['background'] = array(

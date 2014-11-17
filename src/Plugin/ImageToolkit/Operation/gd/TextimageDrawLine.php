@@ -47,7 +47,7 @@ class TextimageDrawLine extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    $color = $this->getImageColor($arguments['color']);
+    $color = $this->allocateColorFromRgba($arguments['color']);
     return imageline($this->getToolkit()->getResource(), $arguments['x1'], $arguments['y1'], $arguments['x2'], $arguments['y2'], $color);
   }
 

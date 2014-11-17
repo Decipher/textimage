@@ -56,7 +56,7 @@ class TextimageTextOverlay extends GDTextimageOperationBase {
       $shadow = TRUE;
     }
     if ($outline || $shadow) {
-      $stroke_color = $this->getImageColor($arguments['font']['stroke_color']);
+      $stroke_color = $this->allocateColorFromRgba($arguments['font']['stroke_color']);
       if ($outline) {
         $stroke_x_pos = $arguments['basepoint'][0];
         $stroke_y_pos = $arguments['basepoint'][1];
@@ -99,7 +99,7 @@ class TextimageTextOverlay extends GDTextimageOperationBase {
       -$arguments['font']['angle'],
       $arguments['basepoint'][0],
       $arguments['basepoint'][1],
-      $this->getImageColor($arguments['font']['color']),
+      $this->allocateColorFromRgba($arguments['font']['color']),
       $font_file,
       $arguments['text']
     );

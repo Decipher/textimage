@@ -137,7 +137,7 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
   /**
    * {@inheritdoc}
    */
-  public function selectionElement($name, array $options = array()) {
+  public function selectionElement(array $options = array()) {
     return array();
   }
 }

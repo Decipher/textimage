@@ -66,7 +66,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
   /**
    * {@inheritdoc}
    */
-  public function selectionElement($name, array $options = array()) {
+  public function selectionElement(array $options = array()) {
 
     // Get list of font names.
     $fonts_list = $this->getList();
@@ -85,21 +85,18 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
 
     // Default font.
     $font_options = array_combine($fonts_list, $fonts_list);
-    $default_font = $this->config->get('default_font.name');
-    $default_value = array_key_exists($default_font, $font_options) ? $default_font : NULL;
 
     // Element.
-    $element[$name] = array(
+    return array(
       '#type'    => 'select',
       '#title'   => isset($options['#title']) ? $options['#title'] : $this->t('Font'),
       '#description' => isset($options['#description']) ? $options['#description'] : $this->t('Select font.'),
       '#options' => $font_options,
-      '#default_value' => $default_value,
+      '#default_value' => $options['#default_value'],
       '#limit_validation_errors' => FALSE,
       '#required' => TRUE,
     );
 
-    return $element;
   }
 
   /**

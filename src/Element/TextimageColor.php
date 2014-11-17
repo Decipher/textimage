@@ -117,7 +117,7 @@ class TextimageColor extends FormElement {
         );
       }
       // Color field.
-      $element['container'] += $colorPlugin->selectionElement('hex', array('#default_value' => $hex));
+      $element['container']['hex'] = $colorPlugin->selectionElement(array('#default_value' => $hex));
       // States management for color field.
       $element['container']['hex']['#states'] = array(
         'visible' => array(
@@ -145,7 +145,7 @@ class TextimageColor extends FormElement {
     }
     else {
       // No transparency or opacity, straight color field.
-      $element += $colorPlugin->selectionElement('hex', array('#default_value' => $hex));
+      $element['hex'] = $colorPlugin->selectionElement(array('#default_value' => $hex));
     }
 
     unset(

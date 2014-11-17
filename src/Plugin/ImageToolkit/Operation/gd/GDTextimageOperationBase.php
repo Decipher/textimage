@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Component\Utility\Color;
+use Drupal\Component\Utility\String;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
@@ -21,9 +22,16 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
 
   /**
    * Return the path of the font file, in a format usable by GD.
-   * @todo
+   *
+   * @param string $font_uri
+   *   The font URI.
+   *
+   * @return string
+   *   The local path of the font file.
    */
   protected function getFontPath($font_uri) {
+    // @todo cache the requests
+    // @todo manage better null $font_uri
     $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
     if ($font_wrapper instanceof LocalStream) {
       $ret = $font_wrapper->realpath();
@@ -32,14 +40,23 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
       $ret = is_file($font_uri) ? $font_uri : NULL;
     }
     if (!$ret) {
-      $this->logger->error("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri));
+      throw new \InvalidArgumentException(String::format("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)));
     }
     return $ret;
   }
 
   /**
    * Return the width of a text using TrueType fonts.
-   * @todo
+   *
+   * @param string $text
+   *   A text string.
+   * @param string $font_size
+   *   The font size.
+   * @param string $font_uri
+   *   The font URI.
+   *
+   * @return int
+   *   The width of the text in pixels.
    */
   public function getTextWidth($text, $font_size, $font_uri) {
     // Get fully qualified font file information.
@@ -59,7 +76,16 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
    * lack of descending/ascending characters will limit the height.
    * So to have uniformity we take a dummy string with ascending and
    * descending characters to set to max height possible.
-   * @todo
+   *
+   * @param string $font_size
+   *   The font size.
+   * @param string $font_uri
+   *   The font URI.
+   *
+   * @return array
+   *   An associative array with the following keys:
+   *   - 'height' the text height in pixels.
+   *   - 'basepoint' an array of x, y coordinates of the font's basepoint.
    */
   public function getTextHeightInfo($font_size, $font_uri) {
     // Get fully qualified font file information.
@@ -76,11 +102,16 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   }
 
   /**
-   * Gets a GD imagecolor.
-   * @todo
+   * Allocates a GD color from an RGBA hexadecimal.
+   *
+   * @param string $rgba_hex
+   *   A string specifing an RGBA color in the format '#RRGGBBAA'.
+   *
+   * @return int
+   *   A GD color index.
    */
-  protected function getImageColor($color) {
-    list($r, $g, $b, $alpha) = array_values($this->hexToRgba($color));
+  protected function allocateColorFromRgba($rgba_hex) {
+    list($r, $g, $b, $alpha) = array_values($this->hexToRgba($rgba_hex));
     return imagecolorallocatealpha($this->getToolkit()->getResource(), $r, $g, $b, $alpha);
   }
 
@@ -92,17 +123,17 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
    * RGBA hexadecimal notation has #00 for transparent and #FF for
    * fully opaque.
    *
-   * @param string $hex
+   * @param string $rgba_hex
    *   A string specifing an RGBA color in the format '#RRGGBBAA'.
    *
    * @return array
    *   An array with four elements for red, green, blue, and alpha.
    */
-  public function hexToRgba($hex) {
-    $rgbHex = Unicode::substr($hex, 0, 7);
+  public function hexToRgba($rgba_hex) {
+    $rgbHex = Unicode::substr($rgba_hex, 0, 7);
     try {
       $rgb = Color::hexToRgb($rgbHex);
-      $opacity = ColorUtility::rgbaToOpacity($hex);
+      $opacity = ColorUtility::rgbaToOpacity($rgba_hex);
       $alpha = 127 - floor(($opacity / 100) * 127);
       $rgb['alpha'] = $alpha;
       return $rgb;
@@ -113,7 +144,16 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   }
 
   /**
-   * @todo
+   * Convert a rectangle to a sequence of point coordinates.
+   *
+   * GD requires a simple array of point coordinates in its
+   * imagepolygon() function.
+   *
+   * @param \Drupal\textimage\Component\Rectangle $rect
+   *   A Rectangle object.
+   *
+   * @return array
+   *   A simple array of 8 point coordinates.
    */
   public function getRectangleCorners(Rectangle $rect) {
     $points = [];

@@ -42,7 +42,7 @@ class Media extends TextimagePluginBase implements TextimageBackgroundPluginInte
   /**
    * {@inheritdoc}
    */
-  public function selectionElement($name, array $options = array()) {
+  public function selectionElement(array $options = array()) {
       // Media module available - use media form element.
       if (!isset($this->configuration['background_image']['fid'])) {
         $this->configuration['background_image']['fid'] = 0;

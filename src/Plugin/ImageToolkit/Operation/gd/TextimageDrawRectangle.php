@@ -63,6 +63,13 @@ class TextimageDrawRectangle extends GDTextimageOperationBase {
     if (!$arguments['rectangle'] instanceof Rectangle) {
       throw new \InvalidArgumentException(String::format("Rectangle passed to the 'textimage_draw_rectangle' operation is invalid"));
     }
+    // Match color luma.
+    if ($arguments['fill_color'] && $arguments['fill_color_luma']) {
+      $arguments['fill_color'] = ColorUtility::matchLuma($arguments['fill_color']);
+    }
+    if ($arguments['border_color'] && $arguments['border_color_luma']) {
+      $arguments['border_color'] = ColorUtility::matchLuma($arguments['border_color']);
+    }
     return $arguments;
   }
 
@@ -70,24 +77,14 @@ class TextimageDrawRectangle extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    // Check color.
-    if ($arguments['fill_color'] && $arguments['fill_color_luma']) {
-      $arguments['fill_color'] = ColorUtility::matchLuma($arguments['fill_color']);
-    }
-    if ($arguments['border_color'] && $arguments['border_color_luma']) {
-      $arguments['border_color'] = ColorUtility::matchLuma($arguments['border_color']);
-    }
-
     if ($arguments['fill_color']) {
-      $color = $this->getImageColor($arguments['fill_color']);
+      $color = $this->allocateColorFromRgba($arguments['fill_color']);
       return imagefilledpolygon($this->getToolkit()->getResource(), $this->getRectangleCorners($arguments['rectangle']), 4, $color);
     }
-
     if ($arguments['border_color']) {
-      $color = $this->getImageColor($arguments['border_color']);
+      $color = $this->allocateColorFromRgba($arguments['border_color']);
       return imagepolygon($this->getToolkit()->getResource(), $this->getRectangleCorners($arguments['rectangle']), 4, $color);
     }
-
   }
 
 }

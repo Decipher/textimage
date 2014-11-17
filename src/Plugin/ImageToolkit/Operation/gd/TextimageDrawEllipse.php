@@ -47,7 +47,7 @@ class TextimageDrawEllipse extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    $color = $this->getImageColor($arguments['color']);
+    $color = $this->allocateColorFromRgba($arguments['color']);
     return imagefilledellipse($this->getToolkit()->getResource(), $arguments['cx'], $arguments['cy'], $arguments['width'], $arguments['height'], $color);
   }
 

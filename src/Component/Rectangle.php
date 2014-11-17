@@ -42,9 +42,9 @@ class Rectangle {
   protected $width = 0;
 
   /**
-   * The width of the rectangle.
+   * The height of the rectangle.
    *
-   * The width is not influenced by rotation/translation.
+   * The height is not influenced by rotation/translation.
    *
    * @var int
    */
@@ -158,35 +158,51 @@ class Rectangle {
   }
 
   /**
-   * @todo
+   * Gets the width of the rectangle.
+   *
+   * @return int
+   *   The width of the rectangle.
    */
   public function getWidth() {
     return $this->width;
   }
 
   /**
-   * @todo
+   * Gets the height of the rectangle.
+   *
+   * @return int
+   *   The height of the rectangle.
    */
   public function getHeight() {
     return $this->height;
   }
 
   /**
-   * @todo
+   * Gets the rotation offset of the rectangle.
+   *
+   * @return array
+   *   The x/y offset required to reposition the rectangle fully in the first
+   *   quadrant after it has been rotated.
    */
   public function getRotationOffset() {
     return $this->rotationOffset;
   }
 
   /**
-   * @todo
+   * Gets the bounding width of the rectangle.
+   *
+   * @return int
+   *   The bounding width of the rotated rectangle.
    */
   public function getBoundingWidth() {
     return $this->points['o_c'][0] - $this->points['o_a'][0] + 1;
   }
 
   /**
-   * @todo
+   * Gets the bounding height of the rectangle.
+   *
+   * @return int
+   *   The bounding height of the rotated rectangle.
    */
   public function getBoundingHeight() {
     return $this->points['o_c'][1] - $this->points['o_a'][1] + 1;
@@ -288,22 +304,5 @@ class Rectangle {
       );
     return $this;
   }
-
-/*  public function setFromDimensions($width, $height, $angle = 0) {
-    $this->width = $width;
-    $this->height = $height;
-    $this->setPoint('center');
-    $diag = sqrt(pow($this->width, 2) + pow($this->height, 2));
-    $radius = $diag / 2;
-    $wd = $this->width / $diag;
-    $a = acos($wd);
-    $r = deg2rad($angle);
-    $this->setPoint('c_a', [-cos($a - $r) * $radius, -sin($a - $r) * $radius]);
-    $this->setPoint('c_b', [cos($a + $r) * $radius, -sin($a + $r) * $radius]);
-    $this->setPoint('c_c', [cos($a - $r) * $radius, sin($a - $r) * $radius]);
-    $this->setPoint('c_d', [-cos($a + $r) * $radius, sin($a + $r) * $radius]);
-    $this->determineBoundingCorners();
-    return $this;
-  }*/
 
 }

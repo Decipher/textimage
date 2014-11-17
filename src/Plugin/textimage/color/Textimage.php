@@ -28,8 +28,8 @@ class Textimage extends TextimagePluginBase implements TextimageColorPluginInter
   /**
    * {@inheritdoc}
    */
-  public function selectionElement($name, array $options = array()) {
-    $element[$name] = array(
+  public function selectionElement(array $options = array()) {
+    return array(
       '#type' => 'color',
       '#title'   => isset($options['#title']) ? $options['#title'] : $this->t('Color'),
       '#description' => isset($options['#description']) ? $options['#description'] : NULL,
@@ -37,6 +37,5 @@ class Textimage extends TextimagePluginBase implements TextimageColorPluginInter
       '#maxlength' => 7,
       '#size' => 7,
     );
-    return $element;
   }
 }
