@@ -7,8 +7,10 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
+use Drupal\textimage\Component\TextUtility;
 
 /**
  * Defines Textimage GD2 text-to-image operation.
@@ -37,19 +39,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       'text' => array(
         'description' => '@todo',
       ),
-      'text_lines' => array(
-        'description' => '@todo',
-      ),
-      'inner_basepoint' => array(
-        'description' => '@todo',
-      ),
-      'inner_box' => array(
-        'description' => '@todo',
-      ),
-      'outer_box' => array(
-        'description' => '@todo',
-      ),
-      'line_height' => array(
+      'text_string' => array(
         'description' => '@todo',
       ),
       'debug_visuals' => array(
@@ -62,37 +52,114 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-// $arguments['debug_visuals'] = TRUE; // @todo
-    // Create the image resource, fill transparent.
-    $ret = $this->getToolkit()->apply('create_new', array(
-      'width' => $this->getToolkit()->getWidth(),
-      'height' => $this->getToolkit()->getHeight(),
-    ));
-    if (!$ret) {
-      return FALSE;
+    // Determine if outline/shadow is required.
+    $outline = $shadow = FALSE;
+    if ($arguments['font']['stroke_mode'] == 'outline' && ($arguments['font']['outline_top'] || $arguments['font']['outline_right'] || $arguments['font']['outline_bottom'] || $arguments['font']['outline_left']) && $arguments['font']['stroke_color']) {
+      $outline = TRUE;
     }
+    elseif ($arguments['font']['stroke_mode'] == 'shadow' && ($arguments['font']['shadow_x_offset'] || $arguments['font']['shadow_y_offset'] || $arguments['font']['shadow_width'] || $arguments['font']['shadow_height']) && $arguments['font']['stroke_color']) {
+      $shadow = TRUE;
+    }
+
+    // Add stroke to padding to ensure inner box includes entire font space.
+    if ($outline) {
+      $arguments['layout']['padding_top'] += $arguments['font']['outline_top'];
+      $arguments['layout']['padding_right'] += $arguments['font']['outline_right'];
+      $arguments['layout']['padding_bottom'] += $arguments['font']['outline_bottom'];
+      $arguments['layout']['padding_left'] += $arguments['font']['outline_left'];
+    }
+    elseif ($shadow) {
+      $arguments['layout']['padding_top'] += ($arguments['font']['shadow_y_offset'] < 0 ? -$arguments['font']['shadow_y_offset'] : 0);
+      $arguments['layout']['padding_right'] += ($arguments['font']['shadow_x_offset'] > 0 ? $arguments['font']['shadow_x_offset'] : 0);
+      $arguments['layout']['padding_bottom'] += ($arguments['font']['shadow_y_offset'] > 0 ? $arguments['font']['shadow_y_offset'] : 0);
+      $arguments['layout']['padding_left'] += ($arguments['font']['shadow_x_offset'] < 0 ? -$arguments['font']['shadow_x_offset'] : 0);
+      $shadow_width = ($arguments['font']['shadow_x_offset'] != 0) ? $arguments['font']['shadow_width'] + 1 : $arguments['font']['shadow_width'];
+      $shadow_height = ($arguments['font']['shadow_y_offset'] != 0) ? $arguments['font']['shadow_height'] + 1 : $arguments['font']['shadow_height'];
+      $net_right = $shadow_width + ($arguments['font']['shadow_x_offset'] >= 0 ? 0 : $arguments['font']['shadow_x_offset']);
+      $arguments['layout']['padding_right'] += ($net_right > 0 ? $net_right : 0);
+      $net_bottom = $shadow_height + ($arguments['font']['shadow_y_offset'] >= 0 ? 0 : $arguments['font']['shadow_y_offset']);
+      $arguments['layout']['padding_bottom'] += ($net_bottom > 0 ? $net_bottom : 0);
+    }
+
+    // Perform text wrapping, if necessary.
+    if ($arguments['text']['maximum_width'] > 0) {
+      $arguments['text_string'] = $this->wrapText(
+        $arguments['text_string'],
+        $arguments['font']['size'],
+        $arguments['font']['uri'],
+        $arguments['text']['maximum_width'] - $arguments['layout']['padding_left'] - $arguments['layout']['padding_right'] - 1,
+        $arguments['text']['align']
+      );
+    }
+
+    // Load text lines to array elements.
+    $text_lines = explode("\n", $arguments['text_string']);
+    $num_lines = count($text_lines);
+
+    // Calculate bounding boxes.
+    // ---------------------------------------
+    // Inner box   - the exact bounding box of the text.
+    // Outer box   - the box where the inner box is - can be different because
+    //               of padding.
+    // Wrapper     - the canvas where the outer box is laid.
+    // ---------------------------------------
+
+    // Get inner box details, for horizontal text, unpadded.
+    // If fixed width, set to configuration, otherwise get width from the font
+    // bounding box.
+    if ($arguments['text']['fixed_width'] && !empty($arguments['text']['maximum_width'])) {
+      $inner_box_width = $arguments['text']['maximum_width'] - $arguments['layout']['padding_left'] - $arguments['layout']['padding_right'];
+    }
+    else {
+      $inner_box_width = $this->getTextWidth($arguments['text_string'], $arguments['font']['size'], $arguments['font']['uri']);
+    }
+
+    // Determine line height.
+    $height_info = $this->getTextHeightInfo($arguments['font']['size'], $arguments['font']['uri']);  // @todo better name of this method
+    $line_height = $height_info['height'];
+
+    // Manage leading (line spacing), adding total line spacing to height.
+    $inner_box_height = ($height_info['height'] * $num_lines) + ($arguments['text']['line_spacing'] * ($num_lines - 1));
+
+    // Get outer box.
+    $outer_rect = new Rectangle($inner_box_width + $arguments['layout']['padding_right'] + $arguments['layout']['padding_left'], $inner_box_height + $arguments['layout']['padding_top'] + $arguments['layout']['padding_bottom']);
+    $outer_rect->rotate($arguments['font']['angle']);
+    $outer_rect->translate($outer_rect->getRotationOffset());
+
+    // Get inner box.
+    $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
+    $inner_rect->translate([$arguments['layout']['padding_left'], $arguments['layout']['padding_top']]);
+    $inner_rect->rotate($arguments['font']['angle']);
+    $inner_rect->translate($outer_rect->getRotationOffset());
+
+    // Enlarge the image to allow fitting the text.
+    $data_new = array(
+      'width' => $outer_rect->getBoundingWidth(),
+      'height' => $outer_rect->getBoundingHeight(),
+    );
+    $this->getToolkit()->apply('resize', $data_new);
 
     // Draw and fill the outer text box, if required.
     if ($arguments['layout']['background_color']) {
-      $data = array(
-        'rectangle' => $arguments['outer_box'],
+      $data_rectangle = array(
+        'rectangle' => $outer_rect,
         'fill_color' => $arguments['layout']['background_color'],
       );
-      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
+      $this->getToolkit()->apply('textimage_draw_rectangle', $data_rectangle);
     }
 
     // In debug mode, visually display the text boxes.
     if ($arguments['debug_visuals']) {
       // Inner box.
       $data = array(
-        'rectangle' => $arguments['inner_box'],
+        'rectangle' => $inner_rect,
         'border_color' => $arguments['layout']['background_color'],
         'border_color_luma' => TRUE,
       );
       $this->getToolkit()->apply('textimage_draw_rectangle', $data);
       // Outer box.
       $data = array(
-        'rectangle' => $arguments['outer_box'],
+        'rectangle' => $outer_rect,
         'border_color' => $arguments['layout']['background_color'],
         'border_color_luma' => TRUE,
       );
@@ -107,16 +174,15 @@ class TextimageTextToImage extends GDTextimageOperationBase {
 
     // Process each of the text lines.
     $current_y = 0;
-    foreach ($arguments['text_lines'] as $text_line) {
-
+    foreach ($text_lines as $text_line) {
       // This text line's width.
       $text_line_width = $this->getTextWidth($text_line, $arguments['font']['size'], $arguments['font']['uri']);
-      $text_line_rect = new Rectangle($text_line_width, $arguments['line_height']);
-      $text_line_rect->setPoint('basepoint', $arguments['inner_basepoint']);
+      $text_line_rect = new Rectangle($text_line_width, $line_height);
+      $text_line_rect->setPoint('basepoint', $height_info['basepoint']);
 
       // Manage text alignment within the line.
-      $x_delta = $arguments['inner_box']->getWidth() - $text_line_rect->getWidth();
-      $current_y += $arguments['line_height'];
+      $x_delta = $inner_rect->getWidth() - $text_line_rect->getWidth();
+      $current_y += $line_height;
       switch ($arguments['text']['align']) {
         case 'center':
           $x_offset = round($x_delta / 2);
@@ -134,9 +200,9 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       }
 
       // Get details for the rotated/translated text line box.
-      $text_line_rect->translate([$arguments['layout']['padding_left'] + $x_offset, $arguments['layout']['padding_top'] + $current_y - $arguments['line_height']]);
+      $text_line_rect->translate([$arguments['layout']['padding_left'] + $x_offset, $arguments['layout']['padding_top'] + $current_y - $line_height]);
       $text_line_rect->rotate($arguments['font']['angle']);
-      $text_line_rect->translate($arguments['outer_box']->getRotationOffset());
+      $text_line_rect->translate($outer_rect->getRotationOffset());
 
       // Overlay the text onto the image.
       $data = array(
@@ -235,6 +301,80 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       'color' => $green,
     );
     $this->getToolkit()->apply('textimage_draw_ellipse', $data);
+  }
+
+  /**
+   * Wrap text for rendering at a given width.
+   *
+   * @param string $text
+   *   Text string in UTF-8 encoding.
+   * @param int $font_size
+   *   Font size.
+   * @param string $font_uri
+   *   URI of the TrueType font to use.
+   * @param int $maximum_width
+   *   Maximum width allowed for each line.
+   *
+   * @return string
+   *   Text string, with newline characters to separate each line.
+   */
+  protected function wrapText($text, $font_size, $font_uri, $maximum_width) {
+    // State variables for the search interval.
+    $end = 0;
+    $begin = 0;
+    $fit = $begin;
+
+    // Note: we count in bytes for speed reasons, but maintain character
+    // boundaries.
+    while (TRUE) {
+      // Find the next wrap point (always after trailing whitespace).
+      if (TextUtility::drupalPregMatch('/[' . TextUtility::PREG_CLASS_PUNCTUATION . '][' . TextUtility::PREG_CLASS_SEPARATOR . ']*|[' . TextUtility::PREG_CLASS_SEPARATOR . ']+/u', $text, $match, PREG_OFFSET_CAPTURE, $end)) {
+        $end = $match[0][1] + Unicode::strlen($match[0][0]);
+      }
+      else {
+        $end = Unicode::strlen($text);
+      }
+
+      // Fetch text, removing trailing white-space, and measure it.
+      $line  = preg_replace('/[' . TextUtility::PREG_CLASS_SEPARATOR . ']+$/u', '', Unicode::substr($text, $begin, $end - $begin));
+      $width = $this->getTextWidth($line, $font_size, $font_uri);
+
+      // See if line extends past the available space.
+      if ($width > $maximum_width) {
+        // If this is the first word, we need to truncate it.
+        if ($fit == $begin) {
+          // Cut off letters until it fits.
+          while (Unicode::strlen($line) > 0 && $width > $maximum_width) {
+            $line  = Unicode::substr($line, 0, -1);
+            $width = $this->getTextWidth($line, $font_size, $font_uri);
+          }
+          // If no fit was found, the image is too narrow.
+          $fit = Unicode::strlen($line) ? $begin + Unicode::strlen($line) : $end;
+        }
+        // We have a valid fit for the next line. Insert a line-break and reset
+        // the search interval.
+        if (Unicode::substr($text, $fit - 1, 1) == ' ') {
+          $first_part = Unicode::substr($text, 0, $fit - 1);
+        }
+        else {
+          $first_part = Unicode::substr($text, 0, $fit);
+        }
+        $last_part  = Unicode::substr($text, $fit);
+        $text  = $first_part . "\n" . $last_part;
+        $begin = ++$fit;
+        $end   = $begin;
+      }
+      else {
+        // We can fit this text. Wait for now.
+        $fit = $end;
+      }
+
+      if ($end == Unicode::strlen($text)) {
+        // All text fits. No more changes are needed.
+        break;
+      }
+    }
+    return $text;
   }
 
 }

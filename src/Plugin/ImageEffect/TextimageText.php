@@ -14,7 +14,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
-use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Element\TextimageColor;
 
 /**
@@ -641,7 +640,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    */
   public function applyEffect(ImageInterface $image) {
     // Get the text wrapper resource.
-    if (!$wrapper = $this->getTextWrapper($image, $this->configuration)) {
+    if (!$wrapper = $this->getTextWrapper($this->configuration)) {
       return FALSE;
     }
 
@@ -786,7 +785,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // autoextend the background image in case of wrapper overflow.
     if ($this->configuration['layout']['overflow_action'] == 'extend') {
 
-      // Dummy image object.
+      // Dummy image object.  // @todo check???
       $image = $this->imageFactory->get();
       $data = array(
         'width' => 1,
@@ -795,7 +794,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $image->apply('create_new', $data);
 
       // Get the text wrapper resource.
-      if (!$wrapper = $this->getTextWrapper($image, $this->configuration)) {
+      if (!$wrapper = $this->getTextWrapper($this->configuration)) {
         return;
       }
 
@@ -823,8 +822,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    * This is separated from ::applyEffect() so that it can also be used
    * by the ::transformDimensions() method.
    */
-  protected function getTextWrapper($image, array $data) {
-
+  protected function getTextWrapper(array $data) {
     // If the effect is executed outside of the context of Textimage
     // (e.g. by the core Image module), then the text_string has not been
     // pre-processed to translate tokens or apply text conversion.
@@ -832,112 +830,23 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $data['text_string'] = $this->textimageFactory->processTextString($data['text_string'], $data['text']['case_format']);
     }
 
-    // Determine if outline/shadow is required.
-    $outline = $shadow = FALSE;
-    if ($data['font']['stroke_mode'] == 'outline' && ($data['font']['outline_top'] || $data['font']['outline_right'] || $data['font']['outline_bottom'] || $data['font']['outline_left']) && $data['font']['stroke_color']) {
-      $outline = TRUE;
-    }
-    elseif ($data['font']['stroke_mode'] == 'shadow' && ($data['font']['shadow_x_offset'] || $data['font']['shadow_y_offset'] || $data['font']['shadow_width'] || $data['font']['shadow_height']) && $data['font']['stroke_color']) {
-      $shadow = TRUE;
-    }
-
-    // Add stroke to padding to ensure inner box includes entire font space.
-    if ($outline) {
-      $data['layout']['padding_top'] += $data['font']['outline_top'];
-      $data['layout']['padding_right'] += $data['font']['outline_right'];
-      $data['layout']['padding_bottom'] += $data['font']['outline_bottom'];
-      $data['layout']['padding_left'] += $data['font']['outline_left'];
-    }
-    elseif ($shadow) {
-      $data['layout']['padding_top'] += ($data['font']['shadow_y_offset'] < 0 ? -$data['font']['shadow_y_offset'] : 0);
-      $data['layout']['padding_right'] += ($data['font']['shadow_x_offset'] > 0 ? $data['font']['shadow_x_offset'] : 0);
-      $data['layout']['padding_bottom'] += ($data['font']['shadow_y_offset'] > 0 ? $data['font']['shadow_y_offset'] : 0);
-      $data['layout']['padding_left'] += ($data['font']['shadow_x_offset'] < 0 ? -$data['font']['shadow_x_offset'] : 0);
-      $shadow_width = ($data['font']['shadow_x_offset'] != 0) ? $data['font']['shadow_width'] + 1 : $data['font']['shadow_width'];
-      $shadow_height = ($data['font']['shadow_y_offset'] != 0) ? $data['font']['shadow_height'] + 1 : $data['font']['shadow_height'];
-      $net_right = $shadow_width + ($data['font']['shadow_x_offset'] >= 0 ? 0 : $data['font']['shadow_x_offset']);
-      $data['layout']['padding_right'] += ($net_right > 0 ? $net_right : 0);
-      $net_bottom = $shadow_height + ($data['font']['shadow_y_offset'] >= 0 ? 0 : $data['font']['shadow_y_offset']);
-      $data['layout']['padding_bottom'] += ($net_bottom > 0 ? $net_bottom : 0);
-    }
-
-    // Perform text wrapping, if necessary.
-    if ($data['text']['maximum_width'] > 0) {
-      $data['text_string'] = $this->wrapText(
-        $image,
-        $data['text_string'],
-        $data['font']['size'],
-        $data['font']['uri'],
-        $data['text']['maximum_width'] - $data['layout']['padding_left'] - $data['layout']['padding_right'] - 1,
-        $data['text']['align']
-      );
-    }
-
-    // Load text lines to array elements.
-    $text_lines = explode("\n", $data['text_string']);
-    $num_lines = count($text_lines);
-
-    // Calculate bounding boxes.
-    // ---------------------------------------
-    // Inner box   - the exact bounding box of the text.
-    // Outer box   - the box where the inner box is - can be different because
-    //               of padding.
-    // Wrapper     - the canvas where the outer box is laid.
-    // ---------------------------------------
-
-    // Get an instance of the image toolkit operation object where
-    // needed methods are available.
-    $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
-
-    // Get inner box details, for horizontal text, unpadded.
-    // If fixed width, set to configuration, otherwise get width from the font
-    // bounding box.
-    if ($data['text']['fixed_width'] && !empty($data['text']['maximum_width'])) {
-      $inner_box_width = $data['text']['maximum_width'] - $data['layout']['padding_left'] - $data['layout']['padding_right'];
-    }
-    else {
-      $inner_box_width = $operation->getTextWidth($data['text_string'], $data['font']['size'], $data['font']['uri']);
-    }
-
-    // Determine line height.
-    $height_info = $operation->getTextHeightInfo($data['font']['size'], $data['font']['uri']);  // @todo better name of this method
-    $line_height = $height_info['height'];
-
-    // Manage leading (line spacing), adding total line spacing to height.
-    $inner_box_height = ($height_info['height'] * $num_lines) + ($data['text']['line_spacing'] * ($num_lines - 1));
-
-    // Get outer box.
-    $outer_rect = new Rectangle($inner_box_width + $data['layout']['padding_right'] + $data['layout']['padding_left'], $inner_box_height + $data['layout']['padding_top'] + $data['layout']['padding_bottom']);
-    $outer_rect->rotate($data['font']['angle']);
-    $outer_rect->translate($outer_rect->getRotationOffset());
-
-    // Get inner box.
-    $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
-    $inner_rect->translate([$data['layout']['padding_left'], $data['layout']['padding_top']]);
-    $inner_rect->rotate($data['font']['angle']);
-    $inner_rect->translate($outer_rect->getRotationOffset());
-
     // Create the wrapper image object as a canvass for the text.
     $wrapper = $this->imageFactory->get();
-    $data_new = array(
-      'width' => $outer_rect->getBoundingWidth(),
-      'height' => $outer_rect->getBoundingHeight(),
+    $wrapper_data = array(
+      'width' => 1,
+      'height' => 1,
     );
-    $wrapper->apply('create_new', $data_new);
+    $wrapper->apply('create_new', $wrapper_data);
 
-    // Calls image generation for the wrapper image.
-    $data_textimage = array(
+    // Calls text_to_image for the wrapper.
+    $text_to_image_data = array(
       'font' => $data['font'],
       'layout' => $data['layout'],
       'text' => $data['text'],
-      'text_lines' => $text_lines,
-      'inner_basepoint' => $height_info['basepoint'],
-      'inner_box' => $inner_rect,
-      'outer_box' => $outer_rect,
-      'line_height' => $line_height,
+      'text_string' => $data['text_string'],
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
     );
-    if (!$wrapper->apply('textimage_text_to_image', $data_textimage)) {
+    if (!$wrapper->apply('textimage_text_to_image', $text_to_image_data)) {
       return NULL;
     }
     return $wrapper;
@@ -1086,10 +995,6 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
   }
 
   /**
-   * Helpers
-   */
-
-  /**
    * @todo
    */
   protected function strokeMode() {
@@ -1102,85 +1007,6 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     else {
       return NULL;
     }
-  }
-
-  /**
-   * Wrap text for rendering at a given width.
-   *
-   * @param object $image
-   *   Image object.
-   * @param string $text
-   *   Text string in UTF-8 encoding.
-   * @param int $font_size
-   *   Font size.
-   * @param string $font_uri
-   *   URI of the TrueType font to use.
-   * @param int $maximum_width
-   *   Maximum width allowed for each line.
-   *
-   * @return string
-   *   Text string, with newline characters to separate each line.
-   */
-  protected function wrapText($image, $text, $font_size, $font_uri, $maximum_width) {
-    // The toolkit operation with the getTextWidth() method.
-    $operation = $this->imageOperationManager->getToolkitOperation($image->getToolkit(), 'textimage_text_to_image');
-
-    // State variables for the search interval.
-    $end = 0;
-    $begin = 0;
-    $fit = $begin;
-
-    // Note: we count in bytes for speed reasons, but maintain character
-    // boundaries.
-    while (TRUE) {
-      // Find the next wrap point (always after trailing whitespace).
-      if (TextUtility::drupalPregMatch('/[' . TextUtility::PREG_CLASS_PUNCTUATION . '][' . TextUtility::PREG_CLASS_SEPARATOR . ']*|[' . TextUtility::PREG_CLASS_SEPARATOR . ']+/u', $text, $match, PREG_OFFSET_CAPTURE, $end)) {
-        $end = $match[0][1] + Unicode::strlen($match[0][0]);
-      }
-      else {
-        $end = Unicode::strlen($text);
-      }
-
-      // Fetch text, removing trailing white-space, and measure it.
-      $line  = preg_replace('/[' . TextUtility::PREG_CLASS_SEPARATOR . ']+$/u', '', Unicode::substr($text, $begin, $end - $begin));
-      $width = $operation->getTextWidth($line, $font_size, $font_uri);
-
-      // See if line extends past the available space.
-      if ($width > $maximum_width) {
-        // If this is the first word, we need to truncate it.
-        if ($fit == $begin) {
-          // Cut off letters until it fits.
-          while (Unicode::strlen($line) > 0 && $width > $maximum_width) {
-            $line  = Unicode::substr($line, 0, -1);
-            $width = $operation->getTextWidth($line, $font_size, $font_uri);
-          }
-          // If no fit was found, the image is too narrow.
-          $fit = Unicode::strlen($line) ? $begin + Unicode::strlen($line) : $end;
-        }
-        // We have a valid fit for the next line. Insert a line-break and reset
-        // the search interval.
-        if (Unicode::substr($text, $fit - 1, 1) == ' ') {
-          $first_part = Unicode::substr($text, 0, $fit - 1);
-        }
-        else {
-          $first_part = Unicode::substr($text, 0, $fit);
-        }
-        $last_part  = Unicode::substr($text, $fit);
-        $text  = $first_part . "\n" . $last_part;
-        $begin = ++$fit;
-        $end   = $begin;
-      }
-      else {
-        // We can fit this text. Wait for now.
-        $fit = $end;
-      }
-
-      if ($end == Unicode::strlen($text)) {
-        // All text fits. No more changes are needed.
-        break;
-      }
-    }
-    return $text;
   }
 
 }
