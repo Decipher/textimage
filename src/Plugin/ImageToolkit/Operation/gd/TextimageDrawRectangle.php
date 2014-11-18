@@ -30,25 +30,25 @@ class TextimageDrawRectangle extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'rectangle' => array(
-        'description' => 'A Rectangle object',
+        'description' => 'A Rectangle object.',
       ),
       'fill_color' => array(
-        'description' => 'The RGBA color of the polygon fill',
+        'description' => 'The RGBA color of the polygon fill.',
         'required' => FALSE,
         'default' => NULL,
       ),
       'fill_color_luma' => array(
-        'description' => 'If TRUE, convert RGBA of the polygon fill to best match using luma',
+        'description' => 'If TRUE, convert RGBA of the polygon fill to best match using luma.',
         'required' => FALSE,
         'default' => FALSE,
       ),
       'border_color' => array(
-        'description' => 'The RGBA color of the polygon line',
+        'description' => 'The RGBA color of the polygon line.',
         'required' => FALSE,
         'default' => NULL,
       ),
       'border_color_luma' => array(
-        'description' => 'If TRUE, convert RGBA of the polygon line to best match using luma',
+        'description' => 'If TRUE, convert RGBA of the polygon line to best match using luma.',
         'required' => FALSE,
         'default' => FALSE,
       ),

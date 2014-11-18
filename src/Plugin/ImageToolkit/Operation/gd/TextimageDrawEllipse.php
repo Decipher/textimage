@@ -26,19 +26,19 @@ class TextimageDrawEllipse extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'cx' => array(
-        'description' => 'x-coordinate of the center',
+        'description' => 'x-coordinate of the center.',
       ),
       'cy' => array(
-        'description' => 'y-coordinate of the center',
+        'description' => 'y-coordinate of the center.',
       ),
       'width' => array(
-        'description' => 'The ellipse width',
+        'description' => 'The ellipse width.',
       ),
       'height' => array(
-        'description' => 'The ellipse height',
+        'description' => 'The ellipse height.',
       ),
       'color' => array(
-        'description' => 'The fill color, in RGBA format',
+        'description' => 'The fill color, in RGBA format.',
       ),
     );
   }

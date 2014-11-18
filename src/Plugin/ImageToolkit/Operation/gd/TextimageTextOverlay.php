@@ -28,13 +28,13 @@ class TextimageTextOverlay extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'font' => array(
-        'description' => 'Font data',
+        'description' => 'Font metadata.',
       ),
       'text' => array(
-        'description' => 'The text string in UTF-8 encoding',
+        'description' => 'The text string in UTF-8 encoding.',
       ),
       'basepoint' => array(
-        'description' => 'The basepoint of the text to be overlaid',
+        'description' => 'The basepoint of the text to be overlaid.',
       ),
     );
   }

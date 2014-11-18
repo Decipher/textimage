@@ -21,6 +21,13 @@ use Drupal\textimage\Component\Rectangle;
 abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
 
   /**
+   * An array of resolved font file URIs.
+   *
+   * @var array
+   */
+  static $fontPaths = [];
+
+  /**
    * Return the path of the font file, in a format usable by GD.
    *
    * @param string $font_uri
@@ -30,19 +37,23 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
    *   The local path of the font file.
    */
   protected function getFontPath($font_uri) {
-    // @todo cache the requests
-    // @todo manage better null $font_uri
-    $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
-    if ($font_wrapper instanceof LocalStream) {
-      $ret = $font_wrapper->realpath();
+    if (!$font_uri) {
+      throw new \InvalidArgumentException('Textimage - Font file not specified');
     }
-    else {
-      $ret = is_file($font_uri) ? $font_uri : NULL;
+    if (!isset(static::$fontPaths[$font_uri])) {
+      $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
+      if ($font_wrapper instanceof LocalStream) {
+        $ret = $font_wrapper->realpath();
+      }
+      else {
+        $ret = is_file($font_uri) ? $font_uri : NULL;
+      }
+      if (!$ret) {
+        throw new \InvalidArgumentException(String::format('Textimage - Could not find the font file @fontfile', array('@fontfile' => $font_uri)));
+      }
+      static::$fontPaths[$font_uri] = $ret;
     }
-    if (!$ret) {
-      throw new \InvalidArgumentException(String::format("Textimage could not find the font file @fontfile.", array('@fontfile' => $font_uri)));
-    }
-    return $ret;
+    return static::$fontPaths[$font_uri];
   }
 
   /**

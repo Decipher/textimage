@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageEffect;
 
+use Drupal\Component\Utility\Image;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Element\TextimageColor;
@@ -286,7 +287,6 @@ class TextimageBackground extends TextimageEffectBase {
    * {@inheritdoc}
    */
   public function applyEffect(ImageInterface $image) {
-
     // Handle background image.
     switch ($this->configuration['background_image']['mode']) {
       // If a background image is selected, it will override any
@@ -394,9 +394,8 @@ class TextimageBackground extends TextimageEffectBase {
    * {@inheritdoc}
    */
   public function transformDimensions(array &$dimensions) {
-
     // If exact size WxH, set and return.
-    if ($this->configuration['exact']['width'] and $this->configuration['exact']['height']) {
+    if ($this->configuration['exact']['width'] && $this->configuration['exact']['height']) {
       $dimensions['width'] = $this->configuration['exact']['width'];
       $dimensions['height'] = $this->configuration['exact']['height'];
       return;
@@ -429,42 +428,30 @@ class TextimageBackground extends TextimageEffectBase {
 
     }
 
-    if ($this->configuration['exact']['width'] or $this->configuration['exact']['height']) {
+    if ($this->configuration['exact']['width'] || $this->configuration['exact']['height']) {
       // Handle exact sizing.
-      if ($this->configuration['exact']['width'] <= $width or $this->configuration['exact']['height'] <= $height) {
+      if ($this->configuration['exact']['width'] <= $width || $this->configuration['exact']['height'] <= $height) {
         // If current image is larger than size requested, call out to
         // scale/resize/crop effects to reduce image size depending
         // on options selected.
         switch ($this->configuration['exact']['dimensions']) {
           case 'scale':
-            $scale_data = array(
-              'width' => $this->configuration['exact']['width'],
-              'height' => $this->configuration['exact']['height'],
-              'upscale' => 0,
-            );
-            image_scale_dimensions($dimensions, $scale_data); // @todo this is D7 :(
+            Image::scaleDimensions($dimensions, $this->configuration['exact']['width'], $this->configuration['exact']['height'], FALSE);
             return;
 
           case 'resize':
-            $resize_data = array(
-              'width' => $this->configuration['exact']['width'] ? $this->configuration['exact']['width'] : $width,
-              'height' => $this->configuration['exact']['height'] ? $this->configuration['exact']['height'] : $height,
-            );
-            image_resize_dimensions($dimensions, $resize_data); // @todo this is D7 :(
+            $dimensions['width'] = $this->configuration['exact']['width'] ?: $width;
+            $dimensions['height'] = $this->configuration['exact']['height'] ?: $height;
             return;
 
           case 'crop':
-            $crop_data = array(
-              'width' => min($this->configuration['exact']['width'], $width),
-              'height' => min($this->configuration['exact']['height'], $height),
-              'anchor' => $this->configuration['exact']['crop'],
-            );
-            image_resize_dimensions($dimensions, $crop_data); // @todo this is D7 :(
+            $dimensions['width'] = min($this->configuration['exact']['width'], $width);
+            $dimensions['height'] = min($this->configuration['exact']['height'], $height);
             return;
 
         }
         $this->logger->error('\'textimage_background\' image dimensions transform failed.');
-        return FALSE;
+        return;
       }
     }
     elseif ($this->configuration['relative']['leftdiff'] or $this->configuration['relative']['rightdiff'] or $this->configuration['relative']['topdiff'] or $this->configuration['relative']['bottomdiff']) {

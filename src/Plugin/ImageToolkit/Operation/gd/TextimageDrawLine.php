@@ -26,19 +26,19 @@ class TextimageDrawLine extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'x1' => array(
-        'description' => 'x-coordinate for first point',
+        'description' => 'x-coordinate for first point.',
       ),
       'y1' => array(
-        'description' => 'y-coordinate for first point',
+        'description' => 'y-coordinate for first point.',
       ),
       'x2' => array(
-        'description' => 'x-coordinate for second point',
+        'description' => 'x-coordinate for second point.',
       ),
       'y2' => array(
-        'description' => 'y-coordinate for second point',
+        'description' => 'y-coordinate for second point.',
       ),
       'color' => array(
-        'description' => 'The line color, in RGBA format',
+        'description' => 'The line color, in RGBA format.',
       ),
     );
   }

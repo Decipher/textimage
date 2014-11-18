@@ -30,7 +30,7 @@ class TextimageReplaceImage extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'replacement_image' => array(
-        'description' => 'The image to be used to replace current one',
+        'description' => 'The image to be used to replace current one.',
       ),
     );
   }

@@ -148,7 +148,6 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       $this->getToolkit()->apply('textimage_draw_rectangle', $data_rectangle);
     }
 
-//$arguments['debug_visuals']=TRUE; // @todo
     // In debug mode, visually display the text boxes.
     if ($arguments['debug_visuals']) {
       // Inner box.

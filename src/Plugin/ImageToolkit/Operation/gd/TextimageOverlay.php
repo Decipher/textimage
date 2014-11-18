@@ -31,7 +31,7 @@ class TextimageOverlay extends GDTextimageOperationBase {
   protected function arguments() {
     return array(
       'layer' => array(
-        'description' => 'Image object to be placed over or under the current image',
+        'description' => 'Image object to be placed over or under the current image.',
       ),
       'layer_on_top' => array(
         'description' => 'Flag to indicate if the layer goes on top of the current image.',
@@ -39,10 +39,10 @@ class TextimageOverlay extends GDTextimageOperationBase {
         'default' => TRUE,
       ),
       'x' => array(
-        'description' => 'x-position of the overlay',
+        'description' => 'x-position of the overlay.',
       ),
       'y' => array(
-        'description' => 'y-position of the overlay',
+        'description' => 'y-position of the overlay.',
       ),
     );
   }

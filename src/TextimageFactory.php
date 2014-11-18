@@ -15,6 +15,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
@@ -246,6 +247,30 @@ class TextimageFactory {
   }
 
   /**
+   * Flushes Textimage style data.
+   *
+   * Clears immediate cache and all the image files associated.
+   *
+   * @param array $style
+   *   the style being flushed
+   */
+  public function flushStyle($style) {
+    $this->cache->deleteAll(); // @todo check cache tags
+    //cache_clear_all('tiid:', 'cache_textimage', TRUE); // @todo D7 for ref
+    // Clear hashed filename images.
+    if (file_exists($directory = $this->getStorePath('styled_hashed/') . $style->id())) {
+      file_unmanaged_delete_recursive($directory);
+    }
+    // Clear images, checking in all available schemes.
+    $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE); // @todo inject
+    foreach ($wrappers as $wrapper => $wrapper_data) {
+      if (file_exists($directory = $wrapper . '://textimage/' . $style->id())) {
+        file_unmanaged_delete_recursive($directory);
+      }
+    }
+  }
+
+  /**
    * Cleanup Textimage.
    *
    * This will remove all image files generated via Textimage, flush all
@@ -258,11 +283,11 @@ class TextimageFactory {
         $image_style->flush();
       }
     }
-    if (file_exists($this->getStorePath('unstyled_hashed'))) {
-      file_unmanaged_delete_recursive($this->getStorePath('unstyled_hashed'));
+    if (file_exists($directory = $this->getStorePath('unstyled_hashed'))) {
+      file_unmanaged_delete_recursive($directory);
     }
-    if (file_exists($this->getStorePath('uncached'))) {
-      file_unmanaged_delete_recursive($this->getStorePath('uncached'));
+    if (file_exists($directory = $this->getStorePath('uncached'))) {
+      file_unmanaged_delete_recursive($directory);
     }
     $this->cache->deleteAll(); // @todo check cache tags
     db_truncate('textimage_store')->execute();

@@ -15,18 +15,6 @@ use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Textimage;
 
 /**
- * Define constants.
- */
-define('TEXTIMAGE_FONTYOURFACE_MIN_VERSION', '7.x-2.6');
-define('TEXTIMAGE_MEDIA_MIN_VERSION', '7.x-1.2');
-define('TEXTIMAGE_JQUERY_COLORPICKER_MIN_VERSION', '7.x-1.0-rc1');
-define('TEXTIMAGE_TOKEN_MIN_VERSION', '7.x-1.5');
-
-/**
- * Hooks implementations.
- */
-
-/**
  * Implements hook_help().
  */
 function textimage_help($route_name, RouteMatchInterface $route_match) {
@@ -85,7 +73,6 @@ function textimage_theme() {
       ),
     ),
   );
-
   return $theme;
 }
 
@@ -217,7 +204,7 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
  *
  * Integration of Textimage tokens with the Metatag module.
  */
-function textimage_metatag_token_types_alter(&$options) {
+/*function textimage_metatag_token_types_alter(&$options) {
   // Add Textimage tokens to the token types managed by Metatag,
   // for the node context.
   if ($options['context'] == 'node') {
@@ -227,6 +214,16 @@ function textimage_metatag_token_types_alter(&$options) {
     if (!in_array('textimage', $options['token types'])) {
       $options['token types'][] = 'textimage';
     }
+  }
+}*/
+
+/**
+ * Implements hook_image_style_flush().
+ */
+function textimage_image_style_flush($style) {
+  // Manage the textimage part of style flushing.
+  if (\Drupal::service('textimage.factory')->isTextimage($style)) {
+    \Drupal::service('textimage.factory')->flushStyle($style);
   }
 }
 
@@ -276,18 +273,12 @@ function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_
 }
 
 /**
- * Submit handler to deal with a style's Textimage options.
- *
- * @see _textimage_image_style_form_form_alter()
+ * Submit handler to deal with the altered 'image_style_form' form.
  */
 function _textimage_form_image_style_form_validate($form, FormStateInterface $form_state) {
   $image_style = $form_state->getFormObject()->getEntity();
   $image_style->setThirdPartySetting('textimage', 'uri_scheme', $form_state->getValue(['textimage_options', 'uri_scheme']));
 }
-
-/**
- * Textimage functions.
- */
 
 /**
  * Prepares variables to get a Textimage.
@@ -440,7 +431,7 @@ function _textimage_diag($message, $severity, $caller = NULL, $user_messages = T
  * @return bool
  *   TRUE if module is enabled, FALSE otherwise.
  */
-function _textimage_module_exists($module, $version = NULL, $comparison_operator = '>=') {
+/*function _textimage_module_exists($module, $version = NULL, $comparison_operator = '>=') {
   if (!module_exists($module)) {
     return FALSE;
   }
@@ -452,4 +443,4 @@ function _textimage_module_exists($module, $version = NULL, $comparison_operator
     return version_compare($module_info['version'], $version, $comparison_operator);
   }
   return TRUE;
-}
+}*/

@@ -106,7 +106,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     if (is_dir($this->configuration['path']) && $handle = opendir($this->configuration['path'])) {
       while ($file_name = readdir($handle)) {
         if (preg_match("/\.[ot]tf$/i", $file_name) == 1) {
-          $font = static::getData($this->configuration['path'] . '/' . $file_name);
+          $font = $this->getData($this->configuration['path'] . '/' . $file_name);
           if ($font_name == $font['name']) {
             return $font['file'];
           }
@@ -134,7 +134,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     if (is_dir($this->configuration['path']) && $handle = opendir($this->configuration['path'])) {
       while ($file_name = readdir($handle)) {
         if (preg_match("/\.[ot]tf$/i", $file_name) == 1) {
-          $font = static::getData($this->configuration['path'] . '/' . $file_name);
+          $font = $this->getData($this->configuration['path'] . '/' . $file_name);
           $filelist[$file_name] = $font['name'];
         }
       }
@@ -160,22 +160,22 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
    *   'name' => Font name
    *   'file' => Font file URI
    */
-  protected static function getData($uri) {
+  protected function getData($uri) {
     $realpath = drupal_realpath($uri);
     $pathinfo = pathinfo($realpath);
     $fd = fopen($realpath, "r");
     $text = fread($fd, filesize($realpath));
     fclose($fd);
 
-    $number_of_tabs = static::dec2hex(ord($text[4])) . static::dec2hex(ord($text[5]));
+    $number_of_tabs = $this->dec2hex(ord($text[4])) . $this->dec2hex(ord($text[5]));
     for ($i = 0; $i < hexdec($number_of_tabs); $i++) {
       $tag = $text[12 + $i * 16] . $text[12 + $i * 16 + 1] . $text[12 + $i * 16 + 2] . $text[12 + $i * 16 + 3];
       if ($tag == "name") {
-        $offset_name_table_hex = static::dec2hex(ord($text[12 + $i * 16 + 8])) . static::dec2hex(ord($text[12 + $i * 16 + 8 + 1])) . static::dec2hex(ord($text[12 + $i * 16 + 8 + 2])) . static::dec2hex(ord($text[12 + $i * 16 + 8 + 3]));
+        $offset_name_table_hex = $this->dec2hex(ord($text[12 + $i * 16 + 8])) . $this->dec2hex(ord($text[12 + $i * 16 + 8 + 1])) . $this->dec2hex(ord($text[12 + $i * 16 + 8 + 2])) . $this->dec2hex(ord($text[12 + $i * 16 + 8 + 3]));
         $offset_name_table_dec = hexdec($offset_name_table_hex);
-        $offset_storage_hex = static::dec2hex(ord($text[$offset_name_table_dec + 4])) . static::dec2hex(ord($text[$offset_name_table_dec + 5]));
+        $offset_storage_hex = $this->dec2hex(ord($text[$offset_name_table_dec + 4])) . $this->dec2hex(ord($text[$offset_name_table_dec + 5]));
         $offset_storage_dec = hexdec($offset_storage_hex);
-        $number_name_records_hex = static::dec2hex(ord($text[$offset_name_table_dec + 2])) . static::dec2hex(ord($text[$offset_name_table_dec + 3]));
+        $number_name_records_hex = $this->dec2hex(ord($text[$offset_name_table_dec + 2])) . $this->dec2hex(ord($text[$offset_name_table_dec + 3]));
         $number_name_records_dec = hexdec($number_name_records_hex);
         break;
       }
@@ -192,13 +192,13 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     );
 
     for ($j = 0; $j < $number_name_records_dec; $j++) {
-      $platform_id_hex = static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 0])) . static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 1]));
+      $platform_id_hex = $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 0])) . $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 1]));
       $platform_id_dec = hexdec($platform_id_hex);
-      $name_id_hex = static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 6])) . static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 7]));
+      $name_id_hex = $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 6])) . $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 7]));
       $name_id_dec = hexdec($name_id_hex);
-      $string_length_hex = static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 8])) . static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 9]));
+      $string_length_hex = $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 8])) . $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 9]));
       $string_length_dec = hexdec($string_length_hex);
-      $string_offset_hex = static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 10])) . static::dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 11]));
+      $string_offset_hex = $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 10])) . $this->dec2hex(ord($text[$offset_name_table_dec + 6 + $j * 12 + 11]));
       $string_offset_dec = hexdec($string_offset_hex);
 
       if ($name_id_dec == 0 && empty($font['copyright'])) {
@@ -250,7 +250,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
    * @return string
    *   the number represented as hex
    */
-  protected static function dec2hex($dec) {
+  protected function dec2hex($dec) {
     $hex = dechex($dec);
     return str_repeat("0", 2 - Unicode::strlen($hex)) . Unicode::strtoupper($hex);
   }

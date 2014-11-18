@@ -613,7 +613,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       '#border_color' => 'matchLuma',
     );
     if ($stroke_mode = $this->strokeMode()) {
-      $data['stroke_mode'] = ($stroke_mode == 'outline') ? $this->t('Outline') : $this->t('Shadow');
+      $data['stroke_mode'] = $stroke_mode;
       $data['stroke_color_detail'] = array(
         '#theme' => 'textimage_color_detail',
         '#color' => $data['font']['stroke_color'],
@@ -645,38 +645,27 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       return FALSE;
     }
 
-    // Background image dimensions.
+    // Preserve current background image dimensions.
     $image_width = $image->getWidth();
     $image_height = $image->getHeight();
 
     // Offset wrapper dimensions.
-    $offset_wrapper = array();
+    $wrapper_info = [];
 
     // Determine needed resizing/repositioning of background image and/or
     // text wrapper image, based on the settings.
     switch ($this->configuration['layout']['overflow_action']) {
       case 'extend':
         // The background image new dimensions, after extension.
-        $image_new = array(
-          'xpos' => 0,
-          'ypos' => 0,
-          'width' => $image_width,
-          'height' => $image_height,
-        );
+        $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $image_width, 'height' => $image_height];
 
         // The size of the frame sides for color filling.
-        $frame = array(
-          'top' => 0,
-          'right' => 0,
-          'bottom' => 0,
-          'left' => 0,
-        );
+        $frame = ['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0];
 
         // Check wrapper image overflowing the original image.
-        list($resized, $offset_wrapper) = $this->backgroundImageResize($image, $wrapper, $this->configuration, $image_new, $frame);
-        if ($resized) {
+        if ($this->backgroundImageResize($image, $wrapper, $this->configuration, $image_info, $wrapper_info, $frame)) {
           // Apply textimage_define_canvas, transparent background.
-          if (!$image->apply('textimage_define_canvas', array('exact' => $image_new))) {
+          if (!$image->apply('textimage_define_canvas', ['exact' => $image_info])) {
             return FALSE;
           }
           // Color fill the frame with carried on background color.
@@ -685,58 +674,50 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
             $rectangle = new Rectangle();
             if ($frame['top']) {
               $rectangle->setFromCorners([
-                'c_d' => [0, 0],
-                'c_c' => [$image_new['width'] - 1, 0],
-                'c_b' => [$image_new['width'] - 1, $frame['top'] - 1],
                 'c_a' => [0, $frame['top'] - 1],
+                'c_b' => [$image_info['width'] - 1, $frame['top'] - 1],
+                'c_c' => [$image_info['width'] - 1, 0],
+                'c_d' => [0, 0],
               ]);
-              $data = array(
-                'rectangle' => $rectangle,
-                'fill_color' => $main_bg_color,
-              );
-              $image->apply('textimage_draw_rectangle', $data);
+              if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+                return FALSE;
+              };
             }
             // Bottom rectangle.
             if ($frame['bottom']) {
               $rectangle->setFromCorners([
+                'c_a' => [0, $image_info['height'] - 1],
+                'c_b' => [$image_info['width'] - 1, $image_info['height'] - 1],
+                'c_c' => [$image_info['width'] - 1, $image_height + $frame['top']],
                 'c_d' => [0, $image_height + $frame['top']],
-                'c_c' => [$image_new['width'] - 1, $image_height + $frame['top']],
-                'c_b' => [$image_new['width'] - 1, $image_new['height'] - 1],
-                'c_a' => [0, $image_new['height'] - 1],
               ]);
-              $data = array(
-                'rectangle' => $rectangle,
-                'fill_color' => $main_bg_color,
-              );
-              $image->apply('textimage_draw_rectangle', $data);
+              if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+                return FALSE;
+              };
             }
             // Left rectangle.
             if ($frame['left']) {
               $rectangle->setFromCorners([
-                'c_d' => [0, $frame['top']],
-                'c_c' => [$frame['left'] - 1, $frame['top']],
-                'c_b' => [$frame['left'] - 1, $frame['top'] + $image_height - 1],
                 'c_a' => [0, $frame['top'] + $image_height - 1],
+                'c_b' => [$frame['left'] - 1, $frame['top'] + $image_height - 1],
+                'c_c' => [$frame['left'] - 1, $frame['top']],
+                'c_d' => [0, $frame['top']],
               ]);
-              $data = array(
-                'rectangle' => $rectangle,
-                'fill_color' => $main_bg_color,
-              );
-              $image->apply('textimage_draw_rectangle', $data);
+              if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+                return FALSE;
+              };
             }
             // Right rectangle.
             if ($frame['right']) {
               $rectangle->setFromCorners([
-                'c_d' => [$frame['left'] + $image_width, $frame['top']],
-                'c_c' => [$image_new['width'] - 1, $frame['top']],
-                'c_b' => [$image_new['width'] - 1, $frame['top'] + $image_height - 1],
                 'c_a' => [$frame['left'] + $image_width, $frame['top'] + $image_height - 1],
+                'c_b' => [$image_info['width'] - 1, $frame['top'] + $image_height - 1],
+                'c_c' => [$image_info['width'] - 1, $frame['top']],
+                'c_d' => [$frame['left'] + $image_width, $frame['top']],
               ]);
-              $data = array(
-                'rectangle' => $rectangle,
-                'fill_color' => $main_bg_color,
-              );
-              $image->apply('textimage_draw_rectangle', $data);
+              if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+                return FALSE;
+              };
             }
           }
         }
@@ -744,9 +725,8 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
       case 'scaletext':
         // Check if scaling down is needed.
-        list($resized, $offset_wrapper) = $this->wrapperResize($image, $wrapper, $this->configuration);
-        if ($resized) {
-          if (!$wrapper->scale($offset_wrapper['width'], $offset_wrapper['height'])) {
+        if ($this->wrapperResize($image, $wrapper, $this->configuration, $wrapper_info)) {
+          if (!$wrapper->scale($wrapper_info['width'], $wrapper_info['height'])) {
             return FALSE;
           }
         }
@@ -757,20 +737,15 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
         // Nothing to do, just place the wrapper at offset required.
         $x_offset = ceil(image_filter_keyword($this->configuration['layout']['x_pos'], $image_width, $wrapper->getWidth()));
         $y_offset = ceil(image_filter_keyword($this->configuration['layout']['y_pos'], $image_height, $wrapper->getHeight()));
-        $offset_wrapper['xpos'] = $x_offset + $this->configuration['layout']['x_offset'];
-        $offset_wrapper['ypos'] = $y_offset + $this->configuration['layout']['y_offset'];
+        $wrapper_info['xpos'] = $x_offset + $this->configuration['layout']['x_offset'];
+        $wrapper_info['ypos'] = $y_offset + $this->configuration['layout']['y_offset'];
         break;
 
     }
 
     // Finally, lay the wrapper over the source image.
-    if (!empty($offset_wrapper)) {
-      $overlay_data = array(
-        'layer' => $wrapper,
-        'x' => $offset_wrapper['xpos'],
-        'y' => $offset_wrapper['ypos'],
-      );
-      if (!$image->apply('textimage_overlay', $overlay_data)) {
+    if (!empty($wrapper_info)) {
+      if (!$image->apply('textimage_overlay', ['layer' => $wrapper, 'x' => $wrapper_info['xpos'], 'y' => $wrapper_info['ypos']])) {
         return FALSE;
       }
     }
@@ -786,13 +761,12 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // autoextend the background image in case of wrapper overflow.
     if ($this->configuration['layout']['overflow_action'] == 'extend') {
 
-      // Dummy image object.  // @todo check???
+      // Dummy image object.
       $image = $this->imageFactory->get();
-      $data = array(
-        'width' => 1,
-        'height' => 1,
-      );
-      $image->apply('create_new', $data);
+      $image->apply('create_new', ['width' => 1, 'height' => 1]);
+      if (!$image->isValid()) {
+        return;
+      }
 
       // Get the text wrapper resource.
       if (!$wrapper = $this->getTextWrapper($this->configuration)) {
@@ -800,18 +774,15 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       }
 
       // The background image new dimensions, after extension.
-      $image_new = array(
-        'xpos' => 0,
-        'ypos' => 0,
-        'width' => $image->getWidth(),
-        'height' => $image->getHeight(),
-      );
+      $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $image->getWidth(), 'height' => $image->getHeight()];
+
+      // Offset wrapper dimensions.
+      $wrapper_info = [];
 
       // Checks if resizing needed.
-      list($resized, $offset_wrapper) = $this->backgroundImageResize($image, $wrapper, $this->configuration, $image_new);
-      if ($resized) {
-        $dimensions['width'] = $image_new['width'];
-        $dimensions['height'] = $image_new['height'];
+      if ($this->backgroundImageResize($image, $wrapper, $this->configuration, $image_info, $wrapper_info)) {
+        $dimensions['width'] = $image_info['width'];
+        $dimensions['height'] = $image_info['height'];
       }
 
     }
@@ -833,20 +804,19 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
     // Create the wrapper image object as a canvass for the text.
     $wrapper = $this->imageFactory->get();
-    $wrapper_data = array(
-      'width' => 1,
-      'height' => 1,
-    );
-    $wrapper->apply('create_new', $wrapper_data);
+    $wrapper->apply('create_new',  ['width' => 1, 'height' => 1]);
+    if (!$wrapper->isValid()) {
+      return NULL;
+    }
 
     // Calls text_to_image for the wrapper.
-    $text_to_image_data = array(
+    $text_to_image_data = [
       'font' => $data['font'],
       'layout' => $data['layout'],
       'text' => $data['text'],
       'text_string' => $data['text_string'],
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
-    );
+    ];
     if (!$wrapper->apply('textimage_text_to_image', $text_to_image_data)) {
       return NULL;
     }
@@ -858,7 +828,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *
    * When wrapper overflows the original image, and autoextent is set on.
    */
-  protected function backgroundImageResize($image, $wrapper, $data, &$image_new, &$frame = NULL) {
+  protected function backgroundImageResize($image, $wrapper, $data, &$image_info, &$wrapper_info, &$frame = NULL) {
 
     $resized = FALSE;
 
@@ -881,58 +851,58 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // but would be determined as follows:
     //  'width' => ($wrapper_width < $image_width) ? $wrapper_width + abs($data['layout']['x_offset']) : $wrapper_width;
     //  'height' = ($wrapper_height < $image_height) ? $wrapper_height + abs($data['layout']['y_offset']) : $wrapper_height;
-    $offset_wrapper = array(
+    $wrapper_info = [
       'xpos' => $x_offset + $data['layout']['x_offset'],
       'ypos' => $y_offset + $data['layout']['y_offset'],
-    );
+    ];
 
     // If offset wrapper overflows to the left, background image
     // will be shifted to the right.
-    if ($offset_wrapper['xpos'] < 0) {
-      $image_new['width'] = $image_width - $offset_wrapper['xpos'];
-      $image_new['xpos'] = -$offset_wrapper['xpos'];
-      $offset_wrapper['xpos'] = 0;
+    if ($wrapper_info['xpos'] < 0) {
+      $image_info['width'] = $image_width - $wrapper_info['xpos'];
+      $image_info['xpos'] = -$wrapper_info['xpos'];
+      $wrapper_info['xpos'] = 0;
       if (isset($frame)) {
-        $frame['left'] = $image_new['width'] - $image_width;
+        $frame['left'] = $image_info['width'] - $image_width;
       }
       $resized = TRUE;
     }
 
     // If offset wrapper overflows to the top, background image
     // will be shifted to the bottom.
-    if ($offset_wrapper['ypos'] < 0) {
-      $image_new['height'] = $image_height - $offset_wrapper['ypos'];
-      $image_new['ypos'] = -$offset_wrapper['ypos'];
-      $offset_wrapper['ypos'] = 0;
+    if ($wrapper_info['ypos'] < 0) {
+      $image_info['height'] = $image_height - $wrapper_info['ypos'];
+      $image_info['ypos'] = -$wrapper_info['ypos'];
+      $wrapper_info['ypos'] = 0;
       if (isset($frame)) {
-        $frame['top'] = $image_new['height'] - $image_height;
+        $frame['top'] = $image_info['height'] - $image_height;
       }
       $resized = TRUE;
     }
 
     // If offset wrapper overflows to the right, background image
     // will be extended to the right.
-    if (($offset_wrapper['xpos'] + $wrapper_width) > $image_new['width']) {
-      $tmp = $image_new['width'];
-      $image_new['width'] = $offset_wrapper['xpos'] + $wrapper_width;
+    if (($wrapper_info['xpos'] + $wrapper_width) > $image_info['width']) {
+      $tmp = $image_info['width'];
+      $image_info['width'] = $wrapper_info['xpos'] + $wrapper_width;
       if (isset($frame)) {
-        $frame['right'] = $image_new['width'] - $tmp;
+        $frame['right'] = $image_info['width'] - $tmp;
       }
       $resized = TRUE;
     }
 
     // If offset wrapper overflows to the bottom, background image
     // will be extended to the bottom.
-    if (($offset_wrapper['ypos'] + $wrapper_height) > $image_new['height']) {
-      $tmp = $image_new['height'];
-      $image_new['height'] = $offset_wrapper['ypos'] + $wrapper_height;
+    if (($wrapper_info['ypos'] + $wrapper_height) > $image_info['height']) {
+      $tmp = $image_info['height'];
+      $image_info['height'] = $wrapper_info['ypos'] + $wrapper_height;
       if (isset($frame)) {
-        $frame['bottom'] = $image_new['height'] - $tmp;
+        $frame['bottom'] = $image_info['height'] - $tmp;
       }
       $resized = TRUE;
     }
 
-    return array($resized, $offset_wrapper);
+    return $resized;
   }
 
   /**
@@ -940,7 +910,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *
    * When wrapper overflows the original image, and scaling is set on.
    */
-  protected function wrapperResize($image, $wrapper, $data) {
+  protected function wrapperResize($image, $wrapper, $data, &$wrapper_info) {
 
     $resized = FALSE;
 
@@ -954,56 +924,59 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
     // Determine wrapper offset, based on placement option and direct
     // offset indicated in settings.
-    $offset_wrapper = array(
+    $wrapper_info = [
       'xpos' => ceil(image_filter_keyword($data['layout']['x_pos'], $image_width, $wrapper_width)) + $data['layout']['x_offset'],
       'ypos' => ceil(image_filter_keyword($data['layout']['y_pos'], $image_height, $wrapper_height)) + $data['layout']['y_offset'],
-    );
+    ];
 
     // Position of wrapper's bottom right point.
-    $xc_pos = $offset_wrapper['xpos'] + $wrapper_width;
-    $yc_pos = $offset_wrapper['ypos'] + $wrapper_height;
+    $xc_pos = $wrapper_info['xpos'] + $wrapper_width;
+    $yc_pos = $wrapper_info['ypos'] + $wrapper_height;
 
     // Redetermine offset wrapper position and size based on
     // background image size.
-    $offset_wrapper['xpos'] = max(0, $offset_wrapper['xpos']);
-    $offset_wrapper['ypos'] = max(0, $offset_wrapper['ypos']);
+    $wrapper_info['xpos'] = max(0, $wrapper_info['xpos']);
+    $wrapper_info['ypos'] = max(0, $wrapper_info['ypos']);
     $xc_pos = min($image_width, $xc_pos);
     $yc_pos = min($image_height, $yc_pos);
-    $offset_wrapper['width'] = $xc_pos - $offset_wrapper['xpos'];
-    $offset_wrapper['height'] = $yc_pos - $offset_wrapper['ypos'];
+    $wrapper_info['width'] = $xc_pos - $wrapper_info['xpos'];
+    $wrapper_info['height'] = $yc_pos - $wrapper_info['ypos'];
 
     // If negative width/height, then the wrapper is totally
     // overflowing the background, and we cannot resize it.
-    if ($offset_wrapper['width'] < 0 || $offset_wrapper['height'] < 0) {
-      return array(FALSE, array());
+    if ($wrapper_info['width'] < 0 || $wrapper_info['height'] < 0) {
+      return FALSE;
     }
 
     // Determine if scaling needed. Take the side that is shrinking
     // most.
-    $width_resize_index = $offset_wrapper['width'] / $wrapper_width;
-    $height_resize_index = $offset_wrapper['height'] / $wrapper_height;
+    $width_resize_index = $wrapper_info['width'] / $wrapper_width;
+    $height_resize_index = $wrapper_info['height'] / $wrapper_height;
     if ($width_resize_index < 1 || $height_resize_index < 1) {
       $resized = TRUE;
       if ($width_resize_index < $height_resize_index) {
-        $offset_wrapper['height'] = NULL;
+        $wrapper_info['height'] = NULL;
       }
       else {
-        $offset_wrapper['width'] = NULL;
+        $wrapper_info['width'] = NULL;
       }
     }
 
-    return array($resized, $offset_wrapper);
+    return $resized;
   }
 
   /**
-   * @todo
+   * Get the stroke mode for the font.
+   *
+   * @return string|null
+   *   The stroke mode.
    */
   protected function strokeMode() {
     if ($this->configuration['font']['stroke_mode'] == 'outline' && ($this->configuration['font']['outline_top'] || $this->configuration['font']['outline_right'] || $this->configuration['font']['outline_bottom'] || $this->configuration['font']['outline_left'])) {
-      return 'outline';
+      return $this->t('Outline');
     }
     else if ($this->configuration['font']['stroke_mode'] == 'shadow') {
-      return 'shadow';
+      return $this->t('Shadow');
     }
     else {
       return NULL;
