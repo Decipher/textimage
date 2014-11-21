@@ -9,7 +9,7 @@ namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
@@ -84,9 +84,10 @@ class TextimageText extends TextimageEffectBase {
     // --- Preview effect.
     $this->configuration['preview_bar']['debug_visuals'] = empty($this->configuration['preview_bar']['debug_visuals']) ? FALSE : TRUE;
     $form['preview'] = array(
-      '#title' => $this->t('Preview'),
       '#type'   => 'item',
-      '#markup' => '<div id="textimage-preview">' . $this->previewImage($this->configuration) . '</div>',
+      '#title' => $this->t('Preview'),
+      '#theme' => 'textimage_preview',
+      '#textimage_data' => $this->configuration,
     );
 
     // --- Preview bar.
@@ -497,8 +498,12 @@ class TextimageText extends TextimageEffectBase {
    * AJAX callback.
    */
   public function processAjaxPreview($form, FormStateInterface $form_state) {
+    $preview = array(
+      '#theme' => 'textimage_preview',
+      '#textimage_data' => $form_state->getValue(['data', 'ajax_config']),
+    );
     $response = new AjaxResponse();
-    $response->addCommand(new HtmlCommand('#textimage-preview', $this->previewImage($form_state->getValue(['data', 'ajax_config']))));
+    $response->addCommand(new ReplaceCommand('#textimage-preview', drupal_render($preview))); // @todo drupal_render in ajax may be dropped see #2347469
     return $response;
   }
 
@@ -568,38 +573,6 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-  }
-
-  /**
-   * Deliver a preview of the textimage with the current settings.
-   *
-   * @param array $data
-   *   The current configuration for this image effect.
-   *
-   * @return array
-   *   The HTML to the preview image.
-   */
-  protected function previewImage($data) {
-    $data['layout']['x_pos'] = 'center';
-    $data['layout']['y_pos'] = 'center';
-    $data['layout']['x_offset'] = 0;
-    $data['layout']['y_offset'] = 0;
-    $data['layout']['overflow_action'] = 'extend';
-    $data['debug_visuals'] = $data['preview_bar']['debug_visuals'];
-    $output = array(
-      '#theme' => 'textimage_formatter',
-      '#text' => array($data['text_string']),
-      '#effects' => array(
-        array(
-          'id' => 'textimage_text',
-          'data' => $data,
-        ),
-      ),
-      '#title' => $this->t('Preview'),
-      '#alt' => $this->t('Display preview not available.'),
-      '#caching' => FALSE,
-    );
-    return drupal_render($output);
   }
 
   /**

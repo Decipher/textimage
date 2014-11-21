@@ -64,6 +64,12 @@ function textimage_theme() {
     'textimage_text_summary' => array(
       'variables' => array('data' => NULL),
     ),
+    // Render a preview of the Textimage in the image effect UI.
+    'textimage_preview' => array(
+      'variables' => array(
+        'textimage_data' => [],
+      ),
+    ),
     // Render a color information box and string.
     'textimage_color_detail' => array(
       'variables' => array(
@@ -380,6 +386,33 @@ function template_preprocess_textimage_color_detail(&$variables) {
     $variables['color_opacity'] = ColorUtility::rgbaToOpacity($variables['color']);
     $variables['color'] = Unicode::substr($variables['color'], 0, 7);
   }
+}
+
+/**
+ * Prepares variables to get a Textimage preview.
+ *
+ * Default template: textimage-preview.html.twig.
+ */
+function template_preprocess_textimage_preview(&$variables) {
+  $variables['textimage_data']['layout']['x_pos'] = 'center';
+  $variables['textimage_data']['layout']['y_pos'] = 'center';
+  $variables['textimage_data']['layout']['x_offset'] = 0;
+  $variables['textimage_data']['layout']['y_offset'] = 0;
+  $variables['textimage_data']['layout']['overflow_action'] = 'extend';
+  $variables['textimage_data']['debug_visuals'] = $variables['textimage_data']['preview_bar']['debug_visuals'];
+  $variables['textimage_preview'] = array(
+    '#theme' => 'textimage_formatter',
+    '#text' => array($variables['textimage_data']['text_string']),
+    '#effects' => array(
+      array(
+        'id' => 'textimage_text',
+        'data' => $variables['textimage_data'],
+      ),
+    ),
+    '#title' => t('Preview'),
+    '#alt' => t('Display preview not available.'),
+    '#caching' => FALSE,
+  );
 }
 
 /**
