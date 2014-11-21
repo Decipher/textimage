@@ -17,6 +17,7 @@ abstract class TextimageTestBase extends WebTestBase {
 
   protected $textimageAdmin = 'admin/config/media/textimage';
   protected $textimageFactory;
+  protected $renderer;
 
   public static $modules = array('textimage', 'node');
 
@@ -26,7 +27,8 @@ abstract class TextimageTestBase extends WebTestBase {
   public function setUp() {
     parent::setUp();
 
-    $this->textimageFactory = \Drupal::service('textimage.factory');
+    $this->textimageFactory = $this->container->get('textimage.factory');
+    $this->renderer = $this->container->get('renderer');
 
     // Create Basic page and Article node types.
     if ($this->profile != 'standard') {

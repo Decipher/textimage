@@ -299,8 +299,8 @@ class SettingsForm extends ConfigFormBase {
   public function processAjax($form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $status_messages = array('#theme' => 'status_messages');
-    $response->addCommand(new HtmlCommand('#textimage-ajax-messages', drupal_render($status_messages)));
-    $response->addCommand(new HtmlCommand('#textimage-settings-main', drupal_render($form['settings'])));
+    $response->addCommand(new HtmlCommand('#textimage-ajax-messages', drupal_render($status_messages))); // @todo drupal_render in ajax may be dropped see #2347469
+    $response->addCommand(new HtmlCommand('#textimage-settings-main', drupal_render($form['settings']))); // @todo drupal_render in ajax may be dropped see #2347469
     return $response;
   }
 

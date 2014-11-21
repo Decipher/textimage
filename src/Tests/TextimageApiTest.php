@@ -165,7 +165,7 @@ class TextimageApiTest extends TextimageTestBase {
       '#image_container_attributes' => array('class' => ['textimage-container-test']),
       '#href' => $textimage->getUrl(),
     );
-    $this->drupalSetContent(drupal_render($output));
+    $this->drupalSetContent($this->renderer->render($output));
     $this->verbose($this->getRawContent());
     $url = $textimage->getUrl();
     $elements = $this->cssSelect("a[href='$url'] div.textimage-container-test img[src='$url']");

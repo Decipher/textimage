@@ -84,8 +84,9 @@ class TextimageText extends TextimageEffectBase {
     // --- Preview effect.
     $this->configuration['preview_bar']['debug_visuals'] = empty($this->configuration['preview_bar']['debug_visuals']) ? FALSE : TRUE;
     $form['preview'] = array(
+      '#title' => $this->t('Preview'),
       '#type'   => 'item',
-      '#markup' => '<strong>' . $this->t('Preview') . ":</strong>\n" . '<div id="textimage-preview">' . $this->previewImage($this->configuration) . '</div>',
+      '#markup' => '<div id="textimage-preview">' . $this->previewImage($this->configuration) . '</div>',
     );
 
     // --- Preview bar.
