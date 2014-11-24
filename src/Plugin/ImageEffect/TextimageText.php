@@ -34,8 +34,8 @@ class TextimageText extends TextimageEffectBase {
     return array_replace_recursive(
       array(
         'font'          => array(
-          'name'                  => $this->config->get('default_font.name'),
-          'uri'                   => $this->config->get('default_font.uri'),
+          'name'                  => \Drupal::service('config.factory')->get('textimage.settings')->get('default_font.name'),
+          'uri'                   => \Drupal::service('config.factory')->get('textimage.settings')->get('default_font.uri'),
           'size'                  => 16,
           'angle'                 => 0,
           'color'                 => '#000000FF',

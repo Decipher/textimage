@@ -8,8 +8,6 @@ TODO:
 =====
 - #2134439 - array_replace_recursive
 - remove REQUIREMENT_INFO
-- check the temp toolkit ops implementation, diff from 7.x-3.x
-- look at redirects, introduce new Url() see #2153891 Add a Url value object
 
 -------------------------------------------------------------------------------
 

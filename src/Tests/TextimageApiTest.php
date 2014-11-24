@@ -163,7 +163,7 @@ class TextimageApiTest extends TextimageTestBase {
       '#title' => 'Textimage title',
       '#attributes' => array('class' => 'textimage-test'),
       '#image_container_attributes' => array('class' => ['textimage-container-test']),
-      '#href' => $textimage->getUrl(),
+      '#href' => ['path' => $textimage->getUrl(), 'options' => []],
     );
     $this->drupalSetContent($this->renderer->render($output));
     $this->verbose($this->getRawContent());

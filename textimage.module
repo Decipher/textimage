@@ -292,8 +292,6 @@ function _textimage_form_image_style_form_validate($form, FormStateInterface $fo
  * Default template: textimage-formatter.html.twig.
  */
 function template_preprocess_textimage_formatter(&$variables) {
-  $output = array();
-
   // Get URI to image file.
   if ($variables['textimage'] && $variables['textimage'] instanceof Textimage) {
     $image_uri = $variables['textimage']->getUri();
@@ -339,9 +337,12 @@ function template_preprocess_textimage_formatter(&$variables) {
 
     // Build anchor link data if needed.
     if ($variables['href']) {
+      $path = ($variables['href']['path'] == '#textimage_derivative_url#') ? $url : $variables['href']['path'];
+      $options = $variables['href']['options'];
+      $href = \Drupal::service('url_generator')->generateFromPath($path, $options);
       $variables['anchor_attributes'] = new Attribute([
         'title' => $title,
-        'href' => ($variables['href'] == '#textimage_derivative_url#') ? $url : $variables['href'],
+        'href' => $href,
       ]);
     }
     // Replace occurrences of #textimage_derivative_url# with the actual URL

@@ -104,10 +104,31 @@ class TextimageFactory {
   }
 
   /**
-   * Get a Textimage, building the image if necessary.
+   * @todo
+   */
+  public function getCache() {
+    return $this->cache;
+  }
+
+  /**
+   * @todo
+   */
+  public function getLock() {
+    return $this->lock;
+  }
+
+  /**
+   * @todo
+   */
+  public function getImageFactory() {
+    return $this->imageFactory;
+  }
+
+  /**
+   * Get a Textimage object.
    */
   public function getTextimage() {
-    return new Textimage($this, $this->imageFactory, $this->lock, $this->cache);
+    return new Textimage($this);
   }
 
   /**

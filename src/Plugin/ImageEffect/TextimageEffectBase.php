@@ -38,13 +38,6 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   protected $imageFactory;
 
   /**
-   * Textimage configuration object.
-   *
-   * @var \Drupal\Core\Config\Config
-   */
-  protected $config;
-
-  /**
    * The font plugin.
    *
    * @var \Drupal\textimage\Plugin\TextimageFontPluginInterface
@@ -61,8 +54,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $logger, ConfigFactoryInterface $config_factory, ImageFactory $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
-    $this->config = $config_factory->get('textimage.settings');
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $logger, ImageFactory $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $logger);
     $this->imageFactory = $image_factory;
     $this->textimageFactory = $textimage_factory;
@@ -79,7 +71,6 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
       $plugin_id,
       $plugin_definition,
       $container->get('logger.factory')->get('image'),
-      $container->get('config.factory'),
       $container->get('image.factory'),
       $container->get('textimage.factory'),
       $container->get('plugin.manager.textimage.font')->getPlugin(),
