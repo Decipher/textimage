@@ -34,10 +34,13 @@ class TextimageBackground extends TextimageEffectBase {
           'uri' => NULL,
           'fid' => 0,
         ),
+        'format' => array(
+          'extension' => '*original',
+          'gif_transparent_color' => NULL,
+        ),
         'background' => array(
           'color' => NULL,
           'repeat' => TRUE,
-          'gif_transparent_color' => NULL,
         ),
         'exact' => array(
           'width'    => '',
@@ -84,6 +87,43 @@ class TextimageBackground extends TextimageEffectBase {
     // Background image selection.
     $form['background_image']['uri'] = $this->backgroundPlugin->selectionElement($this->configuration);
 
+    // Derivative image format.
+    $form['format'] = array(
+      '#type' => 'fieldset',
+      '#title' => $this->t('Output image format'),
+    );
+    // Derivative image format - Extension.
+    $extensions = $this->imageFactory->getSupportedExtensions();
+    $options = array(
+      '*original' => $this->t('- Original -'),
+    ) + array_combine($extensions, $extensions);
+    $form['format']['extension'] = array(
+      '#type' => 'select',
+      '#title' => t('Extension'),
+      '#default_value' => $this->configuration['format']['extension'],
+      '#required' => TRUE,
+      '#options' => $options,
+      '#description' => $this->t('Choose an image file format for the final Textimage, or leave to \'Original\' to keep the file format of the image being processed.'),
+    );
+    // Derivative image format - GIF color.
+    $form['format']['gif_transparent_color'] = array(
+      '#type' => 'textimage_color',
+      '#title' => $this->t('Transparent color for GIF images'),
+      '#description'  => $this->t('Select a color to be used for transparency of GIF image files. Leave the checkbox ticked to use the color of the image being processed, if it has one.'),
+      '#allow_null' => TRUE,
+      '#checkbox_title' => $this->t('Use original image color'),
+      '#allow_opacity' => FALSE,
+      '#default_value' => $this->configuration['format']['gif_transparent_color'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name="data[format][extension]"]' => array(
+            ['value' => 'gif'],
+            ['value' => '*original'],
+          ),
+        ),
+      ),
+    );
+
     // Background color.
     $form['background'] = array(
       '#type' => 'details',
@@ -102,15 +142,6 @@ class TextimageBackground extends TextimageEffectBase {
       '#title' => $this->t('Use color for subsequent Textimage effects'),
       '#description' => $this->t('If checked, this color will be used as a filler in case Textimage effects applied later need to extend the size of the image.'),
       '#default_value' => $this->configuration['background']['repeat'],
-    );
-    $form['background']['gif_transparent_color'] = array(
-      '#type' => 'textimage_color',
-      '#title' => $this->t('Transparent color for GIF images'),
-      '#description'  => $this->t('Select a color to be used for transparency of GIF image files. Leave the checkbox ticked to use the color of the image being processed, if it has one.'),
-      '#allow_null' => TRUE,
-      '#checkbox_title' => $this->t('Use original image color'),
-      '#allow_opacity' => FALSE,
-      '#default_value' => $this->configuration['background']['gif_transparent_color'],
     );
 
     // Background image exact dimensions.
@@ -247,8 +278,8 @@ class TextimageBackground extends TextimageEffectBase {
     // @todo - is there a better solution??
     $background_color = TextimageColor::valueCallback($form['data']['background']['color'], $form_state->getValue(['background', 'color']), $form_state);
     $form_state->setValue(['background', 'color'], $background_color);
-    $gif_transparent_color = TextimageColor::valueCallback($form['data']['background']['gif_transparent_color'], $form_state->getValue(['background', 'gif_transparent_color']), $form_state);
-    $form_state->setValue(['background', 'gif_transparent_color'], $gif_transparent_color);
+    $gif_transparent_color = TextimageColor::valueCallback($form['data']['format']['gif_transparent_color'], $form_state->getValue(['format', 'gif_transparent_color']), $form_state);
+    $form_state->setValue(['format', 'gif_transparent_color'], $gif_transparent_color);
   }
 
   /**
@@ -294,31 +325,37 @@ class TextimageBackground extends TextimageEffectBase {
       // image built thus far.
       case 'select':
         $background_image = $this->imageFactory->get($this->configuration['background_image']['uri']);
-        if (!$image->apply('textimage_replace_image', array('replacement_image' => $background_image))) {  // @todo add gif transparent
+        if (!$image->apply('textimage_replace_image', array('replacement_image' => $background_image))) {
           return FALSE;
         }
         break;
 
       // If passing through the image from the last effect, no special
       // treatment needed.
-      case 'passthrough': // @todo add gif transparent
+      case 'passthrough':
         break;
 
       // If explicitly requested not to have a background image, set image
       // to transparent 1x1.
       case '':
       default:
-        $image->apply('create_new', [
-          'width' => 1,
-          'height' => 1,
-          'extension' => 'png', // $image->getMimeType(),  // @todo always set to png so to have transparency, need to add format to save to
-          'transparent_color' => $this->configuration['background']['gif_transparent_color'],
-        ]);
+        $image->createNew(1, 1);
         break;
 
     }
 
     $success = TRUE;
+
+    // Convert image to requested output format.
+    if ($this->configuration['format']['extension'] != '*original') {
+      if (!$image->convert($this->configuration['format']['extension'])) {
+        return FALSE;
+      }
+      // Set GIF transparent color if needed.
+      if ($this->configuration['format']['gif_transparent_color']) {
+        $image->apply('textimage_set_gif_transparent_color', ['transparent_color' => $this->configuration['format']['gif_transparent_color']]);
+      }
+    }
 
     // Handle exact sizing impacts on original image.
     if ($this->configuration['exact']['width'] || $this->configuration['exact']['height']) {
@@ -460,6 +497,18 @@ class TextimageBackground extends TextimageEffectBase {
       $dimensions['width'] = $width + $this->configuration['relative']['leftdiff'] + $this->configuration['relative']['rightdiff'];
       $dimensions['height'] = $height + $this->configuration['relative']['topdiff'] + $this->configuration['relative']['bottomdiff'];
       return;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDerivativeExtension($extension) {
+    if ($this->configuration['format']['extension'] != '*original') {
+      return $this->configuration['format']['extension'];
+    }
+    else {
+      return $extension;
     }
   }
 

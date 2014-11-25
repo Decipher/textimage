@@ -90,6 +90,7 @@ class TextimageColor extends FormElement {
     $element['#allow_null'] = isset($element['#allow_null']) ? $element['#allow_null'] : FALSE;
     $element['#allow_opacity'] = isset($element['#allow_opacity']) ? $element['#allow_opacity'] : FALSE;
     $element['#description'] = isset($element['#description']) ? $element['#description'] : NULL;
+    $element['#states'] = isset($element['#states']) ? $element['#states'] : NULL;
     $element['#checkbox_title'] = isset($element['#checkbox_title']) ? $element['#checkbox_title'] : t('Transparent');
 
     // In case default value is transparent, set hex and opacity to default
@@ -108,6 +109,7 @@ class TextimageColor extends FormElement {
         '#type' => 'fieldset',
         '#description' => $element['#description'],
         '#title' => $element['#title'],
+        '#states' => $element['#states'],
       );
       // Checkbox for transparency.
       if ($element['#allow_null']) {

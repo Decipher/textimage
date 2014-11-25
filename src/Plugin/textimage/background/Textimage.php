@@ -62,7 +62,6 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
    * {@inheritdoc}
    */
   public function selectionElement(array $options = array()) {
-
     // Get list of images.
     $image_files = $this->getList();
     if (empty($image_files)) {
@@ -76,7 +75,6 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
         'warning'
       );
     }
-
     // Element.
     return array(
       '#type'  => 'select',
@@ -93,6 +91,9 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     );
   }
 
+  /**
+   * @todo
+   */
   public function validateSelectorUri($element, FormStateInterface $form_state, $form) {
     if ($form_state->getValue(array('data', 'background_image', 'mode')) == 'select') {
       $file_path = $this->configuration['path'] . '/' . $element['#value'];
