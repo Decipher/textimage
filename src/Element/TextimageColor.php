@@ -42,15 +42,15 @@ class TextimageColor extends FormElement {
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
     if ($input !== FALSE && $input !== NULL) {
       // Make sure element properties are set.
-      $element['#allow_transparent'] = isset($element['#allow_transparent']) ? $element['#allow_transparent'] : FALSE;
+      $element['#allow_null'] = isset($element['#allow_null']) ? $element['#allow_null'] : FALSE;
       $element['#allow_opacity'] = isset($element['#allow_opacity']) ? $element['#allow_opacity'] : FALSE;
 
       // Normalize returned element values to a rgba hex value.
       $val = NULL;
-      if ($element['#allow_transparent'] && !empty($input['container']['transparent'])) {
+      if ($element['#allow_null'] && !empty($input['container']['transparent'])) {
         return NULL;
       }
-      elseif ($element['#allow_transparent'] || $element['#allow_opacity']) {
+      elseif ($element['#allow_null'] || $element['#allow_opacity']) {
         $val = Unicode::strtoupper($input['container']['hex']);
       }
       else {
@@ -72,7 +72,7 @@ class TextimageColor extends FormElement {
    *
    * @param array $element
    *   The form element to process. Properties used:
-   *     '#allow_transparent' - if set to TRUE, a checkbox is displayed to set the
+   *     '#allow_null' - if set to TRUE, a checkbox is displayed to set the
    *      color as a full transparency, In this case, color hex and opacity are
    *      hidden, and the value returned is NULL.
    *     '#allow_opacity' - if set to TRUE, a textfield is displayed to capture the
@@ -87,9 +87,10 @@ class TextimageColor extends FormElement {
    */
   public static function processTextimageColor(&$element, FormStateInterface $form_state, &$complete_form) {
     // Make sure element properties are set.
-    $element['#allow_transparent'] = isset($element['#allow_transparent']) ? $element['#allow_transparent'] : FALSE;
+    $element['#allow_null'] = isset($element['#allow_null']) ? $element['#allow_null'] : FALSE;
     $element['#allow_opacity'] = isset($element['#allow_opacity']) ? $element['#allow_opacity'] : FALSE;
     $element['#description'] = isset($element['#description']) ? $element['#description'] : NULL;
+    $element['#checkbox_title'] = isset($element['#checkbox_title']) ? $element['#checkbox_title'] : t('Transparent');
 
     // In case default value is transparent, set hex and opacity to default
     // values (white, fully opaque) so that if transparency is unchecked,
@@ -100,7 +101,7 @@ class TextimageColor extends FormElement {
 
     $colorPlugin = \Drupal::service('plugin.manager.textimage.color')->getPlugin();
 
-    if ($element['#allow_transparent'] || $element['#allow_opacity']) {
+    if ($element['#allow_null'] || $element['#allow_opacity']) {
       // More sub-fields are needed to define the color, wrap them in a
       // container fieldset.
       $element['container'] = array(
@@ -109,10 +110,10 @@ class TextimageColor extends FormElement {
         '#title' => $element['#title'],
       );
       // Checkbox for transparency.
-      if ($element['#allow_transparent']) {
+      if ($element['#allow_null']) {
         $element['container']['transparent'] = array(
           '#type' => 'checkbox',
-          '#title' => t('Transparent'),
+          '#title' => $element['#checkbox_title'],
           '#default_value' => $transparent,
         );
       }

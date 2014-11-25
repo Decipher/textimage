@@ -93,7 +93,7 @@ class TextimageBackground extends TextimageEffectBase {
     $form['background']['color'] = array(
       '#type' => 'textimage_color',
       '#title' => $this->t('Color'),
-      '#allow_transparent' => TRUE,
+      '#allow_null' => TRUE,
       '#allow_opacity' => TRUE,
       '#default_value' => $this->configuration['background']['color'],
     );
@@ -106,8 +106,9 @@ class TextimageBackground extends TextimageEffectBase {
     $form['background']['gif_transparent_color'] = array(
       '#type' => 'textimage_color',
       '#title' => $this->t('Transparent color for GIF images'),
-      '#description'  => $this->t('Indicate a color to be used for transparency of GIF image files. Leave blank to use the color of the image being processed, if it has one.'),
-      '#allow_transparent' => TRUE, // @todo change #allow_transparent to #allow_null and make the 'transparent' text customisable
+      '#description'  => $this->t('Select a color to be used for transparency of GIF image files. Leave the checkbox ticked to use the color of the image being processed, if it has one.'),
+      '#allow_null' => TRUE,
+      '#checkbox_title' => $this->t('Use original image color'),
       '#allow_opacity' => FALSE,
       '#default_value' => $this->configuration['background']['gif_transparent_color'],
     );

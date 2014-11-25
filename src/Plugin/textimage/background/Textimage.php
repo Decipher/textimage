@@ -49,6 +49,9 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     return $element;
   }
 
+  /**
+   * Validation handler for the 'path' element.
+   */
   public function validatePath($element, FormStateInterface $form_state, $form) {
     if (!is_dir($element['#value'])) {
       $form_state->setErrorByName(implode('][', $element['#parents']), $this->t('Invalid directory specified.'));

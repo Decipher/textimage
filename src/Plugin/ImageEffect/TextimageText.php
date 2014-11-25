@@ -484,7 +484,7 @@ class TextimageText extends TextimageEffectBase {
       '#type' => 'textimage_color',
       '#title' => $this->t('Background color'),
       '#description'  => $this->t('Select the color you wish to use for the background of the text.'),
-      '#allow_transparent' => TRUE,
+      '#allow_null' => TRUE,
       '#allow_opacity' => TRUE,
       '#default_value' => $this->configuration['layout']['background_color'],
     );

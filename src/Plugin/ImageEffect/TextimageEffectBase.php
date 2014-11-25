@@ -28,7 +28,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
    *
    * @var \Drupal\textimage\TextimageFactory
    */
-  protected $textimageFactory;  // @todo maybe not needed if there's a way to store data in the Image options
+  protected $textimageFactory;
 
   /**
    * The Image factory.

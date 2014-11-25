@@ -79,19 +79,19 @@ class TextimageFactory {
    * Constructs a new TextimageFactory object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   the config factory
+   *   The config factory.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
-   *   The image factory cache service.
+   *   The image factory.
    * @param \Drupal\Core\Lock\DatabaseLockBackend $lock_service
-   *   the lock service
+   *   The lock service.
    * @param \Drupal\Core\Utility\Token $token_service
-   *   the token resolution service
+   *   The token resolution service.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
-   *   the textimage cache service
+   *   The Textimage cache service.
    * @param \Drupal\Core\Session\AccountInterface $current_user
-   *   the current user
+   *   The current user.
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
-   *   the image effect manager service
+   *   The image effect manager service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager) {
     $this->config = $config_factory->get('textimage.settings');
@@ -104,21 +104,40 @@ class TextimageFactory {
   }
 
   /**
-   * @todo
+   * Return the Textimage config service.
+   *
+   * @return \Drupal\Core\Cache\CacheBackendInterface
+   *   The Textimage cache service.
+   */
+  public function getConfig() {
+    return $this->config;
+  }
+
+  /**
+   * Return the Textimage cache service.
+   *
+   * @return \Drupal\Core\Cache\CacheBackendInterface
+   *   The Textimage cache service.
    */
   public function getCache() {
     return $this->cache;
   }
 
   /**
-   * @todo
+   * Return the lock service.
+   *
+   * @return \Drupal\Core\Lock\DatabaseLockBackend
+   *   The lock service.
    */
   public function getLock() {
     return $this->lock;
   }
 
   /**
-   * @todo
+   * Return the image factory.
+   *
+   * @return \Drupal\Core\Image\ImageFactory
+   *   The image factory.
    */
   public function getImageFactory() {
     return $this->imageFactory;
@@ -126,6 +145,9 @@ class TextimageFactory {
 
   /**
    * Get a Textimage object.
+   *
+   * @return \Drupal\textimage\Textimage
+   *   A new Textimage object.
    */
   public function getTextimage() {
     return new Textimage($this);

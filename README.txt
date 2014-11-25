@@ -8,6 +8,8 @@ TODO:
 =====
 - #2134439 - array_replace_recursive
 - remove REQUIREMENT_INFO
+- remove TextimageFactory::getState() and setState() when #1826362 (ImageStyle
+  to be accessible from ImageEffect plugins) is committed
 
 -------------------------------------------------------------------------------
 
