@@ -16,6 +16,7 @@ use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
@@ -53,6 +54,13 @@ class TextimageFactory {
    * @var \Drupal\image\ImageEffectManager
    */
   protected $imageEffectManager;
+
+  /**
+   * The stream wrapper manager service.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManager
+   */
+  protected $streamWrapperManager;
 
   /**
    * The textimage cache service.
@@ -93,7 +101,7 @@ class TextimageFactory {
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
    *   The image effect manager service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager) {
     $this->config = $config_factory->get('textimage.settings');
     $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
@@ -101,6 +109,7 @@ class TextimageFactory {
     $this->cache = $cache_service;
     $this->currentUser = $current_user;
     $this->imageEffectManager = $image_effect_manager;
+    $this->streamWrapperManager = $stream_wrapper_manager;
   }
 
   /**
@@ -298,14 +307,14 @@ class TextimageFactory {
    *   the style being flushed
    */
   public function flushStyle($style) {
-    $this->cache->deleteAll(); // @todo check cache tags
-    //cache_clear_all('tiid:', 'cache_textimage', TRUE); // @todo D7 for ref
+    // Clear style's cached images URI.
+    $this->cache->deleteTags(['textimage_tiid', 'textimage_style:' . $style->id()]);
     // Clear hashed filename images.
     if (file_exists($directory = $this->getStorePath('styled_hashed/') . $style->id())) {
       file_unmanaged_delete_recursive($directory);
     }
     // Clear images, checking in all available schemes.
-    $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE); // @todo inject
+    $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
       if (file_exists($directory = $wrapper . '://textimage/' . $style->id())) {
         file_unmanaged_delete_recursive($directory);
@@ -332,7 +341,7 @@ class TextimageFactory {
     if (file_exists($directory = $this->getStorePath('uncached'))) {
       file_unmanaged_delete_recursive($directory);
     }
-    $this->cache->deleteAll(); // @todo check cache tags
+    $this->cache->deleteAll();
     db_truncate('textimage_store')->execute();
     _textimage_diag(t('All Textimage images were removed.'), 'notice');
   }

@@ -4,7 +4,6 @@
  * @file
  * Contains \Drupal\textimage\Textimage.
  */
-// @todo Cache::PERMANENT to lower timeline??
 
 namespace Drupal\textimage;
 
@@ -583,6 +582,7 @@ class Textimage {
         _textimage_diag(t("Textimage failed to build an image."), 'error', NULL, $this->userMessages);
       }
     }
+_textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
 
     // Release lock.
     if (!empty($lock_acquired)) {
@@ -754,12 +754,13 @@ class Textimage {
     if ($cached = $this->factory->getCache()->get('tiid:' . $this->id)) {
       if (is_file($cached->data['uri'])) {
         $this->uri = $cached->data['uri'];
+_textimage_diag(t("Got from cache, @uri", array('@uri' => $this->uri)), 'debug');
         return TRUE;
       }
     }
 
     // No cache. Check if we have the hash in store.
-    $stored_image = db_select('textimage_store', 'ic')
+    $stored_image = db_select('textimage_store', 'ic')  // @todo remove db_select, use injected connection
         ->fields('ic')
         ->condition('tiid', $this->id, '=')
         ->execute()
@@ -774,6 +775,7 @@ class Textimage {
     $uri = $stored_image['uri'];
     if (is_file($uri)) {
       $this->uri = $uri;
+_textimage_diag(t("Got from store, @uri", array('@uri' => $this->uri)), 'debug');
       $this->setCached();
       return TRUE;
     }
@@ -789,14 +791,11 @@ class Textimage {
    * @return self
    */
   protected function setCached() {
-    $data = array(
-      'uri' => $this->uri,
-    );
-    $tags = array('tiid' => '1');  // @todo whats the logic???
+    $tags = ['textimage_tiid'];
     if (isset($this->style) && $this->style->id()) {
-      $tags['style'] = $this->style->id();
+      $tags[] = 'textimage_style:' . $this->style->id();
     }
-    $this->factory->getCache()->set('tiid:' . $this->id, $data, Cache::PERMANENT, $tags);
+    $this->factory->getCache()->set('tiid:' . $this->id, ['uri' => $this->uri], time() + (60 * 60 * 24), $tags);
     return $this;
   }
 

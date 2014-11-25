@@ -39,7 +39,7 @@ class TextimageRoutes {
           '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::urlDeliver',
         ),
         array(
-          '_access' => 'TRUE',  // @todo array('generate textimage url derivatives')
+          '_permission' => 'generate textimage url derivatives',
         )
       );
     }
