@@ -11,40 +11,30 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
  * Implements hook_requirements().
  */
 function textimage_requirements($phase) {
-
   $requirements = array();
 
-  // Check a private wrapper exists and is writeable.
-  $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
-  if (!isset($wrappers['private'])) {
-    $requirements['textimage_private_wrapper'] = array(
-      'title' => t('Private file wrapper'),
-      'value' => t('Undefined'),
-      'severity' => REQUIREMENT_ERROR,
-      'description' => t('Textimage requires access to a private area for file storage. Ensure that a path is specified for "Private file system path" visiting the <a href="@url">File system</a> configuration page, or, alternatively, that a "private" writeable stream wrapper is defined elsewhere.', array('@url' => \Drupal::url('system.file_system_settings'))),
-    );
-  }
-
   // Check PHP GD2 library enabled and providing FreeType support.
-  $requirements['textimage_gd']['title'] = t('GD library FreeType support');
   if (function_exists('imagegd2')) {
     $info = gd_info();
-    $requirements['textimage_gd']['value'] = $info['GD Version'];
     // Check for FreeType support.
-    if (function_exists('imagettftext') && $info["FreeType Support"]) {
-      $requirements['textimage_gd']['severity'] = REQUIREMENT_INFO;
-    }
-    else {
+    if (!function_exists('imagettftext') || !isset($info["FreeType Support"])) {
       // No FreeType support, raise error.
-      $requirements['textimage_gd']['severity'] = REQUIREMENT_ERROR;
-      $requirements['textimage_gd']['description'] = t('The GD Library for PHP is enabled, but was compiled without FreeType support. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://www.php.net/manual/book.image.php">the PHP manual</a>.');
+      $requirements['textimage_gd'] = array(
+        'title' => t('GD library FreeType support'),
+        'value' => $info['GD Version'],
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('The GD Library for PHP is enabled, but was compiled without FreeType support. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://www.php.net/manual/book.image.php">the PHP manual</a>.'),
+      );
     }
   }
   else {
     // No GD2, raise error.
-    $requirements['textimage_gd']['value'] = t('Not installed');
-    $requirements['textimage_gd']['severity'] = REQUIREMENT_ERROR;
-    $requirements['textimage_gd']['description'] = t('The GD library for PHP is missing or outdated. Check the <a href="@url">PHP image documentation</a> for information on how to correct this.', array('@url' => 'http://www.php.net/manual/book.image.php'));
+    $requirements['textimage_gd'] = array(
+      'title' => t('GD library'),
+      'value' => t('Not installed'),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => t('The GD library for PHP is missing or outdated.'),
+    );
   }
 
   return $requirements;
@@ -122,8 +112,36 @@ function textimage_schema() {
  */
 function textimage_install() {
 
-  // Create fonts and background directories.
-  $fonts_path = \Drupal::config('textimage.settings')->get('font.plugin_settings.textimage.path');
+  $config = \Drupal::config('textimage.settings');
+
+  // Find out scheme to use for the textimage_store directory. Preference to
+  // 'private'.
+  $scheme = 'private';
+  if ($private_wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme)) {
+    $private_directory = $private_wrapper->getDirectoryPath();
+  }
+  if (!$private_wrapper || !isset($private_directory) || !file_prepare_directory($private_directory, FILE_CREATE_DIRECTORY)) {
+    $scheme = 'public';
+    _textimage_diag(
+      t(
+        'Textimage created its repository of images and fonts in the <b>public</b> file storage. It is recommended to use the <b>private</b> file storage for this, but it is not set up correctly. You can specify the "Private file system path" visiting the <a href="@url">File system</a> configuration page, then change the set up in the <a href="@url1">Textimage settings</a>.',
+        array(
+          '@url' => \Drupal::url('system.file_system_settings'),
+          '@url1' => \Drupal::url('textimage.settings'),
+        )
+      ),
+      'warning'
+    );
+  }
+
+  // Set store scheme in config.
+  $store_scheme = $config->get('store_scheme');
+  $store_scheme = str_replace('[scheme]', $scheme, $store_scheme);
+  $config->set('store_scheme', $store_scheme);
+
+  // Create fonts directory.
+  $fonts_path = $config->get('font.plugin_settings.textimage.path');
+  $fonts_path = str_replace('[scheme]', $scheme, $fonts_path);
   if (!file_prepare_directory($fonts_path, FILE_CREATE_DIRECTORY)) {
     _textimage_diag(
       t(
@@ -136,7 +154,11 @@ function textimage_install() {
       'error'
     );
   }
-  $backgrounds_path = \Drupal::config('textimage.settings')->get('background.plugin_settings.textimage.path');
+  $config->set('font.plugin_settings.textimage.path', $fonts_path);
+
+  // Create backgrounds directory.
+  $backgrounds_path = $config->get('background.plugin_settings.textimage.path');
+  $backgrounds_path = str_replace('[scheme]', $scheme, $backgrounds_path);
   if (!file_prepare_directory($backgrounds_path, FILE_CREATE_DIRECTORY)) {
     _textimage_diag(
       t(
@@ -149,6 +171,9 @@ function textimage_install() {
       'error'
     );
   }
+  $config->set('background.plugin_settings.textimage.path', $backgrounds_path);
+
+  $config->save();
 }
 
 /**

@@ -6,5 +6,3 @@ package: Media
 configure: textimage.settings
 dependencies:
  - image
-# dependencies[] = imagecache_actions
-# dependencies[] = imagecache_canvasactions

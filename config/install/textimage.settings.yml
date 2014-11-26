@@ -1,11 +1,10 @@
-# @todo restore private scheme once #2170235 is in
-store_scheme: public
+store_scheme: '[scheme]'
 message_level: 6
 font:
   plugin_id: textimage
   plugin_settings:
     textimage:
-      path: public://textimage_store/fonts
+      path: '[scheme]://textimage_store/fonts'
 default_font:
   name:
   uri:
@@ -13,6 +12,6 @@ background:
   plugin_id: textimage
   plugin_settings:
     textimage:
-      path: public://textimage_store/backgrounds
+      path: '[scheme]://textimage_store/backgrounds'
 color:
   plugin_id: textimage
