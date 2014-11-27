@@ -15,6 +15,7 @@ use Drupal\system\FileDownloadController;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -64,6 +65,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    *
    * After generating an image, transfer it to the requesting agent.
    *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
    * @param string $text_string
    *   The text string, coming from the URL, to be used to deliver the
    *   Textimage.
@@ -78,7 +81,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  public function urlDeliver($text_string, ImageStyleInterface $image_style) {
+  public function urlDeliver(Request $request, $text_string, ImageStyleInterface $image_style) {
     // Check if the style exists.
     if (empty($image_style)) {
       throw new NotFoundHttpException('Could not find the image style requested.');
@@ -86,7 +89,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     if (!$this->textimageFactory->isTextimage($image_style)) {
       throw new NotFoundHttpException('The image style requested is not relevant for Textimage.');
     }
-    
+
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
     // @todo make separator configurable
     $text = explode('---', $text_string);
@@ -108,40 +111,29 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       ->style($image_style)
       ->extension($extension)
       ->process($text)
-      ->getUri(); // @todo hmm no we should not generate the derivative yet
-    
+      ->getUri();
+
     // Don't try to send file if it is missing.
     if (!file_exists($image_uri)) {
       \Drupal::logger('textimage')->notice('Textimage image at %source_image_path not found.',  array('%source_image_path' => $image_uri));
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
-    $headers = array();
-    
-    // If using the private scheme, let other modules provide headers and
-    // control access to the file.
-    // @todo should check the old lab02
-    $scheme = file_uri_scheme($image_uri);
-    if ($scheme == 'private') {
-      if (file_exists($image_uri)) { // @todo not this
-        return parent::download($request, $scheme);
-      }
-      else {
-        $headers = $this->moduleHandler()->invokeAll('file_download', array($image_uri));
-        if (in_array(-1, $headers) || empty($headers)) {
-          throw new AccessDeniedHttpException();
-        }
-      }
+    if (($scheme = file_uri_scheme($image_uri)) == 'private') {
+      // If using the private scheme, defer control to FileDownloadController.
+      $request->query->set('file', file_uri_target($image_uri));
+      return parent::download($request, $scheme);
     }
-
-    // Get the image and transfer to client.
-    $image = $this->imageFactory->get($image_uri);
-    $uri = $image->getSource();
-    $headers += array(
-      'Content-Type' => $image->getMimeType(),
-      'Content-Length' => $image->getFileSize(),
-    );
-    return new BinaryFileResponse($uri, 200, $headers);
+    else {
+      // Get the image and transfer to client.
+      $image = $this->imageFactory->get($image_uri);
+      $uri = $image->getSource();
+      $headers = array(
+        'Content-Type' => $image->getMimeType(),
+        'Content-Length' => $image->getFileSize(),
+      );
+      return new BinaryFileResponse($uri, 200, $headers);
+    }
   }
 
 }

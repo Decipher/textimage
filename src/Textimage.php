@@ -9,14 +9,7 @@ namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Timer;
 use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Cache\Cache;
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\Lock\DatabaseLockBackend;
-use Drupal\Core\Utility\Token;
 use Drupal\image\ImageStyleInterface;
-use Drupal\field\Field;
 use Drupal\file\FileInterface;
 use Drupal\node\NodeInterface;
 
@@ -104,6 +97,13 @@ class Textimage {
   protected $extension = 'png';
 
   /**
+   * RGB hex color to be used for GIF images.
+   *
+   * @var string
+   */
+  protected $gifTransparentColor;
+
+  /**
    * If this Textimage has to be cached.
    *
    * @var bool
@@ -169,7 +169,7 @@ class Textimage {
    * @param mixed $value
    *   the value to set
    *
-   * @return self
+   * @return $this
    */
   protected function set($property, $value) {
     if (!property_exists($this, $property)) {
@@ -190,7 +190,7 @@ class Textimage {
    * @param \Drupal\image\ImageStyleInterface $image_style
    *   the image style to be used to derive the Textimage
    *
-   * @return self
+   * @return $this
    */
   public function style(ImageStyleInterface $image_style) {
     if ($this->factory->isTextimage($image_style)) {
@@ -207,7 +207,7 @@ class Textimage {
    * @param string $image_style_name
    *   the name of the image style to be used to derive the Textimage
    *
-   * @return self
+   * @return $this
    */
   public function styleByName($image_style_name) {
     if ($image_style_name) {
@@ -232,7 +232,7 @@ class Textimage {
    *   An array of image effects. Since Textimage manipulates effects before
    *   rendering the image, the style effects are copied here to allow that.
    *
-   * @return self
+   * @return $this
    */
   public function effects(array $effects) {
     return $this->set('effects', $effects);
@@ -242,12 +242,24 @@ class Textimage {
    * Set the image file extension.
    *
    * @param string $extension
-   *   The file extension to be used (jpg/png/gif).
+   *   The file extension to be used (e.g. jpg/png/gif).
    *
-   * @return self
+   * @return $this
    */
   public function extension($extension) {
     return $this->set('extension', $extension);
+  }
+
+  /**
+   * Set the RGB hex color to be used for GIF images.
+   *
+   * @param string $color
+   *   The color to be used for transparent.
+   *
+   * @return $this
+   */
+  public function gifTransparentColor($color) {
+    return $this->set('gifTransparentColor', $color);
   }
 
   /**
@@ -256,7 +268,7 @@ class Textimage {
    * @param \Drupal\file\FileInterface $source_image_file
    *   A file entity.
    *
-   * @return self
+   * @return $this
    */
   public function sourceImageFile(FileInterface $source_image_file) {
     return $this->set('sourceImageFile', $source_image_file);
@@ -268,7 +280,7 @@ class Textimage {
    * @param \Drupal\node\NodeInterface $snode
    *   A node entity.
    *
-   * @return self
+   * @return $this
    */
   public function node(NodeInterface $node) {
     return $this->set('node', $node);
@@ -280,7 +292,7 @@ class Textimage {
    * @param bool $caching
    *   TRUE if caching is required for this Textimage.
    *
-   * @return self
+   * @return $this
    */
   public function setCaching($caching) {
     // If destination URI has been forced, this setting is not effective.
@@ -296,7 +308,7 @@ class Textimage {
    * @param string $uri
    *   A valid URI.
    *
-   * @return self
+   * @return $this
    */
   public function setTargetUri($uri) {
     if ($uri) {
@@ -313,7 +325,7 @@ class Textimage {
    * @param bool $user_messages
    *   TRUE if Textimage errors need to be notified to users.
    *
-   * @return self
+   * @return $this
    */
   public function setUserMessages($user_messages) {
     return $this->set('userMessages', $user_messages);
@@ -326,7 +338,7 @@ class Textimage {
    *   TRUE if Textimage has to use an hashed filename even if a human
    *   readable one could be attempted.
    *
-   * @return self
+   * @return $this
    */
   public function setHashedFilename($force_hashed_filename) {
     return $this->set('forceHashedFilename', $force_hashed_filename);
@@ -380,7 +392,7 @@ class Textimage {
    * @param string $id
    *   The id of the Textimage to load.
    *
-   * @return self
+   * @return $this
    */
   public function load($id) {
 
@@ -390,7 +402,7 @@ class Textimage {
     }
 
     // Check if we have the hash in store.
-    $stored_image = db_select('textimage_store', 'ic')
+    $stored_image = $this->factory->getDatabase()->select('textimage_store', 'ic')
         ->fields('ic')
         ->condition('tiid', $id, '=')
         ->execute()
@@ -433,7 +445,7 @@ class Textimage {
    * @param array $text
    *   An array of text strings, with tokens not resolved.
    *
-   * @return self
+   * @return $this
    */
   public function process($text) {
 
@@ -529,7 +541,7 @@ class Textimage {
   /**
    * Build the image via core ImageStyle::createDerivative() method.
    *
-   * @return self
+   * @return $this
    */
   protected function buildImage() {
 
@@ -556,7 +568,7 @@ class Textimage {
     $source = isset($this->sourceImageFile) ? $this->sourceImageFile->getFileUri() : NULL;
     $image = $this->factory->getImageFactory()->get($source);
     if (!$source) {
-      $image->createNew(1, 1, $this->extension); // @todo add gif transparent color
+      $image->createNew(1, 1, $this->extension, $this->gifTransparentColor);
     }
 
     // Build a runtime-only style.
@@ -760,7 +772,7 @@ _textimage_diag(t("Got from cache, @uri", array('@uri' => $this->uri)), 'debug')
     }
 
     // No cache. Check if we have the hash in store.
-    $stored_image = db_select('textimage_store', 'ic')  // @todo remove db_select, use injected connection
+    $stored_image = $this->factory->getDatabase()->select('textimage_store', 'ic')
         ->fields('ic')
         ->condition('tiid', $this->id, '=')
         ->execute()
@@ -788,7 +800,7 @@ _textimage_diag(t("Got from store, @uri", array('@uri' => $this->uri)), 'debug')
   /**
    * Cache image uri.
    *
-   * @return self
+   * @return $this
    */
   protected function setCached() {
     $tags = ['textimage_tiid'];
@@ -813,7 +825,7 @@ _textimage_diag(t("Got from store, @uri", array('@uri' => $this->uri)), 'debug')
       'timer' => $this->timer,
       'timestamp' => REQUEST_TIME,
     );
-    db_merge('textimage_store')
+    $this->factory->getDatabase()->merge('textimage_store')
       ->key(array('tiid' => $this->id))
       ->fields($stored_image)
       ->execute();

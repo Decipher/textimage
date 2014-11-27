@@ -183,6 +183,8 @@ function textimage_uninstall() {
   // Delete the textimage directory from each registered wrapper.
   $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
-    file_unmanaged_delete_recursive($wrapper . '://textimage');
+    if (file_exists($directory = $wrapper . '://textimage')) {
+      file_unmanaged_delete_recursive($directory);
+    }
   }
 }

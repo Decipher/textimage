@@ -12,6 +12,8 @@ TODO:
 - review routine to store effects - text_string remains, uuids to be removed,
   filemime to be removed. also check that sequence is based on weights
 - extension to be taken from image style when possible
+- remove _textimage_diag
+- use of gifTransparentColor in Textimage.php
 
 -------------------------------------------------------------------------------
 
@@ -70,9 +72,6 @@ Features
     * Background can be defined as a color, or as a fixed image, or as the
       result of the previous image effects.
     * Exact/relative sizing of the image.
-  * Textimage GIF transparency
-    * Define a color for GIF transparency, so to allow transparent background
-      for Textimage images. Only works within the set of Textimage effects.
 * Field display formatters for Text and Image fields.
 * Textimage API to generate Textimage images programmatically.
 * Textimage tokens to retrieve URI/URL of generated Textimage images.
@@ -81,16 +80,13 @@ Features
 
 Requirements
 ------------
-- Drupal 7.23 or later, with Color and Image modules enabled
+- Drupal 8
 - GD2 and FreeType libraries
-- Private file system configured
-- ImageCache Actions
-- ImageCache Canvas Actions
 
 Recommended modules, for a feature rich set:
+- Private file system configured
 - @font-your-face       (7.x-2.6 or later)
 - Media                 (7.x-1.2 or later)
-- Jquery Colorpicker    (7.x-1.0-rc1 or later)
 - Token                 (7.x-1.5 or later)
 
 Integration with modules:
@@ -193,13 +189,6 @@ Image effect: Textimage background
 - Exact size - In case the size specified is smaller than the source, the options
   are to scale/crop/resize the image.
 - Relative size - Basically adds to the image a border of the size specified.
-
-
-Image effect: Textimage GIF transparency
-----------------------------------------
-- Color - the color specified will be used to set GIF transparency, so to
-  allow transparent background for Textimage images. Only works within the set
-  of Textimage effects.
 
 
 -------------------------------------------------------------------------------

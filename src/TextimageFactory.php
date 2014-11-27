@@ -11,6 +11,7 @@ use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\DatabaseLockBackend;
@@ -84,6 +85,13 @@ class TextimageFactory {
   protected $currentUser;
 
   /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * Constructs a new TextimageFactory object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -100,8 +108,12 @@ class TextimageFactory {
    *   The current user.
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
    *   The image effect manager service.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
+   *   The stream wrapper manager service.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
     $this->config = $config_factory->get('textimage.settings');
     $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
@@ -110,6 +122,7 @@ class TextimageFactory {
     $this->currentUser = $current_user;
     $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
+    $this->database = $database;
   }
 
   /**
@@ -150,6 +163,16 @@ class TextimageFactory {
    */
   public function getImageFactory() {
     return $this->imageFactory;
+  }
+
+  /**
+   * Return the current active database's master connection.
+   *
+   * @return \Drupal\Core\Database\Connection
+   *   The database connection.
+   */
+  public function getDatabase() {
+    return $this->database;
   }
 
   /**
@@ -342,7 +365,7 @@ class TextimageFactory {
       file_unmanaged_delete_recursive($directory);
     }
     $this->cache->deleteAll();
-    db_truncate('textimage_store')->execute();
+    $this->database->truncate('textimage_store')->execute();
     _textimage_diag(t('All Textimage images were removed.'), 'notice');
   }
 
@@ -394,11 +417,11 @@ class TextimageFactory {
     // Determine the callback function.
     switch ($key) {
       case 'uri':
-        $callback_function = 'getUri';
+        $callback_method = 'getUri';
         break;
 
       case 'url':
-        $callback_function = 'getUrl';
+        $callback_method = 'getUrl';
         break;
 
     }
@@ -473,7 +496,7 @@ class TextimageFactory {
               ->styleByName($image_style)
               ->node($node)
               ->process($text)
-              ->$callback_function();
+              ->$callback_method();
           }
           catch (TextimageTokenException $e) {
             // Callback ended up in circular loop, mark the failing token.
@@ -507,7 +530,7 @@ class TextimageFactory {
                 ->node($node)
                 ->sourceImageFile($item->entity)
                 ->process(NULL)
-                ->$callback_function();
+                ->$callback_method();
             }
             // Return a single URI/URL if requested, or a comma separated
             // list of all the URIs/URLs generated.

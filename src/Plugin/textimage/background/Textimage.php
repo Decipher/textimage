@@ -92,7 +92,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
   }
 
   /**
-   * @todo
+   * Validation handler for the selection element.
    */
   public function validateSelectorUri($element, FormStateInterface $form_state, $form) {
     if ($form_state->getValue(array('data', 'background_image', 'mode')) == 'select') {

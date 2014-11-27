@@ -85,55 +85,27 @@ function textimage_theme() {
 /**
  * Implements hook_file_download().
  *
- * Control the access to files underneath the styles directory.
+ * Control the access to files underneath the textimage directories.
  */
 function textimage_file_download($uri) {
   $path = file_uri_target($uri);
-
   // Private file access for image style derivatives.
   if (strpos($path, 'textimage') === 0) {
-    $args = explode('/', $path);
-    // Discard the first part of the path (textimage).
-    array_shift($args);
-    // Get the style name from the second part.
-    $style_name = array_shift($args);
-    // Remove the filename from the path.
-    array_shift($args);
-
-    // Then the remaining parts are the path to the image.
-    $original_uri = file_uri_scheme($uri) . '://' . implode('/', $args);
-
     // Check that the file exists and is an image.
     $image = \Drupal::service('image.factory')->get($uri);
     if ($image->isValid()) {
-      // Check the permissions of the original to grant access to this image.
-      $headers = \Drupal::moduleHandler()->invokeAll('file_download', array($original_uri));
-      // Confirm there's at least one module granting access and none denying access.
-// @todo implement a download controller / file permissions   if (!empty($headers) && !in_array(-1, $headers)) {
-      if (!in_array(-1, $headers)) {
-        return array(
-          // Send headers describing the image's size, and MIME-type...
-          'Content-Type' => $image->getMimeType(),
-          'Content-Length' => $image->getFileSize(),
-          // By not explicitly setting them here, this uses normal Drupal
-          // Expires, Cache-Control and ETag headers to prevent proxy or
-          // browser caching of private images.
-        );
-      }
+      return array(
+        // Send headers describing the image's size, and MIME-type...
+        'Content-Type' => $image->getMimeType(),
+        'Content-Length' => $image->getFileSize(),
+        // By not explicitly setting them here, this uses normal Drupal
+        // Expires, Cache-Control and ETag headers to prevent proxy or
+        // browser caching of private images.
+      );
     }
     return -1;
   }
-
-  // Private file access for the original files. Note that we only
-  // check access for non-temporary images, since file.module will
-  // grant access for all temporary files.
-  $files = entity_load_multiple_by_properties('file', array('uri' => $uri));
-  if (count($files)) {
-    $file = reset($files);
-    if ($file->status) {
-      return file_file_download($uri, 'image');
-    }
-  }
+  return NULL;
 }
 
 /**
