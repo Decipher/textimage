@@ -19,7 +19,6 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Utility\Token;
-use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 
@@ -213,7 +212,6 @@ class TextimageFactory {
    * Process text string, detokenise and apply case conversion.
    */
   public function processTextString($text, $case_format, $node = NULL, $source_image_file = NULL) {
-
     // Replace any tokens in text with run-time values.
     $text = $this->token->replace(
       $text,
@@ -244,13 +242,13 @@ class TextimageFactory {
   }
 
   /**
-   * Get an Imager state variable.
+   * Gets a Textimage state variable.
    *
    * @param string $variable
-   *   state variable
+   *   State variable.
    *
    * @return mixed
-   *   returned variable, NULL if undefined
+   *   Returned variable, NULL if undefined.
    */
   public function getState($variable = NULL) {
     if ($variable) {
@@ -260,15 +258,15 @@ class TextimageFactory {
   }
 
   /**
-   * Set an Imager state variable.
+   * Sets a Textimage state variable.
    *
    * @param string $variable
-   *   state variable
+   *   State variable.
    * @param mixed $value
-   *   value to set, or NULL to return current value
+   *   Value to set, or NULL to return current value.
    *
    * @return mixed
-   *   variable value
+   *   Property value.
    */
   public function setState($variable = NULL, $value = NULL) {
     static $keys;
@@ -488,7 +486,8 @@ class TextimageFactory {
         $items = $node->get($field_name);
 
         // Invoke Textimage API functions to return the token value requested.
-        if ($field_info->getFieldStorageDefinition()->module == 'text') {  // @todo watchout here as it should be 'getProvider'
+        // @todo (core) not clear why 'getProvider()' returns 'field' hardcoded.
+        if ($field_info->getFieldStorageDefinition()->module == 'text') {
           // Text field. Get sanitized text items and return a single image.
           $text = $this->getTextFieldText($items);
           try {
@@ -518,7 +517,8 @@ class TextimageFactory {
             }
           }
         }
-        elseif ($field_info->getFieldStorageDefinition()->module == 'image') {   // @todo watchout here as it should be 'getProvider'
+        // @todo (core) not clear why 'getProvider()' returns 'field' hardcoded.
+        elseif ($field_info->getFieldStorageDefinition()->module == 'image') {
           // Image field. Get a separate Textimage from each of the images
           // in the field.
           try {

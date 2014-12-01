@@ -48,8 +48,6 @@ abstract class TextimageTestBase extends WebTestBase {
     $this->drupalLogin($this->admin_user);
 
     // Change Textimage font directory.
-    // @todo Form Ajax can not be tested at the moment, so going for direct
-    // change to the config settings.
     $config = \Drupal::service('config.factory')->get('textimage.settings');
     $config->set('font.plugin_settings.textimage.path', drupal_get_path('module', 'textimage') . '/tests/fonts');
     $config->save();

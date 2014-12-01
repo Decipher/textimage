@@ -305,6 +305,7 @@ function template_preprocess_textimage_formatter(&$variables) {
   if ($image_uri) {
     $image = \Drupal::service('image.factory')->get($image_uri);
     $title = \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['node'], $variables['source_image_file']);
+    $alt = \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['node'], $variables['source_image_file']);
     $url = file_create_url($image_uri);
 
     // Build anchor link data if needed.
@@ -333,10 +334,14 @@ function template_preprocess_textimage_formatter(&$variables) {
       '#uri' => $image_uri,
       '#width' => $image->getWidth(),
       '#height' => $image->getHeight(),
-      '#alt' => \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['node'], $variables['source_image_file']),
-      '#title' => $title,
       '#attributes' => $variables['attributes'],
     );
+    if (!empty($title)) {
+      $variables['image']['#title'] = $title;
+    }
+    if (!empty($alt)) {
+      $variables['image']['#alt'] = $alt;
+    }
   }
 }
 

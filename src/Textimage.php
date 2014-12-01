@@ -617,7 +617,9 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
   }
 
   /**
-   * @todo remove if #2359443 gets in
+   * Create the derivative image from the Image object.
+   *
+   * @todo (core) remove if #2359443 gets in
    */
   protected function createDerivativeFromImage($style, $image, $derivative_uri) {
     // Get the folder for the final location of this style.
