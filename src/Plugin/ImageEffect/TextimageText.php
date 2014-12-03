@@ -132,14 +132,7 @@ class TextimageText extends TextimageEffectBase {
       '#rows' => 3,
       '#required' => TRUE,
     );
-    /* @todo when module is available if (_textimage_module_exists('token', TEXTIMAGE_TOKEN_MIN_VERSION)) {
-      $form['text_default']['tokens'] = array(
-        '#theme' => 'token_tree',
-        '#token_types' => array('node', 'user', 'file', 'textimage'),
-        '#global_types' => TRUE,
-        '#click_insert' => TRUE,
-      );
-    }*/
+    // @todo reintroduce tokens selection tree once module is available.
 
     // ---- Font settings.
     $form['font'] = array(

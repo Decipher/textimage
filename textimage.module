@@ -177,23 +177,7 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
   return $replacements;
 }
 
-/**
- * Implements hook_metatag_token_types_alter().
- *
- * Integration of Textimage tokens with the Metatag module.
- */
-/*function textimage_metatag_token_types_alter(&$options) {
-  // Add Textimage tokens to the token types managed by Metatag,
-  // for the node context.
-  if ($options['context'] == 'node') {
-    if (!isset($options['token types'])) {
-      $options['token types'] = array();
-    }
-    if (!in_array('textimage', $options['token types'])) {
-      $options['token types'][] = 'textimage';
-    }
-  }
-}*/
+// @todo reintroduce hook_metatag_token_types_alter()once module is available.
 
 /**
  * Implements hook_image_style_flush().
@@ -428,30 +412,3 @@ function _textimage_diag($message, $severity, $caller = NULL, $user_messages = T
     drupal_set_message($message, $type, FALSE);
   }
 }
-
-/**
- * Helper - check if a module is enabled and at a specified release level.
- *
- * @param string $module
- *   Module name.
- * @param string $version
- *   (optional) Module version.
- * @param string $comparison_operator
- *   (optional) A comparison operator to test against $version.
- *
- * @return bool
- *   TRUE if module is enabled, FALSE otherwise.
- */
-/*function _textimage_module_exists($module, $version = NULL, $comparison_operator = '>=') {
-  if (!module_exists($module)) {
-    return FALSE;
-  }
-  if ($version) {
-    $module_info = system_get_info('module', $module);
-    if (empty($module_info['version'])) {
-      return TRUE;
-    }
-    return version_compare($module_info['version'], $version, $comparison_operator);
-  }
-  return TRUE;
-}*/
