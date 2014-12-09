@@ -183,28 +183,48 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
  * Implements hook_image_style_flush().
  */
 function textimage_image_style_flush($style) {
-  // Manage the textimage part of style flushing.
-  if (\Drupal::service('textimage.factory')->isTextimage($style)) {
-    \Drupal::service('textimage.factory')->flushStyle($style);
+  // Manage the textimage part of image style flushing.
+  $factory = \Drupal::service('textimage.factory');
+  if ($factory->isTextimage($style)) {
+    $factory->flushStyle($style);
   }
 }
 
 /**
  * Implements hook_image_style_presave().
+ *
+ * Identify and store whether the image style is relevant for Textimage.
  */
 function textimage_image_style_presave(ImageStyleInterface $style) {
-  // Identify and store whether the image style is relevant for Textimage.
+  $factory = \Drupal::service('textimage.factory');
+  $original_relevant = $factory->isTextimage($style);
+  // Check if there are textimage effects.
+  $relevant = FALSE;
   foreach ($style->getEffects() as $effect) {
     $definition = $effect->getPluginDefinition();
     if ($definition['provider'] == 'textimage') {
-      $style->setThirdPartySetting('textimage', 'is_relevant', TRUE);
-      return;
+      $relevant = TRUE;
+      break;
     }
   }
-  $style->setThirdPartySetting('textimage', 'is_relevant', FALSE);
+  // Flush Textimage if original was relevant but no longer.
+  if (!$relevant && $original_relevant) {
+    $factory->flushStyle($style);
+  }
+  // Store the setting.
+  $style->setThirdPartySetting('textimage', 'is_relevant', $relevant);
 }
 
-// @todo implement hook_image_style_predelete().
+/**
+ * Implements hook_image_style_predelete().
+ */
+function textimage_image_style_predelete(ImageStyleInterface $style) {
+  // Manage the textimage part of image style deletion.
+  $factory = \Drupal::service('textimage.factory');
+  if ($factory->isTextimage($style)) {
+    $factory->flushStyle($style);
+  }
+}
 
 /**
  * Make alterations to the core 'image_style_form' form.
