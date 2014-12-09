@@ -1,5 +1,8 @@
 store_scheme: '[scheme]'
 message_level: 6
+url_generation:
+  enabled: TRUE
+  text_separator: '---'
 font:
   plugin_id: textimage
   plugin_settings:

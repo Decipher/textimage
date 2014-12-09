@@ -42,6 +42,7 @@ abstract class TextimageTestBase extends WebTestBase {
       'create article content',
       'edit any article content',
       'delete any article content',
+      'administer site configuration',
       'administer image styles',
       'generate textimage url derivatives',
     ));

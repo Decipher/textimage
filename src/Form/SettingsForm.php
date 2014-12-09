@@ -177,10 +177,10 @@ class SettingsForm extends ConfigFormBase {
       '#tree' => TRUE,
     );
     $form['settings']['font']['plugin_id'] = array(
-      '#type'    => 'radios',
+      '#type' => 'radios',
       '#options' => $this->fontManager->getPluginOptions(),
       '#default_value' => $font_plugin->getPluginId(),
-      '#required'    => TRUE,
+      '#required' => TRUE,
       '#ajax'  => $ajax_settings,
     );
     $form['settings']['font']['plugin_settings'] = $font_plugin->buildConfigurationForm(array(), $form_state, $ajax_settings);
@@ -216,19 +216,39 @@ class SettingsForm extends ConfigFormBase {
       '#tree' => TRUE,
     );
     $form['settings']['color']['plugin_id'] = array(
-      '#type'    => 'radios',
+      '#type' => 'radios',
       '#options' => $this->colorManager->getPluginOptions(),
       '#default_value' => $color_plugin->getPluginId(),
-      '#required'    => TRUE,
+      '#required' => TRUE,
       '#ajax'  => $ajax_settings,
     );
     $form['settings']['color']['plugin_settings'] = $color_plugin->buildConfigurationForm(array(), $form_state, $ajax_settings);
+
+    // URL generation.
+    $form['settings']['url_generation'] = array(
+      '#type' => 'details',
+      '#title' => $this->t('URL generation'),
+    );
+    $form['settings']['url_generation']['enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enabled'),
+      '#description' => $this->t('When selected, direct generation of Textimage images is enabled for users having the \'Generate Textimage URL derivatives\' permission.'),
+      '#default_value' => $this->config('textimage.settings')->get('url_generation.enabled'),
+    );
+    $form['settings']['url_generation']['text_separator'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('Text separator'),
+      '#maxlength' => 5,
+      '#required' => TRUE,
+      '#description' => $this->t('Indicate the sequence of characters to be used to split the URL text string in separate strings. Each string will be consumed by a \'Textimage Text\' effect in the sequence specified within the image style. Note that slashes \'/\' and plus \'+\' characters are not allowed.'),
+      '#default_value' => $this->config('textimage.settings')->get('url_generation.text_separator'),
+    );
 
     // Maintenance.
     $form['settings']['maintenance'] = array(
       '#type' => 'details',
       '#title' => $this->t('Maintenance'),
-      '#description' => t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.'),
+      '#description' => $this->t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.'),
     );
     $form['settings']['maintenance']['flush_all'] = array(
       '#type' => 'submit',
@@ -237,6 +257,15 @@ class SettingsForm extends ConfigFormBase {
     );
 
     return parent::buildForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    if (preg_match('/[+\/]/', $form_state->getValue(['settings', 'url_generation', 'text_separator']))) {
+      $form_state->setErrorByName('settings][url_generation][text_separator', $this->t('Invalid characters specified for the text separator.'));
+    };
   }
 
   /**
@@ -288,6 +317,11 @@ class SettingsForm extends ConfigFormBase {
     $this->config('textimage.settings')
       ->set('color.plugin_id', $color_plugin->getPluginId())
       ->set('color.plugin_settings.' . $color_plugin->getPluginId(), $color_plugin->getConfiguration());
+
+    // URL generation.
+    $this->config('textimage.settings')
+      ->set('url_generation.enabled', $form_state->getValue(['settings', 'url_generation', 'enabled']))
+      ->set('url_generation.text_separator', $form_state->getValue(['settings', 'url_generation', 'text_separator']));
 
     $this->config('textimage.settings')->save();
     parent::submitForm($form, $form_state);

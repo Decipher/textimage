@@ -705,7 +705,7 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
   protected function getStyledImageClearFileUri() {
 
     // Get a single string out of all the text.
-    $file_name = implode('---', $this->text);
+    $file_name = implode($this->factory->getConfig()->get('url_generation.text_separator'), $this->text);
 
     // Filenames longer than 200 characters will fail in most filesystems.
     if (Unicode::strlen($file_name) > 200) {

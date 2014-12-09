@@ -74,7 +74,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    *   The image style to deliver.
    *
    * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-   *   Thrown when public Textimages can not be generated for the style.
+   *   Thrown when Textimage URL generation is not enabled.
    * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    *   Thrown when the image style is missing.
    *
@@ -82,17 +82,21 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    *   The transferred file as response or some error response.
    */
   public function urlDeliver(Request $request, $text_string, ImageStyleInterface $image_style) {
+    // Check if the URL generation is enabled.
+    if (!$this->textimageFactory->getConfig()->get('url_generation.enabled')) {
+      throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
+    }
+
     // Check if the style exists.
     if (empty($image_style)) {
-      throw new NotFoundHttpException('Could not find the image style requested.');
+      throw new NotFoundHttpException('Could not find the image style requested');
     }
     if (!$this->textimageFactory->isTextimage($image_style)) {
-      throw new NotFoundHttpException('The image style requested is not relevant for Textimage.');
+      throw new NotFoundHttpException('The image style requested is not relevant for Textimage');
     }
 
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
-    // @todo make separator configurable
-    $text = explode('---', $text_string);
+    $text = explode($this->textimageFactory->getConfig()->get('url_generation.text_separator'), $text_string);
 
     // Manage the [extension].
     $last_text = array_pop($text);
