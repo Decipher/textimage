@@ -177,7 +177,7 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
   return $replacements;
 }
 
-// @todo reintroduce hook_metatag_token_types_alter()once module is available.
+// @todo reintroduce hook_metatag_token_types_alter() once module is available.
 
 /**
  * Implements hook_image_style_flush().
@@ -203,6 +203,8 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
   }
   $style->setThirdPartySetting('textimage', 'is_relevant', FALSE);
 }
+
+// @todo implement hook_image_style_predelete().
 
 /**
  * Make alterations to the core 'image_style_form' form.
