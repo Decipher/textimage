@@ -509,13 +509,11 @@ class Textimage {
       }
     }
 
-    // Data for this textimage. Use a dummy filename at this stage,
-    // purely to resolve the mime type.
+    // Data for this textimage.
     $this->imageData = array(
       'text'                => $this->text,
-      'filemime'            => file_get_mimetype('dummy.' . $this->extension),
       'extension'           => $this->extension,
-      'source'              => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
+      'sourceImage'         => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
       'forceHashedFilename' => $this->forceHashedFilename,
     );
 
@@ -529,11 +527,11 @@ class Textimage {
     // Check cache and/or store and return if db and file hit.
     if ($this->caching && $this->getCached()) {
       $this->processed = TRUE;
-      return $this;
     }
-
-    // Build the image.
-    $this->buildImage();
+    else {
+      // If not found, build the image.
+      $this->buildImage();
+    }
 
     return $this;
   }
@@ -554,11 +552,13 @@ class Textimage {
     }
 
     // Inject processed text in the textimage_text effects data.
-    $effects = $this->effects;
-    $processed_text = $this->text;
-    foreach ($effects as $e => &$e_data) {
-      if ($e_data['id'] == 'textimage_text') {
-        $e_data['data']['text_string'] = array_shift($processed_text);
+    $runtime_effects = [];
+    $i = 0;
+    foreach ($this->effects as $effect => $data) {
+      $runtime_effects[$effect] = $data;
+      if ($data['id'] == 'textimage_text' && isset($this->text[$i])) {
+        $runtime_effects[$effect]['data']['text_string'] = $this->text[$i];
+        $i++;
       }
     }
 
@@ -572,7 +572,7 @@ class Textimage {
     }
 
     // Build a runtime-only style.
-    $runtime_style = $this->factory->buildStyleFromEffects($effects);
+    $runtime_style = $this->factory->buildStyleFromEffects($runtime_effects);
 
     // Reset state.
     $this->factory->setState();

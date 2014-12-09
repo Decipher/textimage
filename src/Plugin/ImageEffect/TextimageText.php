@@ -728,7 +728,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // autoextend the background image in case of wrapper overflow.
     if ($this->configuration['layout']['overflow_action'] == 'extend') {
 
-      // Dummy image object.
+      // New image object.
       $image = $this->imageFactory->get();
       $image->apply('create_new', ['width' => 1, 'height' => 1]);
       if (!$image->isValid()) {

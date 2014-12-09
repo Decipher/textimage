@@ -9,8 +9,8 @@ TODO:
 - #2134439 - array_replace_recursive
 - remove TextimageFactory::getState() and setState() when #1826362 (ImageStyle
   to be accessible from ImageEffect plugins) is committed
-- review routine to store effects - text_string remains, uuids to be removed,
-  filemime to be removed. also check that sequence is based on weights
+- review routine to store effects - also check that sequence is based on
+  weights
 - extension to be taken from image style when possible
 - remove _textimage_diag
 - use of gifTransparentColor in Textimage.php

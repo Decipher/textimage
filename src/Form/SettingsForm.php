@@ -228,6 +228,7 @@ class SettingsForm extends ConfigFormBase {
     $form['settings']['url_generation'] = array(
       '#type' => 'details',
       '#title' => $this->t('URL generation'),
+      '#open' => TRUE,
     );
     $form['settings']['url_generation']['enabled'] = array(
       '#type' => 'checkbox',
