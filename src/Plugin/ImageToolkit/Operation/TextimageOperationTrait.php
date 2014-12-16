@@ -13,6 +13,42 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 trait TextimageOperationTrait {
 
   /**
+   * An array of resolved font file URIs.
+   *
+   * @var array
+   */
+  static $fontPaths = [];
+
+  /**
+   * Return the path of the font file, in a format usable by GD.
+   *
+   * @param string $font_uri
+   *   The font URI.
+   *
+   * @return string
+   *   The local path of the font file.
+   */
+  protected function getFontPath($font_uri) {
+    if (!$font_uri) {
+      throw new \InvalidArgumentException('Textimage - Font file not specified');
+    }
+    if (!isset(static::$fontPaths[$font_uri])) {
+      $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
+      if ($font_wrapper instanceof LocalStream) {
+        $ret = $font_wrapper->realpath();
+      }
+      else {
+        $ret = is_file($font_uri) ? $font_uri : NULL;
+      }
+      if (!$ret) {
+        throw new \InvalidArgumentException(String::format('Textimage - Could not find the font file @fontfile', array('@fontfile' => $font_uri)));
+      }
+      static::$fontPaths[$font_uri] = $ret;
+    }
+    return static::$fontPaths[$font_uri];
+  }
+
+  /**
    * Computes a length based on a length specification and an actual length.
    *
    * Examples:
