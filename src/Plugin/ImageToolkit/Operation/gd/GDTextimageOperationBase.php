@@ -14,11 +14,14 @@ use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 
 /**
  * Base class for Textimage GD image toolkit operations.
  */
 abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
+
+  use TextimageOperationTrait;
 
   /**
    * An array of resolved font file URIs.
