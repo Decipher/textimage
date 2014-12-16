@@ -124,20 +124,17 @@ function textimage_install() {
     $scheme = 'public';
     _textimage_diag(
       t(
-        'Textimage created its repository of images and fonts in the <b>public</b> file storage. It is recommended to use the <b>private</b> file storage for this, but it is not set up correctly. You can specify the "Private file system path" visiting the <a href="@url">File system</a> configuration page, then change the set up in the <a href="@url1">Textimage settings</a>.',
+        'Textimage used the <b>public</b> file storage to create a structure of directories it needs to operate. You can change the set up in the <a href="@url">Textimage settings</a>.',
         array(
-          '@url' => \Drupal::url('system.file_system_settings'),
-          '@url1' => \Drupal::url('textimage.settings'),
+          '@url' => \Drupal::url('textimage.settings'),
         )
       ),
-      'warning'
+      'notice'
     );
   }
 
   // Set store scheme in config.
-  $store_scheme = $config->get('store_scheme');
-  $store_scheme = str_replace('[scheme]', $scheme, $store_scheme);
-  $config->set('store_scheme', $store_scheme);
+  $config->set('store_scheme', $scheme);
 
   // Create fonts directory.
   $fonts_path = $config->get('font.plugin_settings.textimage.path');

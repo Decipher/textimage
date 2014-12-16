@@ -1,4 +1,4 @@
-store_scheme: '[scheme]'
+store_scheme: ''
 message_level: 6
 url_generation:
   enabled: TRUE
