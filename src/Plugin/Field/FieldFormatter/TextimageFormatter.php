@@ -26,6 +26,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "textimage",
  *   label = @Translation("Textimage"),
  *   field_types = {
+ *     "string",
+ *     "string_long",
  *     "text",
  *     "text_with_summary",
  *     "text_long",
@@ -256,34 +258,39 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
 
     $elements = array();
 
-    if ($field->module == 'text') {
-      // Get sanitized text strings from a text field.
-      $text = $this->textimageFactory->getTextFieldText($items);
-      $elements[] = array(
-        '#theme' => 'textimage_formatter',
-        '#style_name' => $this->getSetting('image_style'),
-        '#text' => $text,
-        '#node' => $node,
-        '#alt' => $this->getSetting('image_alt'),
-        '#title' => $this->getSetting('image_title'),
-        '#href' => $url,
-      );
-    }
-    elseif ($field->module == 'image') {
-      // Get source image from an image field.
-      foreach ($items as $delta => $item) {
-        $elements[$delta] = array(
+    switch($field->module) {
+      case 'text':
+      case 'core';
+        // Get sanitized text strings from a text field.
+        $text = $this->textimageFactory->getTextFieldText($items);
+        $elements[] = array(
           '#theme' => 'textimage_formatter',
           '#style_name' => $this->getSetting('image_style'),
-          '#text' => NULL,
+          '#text' => $text,
           '#node' => $node,
-          '#source_image_file' => $item->entity,
-          '#force_hashed_filename' => TRUE,
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
           '#href' => $url,
         );
-      }
+        break;
+
+      case 'image':
+        // Get source image from an image field.
+        foreach ($items as $delta => $item) {
+          $elements[$delta] = array(
+            '#theme' => 'textimage_formatter',
+            '#style_name' => $this->getSetting('image_style'),
+            '#text' => NULL,
+            '#node' => $node,
+            '#source_image_file' => $item->entity,
+            '#force_hashed_filename' => TRUE,
+            '#alt' => $this->getSetting('image_alt'),
+            '#title' => $this->getSetting('image_title'),
+            '#href' => $url,
+          );
+        }
+        break;
+
     }
 
     return $elements;

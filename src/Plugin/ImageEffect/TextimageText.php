@@ -101,6 +101,7 @@ class TextimageText extends TextimageEffectBase {
     $form['preview_bar']['preview'] = array(
       '#type'  => 'button',
       '#value' => $this->t('Refresh preview'),
+      '#name' => 'preview',
       '#ajax'  => array(
         'callback' => array($this, 'processAjaxPreview'),
       ),
