@@ -770,25 +770,31 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $data['text_string'] = $this->textimageFactory->processTextString($data['text_string'], $data['text']['case_format']);
     }
 
-    // Create the wrapper image object as a canvass for the text.
+    // Create the wrapper image object.
     $wrapper = $this->imageFactory->get();
-    $wrapper->apply('create_new',  ['width' => 1, 'height' => 1]);
-    if (!$wrapper->isValid()) {
-      return NULL;
-    }
 
     // Calls text_to_image for the wrapper.
-    $text_to_image_data = [
+    $ret = $wrapper->apply('textimage_text_to_image', [
       'font' => $data['font'],
       'layout' => $data['layout'],
       'text' => $data['text'],
       'text_string' => $data['text_string'],
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
-    ];
-    if (!$wrapper->apply('textimage_text_to_image', $text_to_image_data)) {
-      return NULL;
+    ]);
+
+    // Get an instance of the textimage_text_to_image toolkit operation.
+    // That operation has a method to determine if the wrapper needs to
+    // be flushed to disk before proceeding. GD toolkit operates in memory
+    // and therefore does not need it, but other toolkits may need to save
+    // the wrapper to disk to determine its actual width and height.
+    $text_to_image_operation = $this->imageOperationManager->getToolkitOperation($wrapper->getToolkit(), 'textimage_text_to_image');
+    if ($text_to_image_operation->isFlushingNeeded()) {
+      $wrapper_destination = drupal_tempnam('temporary://', 'textimage_');
+      $wrapper->save($wrapper_destination);
+      $wrapper = $this->imageFactory->get($wrapper_destination);
     }
-    return $wrapper;
+
+    return $ret ? $wrapper : NULL;
   }
 
   /**

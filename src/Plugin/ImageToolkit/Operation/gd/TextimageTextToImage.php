@@ -132,12 +132,11 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     $inner_rect->rotate($arguments['font']['angle']);
     $inner_rect->translate($outer_rect->getRotationOffset());
 
-    // Enlarge the image to allow fitting the text.
-    $data_new = array(
+    // Set image dimensions to allow fitting the text.
+    $this->getToolkit()->apply('create_new', [
       'width' => $outer_rect->getBoundingWidth(),
       'height' => $outer_rect->getBoundingHeight(),
-    );
-    $this->getToolkit()->apply('resize', $data_new);
+    ]);
 
     // Draw and fill the outer text box, if required.
     if ($arguments['layout']['background_color']) {
@@ -226,6 +225,16 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     imagesavealpha($this->getToolkit()->getResource(), TRUE);
 
     return TRUE;
+  }
+
+  /**
+   * Determines if image needs to be flushed to disk.
+   *
+   * return boolean
+   *   TRUE if image needs flushing, FALSE otherwise.
+   */
+  public function isFlushingNeeded() {
+    return FALSE;
   }
 
   /**

@@ -7,6 +7,9 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 
+use Drupal\Component\Utility\String;
+use Drupal\Core\StreamWrapper\LocalStream;
+
 /**
  * Base trait for Textimage image toolkit operations.
  */
