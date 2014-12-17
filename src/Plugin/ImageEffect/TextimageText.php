@@ -790,6 +790,8 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     $text_to_image_operation = $this->imageOperationManager->getToolkitOperation($wrapper->getToolkit(), 'textimage_text_to_image');
     if ($text_to_image_operation->isFlushingNeeded()) {
       $wrapper_destination = drupal_tempnam('temporary://', 'textimage_');
+      unlink($wrapper_destination);
+      $wrapper_destination .= '.png'; // @todo extension??
       $wrapper->save($wrapper_destination);
       $wrapper = $this->imageFactory->get($wrapper_destination);
     }
