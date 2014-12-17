@@ -241,8 +241,10 @@ class Rectangle {
     $sin = sin($rad);
     $cos = cos($rad);
     list($x, $y) = $point;
-    $point[0] = round($x * $cos + $y * -$sin);
-    $point[1] = round($y * $cos - $x * -$sin);
+    $tx = round(($x * $cos + $y * -$sin), 3);
+    $ty = round(($y * $cos - $x * -$sin), 3);
+    $point[0] = ($tx >= 0) ? ceil($tx) : -ceil(-$tx);
+    $point[1] = ($ty >= 0) ? ceil($ty) : -ceil(-$ty);
     return $this;
   }
 

@@ -23,7 +23,26 @@ trait TextimageOperationTrait {
   static $fontPaths = [];
 
   /**
-   * Return the path of the font file, in a format usable by GD.
+   * Return the real path of the specified file.
+   *
+   * @param string $uri
+   *   An URI.
+   *
+   * @return string
+   *   The local path of the file.
+   */
+  protected function getRealPath($uri) {
+    $uri_wrapper = file_stream_wrapper_get_instance_by_uri($uri);
+    if ($uri_wrapper instanceof LocalStream) {
+      return $uri_wrapper->realpath();
+    }
+    else {
+      return is_file($uri) ? $uri : NULL;
+    }
+  }
+
+  /**
+   * Return the path of the font file.
    *
    * @param string $font_uri
    *   The font URI.
@@ -36,14 +55,7 @@ trait TextimageOperationTrait {
       throw new \InvalidArgumentException('Textimage - Font file not specified');
     }
     if (!isset(static::$fontPaths[$font_uri])) {
-      $font_wrapper = file_stream_wrapper_get_instance_by_uri($font_uri);
-      if ($font_wrapper instanceof LocalStream) {
-        $ret = $font_wrapper->realpath();
-      }
-      else {
-        $ret = is_file($font_uri) ? $font_uri : NULL;
-      }
-      if (!$ret) {
+      if (!$ret = $this->getRealPath($font_uri)) {
         throw new \InvalidArgumentException(String::format('Textimage - Could not find the font file @fontfile', array('@fontfile' => $font_uri)));
       }
       static::$fontPaths[$font_uri] = $ret;
