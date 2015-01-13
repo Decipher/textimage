@@ -268,6 +268,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           '#style_name' => $this->getSetting('image_style'),
           '#text' => $text,
           '#node' => $node,
+          '#force_hashed_filename' => TRUE,
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
           '#href' => $url,

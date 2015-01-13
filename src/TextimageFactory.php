@@ -8,8 +8,8 @@
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -70,6 +70,13 @@ class TextimageFactory {
   protected $cache;
 
   /**
+   * The cache tags invalidator service.
+   *
+   * @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface
+   */
+  protected $cacheTagsInvalidator;
+
+  /**
    * The configuration object.
    *
    * @var \Drupal\Core\Config\Config
@@ -103,6 +110,8 @@ class TextimageFactory {
    *   The token resolution service.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
    *   The Textimage cache service.
+   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cache_tags_invalidator
+   *   The cache tags invalidator service.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
@@ -112,12 +121,13 @@ class TextimageFactory {
    * @param \Drupal\Core\Database\Connection $database
    *   The database connection.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
     $this->config = $config_factory->get('textimage.settings');
     $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
     $this->token = $token_service;
     $this->cache = $cache_service;
+    $this->cacheTagsInvalidator = $cache_tags_invalidator;
     $this->currentUser = $current_user;
     $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
@@ -329,7 +339,7 @@ class TextimageFactory {
    */
   public function flushStyle($style) {
     // Clear style's cached images URI.
-    $this->cache->deleteTags(['textimage_tiid', 'textimage_style:' . $style->id()]);
+    $this->cacheTagsInvalidator->invalidateTags(['textimage_tiid', 'textimage_style:' . $style->id()]);
     // Clear hashed filename images.
     if (file_exists($directory = $this->getStorePath('styled_hashed/') . $style->id())) {
       file_unmanaged_delete_recursive($directory);
@@ -598,6 +608,8 @@ class TextimageFactory {
     $text = array();
     foreach ($items as $delta => $item) {
       $value = $item->getValue();
+      // @todo check Notice: Undefined index: value in Drupal\textimage\TextimageFactory->getTextFieldText() (line 601 of modules/textimage/src/TextimageFactory.php).
+      // when empty
       $text[] = strip_tags($value['value']);
     }
     return $text;
