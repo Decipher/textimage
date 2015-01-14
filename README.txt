@@ -7,12 +7,11 @@ Core issues:
 TODO:
 =====
 - #2134439 - array_replace_recursive
-- remove TextimageFactory::getState() and setState() when #1826362 (ImageStyle
-  to be accessible from ImageEffect plugins) is committed
 - review routine to store effects - also check that sequence is based on
   weights
+- string translation trait in Textimage.php
 - extension to be taken from image style when possible
-- remove _textimage_diag
+- review if logged messages should be pre-translated
 - use of gifTransparentColor in Textimage.php
 
 -------------------------------------------------------------------------------
@@ -333,7 +332,6 @@ Using Textimage image styles
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
     - load
-    - setUserMessages
     - setHashedFilename
     - id
     - getText

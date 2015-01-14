@@ -1,5 +1,5 @@
 store_scheme: ''
-message_level: 6
+debug: FALSE
 url_generation:
   enabled: TRUE
   text_separator: '---'

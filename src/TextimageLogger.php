@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Contains \Drupal\textimage\TextimageLogger.
+ */
+
+namespace Drupal\textimage;
+
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Logger\LoggerChannel;
+use Drupal\Core\Logger\RfcLogLevel;
+use Drupal\Core\Session\AccountInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Defines a Textimage logger.
+ */
+class TextimageLogger extends LoggerChannel {
+
+  /**
+   * The configuration factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * The Textimage logger channel.
+   *
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $loggerChannel;
+
+  /**
+   * Constructs a TextimageLogger object
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
+   * @param \Psr\Log\LoggerInterface $logger_channel
+   *   The Textimage logger channel.
+   * @param \Drupal\Core\Session\AccountInterface $current_user
+   *   The current user.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, LoggerInterface $logger_channel, AccountInterface $current_user) {
+    $this->configFactory = $config_factory;
+    $this->loggerChannel = $logger_channel;
+    $this->currentUser = $current_user;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function log($level, $message, array $context = array()) {
+    // Convert to integer equivalent for consistency with RFC 5424.
+    $levelCode = is_string($level) ? $this->levelTranslation[$level] : $level;
+
+    // Process debug entries only if required.
+    if ($levelCode == RfcLogLevel::DEBUG && !$this->configFactory->get('textimage.settings')->get('debug')) {
+      return NULL;
+    }
+
+    // Logs through the logger channel.
+    $this->loggerChannel->log($levelCode, $message, $context);
+
+    // Display the message to qualified users.
+    if ($this->currentUser->hasPermission('administer site configuration') ||
+        $this->currentUser->hasPermission('administer image styles')) {
+      switch ($levelCode) {
+        case RfcLogLevel::DEBUG:
+        case RfcLogLevel::INFO:
+        case RfcLogLevel::NOTICE:
+          $type = 'status';
+          break;
+
+        case RfcLogLevel::WARNING:
+          $type = 'warning';
+          break;
+
+        default:
+          $type = 'error';
+      }
+      drupal_set_message($message, $type, FALSE);
+    }
+  }
+
+}

@@ -78,7 +78,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('logger.factory')->get('image'),
+      $container->get('textimage.logger'),
       $container->get('image.factory'),
       $container->get('image.toolkit.operation.manager'),
       $container->get('textimage.factory'),

@@ -11,6 +11,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\Routing\UrlGeneratorInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -40,6 +41,13 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
   protected $config;
 
   /**
+   * The Textimage logger.
+   *
+   * @var \Psr\Log\LoggerInterface.
+   */
+  protected $logger;
+
+  /**
    * Constructs a TextimagePluginBase object.
    *
    * @param array $configuration
@@ -52,14 +60,17 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
    *   The configuration factory.
    * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   The URL generator.
+   * @param \Psr\Log\LoggerInterface $logger
+   *   The Textimage logger.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, UrlGeneratorInterface $url_generator) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, UrlGeneratorInterface $url_generator, LoggerInterface $logger) {
     $this->config = $config_factory->get('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->pluginType = $configuration['plugin_type'];
     $config = $this->config->get($this->pluginType . '.plugin_settings.' . $plugin_id);
     $this->setConfiguration(array_merge($this->defaultConfiguration(), is_array($config) ? $config : array()));
     $this->urlGenerator = $url_generator;
+    $this->logger = $logger;
   }
 
   /**
@@ -71,7 +82,8 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
       $plugin_id,
       $plugin_definition,
       $container->get('config.factory'),
-      $container->get('url_generator')
+      $container->get('url_generator'),
+      $container->get('textimage.logger')
     );
   }
 

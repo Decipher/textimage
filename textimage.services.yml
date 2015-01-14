@@ -6,6 +6,9 @@ services:
     factory_method: get
     factory_service: cache_factory
     arguments: [textimage]
+  logger.channel.textimage:
+    parent: logger.channel_base
+    arguments: ['textimage']
   plugin.manager.textimage.font:
     class: Drupal\textimage\Plugin\TextimagePluginManager
     arguments: [font, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
@@ -17,4 +20,7 @@ services:
     arguments: [color, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
   textimage.factory:
     class: Drupal\textimage\TextimageFactory
-    arguments: ['@config.factory', '@image.factory', '@lock', '@token', '@cache.textimage', '@cache_tags.invalidator', '@current_user', '@plugin.manager.image.effect', '@stream_wrapper_manager', '@database']
+    arguments: ['@config.factory', '@image.factory', '@lock', '@token', '@textimage.logger', '@cache.textimage', '@cache_tags.invalidator', '@current_user', '@plugin.manager.image.effect', '@stream_wrapper_manager', '@database']
+  textimage.logger:
+    class: Drupal\textimage\TextimageLogger
+    arguments: ['@config.factory', '@logger.channel.textimage', '@current_user']

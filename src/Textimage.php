@@ -143,13 +143,6 @@ class Textimage {
   protected $forcedUri = FALSE;
 
   /**
-   * If Textimage has to provide user notification of errors.
-   *
-   * @var bool
-   */
-  protected $userMessages = TRUE;
-
-  /**
    * Constructs a Textimage object.
    *
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
@@ -216,11 +209,11 @@ class Textimage {
         return $this->style($image_style);
       }
       else {
-        _textimage_diag(t("Textimage could not find image style '@style'.", array('@style' => $image_style_name)), 'error', NULL, $this->userMessages);
+        $this->factory->getLogger()->error(t("Textimage could not find image style '@style'.", ['@style' => $image_style_name]));
       }
     }
     else {
-      _textimage_diag(t("Image style not specified while processing a Textimage."), 'error', NULL, $this->userMessages);
+      $this->factory->getLogger()->error(t("Image style not specified while processing a Textimage."));
     }
     return $this;
   }
@@ -317,18 +310,6 @@ class Textimage {
       $this->set('forcedUri', TRUE);
     }
     return $this;
-  }
-
-  /**
-   * Set user notification of errors.
-   *
-   * @param bool $user_messages
-   *   TRUE if Textimage errors need to be notified to users.
-   *
-   * @return $this
-   */
-  public function setUserMessages($user_messages) {
-    return $this->set('userMessages', $user_messages);
   }
 
   /**
@@ -456,7 +437,7 @@ class Textimage {
 
     // Effects must be loaded.
     if(empty($this->effects)) {
-      _textimage_diag(t("Textimage had no image effects to process."), 'error', NULL, $this->userMessages);
+      $this->factory->getLogger()->error(t("Textimage had no image effects to process."));
       return $this;
     }
 
@@ -497,7 +478,7 @@ class Textimage {
     }
     $this->text = $processed_text;
     if(empty($this->text)) {
-      _textimage_diag(t("Textimage had no text to process."), 'error', NULL, $this->userMessages);
+      $this->factory->getLogger()->error(t("Textimage had no text to process."));
       return $this;
     }
 
@@ -588,13 +569,13 @@ class Textimage {
     // Generate the image.
     if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->uri)) {
       if (isset($this->style)) {
-        _textimage_diag(t("Textimage failed to build an image for image style '@style'.", array('@style' => $this->style->id())), 'error', NULL, $this->userMessages);
+        $this->factory->getLogger()->error(t("Textimage failed to build an image for image style '@style'.", ['@style' => $this->style->id()]));
       }
       else {
-        _textimage_diag(t("Textimage failed to build an image."), 'error', NULL, $this->userMessages);
+        $this->factory->getLogger()->error(t("Textimage failed to build an image."));
       }
     }
-_textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
+    $this->factory->getLogger()->debug(t("Built Textimage, @uri", ['@uri' => $this->uri]));
 
     // Release lock.
     if (!empty($lock_acquired)) {
@@ -627,7 +608,7 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
 
     // Build the destination folder tree if it doesn't already exist.
     if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-      \Drupal::logger('image')->error('Failed to create Textimage directory: %directory', array('%directory' => $directory));
+      $this->factory->getLogger()->error('Failed to create Textimage directory: %directory', array('%directory' => $directory));
       return FALSE;
     }
 
@@ -641,7 +622,7 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
 
     if (!$image->save($derivative_uri)) {
       if (file_exists($derivative_uri)) {
-        \Drupal::logger('image')->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', array('%destination' => $derivative_uri));
+        $this->factory->getLogger()->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', array('%destination' => $derivative_uri));
       }
       return FALSE;
     }
@@ -710,17 +691,7 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
     // Filenames longer than 200 characters will fail in most filesystems.
     if (Unicode::strlen($file_name) > 200) {
       // Need to proceed with hash-based file names.
-      _textimage_diag(
-        t(
-          "Textimage clear file name too long: @file_name...",
-          array(
-            '@file_name' => Unicode::substr($file_name, 0, 60),
-          )
-        ),
-        'debug',
-        NULL,
-        $this->userMessages
-      );
+      $this->factory->getLogger()->debug(t("Textimage clear file name too long: @file_name...", ['@file_name' => Unicode::substr($file_name, 0, 60)]));
       return FALSE;
     }
 
@@ -734,17 +705,7 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
     }
     if ($file_name <> $base_name) {
       // Need to proceed with hash-based file names.
-      _textimage_diag(
-        t(
-          "Textimage clear file name contains unallowed characters: @file_name...",
-          array(
-            '@file_name' => Unicode::substr($file_name, 0, 60),
-          )
-        ),
-        'debug',
-        NULL,
-        $this->userMessages
-      );
+      $this->factory->getLogger()->debug(t("Textimage clear file name contains unallowed characters: @file_name...", ['@file_name' => Unicode::substr($file_name, 0, 60)]));
       return FALSE;
     }
 
@@ -768,7 +729,7 @@ _textimage_diag(t("Built, @uri", array('@uri' => $this->uri)), 'debug');
     if ($cached = $this->factory->getCache()->get('tiid:' . $this->id)) {
       if (is_file($cached->data['uri'])) {
         $this->uri = $cached->data['uri'];
-_textimage_diag(t("Got from cache, @uri", array('@uri' => $this->uri)), 'debug');
+        $this->factory->getLogger()->debug(t("Got Textimage from cache, @uri", array('@uri' => $this->uri)));
         return TRUE;
       }
     }
@@ -789,7 +750,7 @@ _textimage_diag(t("Got from cache, @uri", array('@uri' => $this->uri)), 'debug')
     $uri = $stored_image['uri'];
     if (is_file($uri)) {
       $this->uri = $uri;
-_textimage_diag(t("Got from store, @uri", array('@uri' => $this->uri)), 'debug');
+      $this->factory->getLogger()->debug(t("Got Textimage from store, @uri", array('@uri' => $this->uri)));
       $this->setCached();
       return TRUE;
     }

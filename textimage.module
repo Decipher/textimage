@@ -123,10 +123,10 @@ function textimage_cron() {
   // Remove temporary, uncached, image files.
   if (file_exists($uncached_dir)) {
     if (file_unmanaged_delete_recursive($uncached_dir)) {
-      _textimage_diag(t("Textimage temporary image files removed."), 'notice');
+      \Drupal::service('textimage.logger')->notice(t("Textimage temporary image files removed."));
     }
     else {
-      _textimage_diag(t("Textimage could not remove temporary image files."), 'error', __FUNCTION__);
+      \Drupal::service('textimage.logger')->error(t("Textimage could not remove temporary image files."));
     }
   }
 }
@@ -168,7 +168,7 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
   }
   // Jumps out with a warning if node is not available.
   if (!isset($data['node'])) {
-    _textimage_diag(t('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens))), 'warning');
+    \Drupal::service('textimage.logger')->warning(t('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens))));
     return array();
   }
   // Process tokens.
@@ -397,40 +397,4 @@ function template_preprocess_textimage_preview(&$variables) {
     '#alt' => t('Display preview not available.'),
     '#caching' => FALSE,
   );
-}
-
-/**
- * Display/log a diagnostic message.
- *
- * @param string $message
- *   message
- * @param int $severity
- *   severity as per watchdog()
- * @param string $caller
- *   the calling function
- */
-function _textimage_diag($message, $severity, $caller = NULL, $user_messages = TRUE) {
-  if ($caller) {
-    $message = t("@message - Function: @caller", array('@message' => $message, '@caller' => $caller));
-  }
-  if (in_array($severity, ['notice', 'warning', 'error'])) {
-    \Drupal::logger('textimage')->$severity($message);
-  }
-  if ($severity <= \Drupal::config('textimage.settings')->get('message_level') && $user_messages) {
-    switch ($severity) {
-      case 'debug':
-      case 'info':
-      case 'notice':
-        $type = 'status';
-        break;
-
-      case 'warning':
-        $type = 'warning';
-        break;
-
-      default:
-        $type = 'error';
-    }
-    drupal_set_message($message, $type, FALSE);
-  }
 }

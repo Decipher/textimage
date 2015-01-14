@@ -46,22 +46,13 @@ class TextimagePluginManager extends DefaultPluginManager {
   }
 
   public function getPlugin($plugin_id = NULL) {
-    $plugin_id = $plugin_id ? $plugin_id : $this->config->get($this->getType() . '.plugin_id');
+    $plugin_id = $plugin_id ?: $this->config->get($this->getType() . '.plugin_id');
     $plugins = $this->getAvailablePlugins();
 
     // Check if plugin is available.
     if (!isset($plugins[$plugin_id]) || !class_exists($plugins[$plugin_id]['class'])) {
-      _textimage_diag(
-        t(
-          "@type handling plugin '@plugin_id' is no longer available.",
-          array(
-            '@type' => $this->getType(),
-            '@plugin_id' => $plugin_id,
-          )
-        ),
-        'error',
-        __FUNCTION__
-      );
+      trigger_error("Textimage " . $this->getType() . " handling plugin '$plugin_id' is no longer available.", E_USER_ERROR); // @todo use logger instead?
+      $plugin_id = NULL;
     }
 
     // Return plugin instance or base Textimage plugin if not available.
@@ -84,7 +75,7 @@ class TextimagePluginManager extends DefaultPluginManager {
     $output = array();
     foreach ($plugins as $id => $definition) {
       // Only allow plugins that are available.
-      if (call_user_func($definition['class'] . '::isAvailable')) {
+      if (call_user_func($definition['class'] . '::isAvailable')) { // @ todo is callable
         $output[$id] = $definition;
       }
     }

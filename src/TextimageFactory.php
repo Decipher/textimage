@@ -21,6 +21,7 @@ use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Utility\Token;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Provides a factory for Textimage.
@@ -49,6 +50,13 @@ class TextimageFactory {
   protected $token;
 
   /**
+   * The Textimage logger.
+   *
+   * @var \Psr\Log\LoggerInterface.
+   */
+  protected $logger;
+
+  /**
    * The image effect manager service.
    *
    * @var \Drupal\image\ImageEffectManager
@@ -63,7 +71,7 @@ class TextimageFactory {
   protected $streamWrapperManager;
 
   /**
-   * The textimage cache service.
+   * The Textimage cache service.
    *
    * @var \Drupal\Core\Cache\CacheBackendInterface
    */
@@ -108,6 +116,8 @@ class TextimageFactory {
    *   The lock service.
    * @param \Drupal\Core\Utility\Token $token_service
    *   The token resolution service.
+   * @param \Psr\Log\LoggerInterface $logger
+   *   The Textimage logger.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
    *   The Textimage cache service.
    * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cache_tags_invalidator
@@ -121,11 +131,12 @@ class TextimageFactory {
    * @param \Drupal\Core\Database\Connection $database
    *   The database connection.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
     $this->config = $config_factory->get('textimage.settings');
     $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
     $this->token = $token_service;
+    $this->logger = $logger;
     $this->cache = $cache_service;
     $this->cacheTagsInvalidator = $cache_tags_invalidator;
     $this->currentUser = $current_user;
@@ -135,7 +146,7 @@ class TextimageFactory {
   }
 
   /**
-   * Return the Textimage config service.
+   * Returns the Textimage config service.
    *
    * @return \Drupal\Core\Cache\CacheBackendInterface
    *   The Textimage cache service.
@@ -145,7 +156,7 @@ class TextimageFactory {
   }
 
   /**
-   * Return the Textimage cache service.
+   * Returns the Textimage cache service.
    *
    * @return \Drupal\Core\Cache\CacheBackendInterface
    *   The Textimage cache service.
@@ -155,7 +166,7 @@ class TextimageFactory {
   }
 
   /**
-   * Return the lock service.
+   * Returns the lock service.
    *
    * @return \Drupal\Core\Lock\DatabaseLockBackend
    *   The lock service.
@@ -165,7 +176,7 @@ class TextimageFactory {
   }
 
   /**
-   * Return the image factory.
+   * Returns the image factory.
    *
    * @return \Drupal\Core\Image\ImageFactory
    *   The image factory.
@@ -175,7 +186,7 @@ class TextimageFactory {
   }
 
   /**
-   * Return the current active database's master connection.
+   * Returns the current active database's master connection.
    *
    * @return \Drupal\Core\Database\Connection
    *   The database connection.
@@ -185,7 +196,17 @@ class TextimageFactory {
   }
 
   /**
-   * Get a Textimage object.
+   * Returns the Textimage logger.
+   *
+   * @return \Psr\Log\LoggerInterface
+   *   The Textimage logger.
+   */
+  public function getLogger() {
+    return $this->logger;
+  }
+
+  /**
+   * Gets a Textimage object.
    *
    * @return \Drupal\textimage\Textimage
    *   A new Textimage object.
@@ -254,6 +275,9 @@ class TextimageFactory {
   /**
    * Gets a Textimage state variable.
    *
+   * @todo (core) remove when #1826362 (ImageStyle to be accessible from
+   * ImageEffect plugins) is committed.
+   *
    * @param string $variable
    *   State variable.
    *
@@ -269,6 +293,9 @@ class TextimageFactory {
 
   /**
    * Sets a Textimage state variable.
+   *
+   * @todo (core) remove when #1826362 (ImageStyle to be accessible from
+   * ImageEffect plugins) is committed.
    *
    * @param string $variable
    *   State variable.
@@ -374,7 +401,7 @@ class TextimageFactory {
     }
     $this->cache->deleteAll();
     $this->database->truncate('textimage_store')->execute();
-    _textimage_diag(t('All Textimage images were removed.'), 'notice');
+    $this->logger->notice(t('All Textimage images were removed.'));
   }
 
   /**
@@ -523,7 +550,7 @@ class TextimageFactory {
                   '@node_title' => $node->getTitle(),
                 )
               );
-              _textimage_diag($msg, 'warning');
+              $this->logger->warning($msg);
             }
           }
         }
@@ -567,7 +594,7 @@ class TextimageFactory {
                   '@node_title' => $node->getTitle(),
                 )
               );
-              _textimage_diag($msg, 'warning');
+              $this->logger->warning($msg);
             }
           }
         }

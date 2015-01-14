@@ -249,8 +249,21 @@ class SettingsForm extends ConfigFormBase {
     $form['settings']['maintenance'] = array(
       '#type' => 'details',
       '#title' => $this->t('Maintenance'),
-      '#description' => $this->t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.'),
     );
+    $form['settings']['maintenance']['debug'] = array(
+      '#type' => 'checkbox',
+      '#title' => $this->t('Display debugging information'),
+      '#default_value' => $this->config('textimage.settings')->get('debug'),
+      '#description' => $this->t('Logs Textimage debug messages and shows them to users with the \'%permission\' permissions.', array(
+        '%permission' => implode(', ', [
+          $this->t('Administer site configuration'),
+          $this->t('Administer image styles'),
+        ])
+      )),
+    );
+    $form['settings']['maintenance']['flush_all_label'] = [
+      '#markup' => $this->t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.') . '<br/>',
+    ];
     $form['settings']['maintenance']['flush_all'] = array(
       '#type' => 'submit',
       '#name' => 'flush_all',
@@ -323,6 +336,10 @@ class SettingsForm extends ConfigFormBase {
     $this->config('textimage.settings')
       ->set('url_generation.enabled', $form_state->getValue(['settings', 'url_generation', 'enabled']))
       ->set('url_generation.text_separator', $form_state->getValue(['settings', 'url_generation', 'text_separator']));
+
+    // Maintenance.
+    $this->config('textimage.settings')
+      ->set('debug', $form_state->getValue(['settings', 'maintenance', 'debug']));
 
     $this->config('textimage.settings')->save();
     parent::submitForm($form, $form_state);
