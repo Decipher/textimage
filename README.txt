@@ -13,6 +13,8 @@ TODO:
 - extension to be taken from image style when possible
 - review if logged messages should be pre-translated
 - use of gifTransparentColor in Textimage.php
+- field formatters to cache the image style in case of changes so that nodes
+  can be refreshed
 
 -------------------------------------------------------------------------------
 

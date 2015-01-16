@@ -112,7 +112,7 @@ function textimage_schema() {
  */
 function textimage_install() {
 
-  $config = \Drupal::config('textimage.settings');
+  $config = \Drupal::configFactory()->getEditable('textimage.settings');
 
   // Find out scheme to use for the textimage_store directory. Preference to
   // 'private'.

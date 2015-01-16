@@ -99,7 +99,7 @@ class TextimageBackground extends TextimageEffectBase {
     ) + array_combine($extensions, $extensions);
     $form['format']['extension'] = array(
       '#type' => 'select',
-      '#title' => t('Extension'),
+      '#title' => $this->t('Extension'),
       '#default_value' => $this->configuration['format']['extension'],
       '#required' => TRUE,
       '#options' => $options,
