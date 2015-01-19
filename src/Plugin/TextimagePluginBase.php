@@ -64,7 +64,7 @@ abstract class TextimagePluginBase extends PluginBase implements TextimagePlugin
    *   The Textimage logger.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, UrlGeneratorInterface $url_generator, LoggerInterface $logger) {
-    $this->config = $config_factory->get('textimage.settings');
+    $this->config = $config_factory->getEditable('textimage.settings');
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->pluginType = $configuration['plugin_type'];
     $config = $this->config->get($this->pluginType . '.plugin_settings.' . $plugin_id);

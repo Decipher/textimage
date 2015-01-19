@@ -117,24 +117,26 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
+    $config = $this->config('textimage.settings');
+
     $ajaxing = (bool) $form_state->getValues();
 
     // Font plugin.
-    $font_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'font', 'plugin_id']) : $this->config('textimage.settings')->get('font.plugin_id');
+    $font_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'font', 'plugin_id']) : $config->get('font.plugin_id');
     $font_plugin = $this->fontManager->getPlugin($font_plugin_id);
     if ($ajaxing && $form_state->hasValue(['settings', 'font', 'plugin_settings'])) {
       $font_plugin->setConfiguration($form_state->getValue(['settings', 'font', 'plugin_settings']));
     }
 
     // Background plugin.
-    $background_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'background', 'plugin_id']) : $this->config('textimage.settings')->get('background.plugin_id');
+    $background_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'background', 'plugin_id']) : $config->get('background.plugin_id');
     $background_plugin = $this->backgroundManager->getPlugin($background_plugin_id);
     if ($ajaxing && $form_state->hasValue(['settings', 'background', 'plugin_settings'])) {
       $background_plugin->setConfiguration($form_state->getValue(['settings', 'background', 'plugin_settings']));
     }
 
     // Color plugin.
-    $color_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'color', 'plugin_id']) : $this->config('textimage.settings')->get('color.plugin_id');
+    $color_plugin_id = $ajaxing ? $form_state->getValue(['settings', 'color', 'plugin_id']) : $config->get('color.plugin_id');
     $color_plugin = $this->colorManager->getPlugin($color_plugin_id);
     if ($ajaxing && $form_state->hasValue(['settings', 'color', 'plugin_settings'])) {
       $color_plugin->setConfiguration($form_state->getValue(['settings', 'color', 'plugin_settings']));
@@ -159,7 +161,7 @@ class SettingsForm extends ConfigFormBase {
 
     // Main Textimage store location.
     $scheme_options = $this->streamWrapperManager->getNames(StreamWrapperInterface::WRITE_VISIBLE);
-    $default_scheme = $this->config('textimage.settings')->get('store_scheme');
+    $default_scheme = $config->get('store_scheme');
     $default_scheme = isset($scheme_options[$default_scheme]) ? $default_scheme : 'public';
     $form['settings']['textimage_store'] = array(
       '#type' => 'details',
@@ -196,7 +198,7 @@ class SettingsForm extends ConfigFormBase {
     $form['settings']['font']['default_font_name'] = $font_plugin->selectionElement(array(
       '#title' => $this->t('Default font'),
       '#description' => $this->t('Select the default font to be used by Textimage.'),
-      '#default_value' => $this->config('textimage.settings')->get('default_font.name'),
+      '#default_value' => $config->get('default_font.name'),
     ));
 
     // Background images.
@@ -241,7 +243,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Enabled'),
       '#description' => $this->t('When selected, direct generation of Textimage images is enabled for users having the \'Generate Textimage URL derivatives\' permission.'),
-      '#default_value' => $this->config('textimage.settings')->get('url_generation.enabled'),
+      '#default_value' => $config->get('url_generation.enabled'),
     );
     $form['settings']['url_generation']['text_separator'] = array(
       '#type' => 'textfield',
@@ -249,7 +251,7 @@ class SettingsForm extends ConfigFormBase {
       '#maxlength' => 5,
       '#required' => TRUE,
       '#description' => $this->t('Indicate the sequence of characters to be used to split the URL text string in separate strings. Each string will be consumed by a \'Textimage Text\' effect in the sequence specified within the image style. Note that slashes \'/\' and plus \'+\' characters are not allowed.'),
-      '#default_value' => $this->config('textimage.settings')->get('url_generation.text_separator'),
+      '#default_value' => $config->get('url_generation.text_separator'),
     );
 
     // Maintenance.
@@ -260,7 +262,7 @@ class SettingsForm extends ConfigFormBase {
     $form['settings']['maintenance']['debug'] = array(
       '#type' => 'checkbox',
       '#title' => $this->t('Display debugging information'),
-      '#default_value' => $this->config('textimage.settings')->get('debug'),
+      '#default_value' => $config->get('debug'),
       '#description' => $this->t('Logs Textimage debug messages and shows them to users with the \'%permission\' permissions.', array(
         '%permission' => implode(', ', [
           $this->t('Administer site configuration'),
@@ -293,6 +295,9 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+
+    $config = $this->config('textimage.settings');
+
     // Redirect to cleanup if required.
     if ($form_state->getTriggeringElement()['#name'] == 'flush_all') {
       $form_state->setRedirect('textimage.flush_all');
@@ -300,24 +305,24 @@ class SettingsForm extends ConfigFormBase {
     }
 
     // Overall module flush if storage scheme gets changed.
-    if ($form_state->getValue(['settings', 'textimage_store', 'store_scheme']) != $this->config('textimage.settings')->get('store_scheme')) {
+    if ($form_state->getValue(['settings', 'textimage_store', 'store_scheme']) != $config->get('store_scheme')) {
       $this->textimageFactory->flushAll();
     }
 
     // Main Textimage store location.
-    $this->config('textimage.settings')->set('store_scheme', $form_state->getValue(['settings', 'textimage_store', 'store_scheme']));
+    $config->set('store_scheme', $form_state->getValue(['settings', 'textimage_store', 'store_scheme']));
 
     // Font plugin.
     $font_plugin = $this->fontManager->getPlugin($form_state->getValue(['settings', 'font', 'plugin_id']));
     if ($form_state->hasValue(['settings', 'font', 'plugin_settings'])) {
       $font_plugin->setConfiguration($form_state->getValue(['settings', 'font', 'plugin_settings']));
     }
-    $this->config('textimage.settings')
+    $config
       ->set('font.plugin_id', $font_plugin->getPluginId())
       ->set('font.plugin_settings.' . $font_plugin->getPluginId(), $font_plugin->getConfiguration());
 
     // Default font.
-    $this->config('textimage.settings')
+    $config
       ->set('default_font.name', $form_state->getValue(['settings', 'font', 'default_font_name']))
       ->set('default_font.uri', $font_plugin->getUri($form_state->getValue(['settings', 'font', 'default_font_name'])));
 
@@ -326,7 +331,7 @@ class SettingsForm extends ConfigFormBase {
     if ($form_state->hasValue(['settings', 'background', 'plugin_settings'])) {
       $background_plugin->setConfiguration($form_state->getValue(['settings', 'background', 'plugin_settings']));
     }
-    $this->config('textimage.settings')
+    $config
       ->set('background.plugin_id', $background_plugin->getPluginId())
       ->set('background.plugin_settings.' . $background_plugin->getPluginId(), $background_plugin->getConfiguration());
 
@@ -335,20 +340,20 @@ class SettingsForm extends ConfigFormBase {
     if ($form_state->hasValue(['settings', 'color', 'plugin_settings'])) {
       $color_plugin->setConfiguration($form_state->getValue(['settings', 'color', 'plugin_settings']));
     }
-    $this->config('textimage.settings')
+    $config
       ->set('color.plugin_id', $color_plugin->getPluginId())
       ->set('color.plugin_settings.' . $color_plugin->getPluginId(), $color_plugin->getConfiguration());
 
     // URL generation.
-    $this->config('textimage.settings')
+    $config
       ->set('url_generation.enabled', $form_state->getValue(['settings', 'url_generation', 'enabled']))
       ->set('url_generation.text_separator', $form_state->getValue(['settings', 'url_generation', 'text_separator']));
 
     // Maintenance.
-    $this->config('textimage.settings')
+    $config
       ->set('debug', $form_state->getValue(['settings', 'maintenance', 'debug']));
 
-    $this->config('textimage.settings')->save();
+    $config->save();
     parent::submitForm($form, $form_state);
   }
 
