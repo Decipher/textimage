@@ -144,7 +144,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       '#description' => array(
         '#markup' => $this->t('Only Textimage relevant image styles can be selected.'),
         'link' => array(
-          '#markup' =>  ' ' . $this->linkGenerator->generate($this->t('Configure Image Styles', array('@url' => $this->urlGenerator->generateFromRoute('image.style_list'))), new Url('image.style_list')),
+          '#markup' =>  ' ' . $this->linkGenerator->generate($this->t('Configure Image Styles'), new Url('entity.image_style.collection')),
           '#access' => $this->currentUser->hasPermission('administer image styles'),
         ),
       ),
