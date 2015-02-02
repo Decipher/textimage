@@ -211,8 +211,15 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
   if (!$relevant && $original_relevant) {
     $factory->flushStyle($style);
   }
-  // Store the setting.
-  $style->setThirdPartySetting('textimage', 'is_relevant', $relevant);
+  // Store/remove the setting.
+  if ($relevant) {
+    $style->setThirdPartySetting('textimage', 'is_relevant', $relevant);
+  }
+  else {
+    $style->unsetThirdPartySetting('textimage', 'is_relevant');
+    $style->unsetThirdPartySetting('textimage', 'uri_scheme');
+    $style->calculateDependencies(); // @todo why?
+  }
 }
 
 /**
@@ -249,7 +256,7 @@ function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_
       '#options' => $scheme_options,
       '#title' => t('Image destination'),
       '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
-      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', 'public'),
+      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', 'public'), // @todo why 'public', see if it can be set to UI setting
     );
     // Adds a validate handler to deal with textimage options.
     $form['#validate'][] = '_textimage_form_image_style_form_validate';

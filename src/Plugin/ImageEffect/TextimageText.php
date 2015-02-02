@@ -497,7 +497,7 @@ class TextimageText extends TextimageEffectBase {
       '#textimage_data' => $form_state->getValue(['data', 'ajax_config']),
     );
     $response = new AjaxResponse();
-    $response->addCommand(new ReplaceCommand('#textimage-preview', drupal_render($preview))); // @todo drupal_render in ajax may be dropped see #2347469
+    $response->addCommand(new ReplaceCommand('#textimage-preview', $preview));
     return $response;
   }
 
