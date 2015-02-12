@@ -258,7 +258,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
 
     $elements = array();
 
-    switch($field->module) {
+    switch($field->getTypeProvider()) {
       case 'text':
       case 'core';
         // Get sanitized text strings from a text field.

@@ -1,6 +1,6 @@
 # Schema for the Textimage module.
 
-image_style.third_party.textimage:
+image.style.*.third_party.textimage:
   type: mapping
   label: 'Textimage settings for image styles'
   mapping:

@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\ImageEffect;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\ImageToolkit\ImageToolkitOperationManagerInterface;
@@ -22,6 +23,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Base class for Textimage image effects.
  */
 abstract class TextimageEffectBase extends ConfigurableImageEffectBase implements ContainerFactoryPluginInterface {
+
+  /**
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
 
   /**
    * The Textimage factory.
@@ -61,8 +69,9 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $logger, ImageFactory $image_factory, ImageToolkitOperationManagerInterface $image_operation_manager, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ModuleHandlerInterface $module_handler, LoggerInterface $logger, ImageFactory $image_factory, ImageToolkitOperationManagerInterface $image_operation_manager, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $logger);
+    $this->moduleHandler = $module_handler;
     $this->imageFactory = $image_factory;
     $this->imageOperationManager =  $image_operation_manager;
     $this->textimageFactory = $textimage_factory;
@@ -78,6 +87,7 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('module_handler'),
       $container->get('textimage.logger'),
       $container->get('image.factory'),
       $container->get('image.toolkit.operation.manager'),
