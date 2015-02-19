@@ -122,7 +122,7 @@ function textimage_install() {
   }
   if (!$private_wrapper || !isset($private_directory) || !file_prepare_directory($private_directory, FILE_CREATE_DIRECTORY)) {
     $scheme = 'public';
-    \Drupal::service('textimage.logger')->notice(t('Textimage used the <b>public</b> file storage to create a structure of directories it needs to operate. You can change the set up in the <a href="@url">Textimage settings</a>.', array('@url' => \Drupal::url('textimage.settings'))));
+    \Drupal::service('textimage.logger')->notice('Textimage used the <b>public</b> file storage to create a structure of directories it needs to operate. You can change the set up in the <a href="@url">Textimage settings</a>.', array('@url' => \Drupal::url('textimage.settings')));
   }
 
   // Set store scheme in config.
@@ -132,7 +132,7 @@ function textimage_install() {
   $fonts_path = $config->get('font.plugin_settings.textimage.path');
   $fonts_path = str_replace('[scheme]', $scheme, $fonts_path);
   if (!file_prepare_directory($fonts_path, FILE_CREATE_DIRECTORY)) {
-    \Drupal::service('textimage.logger')->error(t('Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup font management.', array('%path' => $fonts_path, '@url' => \Drupal::url('textimage.settings'))));
+    \Drupal::service('textimage.logger')->error('Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup font management.', array('%path' => $fonts_path, '@url' => \Drupal::url('textimage.settings')));
   }
   $config->set('font.plugin_settings.textimage.path', $fonts_path);
 
@@ -140,7 +140,7 @@ function textimage_install() {
   $backgrounds_path = $config->get('background.plugin_settings.textimage.path');
   $backgrounds_path = str_replace('[scheme]', $scheme, $backgrounds_path);
   if (!file_prepare_directory($backgrounds_path, FILE_CREATE_DIRECTORY)) {
-    \Drupal::service('textimage.logger')->error(t('Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup background images management.', array('%path' => $backgrounds_path, '@url' => \Drupal::url('textimage.settings'))));
+    \Drupal::service('textimage.logger')->error('Failed to create directory "%path". Visit the <a href="@url">configuration page</a> to setup background images management.', array('%path' => $backgrounds_path, '@url' => \Drupal::url('textimage.settings')));
   }
   $config->set('background.plugin_settings.textimage.path', $backgrounds_path);
 

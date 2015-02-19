@@ -135,6 +135,9 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
 
     // Image style setting.
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
+    if (empty($image_styles)) {
+      $image_styles[''] = $this->t('No Textimage style available');
+    }
     $element['image_style'] = array(
       '#title' => $this->t('Image style'),
       '#type' => 'select',

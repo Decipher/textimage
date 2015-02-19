@@ -123,10 +123,10 @@ function textimage_cron() {
   // Remove temporary, uncached, image files.
   if (file_exists($uncached_dir)) {
     if (file_unmanaged_delete_recursive($uncached_dir)) {
-      \Drupal::service('textimage.logger')->notice(t("Textimage temporary image files removed."));
+      \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
     }
     else {
-      \Drupal::service('textimage.logger')->error(t("Textimage could not remove temporary image files."));
+      \Drupal::service('textimage.logger')->error('Textimage could not remove temporary image files.');
     }
   }
 }
@@ -168,7 +168,7 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
   }
   // Jumps out with a warning if node is not available.
   if (!isset($data['node'])) {
-    \Drupal::service('textimage.logger')->warning(t('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens))));
+    \Drupal::service('textimage.logger')->warning('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens)));
     return array();
   }
   // Process tokens.

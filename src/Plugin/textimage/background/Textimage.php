@@ -65,7 +65,10 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     // Get list of images.
     $image_files = $this->getList();
     if (empty($image_files)) {
-      $this->logger->warning($this->t('No background images available. Make sure at least one image is available in the directory specified in the <a href="!url">configuration page</a>.', ['!url' => $this->urlGenerator->generateFromRoute('textimage.settings')]));
+      $this->logger->warning(
+        'No background images available. Make sure at least one image is available in the directory specified in the <a href="!url">configuration page</a>.',
+        ['!url' => $this->urlGenerator->generateFromRoute('textimage.settings')]
+      );
     }
     // Element.
     return array(

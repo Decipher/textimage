@@ -18,7 +18,6 @@ use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
@@ -29,7 +28,6 @@ use Psr\Log\LoggerInterface;
  * Provides a factory for Textimage.
  */
 class TextimageFactory {
-  use StringTranslationTrait;
 
   /**
    * The image factory service.
@@ -353,9 +351,6 @@ class TextimageFactory {
         $options[$name] = $image_style->label();
       }
     }
-    if (empty($options)) {
-      $options[''] = $this->t('No defined styles');
-    }
     return $options;
   }
 
@@ -404,7 +399,7 @@ class TextimageFactory {
     }
     $this->cache->deleteAll();
     $this->database->truncate('textimage_store')->execute();
-    $this->logger->notice(t('All Textimage images were removed.'));
+    $this->logger->notice('All Textimage images were removed.');
   }
 
   /**
@@ -546,13 +541,13 @@ class TextimageFactory {
             }
             else {
               // Inform about the token failure.
-              $msg = $this->t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
-                array(
+              $this->logger->warning(
+                'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
+                [
                   '@token' => $original,
                   '@node_title' => $node->getTitle(),
-                )
+                ]
               );
-              $this->logger->warning($msg);
             }
           }
         }
@@ -589,13 +584,13 @@ class TextimageFactory {
             }
             else {
               // Inform about the token failure.
-              $msg = $this->t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
-                array(
+              $this->logger->warning(
+                'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
+                [
                   '@token' => $original,
                   '@node_title' => $node->getTitle(),
-                )
+                ]
               );
-              $this->logger->warning($msg);
             }
           }
         }

@@ -11,12 +11,14 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannel;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Psr\Log\LoggerInterface;
 
 /**
  * Defines a Textimage logger.
  */
 class TextimageLogger extends LoggerChannel {
+  use StringTranslationTrait;
 
   /**
    * The configuration factory.
@@ -80,7 +82,7 @@ class TextimageLogger extends LoggerChannel {
         default:
           $type = 'error';
       }
-      drupal_set_message($message, $type, FALSE);
+      drupal_set_message($this->t($message, $context), $type, FALSE);
     }
   }
 

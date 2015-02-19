@@ -169,13 +169,13 @@ class Textimage {
    */
   protected function set($property, $value) {
     if (!property_exists($this, $property)) {
-      throw new TextimageException(t("Attempted to set non existing property '@property'.", array('@property' => $property)));
+      throw new TextimageException('Attempted to set non existing property "' . $property . '"');
     }
     if (!$this->processed) {
       $this->$property = $value;
     }
     else {
-      throw new TextimageException(t("Attempted to set property '@property' when image was processed already.", array('@property' => $property)));
+      throw new TextimageException('Attempted to set property "' . $property . '" when image was processed already');
     }
     return $this;
   }
@@ -212,11 +212,11 @@ class Textimage {
         return $this->style($image_style);
       }
       else {
-        $this->factory->getLogger()->error(t("Textimage could not find image style '@style'.", ['@style' => $image_style_name]));
+        $this->factory->getLogger()->error('Textimage could not find image style \'@style\'.', ['@style' => $image_style_name]);
       }
     }
     else {
-      $this->factory->getLogger()->error(t("Image style not specified while processing a Textimage."));
+      $this->factory->getLogger()->error('Image style not specified while processing a Textimage.');
     }
     return $this;
   }
@@ -440,7 +440,7 @@ class Textimage {
 
     // Effects must be loaded.
     if(empty($this->effects)) {
-      $this->factory->getLogger()->error(t("Textimage had no image effects to process."));
+      $this->factory->getLogger()->error('Textimage had no image effects to process.');
       return $this;
     }
 
@@ -481,7 +481,7 @@ class Textimage {
     }
     $this->text = $processed_text;
     if(empty($this->text)) {
-      $this->factory->getLogger()->error(t("Textimage had no text to process."));
+      $this->factory->getLogger()->error('Textimage had no text to process.');
       return $this;
     }
 
@@ -572,13 +572,13 @@ class Textimage {
     // Generate the image.
     if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->uri)) {
       if (isset($this->style)) {
-        $this->factory->getLogger()->error(t("Textimage failed to build an image for image style '@style'.", ['@style' => $this->style->id()]));
+        $this->factory->getLogger()->error('Textimage failed to build an image for image style \'@style\'.', ['@style' => $this->style->id()]);
       }
       else {
-        $this->factory->getLogger()->error(t("Textimage failed to build an image."));
+        $this->factory->getLogger()->error('Textimage failed to build an image.');
       }
     }
-    $this->factory->getLogger()->debug(t("Built Textimage, @uri", ['@uri' => $this->uri]));
+    $this->factory->getLogger()->debug('Built Textimage, @uri', ['@uri' => $this->uri]);
 
     // Release lock.
     if (!empty($lock_acquired)) {
@@ -694,7 +694,7 @@ class Textimage {
     // Filenames longer than 200 characters will fail in most filesystems.
     if (Unicode::strlen($file_name) > 200) {
       // Need to proceed with hash-based file names.
-      $this->factory->getLogger()->debug(t("Textimage clear file name too long: @file_name...", ['@file_name' => Unicode::substr($file_name, 0, 60)]));
+      $this->factory->getLogger()->debug('Textimage clear file name too long: @file_name...', ['@file_name' => Unicode::substr($file_name, 0, 60)]);
       return FALSE;
     }
 
@@ -708,7 +708,7 @@ class Textimage {
     }
     if ($file_name <> $base_name) {
       // Need to proceed with hash-based file names.
-      $this->factory->getLogger()->debug(t("Textimage clear file name contains unallowed characters: @file_name...", ['@file_name' => Unicode::substr($file_name, 0, 60)]));
+      $this->factory->getLogger()->debug('Textimage clear file name contains unallowed characters: @file_name...', ['@file_name' => Unicode::substr($file_name, 0, 60)]);
       return FALSE;
     }
 
@@ -732,7 +732,7 @@ class Textimage {
     if ($cached = $this->factory->getCache()->get('tiid:' . $this->id)) {
       if (is_file($cached->data['uri'])) {
         $this->uri = $cached->data['uri'];
-        $this->factory->getLogger()->debug(t("Got Textimage from cache, @uri", array('@uri' => $this->uri)));
+        $this->factory->getLogger()->debug('Got Textimage from cache, @uri', array('@uri' => $this->uri));
         return TRUE;
       }
     }
@@ -753,7 +753,7 @@ class Textimage {
     $uri = $stored_image['uri'];
     if (is_file($uri)) {
       $this->uri = $uri;
-      $this->factory->getLogger()->debug(t("Got Textimage from store, @uri", array('@uri' => $this->uri)));
+      $this->factory->getLogger()->debug('Got Textimage from store, @uri', array('@uri' => $this->uri));
       $this->setCached();
       return TRUE;
     }
