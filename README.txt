@@ -9,7 +9,6 @@ TODO:
 - #2134439 - array_replace_recursive
 - review routine to store effects - also check that sequence is based on
   weights
-- string translation trait in Textimage.php
 - extension to be taken from image style when possible
 - review if logged messages should be pre-translated
 - use of gifTransparentColor in Textimage.php

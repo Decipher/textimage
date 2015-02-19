@@ -8,12 +8,15 @@
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Timer;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Component\Utility\Unicode;
 use Drupal\image\ImageStyleInterface;
 use Drupal\file\FileInterface;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\node\NodeInterface;
 
 class Textimage {
+  use StringTranslationTrait;
 
   /**
    * The Textimage factory service.
@@ -205,7 +208,7 @@ class Textimage {
   public function styleByName($image_style_name) {
     if ($image_style_name) {
       // Retrieve Textimage style.
-      if ($image_style = entity_load('image_style', $image_style_name)) {
+      if ($image_style = ImageStyle::load($image_style_name)) {
         return $this->style($image_style);
       }
       else {
@@ -472,7 +475,7 @@ class Textimage {
           $processed_text[] = $this->factory->processTextString($default_text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
         }
         else {
-          $processed_text[] = t('* Missing text *');
+          $processed_text[] = $this->t('* Missing text *');
         }
       }
     }

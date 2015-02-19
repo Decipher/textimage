@@ -18,7 +18,9 @@ use Drupal\Core\Lock\DatabaseLockBackend;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Utility\Token;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 use Psr\Log\LoggerInterface;
@@ -27,6 +29,7 @@ use Psr\Log\LoggerInterface;
  * Provides a factory for Textimage.
  */
 class TextimageFactory {
+  use StringTranslationTrait;
 
   /**
    * The image factory service.
@@ -228,7 +231,7 @@ class TextimageFactory {
    *   an image style object
    */
   public function buildStyleFromEffects($effects) {
-    $style = entity_create('image_style', array());
+    $style = ImageStyle::create(array());
     foreach ($effects as $effect) {
       $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
       $default_config = $effect_instance->defaultConfiguration();
@@ -343,7 +346,7 @@ class TextimageFactory {
    *   Array of image styles both key and value are set to style name.
    */
   public function getTextimageStyleOptions() {
-    $image_styles = entity_load_multiple('image_style');
+    $image_styles = ImageStyle::loadMultiple();
     $options = array();
     foreach ($image_styles as $name => $image_style) {
       if ($this->isTextimage($image_style)) {
@@ -351,7 +354,7 @@ class TextimageFactory {
       }
     }
     if (empty($options)) {
-      $options[''] = t('No defined styles');
+      $options[''] = $this->t('No defined styles');
     }
     return $options;
   }
@@ -387,7 +390,7 @@ class TextimageFactory {
    * the image styles, clear all cache and all store entries on the db.
    */
   public function flushAll() {
-    $image_styles = entity_load_multiple('image_style');
+    $image_styles = ImageStyle::loadMultiple();
     foreach ($image_styles as $image_style) {
       if ($this->isTextimage($image_style)) {
         $image_style->flush();
@@ -543,7 +546,7 @@ class TextimageFactory {
             }
             else {
               // Inform about the token failure.
-              $msg = t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
+              $msg = $this->t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
                 array(
                   '@token' => $original,
                   '@node_title' => $node->getTitle(),
@@ -586,7 +589,7 @@ class TextimageFactory {
             }
             else {
               // Inform about the token failure.
-              $msg = t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
+              $msg = $this->t("Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
                 array(
                   '@token' => $original,
                   '@node_title' => $node->getTitle(),
