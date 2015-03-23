@@ -362,7 +362,7 @@ class SettingsForm extends ConfigFormBase {
    */
   public function processAjax($form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
-    $status_messages = array('#theme' => 'status_messages');
+    $status_messages = array('#type' => 'status_messages');
     $response->addCommand(new HtmlCommand('#textimage-ajax-messages', $status_messages));
     $response->addCommand(new HtmlCommand('#textimage-settings-main', $form['settings']));
     return $response;

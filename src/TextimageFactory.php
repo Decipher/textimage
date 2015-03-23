@@ -14,7 +14,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\Lock\DatabaseLockBackend;
+use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
@@ -39,7 +39,7 @@ class TextimageFactory {
   /**
    * The lock service.
    *
-   * @var \Drupal\Core\Lock\DatabaseLockBackend
+   * @var \Drupal\Core\Lock\LockBackendInterface
    */
   protected $lock;
 
@@ -113,7 +113,7 @@ class TextimageFactory {
    *   The config factory.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The image factory.
-   * @param \Drupal\Core\Lock\DatabaseLockBackend $lock_service
+   * @param \Drupal\Core\Lock\LockBackendInterface $lock_service
    *   The lock service.
    * @param \Drupal\Core\Utility\Token $token_service
    *   The token resolution service.
@@ -132,7 +132,7 @@ class TextimageFactory {
    * @param \Drupal\Core\Database\Connection $database
    *   The database connection.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, DatabaseLockBackend $lock_service, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, LockBackendInterface $lock_service, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
     $this->config = $config_factory->get('textimage.settings');
     $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
@@ -169,7 +169,7 @@ class TextimageFactory {
   /**
    * Returns the lock service.
    *
-   * @return \Drupal\Core\Lock\DatabaseLockBackend
+   * @return \Drupal\Core\Lock\LockBackendInterface
    *   The lock service.
    */
   public function getLock() {

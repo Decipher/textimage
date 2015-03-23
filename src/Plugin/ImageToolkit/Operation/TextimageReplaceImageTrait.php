@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 
-use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Image\ImageInterface;
 
 /**
@@ -32,11 +32,11 @@ trait TextimageReplaceImageTrait {
   protected function validateArguments(array $arguments) {
     // Ensure replacement_image is an expected ImageInterface object.
     if (!$arguments['replacement_image'] instanceof ImageInterface) {
-      throw new \InvalidArgumentException(String::format("Replacement image passed to the 'textimage_replace_image' operation is invalid"));
+      throw new \InvalidArgumentException(SafeMarkup::format("Replacement image passed to the 'textimage_replace_image' operation is invalid"));
     }
     // Ensure replacement_image is a valid image.
     if (!$arguments['replacement_image']->isValid()) {
-      throw new \InvalidArgumentException(String::format('Invalid image at @source.', array('@source' => $arguments['replacement_image']->getSource())));
+      throw new \InvalidArgumentException(SafeMarkup::format('Invalid image at @source.', array('@source' => $arguments['replacement_image']->getSource())));
     }
     return $arguments;
   }

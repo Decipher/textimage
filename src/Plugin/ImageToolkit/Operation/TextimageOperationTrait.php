@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 
-use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\StreamWrapper\LocalStream;
 
 /**
@@ -56,7 +56,7 @@ trait TextimageOperationTrait {
     }
     if (!isset(static::$fontPaths[$font_uri])) {
       if (!$ret = $this->getRealPath($font_uri)) {
-        throw new \InvalidArgumentException(String::format('Textimage - Could not find the font file @fontfile', array('@fontfile' => $font_uri)));
+        throw new \InvalidArgumentException(SafeMarkup::format('Textimage - Could not find the font file @fontfile', array('@fontfile' => $font_uri)));
       }
       static::$fontPaths[$font_uri] = $ret;
     }
@@ -109,7 +109,7 @@ trait TextimageOperationTrait {
   protected function keywordFilter($value, $base_size, $layer_size) {
     // See above for the patterns this matches
     if (! preg_match('/([a-z]*)([\+\-]?)(\d*)([^\d]*)/', $value, $results) ) {
-      // @todo exception
+      // @todo (imagecache_actions) exception?
       trigger_error("imagecache_actions had difficulty parsing the string '$value' when calculating position. Please check the syntax.", E_USER_WARNING);
     }
     list(, $keyword, $plusminus, $value, $unit) = $results;
