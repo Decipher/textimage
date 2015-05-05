@@ -4,15 +4,15 @@ Drupal 8 version
 Core issues:
 ============
 
-TODO:
-=====
+@todo:
+======
 - #2134439 - array_replace_recursive
 - review routine to store effects - also check that sequence is based on
   weights
 - extension to be taken from image style when possible
 - use of gifTransparentColor in Textimage.php
 - field formatters to cache the image style in case of changes so that nodes
-  can be refreshed
+  can be refreshed (see also #2388023)
 
 -------------------------------------------------------------------------------
 

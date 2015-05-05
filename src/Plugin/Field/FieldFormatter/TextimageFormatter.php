@@ -236,7 +236,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
 
     // If formatting a node, store entity for passing to theme.
     // The node entity will be used for the detokening of text.
-    $node = ($instance->entity_type == 'node') ? $items->getEntity() : NULL;
+    $node = ($instance->getTargetEntityTypeId() == 'node') ? $items->getEntity() : NULL;
 
     // Check if the formatter involves a link.
     $url = NULL;

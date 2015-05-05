@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage;
 
+use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\Timer;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Component\Utility\Unicode;
@@ -564,7 +565,7 @@ class Textimage {
 
     // Try a lock to the file generation process. If cannot get the lock,
     // return success if the file exists already. Otherwise return failure.
-    $lock_name = 'textimage_process:' . $this->uri;
+    $lock_name = 'textimage_process:' . Crypt::hashBase64($this->uri);
     if(!$lock_acquired = $this->factory->getLock()->acquire($lock_name)) {
       return file_exists($this->uri) ? TRUE : FALSE;
     }
