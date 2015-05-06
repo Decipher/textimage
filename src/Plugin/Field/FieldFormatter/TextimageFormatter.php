@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
@@ -66,6 +67,13 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
   protected $textimageFactory;
 
   /**
+   * The image style entity storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $imageStyleStorage;
+
+  /**
    * Constructs an TextimageFormatter object.
    *
    * @param string $plugin_id
@@ -88,13 +96,16 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
    *   The link generator service.
    * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   The url generator service.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $image_style_storage
+   *   The image style entity storage.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, LinkGeneratorInterface $link_generator, UrlGeneratorInterface $url_generator, TextimageFactory $textimage_factory) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, LinkGeneratorInterface $link_generator, UrlGeneratorInterface $url_generator, TextimageFactory $textimage_factory, EntityStorageInterface $image_style_storage) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->currentUser = $current_user;
     $this->linkGenerator = $link_generator;
     $this->urlGenerator = $url_generator;
     $this->textimageFactory = $textimage_factory;
+    $this->imageStyleStorage = $image_style_storage;
   }
 
   /**
@@ -112,7 +123,8 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       $container->get('current_user'),
       $container->get('link_generator'),
       $container->get('url_generator'),
-      $container->get('textimage.factory')
+      $container->get('textimage.factory'),
+      $container->get('entity.manager')->getStorage('image_style')
     );
   }
 
@@ -259,6 +271,15 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       }
     }
 
+    $image_style_setting = $this->getSetting('image_style');
+
+    // Collect cache tags to be added for each item in the field.
+    $cache_tags = array();
+    if (!empty($image_style_setting)) {
+      $image_style = $this->imageStyleStorage->load($image_style_setting);
+      $cache_tags = $image_style->getCacheTags();
+    }
+
     $elements = array();
 
     switch($field->getTypeProvider()) {
@@ -275,10 +296,14 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
           '#href' => $url,
+          '#cache' => array(
+            'tags' => $cache_tags,
+          ),
         );
         break;
 
       case 'image':
+        // @todo add cache tags for the source_image_file??
         // Get source image from an image field.
         foreach ($items as $delta => $item) {
           $elements[$delta] = array(
@@ -291,6 +316,9 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             '#alt' => $this->getSetting('image_alt'),
             '#title' => $this->getSetting('image_title'),
             '#href' => $url,
+            '#cache' => array(
+              'tags' => $cache_tags,
+            ),
           );
         }
         break;

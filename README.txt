@@ -3,6 +3,8 @@ Drupal 8 version
 
 Core issues:
 ============
+- #1977206 - Default serialization of ConfigEntities
+- #2393387 - WSOD editing image effect when configuration form is Ajax enabled
 
 @todo:
 ======
@@ -11,8 +13,6 @@ Core issues:
   weights
 - extension to be taken from image style when possible
 - use of gifTransparentColor in Textimage.php
-- field formatters to cache the image style in case of changes so that nodes
-  can be refreshed (see also #2388023)
 
 -------------------------------------------------------------------------------
 
