@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -303,9 +304,11 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
         break;
 
       case 'image':
-        // @todo add cache tags for the source_image_file??
         // Get source image from an image field.
         foreach ($items as $delta => $item) {
+          // Add cache tags for the input source image file.
+          $cache_tags_item = Cache::mergeTags($cache_tags, $item->entity->getCacheTags());
+
           $elements[$delta] = array(
             '#theme' => 'textimage_formatter',
             '#style_name' => $this->getSetting('image_style'),
@@ -317,7 +320,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             '#title' => $this->getSetting('image_title'),
             '#href' => $url,
             '#cache' => array(
-              'tags' => $cache_tags,
+              'tags' => $cache_tags_item,
             ),
           );
         }
