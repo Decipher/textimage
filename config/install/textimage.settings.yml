@@ -18,3 +18,5 @@ background:
       path: '[scheme]://textimage_store/backgrounds'
 color:
   plugin_id: textimage
+  plugin_settings:
+    textimage: { }

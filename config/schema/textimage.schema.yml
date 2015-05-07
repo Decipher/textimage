@@ -1,5 +1,110 @@
 # Schema for the Textimage module.
 
+# Schema for settings.
+
+textimage.settings:
+  type: mapping
+  label: 'Textimage settings'
+  mapping:
+    store_scheme:
+      type: string
+      label: 'Scheme wrapper for the textimage store'
+    debug:
+      type: boolean
+      label: 'Display debugging information'
+    url_generation:
+      type: mapping
+      label: 'URL based generation'
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Status of URL based generation'
+        text_separator:
+          type: string
+          label: 'Sequence of characters to be used to split the URL text string'
+    font:
+      type: mapping
+      label: 'Font management'
+      mapping:
+        plugin_id:
+          type: text
+          label: 'Selected plugin id'
+        plugin_settings:
+          type: sequence
+          label: 'Plugins settings'
+          sequence:
+            type: textimage.plugin.font.[%key]
+    default_font:
+      type: mapping
+      label: 'Default font'
+      mapping:
+        name:
+          type: string
+          label: 'Default font name'
+        uri:
+          type: string
+          label: 'Default font file URI'
+    background:
+      type: mapping
+      label: 'Background image management'
+      mapping:
+        plugin_id:
+          type: text
+          label: 'Selected plugin id'
+        plugin_settings:
+          type: sequence
+          label: 'Plugins settings'
+          sequence:
+            type: textimage.plugin.background.[%key]
+    color:
+      type: mapping
+      label: 'Color form element management'
+      mapping:
+        plugin_id:
+          type: text
+          label: 'Selected plugin id'
+        plugin_settings:
+          type: sequence
+          label: 'Plugins settings'
+          sequence:
+            type: textimage.plugin.color.[%key]
+
+# Schema for Textimage plugins settings.
+
+textimage.plugin.font.*:
+  type: mapping
+  label: 'Font plugin settings'
+
+textimage.plugin.font.textimage:
+  type: mapping
+  label: 'Textimage font plugin settings'
+  mapping:
+    path:
+      type: string
+      label: 'Path where font files can be found'
+
+textimage.plugin.background.*:
+  type: mapping
+  label: 'Background image plugin settings'
+
+textimage.plugin.background.textimage:
+  type: mapping
+  label: 'Textimage background image plugin settings'
+  mapping:
+    path:
+      type: string
+      label: 'Path where image files can be found'
+
+textimage.plugin.color.*:
+  type: mapping
+  label: 'Color element plugin settings'
+
+textimage.plugin.color.textimage:
+  type: mapping
+  label: 'Textimage color element plugin settings'
+
+# Schema for Textimage third party settings for image styles.
+
 image.style.*.third_party.textimage:
   type: mapping
   label: 'Textimage settings for image styles'
@@ -10,3 +115,199 @@ image.style.*.third_party.textimage:
     uri_scheme:
       type: string
       label: 'Textimage derivative scheme destination'
+
+# Schema for Textimage provided image effects.
+
+image.effect.textimage_text:
+  type: mapping
+  label: 'Textimage text effect'
+  mapping:
+    text_string:
+      type: text
+      label: 'Text associated with this effect, can include tokens'
+    font:
+      type: mapping
+      mapping:
+        name:
+          type: string
+          label: 'Font name'
+        uri:
+          type: string
+          label: 'Font file URI'
+        size:
+          type: integer
+          label: 'Font size'
+        angle:
+          type: integer
+          label: 'Font orientation'
+        color:
+          type: color_hex
+          label: 'Font color'
+        stroke_mode:
+          type: string
+          label: 'Type of stroke (outline/shadow)'
+        stroke_color:
+          type: color_hex
+          label: 'Color of the stroke'
+        outline_top:
+          type: integer
+          label: 'Outline px on the top'
+        outline_right:
+          type: integer
+          label: 'Outline px on the right'
+        outline_bottom:
+          type: integer
+          label: 'Outline px on the bottom'
+        outline_left:
+          type: integer
+          label: 'Outline px on the left'
+        shadow_x_offset:
+          type: integer
+          label: 'Shadow horizontal offset in px'
+        shadow_y_offset:
+          type: integer
+          label: 'Shadow vertical offset in px'
+        shadow_width:
+          type: integer
+          label: 'Shadow width in px'
+        shadow_height:
+          type: integer
+          label: 'Shadow height in px'
+    layout:
+      type: mapping
+      mapping:
+        padding_top:
+          type: integer
+          label: 'Padding top in px'
+        padding_right:
+          type: integer
+          label: 'Padding right in px'
+        padding_bottom:
+          type: integer
+          label: 'Padding bottom in px'
+        padding_left:
+          type: integer
+          label: 'Padding left in px'
+        x_pos:
+          type: string
+          label: 'Placement on canvas, horizontal'
+        y_pos:
+          type: string
+          label: 'Placement on canvas, vertical'
+        x_offset:
+          type: integer
+          label: 'Placement on canvas, horizontal, offset'
+        y_offset:
+          type: integer
+          label: 'Placement on canvas, vertical, offset'
+        background_color:
+          type: color_hex
+          label: 'Color of bounding box'
+        overflow_action:
+          type: string
+          label: 'Action when textimage overflows canvas'
+    text:
+      type: mapping
+      mapping:
+        maximum_width:
+          type: integer
+          label: 'Maximum width in px'
+        fixed_width:
+          type: boolean
+          label: 'Fixed width flag'
+        align:
+          type: string
+          label: 'Text alignment'
+        line_spacing:
+          type: integer
+          label: 'Line spacing in px'
+        case_format:
+          type: string
+          label: 'Text format conversion'
+
+image.effect.textimage_background:
+  type: mapping
+  label: 'Textimage background effect'
+  mapping:
+    background_image:
+      type: mapping
+      mapping:
+        mode:
+          type: string
+          label: 'Background image mode'
+        uri:
+          type: string
+          label: 'Image file URI'
+        fid:
+          type: integer
+          label: 'Image file FID'
+    format:
+      type: mapping
+      mapping:
+        extension:
+          type: string
+          label: 'Output image file extension'
+        gif_transparent_color:
+          type: color_hex
+          label: 'Color to be used for transparency in GIF images'
+    background:
+      type: mapping
+      mapping:
+        color:
+          type: color_hex
+          label: 'Color'
+        repeat:
+          type: boolean
+          label: 'Flag to reuse the color in following effects'
+    exact:
+      type: mapping
+      mapping:
+        width:
+          type: integer
+          label: 'Exact width in px'
+        height:
+          type: integer
+          label: 'Exact height in px'
+        position:
+          type: string
+          label: 'Position of the image on the resulting canvas'
+        dimensions:
+          type: string
+          label: 'Action to take when the background image selected is bigger size than the canvas'
+        crop:
+          type: string
+          label: 'Part of the selected background image that should be cropped'
+    relative:
+      type: mapping
+      mapping:
+        leftdiff:
+          type: integer
+          label: 'Left ribbon in px'
+        rightdiff:
+          type: integer
+          label: 'Right ribbon in px'
+        topdiff:
+          type: integer
+          label: 'Top ribbon in px'
+        bottomdiff:
+          type: integer
+          label: 'Bottom ribbon in px'
+
+# Schema for Textimage provided field formatter settings.
+
+field.formatter.settings.textimage:
+  type: mapping
+  label: 'Image field display format settings'
+  mapping:
+    image_link:
+      type: string
+      label: 'Link image to'
+    image_style:
+      type: string
+      label: 'Image style'
+    image_alt:
+      type: string
+      label: 'Image alternate text'
+    image_title:
+      type: string
+      label: 'Image title'

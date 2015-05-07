@@ -15,11 +15,6 @@ use Drupal\simpletest\WebTestBase;
  */
 abstract class TextimageTestBase extends WebTestBase {
 
-  /**
-   * @todo Disabled config schema checking temporarily during development.
-   */
-  protected $strictConfigSchema = FALSE;
-
   protected $textimageAdmin = 'admin/config/media/textimage';
   protected $textimageFactory;
   protected $renderer;
