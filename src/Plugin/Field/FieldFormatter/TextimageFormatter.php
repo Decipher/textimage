@@ -286,7 +286,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     switch($field->getTypeProvider()) {
       case 'text':
       case 'core';
-        // Get sanitized text strings from a text field.
+        // Get sanitized text strings from the text field.
         $text = $this->textimageFactory->getTextFieldText($items);
         $elements[] = array(
           '#theme' => 'textimage_formatter',
@@ -304,7 +304,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
         break;
 
       case 'image':
-        // Get source image from an image field.
+        // Get source images from the image field.
         foreach ($items as $delta => $item) {
           // Add cache tags for the input source image file.
           $cache_tags_item = Cache::mergeTags($cache_tags, $item->entity->getCacheTags());

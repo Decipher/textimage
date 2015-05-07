@@ -13,6 +13,9 @@ Core issues:
   weights
 - extension to be taken from image style when possible
 - use of gifTransparentColor in Textimage.php
+- alternate/title text to be taken from original file when formatting an image
+  field via formatter??
+- conversion from % transparency to RGBA and viceversa not working right
 
 -------------------------------------------------------------------------------
 

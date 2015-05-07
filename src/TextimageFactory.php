@@ -628,12 +628,10 @@ class TextimageFactory {
    *   An array of sanitized text items.
    */
   public function getTextFieldText(FieldItemListInterface $items) {
-    $text = array();
+    $text = [];
     foreach ($items as $delta => $item) {
       $value = $item->getValue();
-      // @todo check Notice: Undefined index: value in Drupal\textimage\TextimageFactory->getTextFieldText() (line 601 of modules/textimage/src/TextimageFactory.php).
-      // when empty
-      $text[] = strip_tags($value['value']);
+      $text[] = !empty($value['value']) ? strip_tags($value['value']) : '';
     }
     return $text;
   }

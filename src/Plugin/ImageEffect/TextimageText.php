@@ -520,20 +520,15 @@ class TextimageText extends TextimageEffectBase {
     // Get the font URI.
     $font_uri = $form_state->hasValue(['font', 'name']) ? $this->fontPlugin->getUri($form_state->getValue(['font', 'name'])) : NULL;
 
-    // @todo - is there a better solution??
-    $font_color = TextimageColor::valueCallback($form['data']['font']['color'], $form_state->getValue(['font', 'color']), $form_state);
-    $stroke_color = TextimageColor::valueCallback($form['data']['font']['stroke']['color'], $form_state->getValue(['font', 'stroke', 'color']), $form_state);
-    $background_color = TextimageColor::valueCallback($form['data']['layout']['background_color'], $form_state->getValue(['layout', 'background_color']), $form_state);
-
     $this->configuration = array(
       'font'   => array(
         'name'                 => $form_state->hasValue(['font', 'name']) ? $form_state->getValue(['font', 'name']) : NULL,
         'uri'                  => $font_uri,
         'size'                 => $form_state->getValue(['font', 'size']),
         'angle'                => $form_state->getValue(['font', 'angle']),
-        'color'                => $font_color,
+        'color'                => $form_state->getValue(['font', 'color']),
         'stroke_mode'          => $form_state->getValue(['font', 'stroke', 'mode']),
-        'stroke_color'         => $stroke_color,
+        'stroke_color'         => $form_state->getValue(['font', 'stroke', 'color']),
         'outline_top'          => $form_state->getValue(['font', 'stroke', 'top']),
         'outline_right'        => $form_state->getValue(['font', 'stroke', 'right']),
         'outline_bottom'       => $form_state->getValue(['font', 'stroke', 'bottom']),
@@ -553,7 +548,7 @@ class TextimageText extends TextimageEffectBase {
         'x_offset'             => $form_state->getValue(['layout', 'position', 'x_offset']),
         'y_offset'             => $form_state->getValue(['layout', 'position', 'y_offset']),
         'overflow_action'      => $form_state->getValue(['layout', 'position', 'overflow_action']),
-        'background_color'     => $background_color,
+        'background_color'     => $form_state->getValue(['layout', 'background_color']),
       ),
       'text'   => array(
         'maximum_width'        => $form_state->getValue(['text', 'maximum_width']),

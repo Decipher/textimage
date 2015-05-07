@@ -272,19 +272,6 @@ class TextimageBackground extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::validateConfigurationForm($form, $form_state);
-
-    // @todo - is there a better solution??
-    $background_color = TextimageColor::valueCallback($form['data']['background']['color'], $form_state->getValue(['background', 'color']), $form_state);
-    $form_state->setValue(['background', 'color'], $background_color);
-    $gif_transparent_color = TextimageColor::valueCallback($form['data']['format']['gif_transparent_color'], $form_state->getValue(['format', 'gif_transparent_color']), $form_state);
-    $form_state->setValue(['format', 'gif_transparent_color'], $gif_transparent_color);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configuration = $form_state->getValues();
     if ($this->configuration['background_image']['mode'] !== 'select') {

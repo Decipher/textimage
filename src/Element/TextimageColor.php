@@ -33,6 +33,9 @@ class TextimageColor extends FormElement {
       '#process' => array(
         array($class, 'processTextimageColor'),
       ),
+      '#element_validate' => array(
+        array($class, 'validateTextimageColor'),
+      ),
     );
   }
 
@@ -46,9 +49,9 @@ class TextimageColor extends FormElement {
       $element['#allow_opacity'] = isset($element['#allow_opacity']) ? $element['#allow_opacity'] : FALSE;
 
       // Normalize returned element values to a rgba hex value.
-      $val = NULL;
+      $val = '';
       if ($element['#allow_null'] && !empty($input['container']['transparent'])) {
-        return NULL;
+        return '';
       }
       elseif ($element['#allow_null'] || $element['#allow_opacity']) {
         $val = Unicode::strtoupper($input['container']['hex']);
@@ -64,7 +67,7 @@ class TextimageColor extends FormElement {
       }
       return $val;
     }
-    return NULL;
+    return '';
   }
 
   /**
@@ -157,6 +160,13 @@ class TextimageColor extends FormElement {
     );
 
     return $element;
+  }
+
+  /**
+   * Form element validation handler.
+   */
+  public static function validateTextimageColor(&$element, FormStateInterface $form_state, &$complete_form) {
+    $form_state->setValueForElement($element, $element['#value']);
   }
 
 }
