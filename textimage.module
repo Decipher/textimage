@@ -193,12 +193,13 @@ function textimage_image_style_flush($style) {
 /**
  * Implements hook_image_style_presave().
  *
- * Identify and store whether the image style is relevant for Textimage.
+ * Deals with Textimage third party settings.
  */
 function textimage_image_style_presave(ImageStyleInterface $style) {
   $factory = \Drupal::service('textimage.factory');
   $original_relevant = $factory->isTextimage($style);
-  // Check if there are textimage effects.
+
+  // Check if there are Textimage effects.
   $relevant = FALSE;
   foreach ($style->getEffects() as $effect) {
     $definition = $effect->getPluginDefinition();
@@ -207,18 +208,25 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
       break;
     }
   }
-  // Flush Textimage if original was relevant but no longer.
-  if (!$relevant && $original_relevant) {
-    $factory->flushStyle($style);
-  }
-  // Store/remove the setting.
+
   if ($relevant) {
-    $style->setThirdPartySetting('textimage', 'is_relevant', $relevant);
+    // If Textimage TPSs are not yet set, set defaults.
+    if (!in_array('textimage', $style->getThirdPartyProviders())) {
+      $style->setThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('textimage.settings')->get('store_scheme'));
+    }
   }
   else {
-    $style->unsetThirdPartySetting('textimage', 'is_relevant');
-    $style->unsetThirdPartySetting('textimage', 'uri_scheme');
-    $style->calculateDependencies(); // @todo why?
+    // Flush Textimage if original was relevant but no longer.
+    if ($original_relevant) {
+      $factory->flushStyle($style);
+    }
+    // Remove the third party settings.
+    foreach ($style->getThirdPartySettings('textimage') as $key => $value) {
+      $style->unsetThirdPartySetting('textimage', $key);
+    }
+    // Re-run dependencies calculation to ensure Textimage dependency is
+    // removed.
+    $style->calculateDependencies();
   }
 }
 
@@ -227,6 +235,7 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
  */
 function textimage_image_style_predelete(ImageStyleInterface $style) {
   // Manage the textimage part of image style deletion.
+  // @todo is this needed? shouldn't the image style run flush already?
   $factory = \Drupal::service('textimage.factory');
   if ($factory->isTextimage($style)) {
     $factory->flushStyle($style);
@@ -256,7 +265,7 @@ function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_
       '#options' => $scheme_options,
       '#title' => t('Image destination'),
       '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
-      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', 'public'), // @todo why 'public', see if it can be set to UI setting
+      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme'),
     );
     // Adds a validate handler to deal with textimage options.
     $form['#validate'][] = '_textimage_form_image_style_form_validate';

@@ -334,7 +334,8 @@ class TextimageFactory {
    *   TRUE if style is Textimage relevant, otherwise FALSE
    */
   public function isTextimage(ImageStyleInterface $image_style) {
-    return (bool) $image_style->getThirdPartySetting('textimage', 'is_relevant', FALSE);
+    $dependencies = $image_style->getDependencies();
+    return isset($dependencies['module']) ? in_array('textimage', $dependencies['module']) : FALSE;
   }
 
   /**
