@@ -65,7 +65,7 @@ abstract class ColorUtility {
     if (!$value || $value < 0 || $value > 100) {
       return NULL;
     }
-    return Unicode::strtoupper(str_pad(dechex($value / 100 * 255), 2, '0', STR_PAD_LEFT));
+    return Unicode::strtoupper(str_pad(dechex(ceil($value / 100 * 255)), 2, '0', STR_PAD_LEFT));
   }
 
 }
