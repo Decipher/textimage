@@ -34,8 +34,11 @@ class Textimage extends TextimagePluginBase implements TextimageColorPluginInter
       '#title'   => isset($options['#title']) ? $options['#title'] : $this->t('Color'),
       '#description' => isset($options['#description']) ? $options['#description'] : NULL,
       '#default_value' => $options['#default_value'],
+      '#field_suffix' => $options['#default_value'],
+      '#wrapper_attributes' => ['class' => ['textimage-color-element']],
       '#maxlength' => 7,
       '#size' => 7,
+      '#attached' => ['library' => ['textimage/textimage.color_element']],
     );
   }
 }

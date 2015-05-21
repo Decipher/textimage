@@ -5,3 +5,11 @@ admin.ui:
   css:
     component:
       css/admin.ui.css: {}
+
+textimage.color_element:
+  version: VERSION
+  js:
+    js/textimage.color_element.js: {}
+  css:
+    component:
+      css/textimage.color_element.css: {}

@@ -1,0 +1,5 @@
+/* Textimage-provided color element */
+
+div.textimage-color-element  span.field-suffix {
+  vertical-align: -webkit-baseline-middle;
+}
