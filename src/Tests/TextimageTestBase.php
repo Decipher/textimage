@@ -8,6 +8,8 @@
 namespace Drupal\textimage\Tests;
 
 use Drupal\Component\Utility\SafeMarkup;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -108,15 +110,15 @@ abstract class TextimageTestBase extends WebTestBase {
    *   A list of widget settings that will be added to the widget defaults.
    */
   protected function createTextimageField($name, $type_name, $storage_settings = array(), $instance_settings = array(), $widget_settings = array()) {
-    entity_create('field_storage_config', array(
+    FieldStorageConfig::create([
       'field_name' => $name,
       'entity_type' => 'node',
       'type' => 'text',
       'settings' => $storage_settings,
       'cardinality' => !empty($storage_settings['cardinality']) ? $storage_settings['cardinality'] : 1,
-    ))->save();
+    ])->save();
 
-    $field_config = entity_create('field_config', array(
+    $field_config = FieldConfig::create([
       'field_name' => $name,
       'label' => $name,
       'entity_type' => 'node',
@@ -124,7 +126,7 @@ abstract class TextimageTestBase extends WebTestBase {
       'required' => !empty($instance_settings['required']),
       'description' => !empty($instance_settings['description']) ? $instance_settings['description'] : '',
       'settings' => $instance_settings,
-    ))->save();
+    ])->save();
 
     entity_get_form_display('node', $type_name, 'default')
       ->setComponent($name, array(
