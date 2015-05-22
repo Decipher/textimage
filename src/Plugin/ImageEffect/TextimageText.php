@@ -626,14 +626,15 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // text wrapper image, based on the settings.
     switch ($this->configuration['layout']['overflow_action']) {
       case 'extend':
-        // The background image new dimensions, after extension.
+        // $image_info will store the background image new dimensions, after
+        // extension.
         $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $image_width, 'height' => $image_height];
 
         // The size of the frame sides for color filling.
         $frame = ['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0];
 
         // Check wrapper image overflowing the original image.
-        if ($this->backgroundImageResize($image, $wrapper, $this->configuration, $image_info, $wrapper_info, $frame)) {
+        if ($this->backgroundImageResize($wrapper, $this->configuration, $image_info, $wrapper_info, $frame)) {
           // Apply textimage_define_canvas, transparent background.
           if (!$image->apply('textimage_define_canvas', ['exact' => $image_info])) {
             return FALSE;
@@ -728,15 +729,9 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    */
   public function transformDimensions(array &$dimensions) {
     // Dimensions are potentially affected only if the effect is set to
-    // autoextend the background image in case of wrapper overflow.
-    if ($this->configuration['layout']['overflow_action'] == 'extend') {
-
-      // New image object.
-      $image = $this->imageFactory->get();
-      $image->apply('create_new', ['width' => 1, 'height' => 1]);
-      if (!$image->isValid()) {
-        return;
-      }
+    // autoextend the background image in case of wrapper overflow. Also,
+    // current dimensions must be known.
+    if ($dimensions['width'] && $dimensions['height'] && $this->configuration['layout']['overflow_action'] == 'extend') {
 
       // Get the text wrapper resource.
       if (!$wrapper = $this->getTextWrapper($this->configuration)) {
@@ -744,17 +739,16 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       }
 
       // The background image new dimensions, after extension.
-      $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $image->getWidth(), 'height' => $image->getHeight()];
+      $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $dimensions['width'], 'height' => $dimensions['height']];
 
       // Offset wrapper dimensions.
       $wrapper_info = [];
 
       // Checks if resizing needed.
-      if ($this->backgroundImageResize($image, $wrapper, $this->configuration, $image_info, $wrapper_info)) {
+      if ($this->backgroundImageResize($wrapper, $this->configuration, $image_info, $wrapper_info)) {
         $dimensions['width'] = $image_info['width'];
         $dimensions['height'] = $image_info['height'];
       }
-
     }
   }
 
@@ -791,9 +785,9 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // the wrapper to disk to determine its actual width and height.
     $text_to_image_operation = $this->imageOperationManager->getToolkitOperation($wrapper->getToolkit(), 'textimage_text_to_image');
     if ($text_to_image_operation->isFlushingNeeded()) {
-      $wrapper_destination = drupal_tempnam('temporary://', 'textimage_');
-      unlink($wrapper_destination);
-      $wrapper_destination .= '.png'; // @todo extension??
+      $tmp_file = drupal_tempnam('temporary://', 'textimage_');
+      $wrapper_destination = $tmp_file . '.png'; // @todo extension?? best wait for the file.mimetype.mapper service, get wrapper mimetype and save with first mapped extension
+      file_unmanaged_move($tmp_file, $wrapper_destination, FILE_CREATE_DIRECTORY);
       $wrapper->save($wrapper_destination);
       $wrapper = $this->imageFactory->get($wrapper_destination);
     }
@@ -806,13 +800,13 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *
    * When wrapper overflows the original image, and autoextent is set on.
    */
-  protected function backgroundImageResize($image, $wrapper, $data, &$image_info, &$wrapper_info, &$frame = NULL) {
+  protected function backgroundImageResize(ImageInterface $wrapper, $data, &$image_info, &$wrapper_info, &$frame = NULL) {
 
     $resized = FALSE;
 
     // Background image dimensions.
-    $image_width = $image->getWidth();
-    $image_height = $image->getHeight();
+    $image_width = $image_info['width'];
+    $image_height = $image_info['height'];
 
     // Wrapper image dimensions.
     $wrapper_width = $wrapper->getWidth();
@@ -888,7 +882,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *
    * When wrapper overflows the original image, and scaling is set on.
    */
-  protected function wrapperResize($image, $wrapper, $data, &$wrapper_info) {
+  protected function wrapperResize(ImageInterface $image, ImageInterface $wrapper, $data, &$wrapper_info) {
 
     $resized = FALSE;
 

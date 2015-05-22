@@ -132,10 +132,13 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     $inner_rect->rotate($arguments['font']['angle']);
     $inner_rect->translate($outer_rect->getRotationOffset());
 
-    // Set image dimensions to allow fitting the text.
+    // Set image dimensions to allow fitting the text. Explicitly setting
+    // extension to 'png' to ensure wrapper is full transparent alpha channel
+    // enabled.
     $this->getToolkit()->apply('create_new', [
       'width' => $outer_rect->getBoundingWidth(),
       'height' => $outer_rect->getBoundingHeight(),
+      'extension' => 'png',
     ]);
 
     // Draw and fill the outer text box, if required.

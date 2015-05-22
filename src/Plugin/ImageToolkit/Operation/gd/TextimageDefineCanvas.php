@@ -39,7 +39,7 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     $data = array(
       'width' => $targetsize['width'],
       'height' => $targetsize['height'],
-      'extension' => image_type_to_extension($this->getToolkit()->getType(), FALSE),
+      'extension' => image_type_to_extension($this->getToolkit()->getType(), FALSE), // @todo double check is this correct - if canvass is below ok, if above then it could be png
       'transparent_color' => $this->getToolkit()->getTransparentColor(),
     );
     $canvas_image->apply('create_new', $data);
