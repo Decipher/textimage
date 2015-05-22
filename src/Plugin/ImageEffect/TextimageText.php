@@ -619,6 +619,10 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     $image_width = $image->getWidth();
     $image_height = $image->getHeight();
 
+    // $image_info will store the background image new dimensions, after
+    // extension.
+    $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $image_width, 'height' => $image_height];
+
     // Offset wrapper dimensions.
     $wrapper_info = [];
 
@@ -626,10 +630,6 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // text wrapper image, based on the settings.
     switch ($this->configuration['layout']['overflow_action']) {
       case 'extend':
-        // $image_info will store the background image new dimensions, after
-        // extension.
-        $image_info = ['xpos' => 0, 'ypos' => 0, 'width' => $image_width, 'height' => $image_height];
-
         // The size of the frame sides for color filling.
         $frame = ['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0];
 
@@ -696,7 +696,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
       case 'scaletext':
         // Check if scaling down is needed.
-        if ($this->wrapperResize($image, $wrapper, $this->configuration, $wrapper_info)) {
+        if ($this->wrapperResize($wrapper, $this->configuration, $image_info, $wrapper_info)) {
           if (!$wrapper->scale($wrapper_info['width'], $wrapper_info['height'])) {
             return FALSE;
           }
@@ -766,7 +766,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $data['text_string'] = $this->textimageFactory->processTextString($data['text_string'], $data['text']['case_format']);
     }
 
-    // Create the wrapper image object.
+    // Create the wrapper image object from scratch.
     $wrapper = $this->imageFactory->get();
 
     // Calls text_to_image for the wrapper.
@@ -882,13 +882,13 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *
    * When wrapper overflows the original image, and scaling is set on.
    */
-  protected function wrapperResize(ImageInterface $image, ImageInterface $wrapper, $data, &$wrapper_info) {
+  protected function wrapperResize(ImageInterface $wrapper, $data, $image_info, &$wrapper_info) {
 
     $resized = FALSE;
 
     // Background image dimensions.
-    $image_width = $image->getWidth();
-    $image_height = $image->getHeight();
+    $image_width = $image_info['width'];
+    $image_height = $image_info['height'];
 
     // Wrapper image dimensions.
     $wrapper_width = $wrapper->getWidth();
