@@ -39,7 +39,7 @@ abstract class TextimageTestBase extends WebTestBase {
     }
 
     // Create a user and log it in.
-    $this->admin_user = $this->drupalCreateUser(array(
+    $this->adminUser = $this->drupalCreateUser(array(
       'access content',
       'create article content',
       'edit any article content',
@@ -48,7 +48,7 @@ abstract class TextimageTestBase extends WebTestBase {
       'administer image styles',
       'generate textimage url derivatives',
     ));
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->adminUser);
 
     // Change Textimage font directory.
     $config = \Drupal::configFactory()->getEditable('textimage.settings');

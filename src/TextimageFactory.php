@@ -22,6 +22,7 @@ use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
+use Drupal\user\Entity\User; // @todo inject user entity storage instead
 use Psr\Log\LoggerInterface;
 
 /**
@@ -243,16 +244,11 @@ class TextimageFactory {
   /**
    * Process text string, detokenise and apply case conversion.
    */
-  public function processTextString($text, $case_format, $node = NULL, $source_image_file = NULL) {
+  public function processTextString($text, $case_format, array $token_data = []) {
     // Replace any tokens in text with run-time values.
-    $text = $this->token->replace(
-      $text,
-      array(
-        'user' => $this->currentUser,
-        'node' => $node,
-        'file' => $source_image_file,
-      )
-    );
+    $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : User::load($this->currentUser->id());  // @todo inject User storage instead?
+    $text = $this->token->replace($text, $token_data);
+
     // Convert case, if requested.
     switch ($case_format) {
       case 'upper':

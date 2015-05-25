@@ -247,9 +247,10 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     $instance = $items->getFieldDefinition();
     $field = $instance->getFieldStorageDefinition();
 
-    // If formatting a node, store entity for passing to theme.
-    // The node entity will be used for the detokening of text.
+    // If formatting within a node or an user entity, store entity for passing
+    // to theme for token resolution.
     $node = ($instance->getTargetEntityTypeId() == 'node') ? $items->getEntity() : NULL;
+    $user = ($instance->getTargetEntityTypeId() == 'user') ? $items->getEntity() : NULL;
 
     // Check if the formatter involves a link.
     $url = NULL;
@@ -292,7 +293,10 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           '#theme' => 'textimage_formatter',
           '#style_name' => $this->getSetting('image_style'),
           '#text' => $text,
-          '#node' => $node,
+          '#token_data' => [
+            'node' => $node,
+            'user' => $user,
+          ],
           '#force_hashed_filename' => TRUE,
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
@@ -313,8 +317,11 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             '#theme' => 'textimage_formatter',
             '#style_name' => $this->getSetting('image_style'),
             '#text' => NULL,
-            '#node' => $node,
-            '#source_image_file' => $item->entity,
+            '#token_data' => [
+              'node' => $node,
+              'user' => $user,
+              'file' => $item->entity,
+            ],
             '#force_hashed_filename' => TRUE,
             '#alt' => $this->getSetting('image_alt'),
             '#title' => $this->getSetting('image_title'),

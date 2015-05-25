@@ -15,6 +15,7 @@ Core issues:
 - use of gifTransparentColor in Textimage.php
 - alternate/title text to be taken from original file when formatting an image
   field via formatter??
+- revise caching of textimages, tags are not appropriate
 
 -------------------------------------------------------------------------------
 
@@ -276,10 +277,11 @@ Using Textimage image styles
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
       cron run.
-    - node - a node entity. It is used for resolving the tokens in the text
-      effects.
-    - source_image_file - a file entity. It is used for resolving the tokens
-      in the text effects.
+// @todo revise
+//    - node - a node entity. It is used for resolving the tokens in the text
+//      effects.
+//    - source_image_file - a file entity. It is used for resolving the tokens
+//      in the text effects.
     - target_uri - allows to specify the URI where the textimage file should be
       stored. If specified, the automatic URI generation performed by Textimage
       is bypassed and caching disabled.
@@ -322,10 +324,11 @@ Using Textimage image styles
     - setCaching($caching) - if set to TRUE, the image will be cached for
       future access; otherwise, the image will be stored in
       textimage_store/uncached and deleted on cron run. Defaults to TRUE.
-    - node($node) - a node entity. It is used for resolving the tokens
-      in the text effects.
-    - sourceImageFile($source_image_file) - a file entity. It is used for resolving
-      the tokens in the text effects.
+// @todo revise
+//    - node($node) - a node entity. It is used for resolving the tokens
+//      in the text effects.
+//    - sourceImageFile($source_image_file) - a file entity. It is used for resolving
+//      the tokens in the text effects.
     - setTargetUri($target_uri) - specifies the URI where the textimage file
       should be stored. Allows to bypass the automatic URI generation performed
       by Textimage. NOTE: It disables caching, as, given an URI, there is no

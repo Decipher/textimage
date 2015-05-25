@@ -45,8 +45,7 @@ function textimage_theme() {
         'text'   => array(),
         'extension' => 'png',
         'caching' => TRUE,
-        'node' => NULL,
-        'source_image_file' => NULL,
+        'token_data' => [],
         'target_uri' => NULL,
         'force_hashed_filename' => FALSE,
         'alt'    => '',
@@ -300,11 +299,16 @@ function template_preprocess_textimage_formatter(&$variables) {
       $textimage->effects($variables['effects']);
     }
 
-    if ($variables['source_image_file']) {
-      $textimage->sourceImageFile($variables['source_image_file']);
+    if (isset($variables['token_data']['file'])) {
+      $textimage->sourceImageFile($variables['token_data']['file']);
     }
-    if ($variables['node']) {
-      $textimage->node($variables['node']);
+
+    if (isset($variables['token_data']['node'])) {
+      $textimage->node($variables['token_data']['node']);
+    }
+
+    if (isset($variables['token_data']['user'])) {
+      $textimage->user($variables['token_data']['user']);
     }
 
     if ($variables['target_uri']) {
@@ -326,8 +330,8 @@ function template_preprocess_textimage_formatter(&$variables) {
   // Render through image theme.
   if ($image_uri) {
     $image = \Drupal::service('image.factory')->get($image_uri);
-    $title = \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['node'], $variables['source_image_file']);
-    $alt = \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['node'], $variables['source_image_file']);
+    $title = \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['token_data']);
+    $alt = \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['token_data']);
     $url = file_create_url($image_uri);
 
     // Build anchor link data if needed.

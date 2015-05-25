@@ -71,8 +71,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
-    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->admin_user->getUsername(), 'Textimage has expected alt attribute.');
-    $this->assertEqual($elements[0]['title'], 'Title: ' . $this->admin_user->getUsername(), 'Textimage has expected title attribute.');
+    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->adminUser->getUsername(), 'Textimage has expected alt attribute.');
+    $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername(), 'Textimage has expected title attribute.');
 
   }
 

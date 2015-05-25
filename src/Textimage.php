@@ -15,6 +15,7 @@ use Drupal\image\ImageStyleInterface;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\node\NodeInterface;
+use Drupal\user\UserInterface;
 
 class Textimage {
   use StringTranslationTrait;
@@ -131,6 +132,13 @@ class Textimage {
    * @var \Drupal\file\FileInterface
    */
   protected $sourceImageFile = NULL;
+
+  /**
+   * An user entity to resolve user tokens.
+   *
+   * @var \Drupal\user\UserInterface;
+   */
+  protected $user = NULL;
 
   /**
    * If this Textimage has to use a hash filename instead of human readable.
@@ -260,7 +268,7 @@ class Textimage {
   }
 
   /**
-   * Set the image source file.
+   * Sets the image source file.
    *
    * @param \Drupal\file\FileInterface $source_image_file
    *   A file entity.
@@ -272,15 +280,27 @@ class Textimage {
   }
 
   /**
-   * Set a node entity to resolve node tokens.
+   * Sets a node entity to resolve node tokens.
    *
-   * @param \Drupal\node\NodeInterface $snode
+   * @param \Drupal\node\NodeInterface $node
    *   A node entity.
    *
    * @return $this
    */
   public function node(NodeInterface $node) {
     return $this->set('node', $node);
+  }
+
+  /**
+   * Sets an user entity to resolve user tokens.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   An user entity.
+   *
+   * @return $this
+   */
+  public function user(UserInterface $user) {
+    return $this->set('user', $user);
   }
 
   /**
@@ -463,6 +483,11 @@ class Textimage {
 
     // Process text to resolve tokens and required case conversions.
     $processed_text = array();
+    $token_data = [
+      'node' => $this->node,
+      'file' => $this->sourceImageFile,
+      'user' => $this->user,
+    ];
     foreach ($this->effects as $e => $e_data) {
       if ($e_data['id'] == 'textimage_text') {
         $text_item = array_shift($text);
@@ -470,10 +495,10 @@ class Textimage {
         if ($text_item) {
           // Replace any tokens in text with run-time values.
           $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-          $processed_text[] = $this->factory->processTextString($text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
+          $processed_text[] = $this->factory->processTextString($text_item, $e_data['data']['text']['case_format'], $token_data);
         }
         elseif ($default_text_item) {
-          $processed_text[] = $this->factory->processTextString($default_text_item, $e_data['data']['text']['case_format'], $this->node, $this->sourceImageFile);
+          $processed_text[] = $this->factory->processTextString($default_text_item, $e_data['data']['text']['case_format'], $token_data);
         }
         else {
           $processed_text[] = $this->t('* Missing text *');
