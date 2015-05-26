@@ -16,7 +16,6 @@ Core issues:
 - alternate/title text to be taken from originating field when formatting an image
   field via formatter??
 - is_void in textimage_store not set properly?
-- add tests for caching
 
 -------------------------------------------------------------------------------
 

@@ -7,6 +7,8 @@
 
 namespace Drupal\textimage\Tests;
 
+use Drupal\node\Entity\Node;
+
 /**
  * Test Textimage formatter on node display.
  *
@@ -26,7 +28,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Create a new node.
     $field_value = $this->randomMachineName(20);
     $nid = $this->createTextimageNode($field_name, $field_value, 'article');
-    $node = node_load($nid, TRUE);
+    $node = Node::load($nid);
 
     // Get Textimage URL.
     $textimage_url = $this->textimageFactory->getTextimage()

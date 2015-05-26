@@ -7,6 +7,10 @@
 
 namespace Drupal\textimage\Tests;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\image\Entity\ImageStyle;
+use Drupal\node\Entity\Node;
+
 /**
  * Basic functionality of the Textimage module.
  *
@@ -110,7 +114,7 @@ class TextimageTest extends TextimageTestBase {
     // Create a new node.
     $field_value = $this->randomMachineName(20);
     $nid = $this->createTextimageNode($field_name, $field_value, 'article');
-    $node = node_load($nid, TRUE);
+    $node = Node::load($nid);
 
     // Set the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -121,9 +125,26 @@ class TextimageTest extends TextimageTestBase {
     $this->drupalGet('node/' . $nid);
 
     // Check token.
-    $node = node_load($nid, TRUE);
+    $node = Node::load($nid);
     $uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', array('node' => $node));
     $this->assertEqual('public://textimage/textimage_test/' . $field_value . '.png', $uri);
+
+    // Test caching.
+
+    // From previous get, textimage is built.
+    $this->assertRaw('Built Textimage');
+
+    // Create another node with same data. Textimage should be got from cache.
+    $this->createTextimageNode($field_name, $field_value, 'article');
+    $this->assertRaw('Got Textimage from cache');
+
+    // Invalidate tags for the ImageStyle.
+    $image_style = ImageStyle::load('textimage_test');
+    Cache::invalidateTags($image_style->getCacheTags());
+
+    // Create another node with same data. Textimage should be got from store.
+    $this->createTextimageNode($field_name, $field_value, 'article');
+    $this->assertRaw('Got Textimage from store');
 
   }
 
