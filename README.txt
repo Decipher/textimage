@@ -13,9 +13,10 @@ Core issues:
   weights
 - extension to be taken from image style when possible
 - use of gifTransparentColor in Textimage.php
-- alternate/title text to be taken from original file when formatting an image
+- alternate/title text to be taken from originating field when formatting an image
   field via formatter??
-- revise caching of textimages, tags are not appropriate
+- is_void in textimage_store not set properly?
+- add tests for caching
 
 -------------------------------------------------------------------------------
 

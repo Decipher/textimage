@@ -795,9 +795,11 @@ class Textimage {
    * @return $this
    */
   protected function setCached() {
-    $tags = ['textimage_tiid'];
     if (isset($this->style) && $this->style->id()) {
-      $tags[] = 'textimage_style:' . $this->style->id();
+      $tags = $this->style->getCacheTags();
+    }
+    else {
+      $tags = [];
     }
     $this->factory->getCache()->set('tiid:' . $this->id, ['uri' => $this->uri], time() + (60 * 60 * 24), $tags);
     return $this;

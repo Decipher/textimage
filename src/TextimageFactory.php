@@ -360,8 +360,6 @@ class TextimageFactory {
    *   the style being flushed
    */
   public function flushStyle($style) {
-    // Clear style's cached images URI.
-    $this->cacheTagsInvalidator->invalidateTags(['textimage_tiid', 'textimage_style:' . $style->id()]);
     // Clear hashed filename images.
     if (file_exists($directory = $this->getStorePath('styled_hashed/') . $style->id())) {
       file_unmanaged_delete_recursive($directory);
