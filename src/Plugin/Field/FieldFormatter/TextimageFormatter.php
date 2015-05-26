@@ -180,18 +180,28 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     );
 
     // Image alt and title attribute settings.
+    $description = $this->t('This text will be used by screen readers, search engines, or when the image cannot be loaded.');
+    $description .= ' ' . $this->t('Tokens can be used.');
+    if ($this->fieldDefinition->getType() == 'image') {
+      $description .= ' ' . $this->t('Leave empty to use the alternative text set on content level.');
+    }
     $element['image_alt'] = array(
       '#title' => $this->t('Alternative text'),
       '#type' => 'textfield',
       '#default_value' => $this->getSetting('image_alt'),
-      '#description' => $this->t('This text will be used by screen readers, search engines, or when the image cannot be loaded.') . ' ' . $this->t('Tokens can be used.'),
+      '#description' => $description,
       '#maxlength' => 512,
     );
+    $description = $this->t('The title is used as a tool tip when the user hovers the mouse over the image.');
+    $description .= ' ' . $this->t('Tokens can be used.');
+    if ($this->fieldDefinition->getType() == 'image') {
+      $description .= ' ' . $this->t('Leave empty to use the title set on content level.');
+    }
     $element['image_title'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Title'),
       '#default_value' => $this->getSetting('image_title'),
-      '#description' => $this->t('The title is used as a tool tip when the user hovers the mouse over the image.') . ' ' . $this->t('Tokens can be used.'),
+      '#description' => $description,
       '#maxlength' => 1024,
     );
 
@@ -313,6 +323,11 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           // Add cache tags for the input source image file.
           $cache_tags_item = Cache::mergeTags($cache_tags, $item->entity->getCacheTags());
 
+          $item_value = $item->getValue();
+          $image_alt = $this->getSetting('image_alt');
+          $image_alt = !empty($image_alt) ? $image_alt : $item_value['alt'];
+          $image_title = $this->getSetting('image_title');
+          $image_title = !empty($image_title) ? $image_title : $item_value['title'];
           $elements[$delta] = array(
             '#theme' => 'textimage_formatter',
             '#style_name' => $this->getSetting('image_style'),
@@ -323,8 +338,8 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
               'file' => $item->entity,
             ],
             '#force_hashed_filename' => TRUE,
-            '#alt' => $this->getSetting('image_alt'),
-            '#title' => $this->getSetting('image_title'),
+            '#alt' => $image_alt,
+            '#title' => $image_title,
             '#href' => $url,
             '#cache' => array(
               'tags' => $cache_tags_item,
