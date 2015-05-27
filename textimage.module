@@ -43,13 +43,12 @@ function textimage_theme() {
         'style_name' => '',
         'effects' => array(),
         'text'   => array(),
-        'extension' => 'png',
         'caching' => TRUE,
         'token_data' => [],
         'target_uri' => NULL,
         'force_hashed_filename' => FALSE,
-        'alt'    => '',
-        'title'  => '',
+        'alt' => '',
+        'title' => '',
         'attributes' => array(),
         'image_container_attributes' => array(),
         'href' => '',
@@ -322,7 +321,6 @@ function template_preprocess_textimage_formatter(&$variables) {
       $textimage->setHashedFilename(TRUE);
     }
 
-    $textimage->extension($variables['extension']);
     $textimage->process($variables['text']);
     $image_uri = $textimage->getUri();
   }

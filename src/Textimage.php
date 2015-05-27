@@ -99,7 +99,7 @@ class Textimage {
    *
    * @var string
    */
-  protected $extension = 'png';
+  protected $extension = NULL;
 
   /**
    * RGB hex color to be used for GIF images.
@@ -366,7 +366,7 @@ class Textimage {
    *   An array of fully processed text elements.
    */
   public function getText() {
-    return $this->processed ? $this->text : array();
+    return $this->processed ? array_values($this->text) : [];
   }
 
   /**
@@ -438,7 +438,15 @@ class Textimage {
     }
     else {
       // If not, rebuild image file.
-      $this->buildImage();
+      $execution_effects = $this->effects;
+      $text = $this->text;
+      foreach ($execution_effects as $uuid => &$effect_configuration) {
+        if ($effect_configuration['id'] == 'textimage_text') {
+          $effect_configuration['data']['text_string'] = array_shift($text);
+        }
+      }
+      $runtime_style = $this->factory->buildStyleFromEffects($execution_effects);
+      $this->buildImage($runtime_style);
     }
 
     return $this;
@@ -473,36 +481,39 @@ class Textimage {
       $text = array($text);
     }
 
-    // Build an array with default text from effects.
-    $default_text = array();
-    foreach ($this->effects as &$effect) {
-      if ($effect['id'] == 'textimage_text') {
-        $default_text[] = $effect['data']['text_string'];
+    // Build a runtime-only style.
+    $runtime_style = $this->factory->buildStyleFromEffects($this->effects);
+
+    // Find the image file extension.
+    $this->extension = $this->factory->getConfig()->get('default_extension');
+    $this->extension = $runtime_style->getDerivativeExtension($this->extension);
+
+    // Find the default text from effects.
+    $default_text = [];
+    $runtime_effects = $runtime_style->getEffects()->getConfiguration();
+    foreach ($runtime_effects as $uuid => &$effect_configuration) {
+      if ($effect_configuration['id'] == 'textimage_text') {
+        $uuid = $effect_configuration['uuid'];
+        $default_text[$uuid] = $effect_configuration['data']['text_string'];
       }
     }
 
     // Process text to resolve tokens and required case conversions.
-    $processed_text = array();
+    $processed_text = [];
     $token_data = [
       'node' => $this->node,
       'file' => $this->sourceImageFile,
       'user' => $this->user,
     ];
-    foreach ($this->effects as $e => $e_data) {
-      if ($e_data['id'] == 'textimage_text') {
-        $text_item = array_shift($text);
-        $default_text_item = array_shift($default_text);
-        if ($text_item) {
-          // Replace any tokens in text with run-time values.
-          $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-          $processed_text[] = $this->factory->processTextString($text_item, $e_data['data']['text']['case_format'], $token_data);
-        }
-        elseif ($default_text_item) {
-          $processed_text[] = $this->factory->processTextString($default_text_item, $e_data['data']['text']['case_format'], $token_data);
-        }
-        else {
-          $processed_text[] = $this->t('* Missing text *');
-        }
+    foreach ($default_text as $uuid => $default_text_item) {
+      $text_item = array_shift($text);
+      if ($text_item) {
+        // Replace any tokens in text with run-time values.
+        $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data);
+      }
+      else {
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data);
       }
     }
     $this->text = $processed_text;
@@ -511,21 +522,21 @@ class Textimage {
       return $this;
     }
 
-    // Remove default text from effects outline, as actual runtime text goes
-    // separately to the hash.
-    foreach ($this->effects as &$effect) {
-      if ($effect['id'] == 'textimage_text') {
-        unset($effect['data']['text_string']);
-      }
-    }
-
     // Data for this textimage.
     $this->imageData = array(
-      'text'                => $this->text,
+      'text'                => array_values($this->text),
       'extension'           => $this->extension,
       'sourceImage'         => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
       'forceHashedFilename' => $this->forceHashedFilename,
     );
+
+    // Remove default text from effects outline, as actual runtime text
+    // goes separately to the hash.
+    foreach ($this->effects as $uuid => &$effect_configuration) {
+      if ($effect_configuration['id'] == 'textimage_text') {
+        unset($effect_configuration['data']['text_string']);
+      }
+    }
 
     // Get SHA256 hash, being the Textimage id, for cache checking.
     $hash_input = array(
@@ -539,8 +550,13 @@ class Textimage {
       $this->processed = TRUE;
     }
     else {
-      // If not found, build the image.
-      $this->buildImage();
+      // Not found, build the image. Inject processed text in the
+      // textimage_text effects data for execution first.
+      foreach ($this->text as $uuid => $text_item) {
+        $runtime_effects[$uuid]['data']['text_string'] = $text_item;
+      }
+      $runtime_style->getEffects()->setConfiguration($runtime_effects);
+      $this->buildImage($runtime_style);
     }
 
     return $this;
@@ -551,7 +567,7 @@ class Textimage {
    *
    * @return $this
    */
-  protected function buildImage() {
+  protected function buildImage($runtime_style) {
 
     // Track the image generation time.
     Timer::start('Textimage::process');
@@ -559,17 +575,6 @@ class Textimage {
     // Get URI of the to-be image file.
     if (!$this->uri) {
       $this->buildUri();
-    }
-
-    // Inject processed text in the textimage_text effects data.
-    $runtime_effects = [];
-    $i = 0;
-    foreach ($this->effects as $effect => $data) {
-      $runtime_effects[$effect] = $data;
-      if ($data['id'] == 'textimage_text' && isset($this->text[$i])) {
-        $runtime_effects[$effect]['data']['text_string'] = $this->text[$i];
-        $i++;
-      }
     }
 
     // If no source image specified, we are processing a pure Textimage
@@ -580,9 +585,6 @@ class Textimage {
     if (!$source) {
       $image->createNew(1, 1, $this->extension, $this->gifTransparentColor);
     }
-
-    // Build a runtime-only style.
-    $runtime_style = $this->factory->buildStyleFromEffects($runtime_effects);
 
     // Reset state.
     $this->factory->setState();

@@ -9,9 +9,6 @@ Core issues:
 @todo:
 ======
 - #2134439 - array_replace_recursive
-- review routine to store effects - also check that sequence is based on
-  weights
-- extension to be taken from image style when possible
 - use of gifTransparentColor in Textimage.php
 - is_void in textimage_store not set properly?
 
@@ -271,7 +268,8 @@ Using Textimage image styles
     - text - an array of text strings, with unresolved tokens; each string
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
-    - format - the file format of the resulting image (png/gif/jpg/jpeg).
+// @todo remove
+//    - format - the file format of the resulting image (png/gif/jpg/jpeg).
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
       cron run.

@@ -181,6 +181,48 @@ class TextimageApiTest extends TextimageTestBase {
   }
 
   /**
+   * Test changing image file extension via image effect.
+   */
+  public function testFileExtensionChange() {
+
+    // Process, should generate a PNG image file.
+    $textimage = $this->textimageFactory->getTextimage();
+    $textimage
+      ->styleByName('textimage_test')
+      ->setCaching(TRUE)
+      ->process('bingo');
+    $image = $this->container->get('image.factory')->get($textimage->getUri());
+    $this->assertEqual('image/png', $image->getMimeType());
+
+    // Add an extension change effect to the style.
+    $style_path = 'admin/config/media/image-styles/manage/textimage_test';
+    $effect_edits = [];
+    $effect_edits[] = [
+      'effect' => 'textimage_background',
+      'data' => [
+        'data[background_image][mode]' => 'passthrough',
+        'data[format][extension]' => 'jpeg',
+      ],
+    ];
+    foreach ($effect_edits as $effect) {
+      $this->drupalPostForm($style_path, array('new' => $effect['effect']), t('Add'));
+      if (!empty($effect['data'])) {
+        $this->drupalPostForm(NULL, $effect['data'], t('Add effect'));
+      }
+    }
+
+    // Process, should generate a JPEG image file.
+    $textimage = $this->textimageFactory->getTextimage();
+    $textimage
+      ->styleByName('textimage_test')
+      ->setCaching(TRUE)
+      ->process('bingo');
+    $image = $this->container->get('image.factory')->get($textimage->getUri());
+    $this->assertEqual('image/jpeg', $image->getMimeType());
+
+  }
+
+  /**
    * Assert throwing of a TextimageException.
    */
   protected function assertTextimageException($expected, $callback, $param_arr) {

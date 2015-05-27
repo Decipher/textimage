@@ -12,6 +12,7 @@ use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\textimage\Plugin\TextimagePluginManager;
@@ -60,6 +61,13 @@ class SettingsForm extends ConfigFormBase {
   protected $colorManager;
 
   /**
+   * The Image factory.
+   *
+   * @var \Drupal\Core\Image\ImageFactory
+   */
+  protected $imageFactory;
+
+  /**
    * Constructs the class for Textimage settings form.
    *
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
@@ -74,14 +82,17 @@ class SettingsForm extends ConfigFormBase {
    *   The background images plugin manager.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $color_plugin_manager
    *   The color plugin manager.
+   * @param \Drupal\textimage\Plugin\TextimagePluginManager $image_factory
+   *   The Image factory.
    */
-  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, StreamWrapperManager $stream_wrapper_manager, TextimagePluginManager $font_plugin_manager, TextimagePluginManager $background_plugin_manager, TextimagePluginManager $color_plugin_manager) {
+  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, StreamWrapperManager $stream_wrapper_manager, TextimagePluginManager $font_plugin_manager, TextimagePluginManager $background_plugin_manager, TextimagePluginManager $color_plugin_manager, ImageFactory $image_factory) {
     parent::__construct($config_factory);
     $this->textimageFactory = $textimage_factory;
     $this->fontManager = $font_plugin_manager;
     $this->backgroundManager = $background_plugin_manager;
     $this->colorManager = $color_plugin_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
+    $this->imageFactory = $image_factory;
   }
 
   /**
@@ -94,7 +105,8 @@ class SettingsForm extends ConfigFormBase {
       $container->get('stream_wrapper_manager'),
       $container->get('plugin.manager.textimage.font'),
       $container->get('plugin.manager.textimage.background'),
-      $container->get('plugin.manager.textimage.color')
+      $container->get('plugin.manager.textimage.color'),
+      $container->get('image.factory')
     );
   }
 
@@ -159,21 +171,35 @@ class SettingsForm extends ConfigFormBase {
       ],
     );
 
-    // Main Textimage store location.
+    $form['settings']['main'] = array(
+      '#type' => 'details',
+      '#open' => TRUE,
+      '#title' => $this->t('Main settings'),
+    );
+
+    // Textimage store location.
     $scheme_options = $this->streamWrapperManager->getNames(StreamWrapperInterface::WRITE_VISIBLE);
     $default_scheme = $config->get('store_scheme');
     $default_scheme = isset($scheme_options[$default_scheme]) ? $default_scheme : 'public';
-    $form['settings']['textimage_store'] = array(
-      '#type' => 'details',
-      '#open' => TRUE,
-      '#title' => $this->t('Textimage store location'),
-    );
-    $form['settings']['textimage_store']['store_scheme'] = array(
+    $form['settings']['main']['store_scheme'] = array(
       '#type' => 'radios',
       '#options' => $scheme_options,
-      '#title' => $this->t('Scheme'),
+      '#title' => $this->t('Textimage store location'),
       '#description' => $this->t('Select where the main Textimage file structure should be stored. It is recommended to keep it in the <strong>private</strong> file storage area.'),
       '#default_value' => $default_scheme,
+      '#required' => TRUE,
+    );
+
+    // Default image file format/extension.
+    $extensions = $this->imageFactory->getSupportedExtensions();
+    $options = array_combine($extensions, $extensions);
+    $form['settings']['main']['default_extension'] = array(
+      '#type' => 'select',
+      '#options' => $options,
+      '#title' => $this->t('Default image file extension'),
+      '#default_value' => $config->get('default_extension'),
+      '#required' => TRUE,
+      '#description' => $this->t('Select the default extension of the image files produced by Textimage. This can be overridden by image style effects that specifiy a format conversion like e.g. <em>Convert</em> or <em>Textimage Background</em>. This setting does not affect image derivatives created by the Image module.'),
     );
 
     $ajax_settings = ['callback' => [$this, 'processAjax']];
@@ -305,12 +331,14 @@ class SettingsForm extends ConfigFormBase {
     }
 
     // Overall module flush if storage scheme gets changed.
-    if ($form_state->getValue(['settings', 'textimage_store', 'store_scheme']) != $config->get('store_scheme')) {
+    if ($form_state->getValue(['settings', 'main', 'store_scheme']) != $config->get('store_scheme')) {
       $this->textimageFactory->flushAll();
     }
 
-    // Main Textimage store location.
-    $config->set('store_scheme', $form_state->getValue(['settings', 'textimage_store', 'store_scheme']));
+    // Main settings.
+    $config
+      ->set('store_scheme', $form_state->getValue(['settings', 'main', 'store_scheme']))
+      ->set('default_extension', $form_state->getValue(['settings', 'main', 'default_extension']));
 
     // Font plugin.
     $font_plugin = $this->fontManager->getPlugin($form_state->getValue(['settings', 'font', 'plugin_id']));

@@ -12,6 +12,9 @@ textimage.settings:
     debug:
       type: boolean
       label: 'Display debugging information'
+    default_extension:
+      type: string
+      label: 'Default image file extension'
     url_generation:
       type: mapping
       label: 'URL based generation'

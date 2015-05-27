@@ -1,5 +1,6 @@
 store_scheme: ''
 debug: FALSE
+default_extension: 'png'
 url_generation:
   enabled: TRUE
   text_separator: '---'

@@ -15,7 +15,7 @@
     - {{ 'No image'|t  }}
   {% endif %}
   {% if data.format.extension != '*original' %}
-    - {{ 'Output format'|t  }}: {{ data.format.extension|upper }}
+    - {{ 'Image file extension'|t  }}: {{ data.format.extension|upper }}
   {% endif %}
   {% if data.exact.width or data.exact.height %}
     - {{ 'Exact size'|t  }}:

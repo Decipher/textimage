@@ -113,7 +113,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     // Get the Textimage URI.
     $image_uri = $this->textimageFactory->getTextimage()
       ->style($image_style)
-      ->extension($extension)
+      ->extension($extension) // @todo verify this, should override the style setting if set
       ->process($text)
       ->getUri();
 
