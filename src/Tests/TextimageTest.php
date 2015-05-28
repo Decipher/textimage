@@ -59,7 +59,7 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTextimage($directory_path . '/textimage/textimage_test/προεπισκόπηση της εικόνας κείμενο.png', 328, 28);
 
     // Build and display a URL derivative.
-    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image');
+    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image.png');
     $this->assertResponse(200);
 
     // Check file was generated.
