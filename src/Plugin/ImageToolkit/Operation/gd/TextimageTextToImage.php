@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 use Drupal\textimage\Component\TextUtility;
@@ -231,13 +232,26 @@ class TextimageTextToImage extends GDTextimageOperationBase {
   }
 
   /**
-   * Determines if image needs to be flushed to disk.
+   * Build the text-to-image wrapper for later overlaying.
    *
-   * return boolean
-   *   TRUE if image needs flushing, FALSE otherwise.
+   * This workaround is used to let toolkit decide if the wrapper needs to
+   * be flushed to disk before proceeding. GD toolkit operates in memory
+   * and therefore does not need it, but other toolkits may need to save
+   * the wrapper to disk to determine its actual width and height.
+
+   * return \Drupal\Core\Image\ImageInterface
+   *   The image object for the wrapper.
    */
-  public function isFlushingNeeded() {
-    return FALSE;
+  public function buildWrapper(ImageInterface $wrapper, array $data) {
+    // Calls the actual toolkit text_to_image operation for the wrapper.
+    $ret = $wrapper->apply('textimage_text_to_image', [
+      'font' => $data['font'],
+      'layout' => $data['layout'],
+      'text' => $data['text'],
+      'text_string' => $data['text_string'],
+      'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
+    ]);
+    return $wrapper;
   }
 
   /**

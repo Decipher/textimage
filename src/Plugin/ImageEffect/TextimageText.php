@@ -769,30 +769,17 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // Create the wrapper image object from scratch.
     $wrapper = $this->imageFactory->get();
 
-    // Calls text_to_image for the wrapper.
-    $ret = $wrapper->apply('textimage_text_to_image', [
+    // Get an instance of the textimage_text_to_image toolkit operation.
+    $text_to_image_operation = $this->imageOperationManager->getToolkitOperation($wrapper->getToolkit(), 'textimage_text_to_image');
+
+    // Return the wrapper built by the toolkit operation.
+    return $text_to_image_operation->buildWrapper($wrapper, [
       'font' => $data['font'],
       'layout' => $data['layout'],
       'text' => $data['text'],
       'text_string' => $data['text_string'],
       'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
     ]);
-
-    // Get an instance of the textimage_text_to_image toolkit operation.
-    // That operation has a method to determine if the wrapper needs to
-    // be flushed to disk before proceeding. GD toolkit operates in memory
-    // and therefore does not need it, but other toolkits may need to save
-    // the wrapper to disk to determine its actual width and height.
-    $text_to_image_operation = $this->imageOperationManager->getToolkitOperation($wrapper->getToolkit(), 'textimage_text_to_image');
-    if ($text_to_image_operation->isFlushingNeeded()) {
-      $tmp_file = drupal_tempnam('temporary://', 'textimage_');
-      $wrapper_destination = $tmp_file . '.png'; // @todo extension?? best wait for the file.mimetype.mapper service, get wrapper mimetype and save with first mapped extension
-      file_unmanaged_move($tmp_file, $wrapper_destination, FILE_CREATE_DIRECTORY);
-      $wrapper->save($wrapper_destination);
-      $wrapper = $this->imageFactory->get($wrapper_destination);
-    }
-
-    return $ret ? $wrapper : NULL;
   }
 
   /**
