@@ -102,6 +102,13 @@ class Textimage {
   protected $extension = NULL;
 
   /**
+   * The file extension override for this Textimage.
+   *
+   * @var string
+   */
+  protected $forcedExtension = NULL;
+
+  /**
    * RGB hex color to be used for GIF images.
    *
    * @var string
@@ -244,15 +251,18 @@ class Textimage {
   }
 
   /**
-   * Set the image file extension.
+   * Forces the image file extension.
    *
    * @param string $extension
-   *   The file extension to be used (e.g. jpg/png/gif).
+   *   The file extension to be used (e.g. jpeg/png/gif).
    *
    * @return $this
    */
-  public function extension($extension) {
-    return $this->set('extension', $extension);
+  public function forceExtension($extension) {
+    if (!in_array($extension, $this->factory->getImageFactory()->getSupportedExtensions())) {
+      throw new TextimageException('Attempted to set an unsupported file image extension "' . $extension . '"');
+    }
+    return $this->set('forcedExtension', $extension);
   }
 
   /**
@@ -487,6 +497,27 @@ class Textimage {
     // Find the image file extension.
     $this->extension = $this->factory->getConfig()->get('default_extension');
     $this->extension = $runtime_style->getDerivativeExtension($this->extension);
+
+    // Manage request to force file extension change.
+    if ($this->forcedExtension && $this->forcedExtension != $this->extension) {
+      // Find the max weight from effects.
+      $max_weight = NULL;
+      foreach ($runtime_style->getEffects()->getConfiguration() as $effect_configuration) {
+        if (!$max_weight || $effect_configuration['weight'] > $max_weight) {
+          $max_weight = $effect_configuration['weight'];
+        }
+      }
+      // Add an image_convert effect as last effect.
+      $convert = [
+        'id' => 'image_convert',
+        'weight' => ++$max_weight,
+        'data' => [
+          'extension' => $this->forcedExtension,
+        ],
+      ];
+      $runtime_style->addImageEffect($convert);
+      $this->extension = $this->forcedExtension;
+    }
 
     // Find the default text from effects.
     $default_text = [];

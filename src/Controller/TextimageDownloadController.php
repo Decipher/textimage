@@ -106,14 +106,13 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       $text[] = Unicode::substr($last_text, 0, $offset);
     }
     else {
-      $extension = 'png';
-      $text[] = $last_text;
+      throw new AccessDeniedHttpException('No file extension specified.');
     }
 
     // Get the Textimage URI.
     $image_uri = $this->textimageFactory->getTextimage()
       ->style($image_style)
-      ->extension($extension) // @todo verify this, should override the style setting if set
+      ->forceExtension($extension)
       ->process($text)
       ->getUri();
 

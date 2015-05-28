@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Tests;
 
+use Drupal\file\Entity\File;
 use Drupal\textimage\TextimageException;
 
 /**
@@ -99,7 +100,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Check API is not allowing changes after processing.
     $this->assertTextimageException(TRUE, array($textimage, 'styleByName'), array('textimage_test'));
     $this->assertTextimageException(TRUE, array($textimage, 'effects'), array(array()));
-    $this->assertTextimageException(TRUE, array($textimage, 'extension'), array('png'));
+    $this->assertTextimageException(TRUE, array($textimage, 'forceExtension'), array('png'));
     $this->assertTextimageException(TRUE, array($textimage, 'setCaching'), array(FALSE));
     $this->assertTextimageException(TRUE, array($textimage, 'user'), array($this->adminUser));
     $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo-bongo.png'));
@@ -130,10 +131,24 @@ class TextimageApiTest extends TextimageTestBase {
       }
     }
 
-    // Test forced hashed filename.
-    $textimage = $this->textimageFactory->getTextimage();
     $text_array = array('bingox', 'bongox', 'tengox', 'tangox');
     $expected_text_array = array('bingox', 'bongox', 'tengox', 'tangox');
+
+    // Test forcing an extension that changes the source image file format.
+    $files = $this->drupalGetTestFiles('image');
+    $file = File::create((array) array_shift($files));
+    $file->save();
+    $textimage = $this->textimageFactory->getTextimage();
+    $textimage
+      ->styleByName('textimage_test')
+      ->sourceImageFile($file)
+      ->forceExtension('gif')
+      ->process($text_array);
+    $image = $this->container->get('image.factory')->get($textimage->getUri());
+    $this->assertEqual('image/gif', $image->getMimeType());
+
+    // Test forced hashed filename.
+    $textimage = $this->textimageFactory->getTextimage();
     $textimage
       ->styleByName('textimage_test')
       ->setHashedFilename(TRUE)
