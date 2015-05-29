@@ -12,6 +12,7 @@ use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 use Drupal\textimage\Component\TextUtility;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToImageTrait;
 
 /**
  * Defines Textimage GD2 text-to-image operation.
@@ -26,28 +27,7 @@ use Drupal\textimage\Component\TextUtility;
  */
 class TextimageTextToImage extends GDTextimageOperationBase {
 
-  /**
-   * {@inheritdoc}
-   */
-  protected function arguments() {
-    return array(
-      'font' => array(
-        'description' => 'Font metadata.',
-      ),
-      'layout' => array(
-        'description' => 'Layout metadata.',
-      ),
-      'text' => array(
-        'description' => 'Text metadata.',
-      ),
-      'text_string' => array(
-        'description' => 'Actual text string to be placed on the image.',
-      ),
-      'debug_visuals' => array(
-        'description' => 'Indicates if text bounding boxes need to be visualised. Only used in debugging.',
-      ),
-    );
-  }
+  use TextimageTextToImageTrait;
 
   /**
    * {@inheritdoc}
@@ -401,6 +381,62 @@ class TextimageTextToImage extends GDTextimageOperationBase {
       }
     }
     return $text;
+  }
+
+  /**
+   * Return the width of a text using TrueType fonts.
+   *
+   * @param string $text
+   *   A text string.
+   * @param string $font_size
+   *   The font size.
+   * @param string $font_uri
+   *   The font URI.
+   *
+   * @return int
+   *   The width of the text in pixels.
+   */
+  public function getTextWidth($text, $font_size, $font_uri) {
+    // Get fully qualified font file information.
+    if (!$font_file = $this->getFontPath($font_uri)) {
+      return NULL;
+    }
+    // Get the bounding box for $text to get width.
+    $points = imagettfbbox($font_size, 0, $font_file, $text);
+    // Return bounding box width.
+    return (abs($points[4] - $points[6]) + 1);
+  }
+
+  /**
+   * Return the height and basepoint of a text using TrueType fonts.
+   *
+   * Need to calculate the height independently from primitive as
+   * lack of descending/ascending characters will limit the height.
+   * So to have uniformity we take a dummy string with ascending and
+   * descending characters to set to max height possible.
+   *
+   * @param string $font_size
+   *   The font size.
+   * @param string $font_uri
+   *   The font URI.
+   *
+   * @return array
+   *   An associative array with the following keys:
+   *   - 'height' the text height in pixels.
+   *   - 'basepoint' an array of x, y coordinates of the font's basepoint.
+   */
+  public function getTextHeightInfo($font_size, $font_uri) {
+    // Get fully qualified font file information.
+    if (!$font_file = $this->getFontPath($font_uri)) {
+      return NULL;
+    }
+    // Get the bounding box for $text to get height.
+    $points = imagettfbbox($font_size, 0, $font_file, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ');
+    $height = (abs($points[5] - $points[1]) + 1);
+    return [
+      'height' => $height,
+      'basepoint' => [$points[6], -$points[7]],
+    ];
   }
 
 }

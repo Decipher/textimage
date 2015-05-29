@@ -22,62 +22,6 @@ abstract class GDTextimageOperationBase extends GDImageToolkitOperationBase {
   use TextimageOperationTrait;
 
   /**
-   * Return the width of a text using TrueType fonts.
-   *
-   * @param string $text
-   *   A text string.
-   * @param string $font_size
-   *   The font size.
-   * @param string $font_uri
-   *   The font URI.
-   *
-   * @return int
-   *   The width of the text in pixels.
-   */
-  public function getTextWidth($text, $font_size, $font_uri) {
-    // Get fully qualified font file information.
-    if (!$font_file = $this->getFontPath($font_uri)) {
-      return NULL;
-    }
-    // Get the bounding box for $text to get width.
-    $points = imagettfbbox($font_size, 0, $font_file, $text);
-    // Return bounding box width.
-    return (abs($points[4] - $points[6]) + 1);
-  }
-
-  /**
-   * Return the height and basepoint of a text using TrueType fonts.
-   *
-   * Need to calculate the height independently from primitive as
-   * lack of descending/ascending characters will limit the height.
-   * So to have uniformity we take a dummy string with ascending and
-   * descending characters to set to max height possible.
-   *
-   * @param string $font_size
-   *   The font size.
-   * @param string $font_uri
-   *   The font URI.
-   *
-   * @return array
-   *   An associative array with the following keys:
-   *   - 'height' the text height in pixels.
-   *   - 'basepoint' an array of x, y coordinates of the font's basepoint.
-   */
-  public function getTextHeightInfo($font_size, $font_uri) {
-    // Get fully qualified font file information.
-    if (!$font_file = $this->getFontPath($font_uri)) {
-      return NULL;
-    }
-    // Get the bounding box for $text to get height.
-    $points = imagettfbbox($font_size, 0, $font_file, 'bdfhkltgjpqyBDFHKLTGJPQY§@çÅÀÈÉÌÒÇ');
-    $height = (abs($points[5] - $points[1]) + 1);
-    return [
-      'height' => $height,
-      'basepoint' => [$points[6], -$points[7]],
-    ];
-  }
-
-  /**
    * Allocates a GD color from an RGBA hexadecimal.
    *
    * @param string $rgba_hex
