@@ -51,7 +51,7 @@ function textimage_theme() {
         'title' => '',
         'attributes' => array(),
         'image_container_attributes' => array(),
-        'href' => '',
+        'url' => NULL,
       ),
     ),
     // Textimage background image effect - summary.
@@ -333,10 +333,13 @@ function template_preprocess_textimage_formatter(&$variables) {
     $url = file_create_url($image_uri);
 
     // Build anchor link data if needed.
-    if ($variables['href']) {
-      $path = ($variables['href']['path'] == '#textimage_derivative_url#') ? $url : $variables['href']['path'];
-      $options = $variables['href']['options'];
-      $href = \Drupal::service('url_generator')->generateFromPath($path, $options);
+    if ($variables['url']) {
+      if (is_string($variables['url'])) {
+        $href = ($variables['url'] == '#textimage_derivative_url#') ? $url : $variables['url'];
+      }
+      else {
+        $href = $variables['url']->toString();
+      }
       $variables['anchor_attributes'] = new Attribute([
         'title' => $title,
         'href' => $href,

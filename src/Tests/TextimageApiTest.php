@@ -186,7 +186,7 @@ class TextimageApiTest extends TextimageTestBase {
       '#title' => 'Textimage title',
       '#attributes' => array('class' => 'textimage-test'),
       '#image_container_attributes' => array('class' => ['textimage-container-test']),
-      '#href' => ['path' => $textimage->getUrl(), 'options' => []],
+      '#url' => $textimage->getUrl(),
     );
     $this->setRawContent($this->renderer->render($output));
     $this->verbose($this->getRawContent());

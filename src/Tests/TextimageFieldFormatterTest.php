@@ -57,8 +57,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_link'] = 'content';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $href = 'node/' . $nid;
-    $this->drupalGet($href);
+    $href = $node->urlInfo()->toString();
+    $this->drupalGet($node->urlInfo());
     $elements = $this->cssSelect("a[href*='$href'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value, 'Textimage has expected alt attribute.');
@@ -70,7 +70,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_title'] = 'Title: [node:author]';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet('node/' . $nid);
+    $this->drupalGet($node->urlInfo());
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->adminUser->getUsername(), 'Textimage has expected alt attribute.');

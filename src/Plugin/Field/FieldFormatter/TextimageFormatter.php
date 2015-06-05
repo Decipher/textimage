@@ -267,17 +267,11 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     if ($image_link_setting = $this->getSetting('image_link')) {
       switch ($image_link_setting) {
         case 'content':
-          $url = array(
-            'path' => $items->getEntity()->getSystemPath(),
-            'options' => $items->getEntity()->urlInfo()->getOptions(),
-          );
+          $url = $items->getEntity()->urlInfo();
           break;
 
         case 'file':
-          $url = array(
-            'path' => '#textimage_derivative_url#',
-            'options' => array(),
-          );
+          $url = '#textimage_derivative_url#';
           break;
 
       }
@@ -310,7 +304,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           '#force_hashed_filename' => TRUE,
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
-          '#href' => $url,
+          '#url' => $url,
           '#cache' => array(
             'tags' => $cache_tags,
           ),
@@ -340,7 +334,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             '#force_hashed_filename' => TRUE,
             '#alt' => $image_alt,
             '#title' => $image_title,
-            '#href' => $url,
+            '#url' => $url,
             '#cache' => array(
               'tags' => $cache_tags_item,
             ),
