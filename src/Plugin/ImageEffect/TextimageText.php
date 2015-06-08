@@ -637,7 +637,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $this->info['frame_left'] = 0;
 
       // Check wrapper image overflowing the original image.
-      if ($this->backgroundImageResize($wrapper)) {
+      if ($this->canvasResizeNeeded($wrapper)) {
         // Apply textimage_define_canvas, transparent background.
         if (!$image->apply('textimage_define_canvas', ['exact' => [
                   'width' => $this->info['image_width'],
@@ -737,7 +737,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       }
 
       // Checks if resizing needed.
-      if ($this->backgroundImageResize($wrapper)) {
+      if ($this->canvasResizeNeeded($wrapper)) {
         $dimensions['width'] = $this->info['image_width'];
         $dimensions['height'] = $this->info['image_height'];
       }
@@ -761,19 +761,18 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // Create the wrapper image object from scratch.
     $wrapper = $this->imageFactory->get();
 
-    // Get an instance of the textimage_text_to_image toolkit operation.
-    $text_to_image_operation = $this->imageOperationManager->getToolkitOperation($wrapper->getToolkit(), 'textimage_text_to_image');
-
     // Return the wrapper built by the toolkit operation.
-    $wrapper = $text_to_image_operation->buildWrapper($wrapper, $this->info, [
+    $ret = $wrapper->apply('textimage_text_to_image', [
       'font' => $this->configuration['font'],
       'layout' => $this->configuration['layout'],
       'text' => $this->configuration['text'],
       'text_string' => $this->configuration['text_string'],
       'debug_visuals' => isset($this->configuration['debug_visuals']) ? $this->configuration['debug_visuals'] : FALSE,
+      'canvas_width' => $this->info['image_width'],
+      'canvas_height' => $this->info['image_height'],
     ]);
 
-    return $wrapper;
+    return $ret ? $wrapper : NULL;
   }
 
   /**
@@ -781,7 +780,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    *
    * When wrapper overflows the original image, and autoextent is set on.
    */
-  protected function backgroundImageResize(ImageInterface $wrapper) {
+  protected function canvasResizeNeeded(ImageInterface $wrapper) {
 
     $resized = FALSE;
 

@@ -208,6 +208,11 @@ class TextimageTextToImage extends GDTextimageOperationBase {
     imagealphablending($this->getToolkit()->getResource(), TRUE);
     imagesavealpha($this->getToolkit()->getResource(), TRUE);
 
+    // Resize the wrapper if needed.
+    if ($arguments['layout']['overflow_action'] == 'scaletext') {
+      $this->resizeWrapper($arguments);
+    }
+
     return TRUE;
   }
 
@@ -222,65 +227,51 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    * return \Drupal\Core\Image\ImageInterface
    *   The image object for the wrapper.
    */
-  public function buildWrapper(ImageInterface $wrapper, array &$info, array $data) {
+  protected function resizeWrapper(array $arguments) {
+    // Wrapper image dimensions.
+    $original_wrapper_width = $this->getToolkit()->getWidth();
+    $original_wrapper_height = $this->getToolkit()->getHeight();
 
-    // Calls the actual toolkit text_to_image operation for the wrapper.
-    $ret = $wrapper->apply('textimage_text_to_image', [
-      'font' => $data['font'],
-      'layout' => $data['layout'],
-      'text' => $data['text'],
-      'text_string' => $data['text_string'],
-      'debug_visuals' => isset($data['debug_visuals']) ? $data['debug_visuals'] : FALSE,
-    ]);
+    // Determine wrapper offset, based on placement option and direct
+    // offset indicated in settings.
+    $wrapper_xpos = ceil(image_filter_keyword($arguments['layout']['x_pos'], $arguments['canvas_width'], $original_wrapper_width)) + $arguments['layout']['x_offset'];
+    $wrapper_ypos = ceil(image_filter_keyword($arguments['layout']['y_pos'], $arguments['canvas_height'], $original_wrapper_height)) + $arguments['layout']['y_offset'];
 
-    if ($data['layout']['overflow_action'] == 'scaletext') {
-      // Wrapper image dimensions.
-      $wrapper_width = $wrapper->getWidth();
-      $wrapper_height = $wrapper->getHeight();
+    // Position of wrapper's bottom right point.
+    $xc_pos = $wrapper_xpos + $original_wrapper_width;
+    $yc_pos = $wrapper_ypos + $original_wrapper_height;
 
-      // Determine wrapper offset, based on placement option and direct
-      // offset indicated in settings.
-      $info['wrapper_xpos'] = ceil(image_filter_keyword($data['layout']['x_pos'], $info['image_width'], $wrapper_width)) + $data['layout']['x_offset'];
-      $info['wrapper_ypos'] = ceil(image_filter_keyword($data['layout']['y_pos'], $info['image_height'], $wrapper_height)) + $data['layout']['y_offset'];
+    // Redetermine offset wrapper position and size based on
+    // background image size.
+    $wrapper_xpos = max(0, $wrapper_xpos);
+    $wrapper_ypos = max(0, $wrapper_ypos);
+    $xc_pos = min($arguments['canvas_width'], $xc_pos);
+    $yc_pos = min($arguments['canvas_height'], $yc_pos);
+    $wrapper_width = $xc_pos - $wrapper_xpos;
+    $wrapper_height = $yc_pos - $wrapper_ypos;
 
-      // Position of wrapper's bottom right point.
-      $xc_pos = $info['wrapper_xpos'] + $wrapper_width;
-      $yc_pos = $info['wrapper_ypos'] + $wrapper_height;
-
-      // Redetermine offset wrapper position and size based on
-      // background image size.
-      $info['wrapper_xpos'] = max(0, $info['wrapper_xpos']);
-      $info['wrapper_ypos'] = max(0, $info['wrapper_ypos']);
-      $xc_pos = min($info['image_width'], $xc_pos);
-      $yc_pos = min($info['image_height'], $yc_pos);
-      $info['wrapper_width'] = $xc_pos - $info['wrapper_xpos'];
-      $info['wrapper_height'] = $yc_pos - $info['wrapper_ypos'];
-
-      // If negative width/height, then the wrapper is totally
-      // overflowing the background, and we cannot resize it.
-      if ($info['wrapper_width'] < 0 || $info['wrapper_height'] < 0) {
-        return $wrapper;
-      }
-
-      // Determine if scaling needed. Take the side that is shrinking
-      // most.
-      $width_resize_index = $info['wrapper_width'] / $wrapper_width;
-      $height_resize_index = $info['wrapper_height'] / $wrapper_height;
-      if ($width_resize_index < 1 || $height_resize_index < 1) {
-        if ($width_resize_index < $height_resize_index) {
-          $info['wrapper_height'] = NULL;
-        }
-        else {
-          $info['wrapper_width'] = NULL;
-        }
-        $wrapper->apply('scale', [
-          'width' => $info['wrapper_width'],
-          'height' => $info['wrapper_height'],
-        ]);
-      }
+    // If negative width/height, then the wrapper is totally
+    // overflowing the background, and we cannot resize it.
+    if ($wrapper_width < 0 || $wrapper_height < 0) {
+      return;
     }
 
-    return $wrapper;
+    // Determine if scaling needed. Take the side that is shrinking
+    // most.
+    $width_resize_index = $wrapper_width / $original_wrapper_width;
+    $height_resize_index = $wrapper_height / $original_wrapper_height;
+    if ($width_resize_index < 1 || $height_resize_index < 1) {
+      if ($width_resize_index < $height_resize_index) {
+        $wrapper_height = NULL;
+      }
+      else {
+        $wrapper_width = NULL;
+      }
+      $this->getToolkit()->apply('scale', [
+        'width' => $wrapper_width,
+        'height' => $wrapper_height,
+      ]);
+    }
   }
 
   /**
