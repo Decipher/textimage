@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageTextToImage.
+ * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\gd\TextimageTextToWrapper.
  */
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
@@ -12,22 +12,22 @@ use Drupal\Core\Image\ImageInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 use Drupal\textimage\Component\TextUtility;
-use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToImageTrait;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait;
 
 /**
- * Defines Textimage GD2 text-to-image operation.
+ * Defines Textimage GD2 text-to-wrapper operation.
  *
  * @ImageToolkitOperation(
- *   id = "textimage_gd_textimage_text_to_image",
+ *   id = "textimage_gd_textimage_text_to_wrapper",
  *   toolkit = "gd",
- *   operation = "textimage_text_to_image",
+ *   operation = "textimage_text_to_wrapper",
  *   label = @Translation("Overlays text over an image"),
  *   description = @Translation("Overlays text over a GD resource.")
  * )
  */
-class TextimageTextToImage extends GDTextimageOperationBase {
+class TextimageTextToWrapper extends GDTextimageOperationBase {
 
-  use TextimageTextToImageTrait;
+  use TextimageTextToWrapperTrait;
 
   /**
    * {@inheritdoc}
@@ -217,15 +217,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
   }
 
   /**
-   * Build the text-to-image wrapper for later overlaying.
-   *
-   * This workaround is used to let toolkit decide if the wrapper needs to
-   * be flushed to disk before proceeding. GD toolkit operates in memory
-   * and therefore does not need it, but other toolkits may need to save
-   * the wrapper to disk to determine its actual width and height.
-
-   * return \Drupal\Core\Image\ImageInterface
-   *   The image object for the wrapper.
+   * @todo
    */
   protected function resizeWrapper(array $arguments) {
     // Wrapper image dimensions.
@@ -436,7 +428,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    * @return int
    *   The width of the text in pixels.
    */
-  public function getTextWidth($text, $font_size, $font_uri) {
+  protected function getTextWidth($text, $font_size, $font_uri) {
     // Get fully qualified font file information.
     if (!$font_file = $this->getFontPath($font_uri)) {
       return NULL;
@@ -465,7 +457,7 @@ class TextimageTextToImage extends GDTextimageOperationBase {
    *   - 'height' the text height in pixels.
    *   - 'basepoint' an array of x, y coordinates of the font's basepoint.
    */
-  public function getTextHeightInfo($font_size, $font_uri) {
+  protected function getTextHeightInfo($font_size, $font_uri) {
     // Get fully qualified font file information.
     if (!$font_file = $this->getFontPath($font_uri)) {
       return NULL;

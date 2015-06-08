@@ -762,7 +762,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     $wrapper = $this->imageFactory->get();
 
     // Return the wrapper built by the toolkit operation.
-    $ret = $wrapper->apply('textimage_text_to_image', [
+    $ret = $wrapper->apply('textimage_text_to_wrapper', [
       'font' => $this->configuration['font'],
       'layout' => $this->configuration['layout'],
       'text' => $this->configuration['text'],

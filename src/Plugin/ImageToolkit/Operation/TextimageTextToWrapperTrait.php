@@ -2,15 +2,15 @@
 
 /**
  * @file
- * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToImageTrait.
+ * Contains \Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait.
  */
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 
 /**
- * Base trait for Textimage text-to-image operations.
+ * Base trait for Textimage text-to-wrapper operations.
  */
-trait TextimageTextToImageTrait {
+trait TextimageTextToWrapperTrait {
 
   /**
    * @todo
