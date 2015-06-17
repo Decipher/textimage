@@ -278,8 +278,9 @@ Using Textimage image styles
 // @todo revise
 //    - node - a node entity. It is used for resolving the tokens in the text
 //      effects.
-//    - source_image_file - a file entity. It is used for resolving the tokens
-//      in the text effects.
+    - source_image_file - a file entity. It is used to identify the source
+      image when the image derivative is created by Textimage and for resolving
+      the tokens in the text effects.
     - target_uri - allows to specify the URI where the textimage file should be
       stored. If specified, the automatic URI generation performed by Textimage
       is bypassed and caching disabled.

@@ -18,6 +18,7 @@ use Drupal\node\NodeInterface;
 use Drupal\user\UserInterface;
 
 class Textimage {
+
   use StringTranslationTrait;
 
   /**
@@ -286,7 +287,11 @@ class Textimage {
    * @return $this
    */
   public function sourceImageFile(FileInterface $source_image_file) {
-    return $this->set('sourceImageFile', $source_image_file);
+    if ($source_image_file) {
+      $this->set('sourceImageFile', $source_image_file);
+      $this->set('extension', pathinfo($source_image_file->getFilename(), PATHINFO_EXTENSION));
+    }
+    return $this;
   }
 
   /**
@@ -494,8 +499,8 @@ class Textimage {
     // Build a runtime-only style.
     $runtime_style = $this->factory->buildStyleFromEffects($this->effects);
 
-    // Find the image file extension.
-    $this->extension = $this->factory->getConfig()->get('default_extension');
+    // Find the output image file extension.
+    $this->extension = $this->extension ?: $this->factory->getConfig()->get('default_extension');
     $this->extension = $runtime_style->getDerivativeExtension($this->extension);
 
     // Manage request to force file extension change.

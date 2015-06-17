@@ -134,8 +134,10 @@ class TextimageApiTest extends TextimageTestBase {
     $text_array = array('bingox', 'bongox', 'tengox', 'tangox');
     $expected_text_array = array('bingox', 'bongox', 'tengox', 'tangox');
 
-    // Test forcing an extension that changes the source image file format.
     $files = $this->drupalGetTestFiles('image');
+
+    // Test forcing an extension different from source image file.
+    // Get image-test.png
     $file = File::create((array) array_shift($files));
     $file->save();
     $textimage = $this->textimageFactory->getTextimage();
@@ -143,6 +145,18 @@ class TextimageApiTest extends TextimageTestBase {
       ->styleByName('textimage_test')
       ->sourceImageFile($file)
       ->forceExtension('gif')
+      ->process($text_array);
+    $image = $this->container->get('image.factory')->get($textimage->getUri());
+    $this->assertEqual('image/gif', $image->getMimeType());
+
+    // Ensure output image file extension is consistent with source image.
+    // Get image-test.gif
+    $file = File::create((array) array_shift($files));
+    $file->save();
+    $textimage = $this->textimageFactory->getTextimage();
+    $textimage
+      ->styleByName('textimage_test')
+      ->sourceImageFile($file)
       ->process($text_array);
     $image = $this->container->get('image.factory')->get($textimage->getUri());
     $this->assertEqual('image/gif', $image->getMimeType());

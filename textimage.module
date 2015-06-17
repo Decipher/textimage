@@ -44,6 +44,7 @@ function textimage_theme() {
         'effects' => array(),
         'text'   => array(),
         'caching' => TRUE,
+        'source_image_file' => NULL,
         'token_data' => [],
         'target_uri' => NULL,
         'force_hashed_filename' => FALSE,
@@ -298,8 +299,9 @@ function template_preprocess_textimage_formatter(&$variables) {
       $textimage->effects($variables['effects']);
     }
 
-    if (isset($variables['token_data']['file'])) {
-      $textimage->sourceImageFile($variables['token_data']['file']);
+    if ($variables['source_image_file']) {
+      $textimage->sourceImageFile($variables['source_image_file']);
+      $variables['token_data']['file'] = $variables['source_image_file'];
     }
 
     if (isset($variables['token_data']['node'])) {

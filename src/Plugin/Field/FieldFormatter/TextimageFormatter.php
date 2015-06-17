@@ -326,10 +326,10 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             '#theme' => 'textimage_formatter',
             '#style_name' => $this->getSetting('image_style'),
             '#text' => NULL,
+            '#source_image_file' => $item->entity,
             '#token_data' => [
               'node' => $node,
               'user' => $user,
-              'file' => $item->entity,
             ],
             '#force_hashed_filename' => TRUE,
             '#alt' => $image_alt,
