@@ -217,7 +217,10 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
   }
 
   /**
-   * @todo
+   * Resizes the text wrapping image.
+   *
+   * @param array $arguments
+   *   An associative array of arguments.
    */
   protected function resizeWrapper(array $arguments) {
     // Wrapper image dimensions.

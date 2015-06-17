@@ -13,7 +13,7 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 trait TextimageTextToWrapperTrait {
 
   /**
-   * @todo
+   * {@inheritdoc}
    */
   protected function arguments() {
     return [

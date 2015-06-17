@@ -12,6 +12,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
@@ -22,7 +23,6 @@ use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
-use Drupal\user\Entity\User; // @todo inject user entity storage instead
 use Psr\Log\LoggerInterface;
 
 /**
@@ -108,6 +108,13 @@ class TextimageFactory {
   protected $database;
 
   /**
+   * The User entity storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $userStorage;
+
+  /**
    * Constructs a new TextimageFactory object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -132,8 +139,10 @@ class TextimageFactory {
    *   The stream wrapper manager service.
    * @param \Drupal\Core\Database\Connection $database
    *   The database connection.
+   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   *   The image style entity storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, LockBackendInterface $lock_service, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database) {
+  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, LockBackendInterface $lock_service, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database, EntityManagerInterface $entity_manager) {
     $this->config = $config_factory->get('textimage.settings');
     $this->imageFactory = $image_factory;
     $this->lock = $lock_service;
@@ -145,6 +154,7 @@ class TextimageFactory {
     $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
     $this->database = $database;
+    $this->userStorage = $entity_manager->getStorage('user');
   }
 
   /**
@@ -246,7 +256,7 @@ class TextimageFactory {
    */
   public function processTextString($text, $case_format, array $token_data = []) {
     // Replace any tokens in text with run-time values.
-    $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : User::load($this->currentUser->id());  // @todo inject User storage instead?
+    $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
     $text = $this->token->replace($text, $token_data);
 
     // Convert case, if requested.

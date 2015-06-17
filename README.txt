@@ -293,7 +293,7 @@ Using Textimage image styles
       in a <div> container, whose attributes will be set to the array passed
       here. Any attribute having the placeholder '#textimage_derivative_url#'
       will be resolved at run-time with the actual Textimage URL.
-// @todo revise
+// @todo revise -- maybe not a good idea to name it 'url'...
 //    - href - if specified, the entire output will be wrapped in a <a> anchor,
 //      whose href will be set to the value passed here. If
 //      '#textimage_derivative_url#' is passed, the href will be resolved at
