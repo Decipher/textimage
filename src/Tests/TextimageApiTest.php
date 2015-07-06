@@ -202,7 +202,7 @@ class TextimageApiTest extends TextimageTestBase {
       '#image_container_attributes' => array('class' => ['textimage-container-test']),
       '#url' => $textimage->getUrl(),
     );
-    $this->setRawContent($this->renderer->render($output));
+    $this->setRawContent($this->renderer->renderRoot($output));
     $this->verbose($this->getRawContent());
     $url = $textimage->getUrl();
     $elements = $this->cssSelect("a[href='$url'] div.textimage-container-test img[src='$url']");

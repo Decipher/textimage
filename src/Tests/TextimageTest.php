@@ -49,7 +49,7 @@ class TextimageTest extends TextimageTestBase {
       '#style_name' => 'textimage_test',
       '#text' => array('Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
     );
-    $output = $this->renderer->render($textimage);
+    $output = $this->renderer->renderRoot($textimage);
 
     // Check files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
@@ -99,7 +99,7 @@ class TextimageTest extends TextimageTestBase {
       '#text' => array('Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'),
       '#target_uri' => 'public://textimage-testing/ut-enim.png',
     );
-    $output = $this->renderer->render($textimage);
+    $output = $this->renderer->renderRoot($textimage);
 
     // Check file was generated.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
