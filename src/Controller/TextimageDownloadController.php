@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Controller;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\image\ImageStyleInterface;
@@ -40,14 +41,22 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   protected $imageFactory;
 
   /**
+   * The configuration object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * Constructs a TextimageDownloadController object.
    *
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The image factory.
    */
-  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory) {
     $this->textimageFactory = $textimage_factory;
     $this->imageFactory = $image_factory;
+    $this->config = $config_factory->get('textimage.settings');
   }
 
   /**
@@ -56,7 +65,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('textimage.factory'),
-      $container->get('image.factory')
+      $container->get('image.factory'),
+      $container->get('config.factory')
     );
   }
 
@@ -83,7 +93,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    */
   public function urlDeliver(Request $request, $text_string, ImageStyleInterface $image_style) {
     // Check if the URL generation is enabled.
-    if (!$this->textimageFactory->getConfig()->get('url_generation.enabled')) {
+    if (!$this->config->get('url_generation.enabled')) {
       throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
     }
 
@@ -96,7 +106,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     }
 
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
-    $text = explode($this->textimageFactory->getConfig()->get('url_generation.text_separator'), $text_string);
+    $text = explode($this->config->get('url_generation.text_separator'), $text_string);
 
     // Manage the [extension].
     $last_text = array_pop($text);
@@ -106,7 +116,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       $text[] = Unicode::substr($last_text, 0, $offset);
     }
     else {
-      throw new AccessDeniedHttpException('No file extension specified.');
+      throw new NotFoundHttpException('No file extension specified.');
     }
 
     // Get the Textimage URI.
