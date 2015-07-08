@@ -290,7 +290,7 @@ function template_preprocess_textimage_formatter(&$variables) {
     $image_uri = $variables['textimage']->getUri();
   }
   else {
-    $textimage = \Drupal::service('textimage.factory')->getTextimage();
+    $textimage = \Drupal::service('textimage.factory')->get();
 
     if ($variables['style_name']) {
       $textimage->styleByName($variables['style_name']);

@@ -9,13 +9,9 @@ namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
@@ -29,20 +25,6 @@ use Psr\Log\LoggerInterface;
  * Provides a factory for Textimage.
  */
 class TextimageFactory {
-
-  /**
-   * The image factory service.
-   *
-   * @var \Drupal\Core\Image\ImageFactory
-   */
-  protected $imageFactory;
-
-  /**
-   * The lock service.
-   *
-   * @var \Drupal\Core\Lock\LockBackendInterface
-   */
-  protected $lock;
 
   /**
    * The token resolution service.
@@ -80,13 +62,6 @@ class TextimageFactory {
   protected $cache;
 
   /**
-   * The cache tags invalidator service.
-   *
-   * @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface
-   */
-  protected $cacheTagsInvalidator;
-
-  /**
    * The configuration object.
    *
    * @var \Drupal\Core\Config\Config
@@ -101,13 +76,6 @@ class TextimageFactory {
   protected $currentUser;
 
   /**
-   * The database connection.
-   *
-   * @var \Drupal\Core\Database\Connection
-   */
-  protected $database;
-
-  /**
    * The User entity storage.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -119,102 +87,30 @@ class TextimageFactory {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
-   * @param \Drupal\Core\Image\ImageFactory $image_factory
-   *   The image factory.
-   * @param \Drupal\Core\Lock\LockBackendInterface $lock_service
-   *   The lock service.
    * @param \Drupal\Core\Utility\Token $token_service
    *   The token resolution service.
    * @param \Psr\Log\LoggerInterface $logger
    *   The Textimage logger.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
    *   The Textimage cache service.
-   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cache_tags_invalidator
-   *   The cache tags invalidator service.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
    *   The image effect manager service.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
    *   The stream wrapper manager service.
-   * @param \Drupal\Core\Database\Connection $database
-   *   The database connection.
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The image style entity storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ImageFactory $image_factory, LockBackendInterface $lock_service, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, CacheTagsInvalidatorInterface $cache_tags_invalidator, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database, EntityManagerInterface $entity_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, EntityManagerInterface $entity_manager) {
     $this->config = $config_factory->get('textimage.settings');
-    $this->imageFactory = $image_factory;
-    $this->lock = $lock_service;
     $this->token = $token_service;
     $this->logger = $logger;
     $this->cache = $cache_service;
-    $this->cacheTagsInvalidator = $cache_tags_invalidator;
     $this->currentUser = $current_user;
     $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->database = $database;
     $this->userStorage = $entity_manager->getStorage('user');
-  }
-
-  /**
-   * Returns the Textimage config service.
-   *
-   * @return \Drupal\Core\Cache\CacheBackendInterface
-   *   The Textimage cache service.
-   */
-  public function getConfig() {
-    return $this->config;
-  }
-
-  /**
-   * Returns the Textimage cache service.
-   *
-   * @return \Drupal\Core\Cache\CacheBackendInterface
-   *   The Textimage cache service.
-   */
-  public function getCache() {
-    return $this->cache;
-  }
-
-  /**
-   * Returns the lock service.
-   *
-   * @return \Drupal\Core\Lock\LockBackendInterface
-   *   The lock service.
-   */
-  public function getLock() {
-    return $this->lock;
-  }
-
-  /**
-   * Returns the image factory.
-   *
-   * @return \Drupal\Core\Image\ImageFactory
-   *   The image factory.
-   */
-  public function getImageFactory() {
-    return $this->imageFactory;
-  }
-
-  /**
-   * Returns the current active database's master connection.
-   *
-   * @return \Drupal\Core\Database\Connection
-   *   The database connection.
-   */
-  public function getDatabase() {
-    return $this->database;
-  }
-
-  /**
-   * Returns the Textimage logger.
-   *
-   * @return \Psr\Log\LoggerInterface
-   *   The Textimage logger.
-   */
-  public function getLogger() {
-    return $this->logger;
   }
 
   /**
@@ -223,8 +119,8 @@ class TextimageFactory {
    * @return \Drupal\textimage\Textimage
    *   A new Textimage object.
    */
-  public function getTextimage() {
-    return new Textimage($this);
+  public function get() {
+    return Textimage::create(\Drupal::getContainer());
   }
 
   /**
@@ -530,7 +426,7 @@ class TextimageFactory {
           // Text field. Get sanitized text items and return a single image.
           $text = $this->getTextFieldText($items);
           try {
-            $replacements[$original] = $this->getTextimage()
+            $replacements[$original] = $this->get()
               ->styleByName($image_style)
               ->node($node)
               ->process($text)
@@ -563,7 +459,7 @@ class TextimageFactory {
             $ret = array();
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
-              $ret[] = $this->getTextimage()
+              $ret[] = $this->get()
                 ->styleByName($image_style)
                 ->node($node)
                 ->sourceImageFile($item->entity)

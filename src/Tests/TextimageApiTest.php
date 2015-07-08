@@ -74,7 +74,7 @@ class TextimageApiTest extends TextimageTestBase {
     }
 
     // Test Textimage API.
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
 
     // Check API is accepting input, but not providing output, before process.
     $this->assertTextimageException(FALSE, array($textimage, 'styleByName'), array('textimage_test'));
@@ -140,7 +140,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Get image-test.png
     $file = File::create((array) array_shift($files));
     $file->save();
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
       ->sourceImageFile($file)
@@ -153,7 +153,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Get image-test.gif
     $file = File::create((array) array_shift($files));
     $file->save();
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
       ->sourceImageFile($file)
@@ -162,7 +162,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertEqual('image/gif', $image->getMimeType());
 
     // Test forced hashed filename.
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
       ->setHashedFilename(TRUE)
@@ -174,7 +174,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Test loading the Textimage metadata.
     $id = $textimage->id();
     $uri = $textimage->getUri();
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->load($id);
     // Check loaded data.
@@ -187,7 +187,7 @@ class TextimageApiTest extends TextimageTestBase {
     // File deletion.
     $this->assertTrue(file_unmanaged_delete($uri), 'Load - file was deleted');
     // Reload and rebuild.
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->load($id);
     $this->assertTrue(file_exists($uri), 'Load - file exixts');
@@ -215,7 +215,7 @@ class TextimageApiTest extends TextimageTestBase {
   public function testFileExtensionChange() {
 
     // Process, should generate a PNG image file.
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
       ->setCaching(TRUE)
@@ -241,7 +241,7 @@ class TextimageApiTest extends TextimageTestBase {
     }
 
     // Process, should generate a JPEG image file.
-    $textimage = $this->textimageFactory->getTextimage();
+    $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
       ->setCaching(TRUE)

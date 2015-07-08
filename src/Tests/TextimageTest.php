@@ -68,7 +68,7 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTextimage($directory_path . '/textimage/textimage_test/url_preview_text_image.png', 225, 28);
 
     // Build a textimage at target URI via API.
-    $uri = $this->textimageFactory->getTextimage()
+    $uri = $this->textimageFactory->get()
       ->styleByName('textimage_test')
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
@@ -80,7 +80,7 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 35, 28);
 
     // Build another textimage at same target URI.
-    $uri = $this->textimageFactory->getTextimage()
+    $uri = $this->textimageFactory->get()
       ->styleByName('textimage_test')
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('another test')
@@ -140,7 +140,7 @@ class TextimageTest extends TextimageTestBase {
 
     // Invalidate tags for the ImageStyle.
     $image_style = ImageStyle::load('textimage_test');
-    Cache::invalidateTags($image_style->getCacheTags());
+    Cache::invalidateTags($image_style->getCacheTagsToInvalidate());
 
     // Create another node with same data. Textimage should be got from store.
     $this->createTextimageNode($field_name, $field_value, 'article');

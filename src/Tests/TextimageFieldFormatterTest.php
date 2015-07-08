@@ -31,7 +31,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $node = Node::load($nid);
 
     // Get Textimage URL.
-    $textimage_url = $this->textimageFactory->getTextimage()
+    $textimage_url = $this->textimageFactory->get()
       ->styleByName('textimage_test')
       ->node($node)
       ->setHashedFilename(TRUE)

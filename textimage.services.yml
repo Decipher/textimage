@@ -19,7 +19,7 @@ services:
     arguments: [color, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
   textimage.factory:
     class: Drupal\textimage\TextimageFactory
-    arguments: ['@config.factory', '@image.factory', '@lock', '@token', '@textimage.logger', '@cache.textimage', '@cache_tags.invalidator', '@current_user', '@plugin.manager.image.effect', '@stream_wrapper_manager', '@database', '@entity.manager']
+    arguments: ['@config.factory', '@token', '@textimage.logger', '@cache.textimage', '@current_user', '@plugin.manager.image.effect', '@stream_wrapper_manager', '@entity.manager']
   textimage.logger:
     class: Drupal\textimage\TextimageLogger
     arguments: ['@config.factory', '@logger.channel.textimage', '@current_user']

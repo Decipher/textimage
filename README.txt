@@ -304,7 +304,7 @@ Using Textimage image styles
     Programmers can get a Textimage object from the Textimage factory, and
     use the relevant methods to process an image. Example:
 
-    $my_textimage = \Drupal::service('textimage.factory')->getTextimage();
+    $my_textimage = \Drupal::service('textimage.factory')->get();
     $my_textimage_url = $my_textimage
       ->styleByName('textimage_test')
       ->node($node)
