@@ -24,7 +24,7 @@ class TextimageTest extends TextimageTestBase {
   public function testTextimage() {
 
     $config = \Drupal::service('config.factory')->get('system.file');
-    $stream_wrapper = file_stream_wrapper_get_instance_by_scheme($config->get('default_scheme'));
+    $stream_wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($config->get('default_scheme'));
     $directory_path = $stream_wrapper->getDirectoryPath();
 
     // Generate a few derivative images via theme.

@@ -30,8 +30,8 @@ class TextimageRoutes {
     // through the menu system.
     // If clean URLs are enabled and the textimage derivative already exists,
     // PHP will be bypassed.
-    $config = \Drupal::service('config.factory')->get('system.file');
-    $stream_wrapper = file_stream_wrapper_get_instance_by_scheme($config->get('default_scheme'));
+    $config = \Drupal::service('config.factory')->get('system.file'); // @todo proper injection
+    $stream_wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($config->get('default_scheme')); // @todo proper injection
     if ($stream_wrapper instanceof LocalStream) {
       $routes['textimage.public'] = new Route(
         '/' . $stream_wrapper->getDirectoryPath() . '/textimage/{image_style}/{text_string}',
