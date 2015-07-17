@@ -7,9 +7,7 @@
 
 namespace Drupal\textimage\Routing;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
@@ -27,23 +25,13 @@ class TextimageRoutes implements ContainerInjectionInterface {
   protected $streamWrapperManager;
 
   /**
-   * The configuration object.
-   *
-   * @var \Drupal\Core\Config\Config
-   */
-  protected $config;
-
-  /**
-   * Constructs a new PathProcessorImageStyles object.
+   * Constructs a new TextimageRoutes object.
    *
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
    *   The stream wrapper manager service.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
    */
-  public function __construct(StreamWrapperManagerInterface $stream_wrapper_manager, ConfigFactoryInterface $config_factory) {
+  public function __construct(StreamWrapperManagerInterface $stream_wrapper_manager) {
     $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->config = $config_factory->get('system.file');
   }
 
   /**
@@ -51,8 +39,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('stream_wrapper_manager'),
-      $container->get('config.factory')
+      $container->get('stream_wrapper_manager')
     );
   }
 
@@ -66,14 +53,13 @@ class TextimageRoutes implements ContainerInjectionInterface {
 
     $routes = array();
 
-    // Generate public textimages from URL. For local default filesystem only.
-    // If clean URLs are disabled textimage derivatives will always be served
-    // through the menu system.
-    // If clean URLs are enabled and the textimage derivative already exists,
-    // PHP will be bypassed.
-    // @todo should only be done for public files, isn't it?
-    $stream_wrapper = $this->streamWrapperManager->getViaScheme($this->config->get('default_scheme'));
-    if ($stream_wrapper instanceof LocalStream) {
+    // Route for generation of textimages from URL.
+    // If the textimage derivative does not exist, Drupal will create the
+    // derivative via TextimageDownloadController::urlDeliver.
+    // If the textimage derivative already exists, the web server will deliver
+    // it directly.
+    $stream_wrapper = $this->streamWrapperManager->getViaScheme('public');
+    if (method_exists($stream_wrapper, 'getDirectoryPath')) {
       $routes['textimage.public'] = new Route(
         '/' . $stream_wrapper->getDirectoryPath() . '/textimage/{image_style}/{text_string}',
         ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::urlDeliver'],
