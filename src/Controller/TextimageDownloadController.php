@@ -128,10 +128,11 @@ class TextimageDownloadController extends FileDownloadController implements Cont
 
     // Don't try to send file if it is missing.
     if (!file_exists($image_uri)) {
-      \Drupal::logger('textimage')->notice('Textimage image at %source_image_path not found.',  array('%source_image_path' => $image_uri));
+      \Drupal::logger('textimage')->notice('Textimage image at %source_image_path not found.',  array('%source_image_path' => $image_uri)); // @todo inject
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
+    // @todo it shouldn't be on private if it's only invoked by textimage.public route - other downloads should be checked by the hook_download??
     if (($scheme = file_uri_scheme($image_uri)) == 'private') {
       // If using the private scheme, defer control to FileDownloadController.
       $request->query->set('file', file_uri_target($image_uri));
