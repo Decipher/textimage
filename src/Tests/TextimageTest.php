@@ -64,7 +64,7 @@ class TextimageTest extends TextimageTestBase {
     $this->assertResponse(200);
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 5, 'Textimage generation via request URL.');
-    $this->assertTextimage($directory_path . '/textimage/textimage_test/url_preview_text_image.png', 225, 28);
+    $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image.png', 225, 28);
 
     // Test build a textimage at target URI via API.
     $uri = $this->textimageFactory->get()
