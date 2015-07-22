@@ -63,7 +63,7 @@ class TextimageTest extends TextimageTestBase {
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image.png');
     $this->assertResponse(200);
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-    $this->assertTrue($files_count == 5, 'Textimage generation via request URL.');
+    $this->assertTrue($files_count == 1, 'Textimage generation via request URL.');
     $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image.png', 225, 28);
 
     // Test build a textimage at target URI via API.
