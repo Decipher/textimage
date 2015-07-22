@@ -11,7 +11,7 @@
 #}
 {% spaceless %}
 {% if image %}
-  {% if url %}
+  {% if anchor_url %}
     <a {{ anchor_attributes }}>
   {% endif %}
     {% if image_container_attributes %}
@@ -21,7 +21,7 @@
     {% if image_container_attributes %}
       </div>
     {% endif %}
-  {% if url %}
+  {% if anchor_url %}
     </a>
   {% endif %}
 {% else %}

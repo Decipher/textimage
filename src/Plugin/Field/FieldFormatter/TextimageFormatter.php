@@ -303,7 +303,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           ],
           '#alt' => $this->getSetting('image_alt'),
           '#title' => $this->getSetting('image_title'),
-          '#url' => $url,
+          '#anchor_url' => $url,
           '#cache' => array(
             'tags' => $cache_tags,
           ),
@@ -332,7 +332,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             ],
             '#alt' => $image_alt,
             '#title' => $image_title,
-            '#url' => $url,
+            '#anchor_url' => $url,
             '#cache' => array(
               'tags' => $cache_tags_item,
             ),

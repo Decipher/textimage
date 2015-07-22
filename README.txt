@@ -287,16 +287,16 @@ Using Textimage image styles
       search engines, or when the image cannot be loaded. Tokens can be used.
     - title - the text to be displayed when hovering the image on the browser.
       Tokens can be used.
-    - attributes - associative array of attributes to be placed in the img tag.
+    - attributes - associative array of attributes to be placed in the <img>
+      tag.
     - image_container_attributes - if specified, the <img> tag will be wrapped
       in a <div> container, whose attributes will be set to the array passed
       here. Any attribute having the placeholder '#textimage_derivative_url#'
       will be resolved at run-time with the actual Textimage URL.
-// @todo revise -- maybe not a good idea to name it 'url'...
-//    - href - if specified, the entire output will be wrapped in a <a> anchor,
-//      whose href will be set to the value passed here. If
-//      '#textimage_derivative_url#' is passed, the href will be resolved at
-//      run-time with the actual Textimage URL.
+    - anchor_url - if specified, the entire output will be wrapped in a <a>
+      anchor, whose 'href' attribute will be set to the value passed here. If
+      '#textimage_derivative_url#' is passed, the 'href' attribute  will be
+      resolved at run-time with the actual Textimage URL.
 
 4. Programmers - using the API:
 

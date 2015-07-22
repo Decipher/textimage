@@ -51,7 +51,7 @@ function textimage_theme() {
         'title' => '',
         'attributes' => array(),
         'image_container_attributes' => array(),
-        'url' => NULL,
+        'anchor_url' => NULL,
       ),
     ),
     // Textimage background image effect - summary.
@@ -330,18 +330,19 @@ function template_preprocess_textimage_formatter(&$variables) {
     $url = file_create_url($image_uri);
 
     // Build anchor link data if needed.
-    if ($variables['url']) {
-      if (is_string($variables['url'])) {
-        $href = ($variables['url'] == '#textimage_derivative_url#') ? $url : $variables['url'];
+    if ($variables['anchor_url']) {
+      if (is_string($variables['anchor_url'])) {
+        $href = ($variables['anchor_url'] == '#textimage_derivative_url#') ? $url : $variables['anchor_url'];
       }
       else {
-        $href = $variables['url']->toString();
+        $href = $variables['anchor_url']->toString();
       }
       $variables['anchor_attributes'] = new Attribute([
         'title' => $title,
         'href' => $href,
       ]);
     }
+
     // Replace occurrences of #textimage_derivative_url# with the actual URL
     // in the image container attributes.
     if (!empty($variables['image_container_attributes'])) {
@@ -352,6 +353,7 @@ function template_preprocess_textimage_formatter(&$variables) {
       }
       $variables['image_container_attributes'] = new Attribute($variables['image_container_attributes']);
     }
+
     // Get the <img>.
     $variables['image'] = array(
       '#theme' => 'image__textimage',
