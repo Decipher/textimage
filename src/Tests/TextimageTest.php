@@ -52,40 +52,36 @@ class TextimageTest extends TextimageTestBase {
     $output = $this->renderer->renderRoot($textimage);
 
     // Check files were generated.
-    $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
-    $this->assertTrue($files_count == 4, 'Textimage generation via theme.');
-    $this->assertTextimage($directory_path . '/textimage/textimage_test/preview text image.png', 177, 28);
-    $this->assertTextimage($directory_path . '/textimage/textimage_test/Предварительный просмотр текста.png', 331, 28);
-    $this->assertTextimage($directory_path . '/textimage/textimage_test/προεπισκόπηση της εικόνας κείμενο.png', 328, 28);
+    $files_count = count(file_scan_directory($directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
+    $this->assertEqual(4, $files_count);
+    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[0]['#text']), 177, 28);
+    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[1]['#text']), 331, 28);
+    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[2]['#text']), 328, 28);
+    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[3]['#text']), 1148, 28);
 
-    // Build and display a URL derivative.
+    // Test build and display of a Textimage derivative via URL.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image.png');
     $this->assertResponse(200);
-
-    // Check file was generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 5, 'Textimage generation via request URL.');
     $this->assertTextimage($directory_path . '/textimage/textimage_test/url_preview_text_image.png', 225, 28);
 
-    // Build a textimage at target URI via API.
+    // Test build a textimage at target URI via API.
     $uri = $this->textimageFactory->get()
       ->styleByName('textimage_test')
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
       ->getUri();
-
-    // Check file was generated.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 35, 28);
 
-    // Build another textimage at same target URI.
+    // Test build another textimage at same target URI.
     $uri = $this->textimageFactory->get()
       ->styleByName('textimage_test')
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('another test')
       ->getUri();
-
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage replaced at target URI via API.');
@@ -126,8 +122,8 @@ class TextimageTest extends TextimageTestBase {
 
     // Check token.
     $node = Node::load($nid);
-    $uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', array('node' => $node));
-    $this->assertEqual('public://textimage/textimage_test/' . $field_value . '.png', $uri);
+    $token_uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', array('node' => $node));
+    $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value), $token_uri);
 
     // Test caching.
 

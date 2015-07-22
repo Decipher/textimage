@@ -11,7 +11,6 @@ Core issues:
 - #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
 - is_void in textimage_store not set properly?
-- url creation should only work for style in the public scheme
 - settargeturi should implement forceExtansion
 
 -------------------------------------------------------------------------------
@@ -337,7 +336,6 @@ Using Textimage image styles
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
     - load
-    - setHashedFilename
     - id
     - getText
     - getUri

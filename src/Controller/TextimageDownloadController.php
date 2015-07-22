@@ -97,12 +97,15 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
     }
 
-    // Check if the style exists.
+    // Check if the style exists, is relevant, and set to 'public' scheme in TPS.
     if (empty($image_style)) {
       throw new NotFoundHttpException('Could not find the image style requested');
     }
     if (!$this->textimageFactory->isTextimage($image_style)) {
       throw new NotFoundHttpException('The image style requested is not relevant for Textimage');
+    }
+    if ($image_style->getThirdPartySetting('textimage', 'uri_scheme') !== 'public') {
+      throw new AccessDeniedHttpException('The image style requested is not set to produce image files for the \'public\' file scheme');
     }
 
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
@@ -123,6 +126,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     $image_uri = $this->textimageFactory->get()
       ->style($image_style)
       ->forceExtension($extension)
+      ->setTargetUri('public://textimage/' . $image_style->id() . '/' . $text_string)
       ->process($text)
       ->getUri();
 

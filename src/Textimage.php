@@ -192,13 +192,6 @@ class Textimage implements ContainerInjectionInterface {
   protected $user = NULL;
 
   /**
-   * If this Textimage has to use a hash filename instead of human readable.
-   *
-   * @var bool
-   */
-  protected $forceHashedFilename = FALSE;
-
-  /**
    * If this Textimage has to be created at a specific URI.
    *
    * @var bool
@@ -415,6 +408,15 @@ class Textimage implements ContainerInjectionInterface {
    */
   public function setTargetUri($uri) {
     if ($uri) {
+      if (!file_valid_uri($uri)) {
+        throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
+      }
+      $dir_name = drupal_dirname($uri);  // @todo inject service
+      $base_name = drupal_basename($uri);  // @todo inject service
+      $valid_uri = $this->createFilename($base_name, $dir_name);
+      if ($uri != $valid_uri) {
+        throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
+      }
       $this->set('uri', $uri);
       $this->set('caching', FALSE);
       $this->set('forcedUri', TRUE);
@@ -422,17 +424,39 @@ class Textimage implements ContainerInjectionInterface {
     return $this;
   }
 
+
   /**
-   * Force hashed filename.
+   * Creates a full file path from a directory and filename.
    *
-   * @param bool $force_hashed_filename
-   *   TRUE if Textimage has to use an hashed filename even if a human
-   *   readable one could be attempted.
+   * Copied parts of file_create_filename() to avoid file existence check.
    *
-   * @return $this
+   * @param string $basename
+   *   String filename
+   * @param string $directory
+   *   String containing the directory or parent URI.
+   *
+   * @return string
+   *   File path consisting of $directory and a unique filename based off
+   *   of $basename.
    */
-  public function setHashedFilename($force_hashed_filename) {
-    return $this->set('forceHashedFilename', $force_hashed_filename);
+  protected function createFilename($basename, $directory) {
+    // Strip control characters (ASCII value < 32). Though these are allowed in
+    // some filesystems, not many applications handle them well.
+    $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
+    if (substr(PHP_OS, 0, 3) == 'WIN') {
+      // These characters are not allowed in Windows filenames
+      $basename = str_replace(array(':', '*', '?', '"', '<', '>', '|'), '_', $basename);
+    }
+
+    // A URI or path may already have a trailing slash or look like "public://".
+    if (substr($directory, -1) == '/') {
+      $separator = '';
+    }
+    else {
+      $separator = '/';
+    }
+
+    return $directory . $separator . $basename;
   }
 
   /**
@@ -514,7 +538,6 @@ class Textimage implements ContainerInjectionInterface {
     $this->imageData = unserialize($stored_image['image_data']);
     $this->text = $this->imageData['text'];
     $this->extension = $this->imageData['extension'];
-    $this->forceHashedFilename = $this->imageData['forceHashedFilename'];
     $this->timer = $stored_image['timer'];
 
     // In stock, check file is there.
@@ -634,7 +657,6 @@ class Textimage implements ContainerInjectionInterface {
       'text'                => array_values($this->text),
       'extension'           => $this->extension,
       'sourceImage'         => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
-      'forceHashedFilename' => $this->forceHashedFilename,
     );
 
     // Remove default text from effects outline, as actual runtime text
@@ -771,15 +793,11 @@ class Textimage implements ContainerInjectionInterface {
   /**
    * Set URI to image file.
    *
-   * If file name is human readable, then image would go to:
-   *
-   *   {style_wrapper}://textimage/{style}/{file name}.{extension}
-   *
-   * in all other cases, an appropriate directory structure is in place to
-   * support styled, unstyled and uncached (temporary) image files:
+   * An appropriate directory structure is in place to support styled,
+   * unstyled and uncached (temporary) image files:
    *
    * for images with a supporting image style (styled) -
-   *   {textimage_store_wrapper}://textimage_store/styled_hashed/{style}/{file name}.{extension}
+   *   {style_wrapper}://textimage_store/styled_hashed/{style}/{file name}.{extension}
    *
    * for images generated via direct theme (unstyled) -
    *   {textimage_store_wrapper}://textimage_store/unstyled_hashed/{file name}.{extension}
@@ -788,18 +806,12 @@ class Textimage implements ContainerInjectionInterface {
    *   {textimage_store_wrapper}://textimage_store/uncached/{file name}.{extension}
    */
   protected function buildUri() {
-
-    // If style and caching are set, then try a clear file uri.
-    if ($this->style && $this->caching && !$this->forceHashedFilename && $this->getStyledImageClearFileUri()) {
-      return;
-    }
-
-    // Otherwise, the hash will be the file name, and files stored in
-    // textimage_store.
+    // The file name will be the Textimage hash.
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
-        $this->uri = $this->factory->getStorePath('styled_hashed/') . $this->style->id() . '/' . $base_name;
+        $style_scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme');
+        $this->uri = $style_scheme . '://textimage_store/styled_hashed/' . $this->style->id() . '/' . $base_name;
       }
       else {
         $this->uri = $this->factory->getStorePath('unstyled_hashed/') . $base_name;
@@ -809,48 +821,6 @@ class Textimage implements ContainerInjectionInterface {
       $base_name = hash('sha256', session_id() . microtime()) . '.' . $this->extension;
       $this->uri = $this->factory->getStorePath('uncached/') . $base_name;
     }
-
-  }
-
-  /**
-   * Set URI to a human readable name for the image file, if possible.
-   *
-   * If a style-based image is requested, then hopefully a human readable
-   * file name can be set.
-   *
-   * @return bool
-   *   TRUE if URI is set to human readable file name
-   */
-  protected function getStyledImageClearFileUri() {
-
-    // Get a single string out of all the text.
-    $file_name = implode($this->config->get('url_generation.text_separator'), $this->text);
-
-    // Filenames longer than 200 characters will fail in most filesystems.
-    if (Unicode::strlen($file_name) > 200) {
-      // Need to proceed with hash-based file names.
-      $this->logger->debug('Textimage clear file name too long: @file_name...', ['@file_name' => Unicode::substr($file_name, 0, 60)]);
-      return FALSE;
-    }
-
-    // Strip control characters (ASCII value < 32). Though these are allowed
-    // in some filesystems, not many applications handle them well. Also, strip
-    // slashes and backslashes that usually indicate directories.
-    $base_name = preg_replace('/[\x00-\x1F]|\\/|\\\\/u', '_', $file_name);
-    if (Unicode::substr(PHP_OS, 0, 3) == 'WIN') {
-      // These characters are not allowed in Windows filenames.
-      $base_name = str_replace(array(':', '*', '?', '"', '<', '>', '|'), '_', $base_name);
-    }
-    if ($file_name <> $base_name) {
-      // Need to proceed with hash-based file names.
-      $this->logger->debug('Textimage clear file name contains unallowed characters: @file_name...', ['@file_name' => Unicode::substr($file_name, 0, 60)]);
-      return FALSE;
-    }
-
-    $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme', 'public');
-    $base_name = $file_name . '.' . $this->extension;
-    $this->uri = $scheme . '://textimage/' . $this->style->id() . '/' . $base_name;
-    return TRUE;
   }
 
   /**

@@ -104,10 +104,6 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(TRUE, array($textimage, 'setCaching'), array(FALSE));
     $this->assertTextimageException(TRUE, array($textimage, 'user'), array($this->adminUser));
     $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo-bongo.png'));
-    $this->assertTextimageException(TRUE, array($textimage, 'setHashedFilename'), array(TRUE));
-
-    // Check URI.
-    $this->assertTrue(strpos($textimage->getUri(), implode('---', $expected_text_array)) > 0, 'Human readable filename');
 
     // Get textimage_store entry.
     $stored_image = db_select('textimage_store', 'ic')
@@ -161,16 +157,6 @@ class TextimageApiTest extends TextimageTestBase {
     $image = $this->container->get('image.factory')->get($textimage->getUri());
     $this->assertEqual('image/gif', $image->getMimeType());
 
-    // Test forced hashed filename.
-    $textimage = $this->textimageFactory->get();
-    $textimage
-      ->styleByName('textimage_test')
-      ->setHashedFilename(TRUE)
-      ->process($text_array);
-    // Check URI and Textimage.
-    $this->assertTrue(strpos($textimage->getUri(), $textimage->id()) > 0, 'Hashed filename');
-    $this->assertTextimage($textimage->getUri(), 120, 121);
-
     // Test loading the Textimage metadata.
     $id = $textimage->id();
     $uri = $textimage->getUri();
@@ -207,6 +193,11 @@ class TextimageApiTest extends TextimageTestBase {
     $url = $textimage->getUrl();
     $elements = $this->cssSelect("a[href='$url'] div.textimage-container-test img[src='$url']");
     $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');
+
+    // Test targeting invalid URIs.
+    $textimage = $this->textimageFactory->get();
+    $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('bingo://textimage-testing/bingo-bongo.png'));
+    $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo' . chr(1) . '.png'));
   }
 
   /**
