@@ -32,7 +32,9 @@ trait TextimageOperationTrait {
    *   The local path of the file.
    */
   protected function getRealPath($uri) {
-    $uri_wrapper = \Drupal::service('stream_wrapper_manager')->getViaUri($uri); // @todo proper injection
+    // @todo (core) when image operations plugins implement
+    // ContainerFactoryPluginInterface, inject the service.
+    $uri_wrapper = \Drupal::service('stream_wrapper_manager')->getViaUri($uri);
     if ($uri_wrapper instanceof LocalStream) {
       return $uri_wrapper->realpath();
     }

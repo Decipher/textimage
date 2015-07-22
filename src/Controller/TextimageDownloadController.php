@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Defines a controller to serve image styles.
@@ -48,15 +49,23 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   protected $config;
 
   /**
+   * The Textimage logger.
+   *
+   * @var \Psr\Log\LoggerInterface.
+   */
+  protected $logger;
+
+  /**
    * Constructs a TextimageDownloadController object.
    *
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The image factory.
    */
-  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger) {
     $this->textimageFactory = $textimage_factory;
     $this->imageFactory = $image_factory;
     $this->config = $config_factory->get('textimage.settings');
+    $this->logger = $logger;
   }
 
   /**
@@ -66,7 +75,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     return new static(
       $container->get('textimage.factory'),
       $container->get('image.factory'),
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('logger.channel.textimage')
     );
   }
 
@@ -132,7 +142,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
 
     // Don't try to send file if it is missing.
     if (!file_exists($image_uri)) {
-      \Drupal::logger('textimage')->notice('Textimage image at %source_image_path not found.',  array('%source_image_path' => $image_uri)); // @todo inject
+      $this->logger->notice('Textimage image at %source_image_path not found.',  ['%source_image_path' => $image_uri]);
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 

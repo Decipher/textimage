@@ -14,6 +14,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -77,6 +78,13 @@ class Textimage implements ContainerInjectionInterface {
    * @var \Psr\Log\LoggerInterface.
    */
   protected $logger;
+
+  /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
 
   /**
    * Textimage id.
@@ -215,8 +223,10 @@ class Textimage implements ContainerInjectionInterface {
    *   The Textimage logger.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
    *   The Textimage cache service.
+   * @param \Drupal\Core\File\FileSystemInterface $file_system
+   *   The file system service.
    */
-  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, Connection $database, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service) {
+  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, Connection $database, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system) {
     $this->factory = $textimage_factory;
     $this->lock = $lock_service;
     $this->database = $database;
@@ -224,6 +234,7 @@ class Textimage implements ContainerInjectionInterface {
     $this->config = $config_factory->get('textimage.settings');
     $this->logger = $logger;
     $this->cache = $cache_service;
+    $this->fileSystem = $file_system;
   }
 
   /**
@@ -237,7 +248,8 @@ class Textimage implements ContainerInjectionInterface {
       $container->get('image.factory'),
       $container->get('config.factory'),
       $container->get('textimage.logger'),
-      $container->get('cache.textimage')
+      $container->get('cache.textimage'),
+      $container->get('file_system')
     );
   }
 
@@ -411,8 +423,8 @@ class Textimage implements ContainerInjectionInterface {
       if (!file_valid_uri($uri)) {
         throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
       }
-      $dir_name = drupal_dirname($uri);  // @todo inject service
-      $base_name = drupal_basename($uri);  // @todo inject service
+      $dir_name = $this->fileSystem->dirname($uri);
+      $base_name = $this->fileSystem->basename($uri);
       $valid_uri = $this->createFilename($base_name, $dir_name);
       if ($uri != $valid_uri) {
         throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
@@ -764,7 +776,7 @@ class Textimage implements ContainerInjectionInterface {
    */
   protected function createDerivativeFromImage($style, $image, $derivative_uri) {
     // Get the folder for the final location of this style.
-    $directory = drupal_dirname($derivative_uri);
+    $directory = $this->fileSystem->dirname($derivative_uri);
 
     // Build the destination folder tree if it doesn't already exist.
     if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
