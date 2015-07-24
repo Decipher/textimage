@@ -12,6 +12,7 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 use Drupal\textimage\Element\TextimageColor;
@@ -755,7 +756,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     // (e.g. by the core Image module), then the text_string has not been
     // pre-processed to translate tokens or apply text conversion.
     if (!($this->textimageFactory->getState('building_module') == 'textimage')) {
-      $this->configuration['text_string'] = $this->textimageFactory->processTextString($this->configuration['text_string'], $this->configuration['text']['case_format']);
+      $this->configuration['text_string'] = $this->textimageFactory->processTextString($this->configuration['text_string'], $this->configuration['text']['case_format'], [], new BubbleableMetadata()); // @todo check implications
     }
 
     // Create the wrapper image object from scratch.

@@ -16,6 +16,8 @@ use Drupal\node\Entity\Node;
  */
 class TextimageFieldFormatterTest extends TextimageTestBase {
 
+  protected $dumpHeaders = TRUE;
+
   /**
    * Test Textimage formatter on node display.
    */
@@ -49,8 +51,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
-    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value, 'Textimage has expected alt attribute.');
-    $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value, 'Textimage has expected title attribute.');
+    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value);
+    $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value);
+    $this->assertCacheTag('config:image.style.textimage_test');
 
     // Test the textimage formatter - linked to content.
     $display_options['settings']['image_link'] = 'content';
@@ -60,8 +63,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet($node->urlInfo());
     $elements = $this->cssSelect("a[href*='$href'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
-    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value, 'Textimage has expected alt attribute.');
-    $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value, 'Textimage has expected title attribute.');
+    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value);
+    $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value);
+    $this->assertCacheTag('config:image.style.textimage_test');
 
     // Test the textimage formatter - linked to Textimage file.
     $display_options['settings']['image_link'] = 'file';
@@ -72,8 +76,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet($node->urlInfo());
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
-    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->adminUser->getUsername(), 'Textimage has expected alt attribute.');
-    $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername(), 'Textimage has expected title attribute.');
+    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->adminUser->getUsername());
+    $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername());
+    $this->assertCacheTag('config:image.style.textimage_test');
 
   }
 

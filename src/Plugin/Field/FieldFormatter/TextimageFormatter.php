@@ -14,6 +14,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
@@ -279,11 +280,13 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
 
     $image_style_setting = $this->getSetting('image_style');
 
-    // Collect cache tags to be added for each item in the field.
-    $cache_tags = array();
+    // Collect bubbleable metadata for items in the field.
+    $bubbleable_metadata = new BubbleableMetadata();
+
+    // Add image style bubbleable metadata.
     if (!empty($image_style_setting)) {
       $image_style = $this->imageStyleStorage->load($image_style_setting);
-      $cache_tags = $image_style->getCacheTags();
+      $bubbleable_metadata = $bubbleable_metadata->addCacheableDependency($image_style);
     }
 
     $elements = array();
@@ -293,35 +296,35 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       case 'core';
         // Get sanitized text strings from the text field.
         $text = $this->textimageFactory->getTextFieldText($items);
-        $elements[] = array(
+        $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata); // @todo case conv
+        $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata); // @todo case conv
+        $element = [
           '#theme' => 'textimage_formatter',
           '#style_name' => $this->getSetting('image_style'),
           '#text' => $text,
-          '#token_data' => [
-            'node' => $node,
-            'user' => $user,
-          ],
-          '#alt' => $this->getSetting('image_alt'),
-          '#title' => $this->getSetting('image_title'),
+          '#alt' => $image_alt ,
+          '#title' => $image_title,
           '#anchor_url' => $url,
-          '#cache' => array(
-            'tags' => $cache_tags,
-          ),
-        );
+        ];
+        $bubbleable_metadata->applyTo($element);
+        $elements[] = $element;
         break;
 
       case 'image':
         // Get source images from the image field.
         foreach ($items as $delta => $item) {
           // Add cache tags for the input source image file.
-          $cache_tags_item = Cache::mergeTags($cache_tags, $item->entity->getCacheTags());
+          $image_bubbleable_metadata = clone $bubbleable_metadata;
+          $image_bubbleable_metadata->addCacheableDependency($item->entity);
 
           $item_value = $item->getValue();
           $image_alt = $this->getSetting('image_alt');
           $image_alt = !empty($image_alt) ? $image_alt : $item_value['alt'];
+          $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, ['node' => $node, 'user' => $user], $image_bubbleable_metadata); // @todo case conv
           $image_title = $this->getSetting('image_title');
           $image_title = !empty($image_title) ? $image_title : $item_value['title'];
-          $elements[$delta] = array(
+          $image_title = $this->textimageFactory->processTextString($image_title, NULL, ['node' => $node, 'user' => $user], $image_bubbleable_metadata); // @todo case conv
+          $element = [
             '#theme' => 'textimage_formatter',
             '#style_name' => $this->getSetting('image_style'),
             '#text' => NULL,
@@ -333,10 +336,9 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             '#alt' => $image_alt,
             '#title' => $image_title,
             '#anchor_url' => $url,
-            '#cache' => array(
-              'tags' => $cache_tags_item,
-            ),
-          );
+          ];
+          $image_bubbleable_metadata->applyTo($element);
+          $elements[$delta] = $element;
         }
         break;
 

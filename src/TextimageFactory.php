@@ -12,6 +12,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
@@ -150,10 +151,10 @@ class TextimageFactory {
   /**
    * Process text string, detokenise and apply case conversion.
    */
-  public function processTextString($text, $case_format, array $token_data = []) {
+  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata) {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
-    $text = $this->token->replace($text, $token_data);
+    $text = $this->token->replace($text, $token_data, [], $bubbleable_metadata);
 
     // Convert case, if requested.
     switch ($case_format) {
@@ -320,11 +321,13 @@ class TextimageFactory {
    *   The tokens to resolve.
    * @param object $node
    *   The node for which to resolve the tokens.
+   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   *   The bubbleable metadata.
    *
    * @return array
    *   An array of token replacements.
    */
-  public function processTokens($key, $tokens, $node) {
+  public function processTokens($key, $tokens, $node, BubbleableMetadata $bubbleable_metadata) {
 
     // Need to avoid endless loops, that would occur if there are
     // circular references in the tokens. Set static variables for
@@ -413,10 +416,14 @@ class TextimageFactory {
       if ($entity_display_component['type'] == 'textimage') {
 
         // Get the image style used for the field formatting.
-        $image_style = isset($entity_display_component['settings']['image_style']) ? $entity_display_component['settings']['image_style'] : NULL;
-        if (!$image_style) {
+        $image_style_name = isset($entity_display_component['settings']['image_style']) ? $entity_display_component['settings']['image_style'] : NULL;
+        if (!$image_style_name) {
           continue;
         }
+        $image_style = ImageStyle::load($image_style_name);
+
+        // Add the image style bubbleable metadata.
+        $bubbleable_metadata = $bubbleable_metadata->addCacheableDependency($image_style);
 
         // Get the field items.
         $items = $node->get($field_name);
@@ -427,7 +434,7 @@ class TextimageFactory {
           $text = $this->getTextFieldText($items);
           try {
             $replacements[$original] = $this->get()
-              ->styleByName($image_style)
+              ->style($image_style)
               ->node($node)
               ->process($text)
               ->$callback_method();
@@ -460,11 +467,13 @@ class TextimageFactory {
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
               $ret[] = $this->get()
-                ->styleByName($image_style)
+                ->style($image_style)
                 ->node($node)
                 ->sourceImageFile($item->entity)
                 ->process(NULL)
                 ->$callback_method();
+              // Add the image entity bubbleable metadata.
+              $bubbleable_metadata = $bubbleable_metadata->addCacheableDependency($item->entity);
             }
             // Return a single URI/URL if requested, or a comma separated
             // list of all the URIs/URLs generated.

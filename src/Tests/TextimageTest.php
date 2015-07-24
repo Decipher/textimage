@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Tests;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\node\Entity\Node;
 
@@ -122,8 +123,10 @@ class TextimageTest extends TextimageTestBase {
 
     // Check token.
     $node = Node::load($nid);
-    $token_uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', array('node' => $node));
+    $bubbleable_metadata = new BubbleableMetadata();
+    $token_uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', ['node' => $node], [], $bubbleable_metadata);
     $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value), $token_uri);
+    $this->assertTrue(in_array('config:image.style.textimage_test', $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
 
     // Test caching.
 

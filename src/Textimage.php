@@ -17,6 +17,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\image\ImageStyleInterface;
 use Drupal\file\FileInterface;
@@ -652,10 +653,10 @@ class Textimage implements ContainerInjectionInterface {
       if ($text_item) {
         // Replace any tokens in text with run-time values.
         $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-        $processed_text[$uuid] = $this->factory->processTextString($text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data);
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, new BubbleableMetadata()); // @todo check implications
       }
       else {
-        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data);
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, new BubbleableMetadata()); // @todo check implications
       }
     }
     $this->text = $processed_text;

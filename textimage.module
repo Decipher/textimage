@@ -7,6 +7,7 @@
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\Template\Attribute;
@@ -45,7 +46,6 @@ function textimage_theme() {
         'text'   => array(),
         'caching' => TRUE,
         'source_image_file' => NULL,
-        'token_data' => [],
         'target_uri' => NULL,
         'alt' => '',
         'title' => '',
@@ -159,7 +159,7 @@ function textimage_token_info() {
 /**
  * Implements hook_tokens().
  */
-function textimage_tokens($type, $tokens, array $data = array(), array $options = array()) {
+function textimage_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
   // Jumps out if not processing textimage tokens.
   if ($type != 'textimage') {
     return array();
@@ -170,12 +170,12 @@ function textimage_tokens($type, $tokens, array $data = array(), array $options 
     return array();
   }
   // Process tokens.
-  $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data['node']);
-  $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data['node']);
+  $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data['node'], $bubbleable_metadata);
+  $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data['node'], $bubbleable_metadata);
   return $replacements;
 }
 
-// @todo reintroduce hook_metatag_token_types_alter() once module is available.
+// @todo (metatag) reintroduce hook_metatag_token_types_alter() once module is available.
 
 /**
  * Implements hook_image_style_flush().
@@ -300,15 +300,6 @@ function template_preprocess_textimage_formatter(&$variables) {
 
     if ($variables['source_image_file']) {
       $textimage->sourceImageFile($variables['source_image_file']);
-      $variables['token_data']['file'] = $variables['source_image_file'];
-    }
-
-    if (isset($variables['token_data']['node'])) {
-      $textimage->node($variables['token_data']['node']);
-    }
-
-    if (isset($variables['token_data']['user'])) {
-      $textimage->user($variables['token_data']['user']);
     }
 
     if ($variables['target_uri']) {
@@ -325,8 +316,8 @@ function template_preprocess_textimage_formatter(&$variables) {
   // Render through image theme.
   if ($image_uri) {
     $image = \Drupal::service('image.factory')->get($image_uri);
-    $title = \Drupal::service('textimage.factory')->processTextString($variables['title'], NULL, $variables['token_data']);
-    $alt = \Drupal::service('textimage.factory')->processTextString($variables['alt'], NULL, $variables['token_data']);
+    $title = $variables['title'];
+    $alt = $variables['alt'];
     $url = file_create_url($image_uri);
 
     // Build anchor link data if needed.

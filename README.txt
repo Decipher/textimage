@@ -12,6 +12,8 @@ Core issues:
 - use of gifTransparentColor in Textimage.php
 - is_void in textimage_store not set properly?
 - settargeturi should implement forceExtansion
+- revise caching
+- split process in processText and build
 
 -------------------------------------------------------------------------------
 
@@ -244,7 +246,6 @@ Using Textimage image styles
       array(
         'style_name' => 'my_image_style',
         'text'   => array('text1', 'text2'),
-        'format' => 'png',
         'alt'    => 'Alternate text',
         'title'  => 'Image title',
         'attributes' => array(),
@@ -269,14 +270,9 @@ Using Textimage image styles
     - text - an array of text strings, with unresolved tokens; each string
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
-// @todo remove
-//    - format - the file format of the resulting image (png/gif/jpg/jpeg).
     - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
       cron run.
-// @todo revise
-//    - node - a node entity. It is used for resolving the tokens in the text
-//      effects.
     - source_image_file - a file entity. It is used to identify the source
       image when the image derivative is created by Textimage and for resolving
       the tokens in the text effects.
@@ -284,9 +280,8 @@ Using Textimage image styles
       stored. If specified, the automatic URI generation performed by Textimage
       is bypassed and caching disabled.
     - alt - the image alternate text. This text will be used by screen readers,
-      search engines, or when the image cannot be loaded. Tokens can be used.
+      search engines, or when the image cannot be loaded.
     - title - the text to be displayed when hovering the image on the browser.
-      Tokens can be used.
     - attributes - associative array of attributes to be placed in the <img>
       tag.
     - image_container_attributes - if specified, the <img> tag will be wrapped
