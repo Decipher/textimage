@@ -83,6 +83,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertNull($textimage->id(), 'ID is not available');
     $this->assertNull($textimage->getUri(), 'URI is not available');
     $this->assertNull($textimage->getUrl(), 'URL is not available');
+    $this->assertNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is not available');
     $returned_text = $textimage->getText();
     $this->assertTrue(empty($returned_text), 'Processed text is not available');
 
@@ -95,6 +96,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertNotNull($textimage->id(), 'ID is available');
     $this->assertNotNull($textimage->getUri(), 'URI is available');
     $this->assertNotNull($textimage->getUrl(), 'URL is available');
+    $this->assertNotNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is available');
     $this->assertTrue($textimage->getText() == $expected_text_array, 'Processed text is available');
 
     // Check API is not allowing changes after processing.
@@ -181,7 +183,9 @@ class TextimageApiTest extends TextimageTestBase {
     // Test output of theme textimage_formatter.
     $output = array(
       '#theme' => 'textimage_formatter',
-      '#textimage' => $textimage,
+      '#uri' => $textimage->getUri(),
+      '#width' => $textimage->getWidth(),
+      '#height' => $textimage->getHeight(),
       '#alt' => 'Alternate text',
       '#title' => 'Textimage title',
       '#attributes' => array('class' => 'textimage-test'),

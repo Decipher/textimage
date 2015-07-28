@@ -40,13 +40,9 @@ function textimage_theme() {
     // Format a textimage.
     'textimage_formatter' => array(
       'variables' => array(
-        'textimage' => NULL,
-        'style_name' => '',
-        'effects' => array(),
-        'text'   => array(),
-        'caching' => TRUE,
-        'source_image_file' => NULL,
-        'target_uri' => NULL,
+        'uri' => NULL,
+        'width' => NULL,
+        'height' => NULL,
         'alt' => '',
         'title' => '',
         'attributes' => array(),
@@ -117,14 +113,16 @@ function textimage_cache_flush() {
  * Implements hook_cron().
  */
 function textimage_cron() {
-  $uncached_dir = \Drupal::service('textimage.factory')->getStorePath('uncached');
-  // Remove temporary, uncached, image files.
-  if (file_exists($uncached_dir)) {
-    if (file_unmanaged_delete_recursive($uncached_dir)) {
-      \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
-    }
-    else {
-      \Drupal::service('textimage.logger')->error('Textimage could not remove temporary image files.');
+  // Remove temporary, uncached, image files in all available schemes.
+  $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
+  foreach ($wrappers as $wrapper => $wrapper_data) {
+    if (file_exists($directory = $wrapper . '://textimage_store/uncached')) {
+      if (file_unmanaged_delete_recursive($directory)) {
+        \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
+      }
+      else {
+        \Drupal::service('textimage.logger')->error('Textimage could not remove temporary image files.');
+      }
     }
   }
 }
@@ -284,64 +282,25 @@ function _textimage_form_image_style_form_validate($form, FormStateInterface $fo
  * Default template: textimage-formatter.html.twig.
  */
 function template_preprocess_textimage_formatter(&$variables) {
-  // Get URI to image file.
-  if ($variables['textimage'] && $variables['textimage'] instanceof Textimage) {
-    $image_uri = $variables['textimage']->getUri();
-  }
-  else {
-    $textimage = \Drupal::service('textimage.factory')->get();
-
-    if ($variables['style_name']) {
-      $textimage->styleByName($variables['style_name']);
-    }
-    else  {
-      $textimage->effects($variables['effects']);
-    }
-
-    if ($variables['source_image_file']) {
-      $textimage->sourceImageFile($variables['source_image_file']);
-    }
-
-    if ($variables['target_uri']) {
-      $textimage->setTargetUri($variables['target_uri']);
-    }
-    else {
-      $textimage->setCaching($variables['caching']);
-    }
-
-    $textimage->process($variables['text']);
-    $image_uri = $textimage->getUri();
-  }
-
-  // Render through image theme.
-  if ($image_uri) {
-    $image = \Drupal::service('image.factory')->get($image_uri);
-    $title = $variables['title'];
-    $alt = $variables['alt'];
-    $url = file_create_url($image_uri);
+  // Render only if the image URI is passed in.
+  if ($image_uri = $variables['uri']) {
 
     // Build anchor link data if needed.
     if ($variables['anchor_url']) {
       if (is_string($variables['anchor_url'])) {
-        $href = ($variables['anchor_url'] == '#textimage_derivative_url#') ? $url : $variables['anchor_url'];
+        $href = $variables['anchor_url'];
       }
       else {
         $href = $variables['anchor_url']->toString();
       }
       $variables['anchor_attributes'] = new Attribute([
-        'title' => $title,
+        'title' => $variables['title'],
         'href' => $href,
       ]);
     }
 
-    // Replace occurrences of #textimage_derivative_url# with the actual URL
-    // in the image container attributes.
+    // Build image container attributes if needed.
     if (!empty($variables['image_container_attributes'])) {
-      foreach ($variables['image_container_attributes'] as &$attribute) {
-        foreach ($attribute as $key => $value) {
-          $attribute[$key] = str_replace('#textimage_derivative_url#', $url, $value);
-        }
-      }
       $variables['image_container_attributes'] = new Attribute($variables['image_container_attributes']);
     }
 
@@ -349,15 +308,15 @@ function template_preprocess_textimage_formatter(&$variables) {
     $variables['image'] = array(
       '#theme' => 'image__textimage',
       '#uri' => $image_uri,
-      '#width' => $image->getWidth(),
-      '#height' => $image->getHeight(),
+      '#width' => $variables['width'],
+      '#height' => $variables['height'],
       '#attributes' => $variables['attributes'],
     );
-    if (!empty($title)) {
-      $variables['image']['#title'] = $title;
+    if (!empty($variables['title'])) {
+      $variables['image']['#title'] = $variables['title'];
     }
-    if (!empty($alt)) {
-      $variables['image']['#alt'] = $alt;
+    if (!empty($variables['alt'])) {
+      $variables['image']['#alt'] = $variables['alt'];
     }
   }
 }
@@ -395,17 +354,24 @@ function template_preprocess_textimage_preview(&$variables) {
   $variables['textimage_data']['layout']['y_offset'] = 0;
   $variables['textimage_data']['layout']['overflow_action'] = 'extend';
   $variables['textimage_data']['debug_visuals'] = $variables['textimage_data']['preview_bar']['debug_visuals'];
+  $textimage = \Drupal::service('textimage.factory')->get()
+    ->effects(
+      [
+        [
+          'id' => 'textimage_text',
+          'data' => $variables['textimage_data'],
+        ],
+      ]
+    )
+    ->setCaching(FALSE)
+    ->process([$variables['textimage_data']['text_string']]);
   $variables['textimage_preview'] = array(
     '#theme' => 'textimage_formatter',
-    '#text' => array($variables['textimage_data']['text_string']),
-    '#effects' => array(
-      array(
-        'id' => 'textimage_text',
-        'data' => $variables['textimage_data'],
-      ),
-    ),
+    '#uri' => $textimage->getUri(),
+    '#width' => $textimage->getWidth(),
+    '#height' => $textimage->getHeight(),
     '#title' => t('Preview'),
     '#alt' => t('Display preview not available.'),
-    '#caching' => FALSE,
   );
+  $textimage->getBubbleableMetadata()->applyTo($variables['textimage_preview']);
 }

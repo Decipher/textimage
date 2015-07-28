@@ -10,6 +10,7 @@ namespace Drupal\textimage;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -77,6 +78,13 @@ class TextimageFactory {
   protected $currentUser;
 
   /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * The User entity storage.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -100,10 +108,12 @@ class TextimageFactory {
    *   The image effect manager service.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
    *   The stream wrapper manager service.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The image style entity storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, EntityManagerInterface $entity_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database, EntityManagerInterface $entity_manager) {
     $this->config = $config_factory->get('textimage.settings');
     $this->token = $token_service;
     $this->logger = $logger;
@@ -111,6 +121,7 @@ class TextimageFactory {
     $this->currentUser = $current_user;
     $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
+    $this->database = $database;
     $this->userStorage = $entity_manager->getStorage('user');
   }
 
@@ -287,16 +298,20 @@ class TextimageFactory {
    * the image styles, clear all cache and all store entries on the db.
    */
   public function flushAll() {
-    $image_styles = ImageStyle::loadMultiple();
-    foreach ($image_styles as $image_style) {
-      if ($this->isTextimage($image_style)) {
-        $image_style->flush();
+    // Clear images, checking in all available schemes.
+    $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
+    foreach ($wrappers as $wrapper => $wrapper_data) {
+      if (file_exists($directory = $wrapper . '://textimage_store/styled_hashed')) {
+        file_unmanaged_delete_recursive($directory);
+      }
+      if (file_exists($directory = $wrapper . '://textimage_store/unstyled_hashed')) {
+        file_unmanaged_delete_recursive($directory);
+      }
+      if (file_exists($directory = $wrapper . '://textimage_store/uncached')) {
+        file_unmanaged_delete_recursive($directory);
       }
     }
-    if (file_exists($directory = $this->getStorePath('unstyled_hashed'))) {
-      file_unmanaged_delete_recursive($directory);
-    }
-    if (file_exists($directory = $this->getStorePath('uncached'))) {
+    if (file_exists($directory = 'public://textimage')) {
       file_unmanaged_delete_recursive($directory);
     }
     $this->cache->deleteAll();
@@ -422,9 +437,6 @@ class TextimageFactory {
         }
         $image_style = ImageStyle::load($image_style_name);
 
-        // Add the image style bubbleable metadata.
-        $bubbleable_metadata = $bubbleable_metadata->addCacheableDependency($image_style);
-
         // Get the field items.
         $items = $node->get($field_name);
 
@@ -433,11 +445,12 @@ class TextimageFactory {
           // Text field. Get sanitized text items and return a single image.
           $text = $this->getTextFieldText($items);
           try {
-            $replacements[$original] = $this->get()
+            $textimage = $this->get()
               ->style($image_style)
               ->node($node)
-              ->process($text)
-              ->$callback_method();
+              ->setBubbleableMetadata($bubbleable_metadata)
+              ->process($text);
+            $replacements[$original] = $textimage->$callback_method();
           }
           catch (TextimageTokenException $e) {
             // Callback ended up in circular loop, mark the failing token.
@@ -466,14 +479,13 @@ class TextimageFactory {
             $ret = array();
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
-              $ret[] = $this->get()
+              $textimage = $this->get()
                 ->style($image_style)
                 ->node($node)
                 ->sourceImageFile($item->entity)
-                ->process(NULL)
-                ->$callback_method();
-              // Add the image entity bubbleable metadata.
-              $bubbleable_metadata = $bubbleable_metadata->addCacheableDependency($item->entity);
+                ->setBubbleableMetadata($bubbleable_metadata)
+                ->process(NULL);
+              $ret[] = $textimage->$callback_method();
             }
             // Return a single URI/URL if requested, or a comma separated
             // list of all the URIs/URLs generated.

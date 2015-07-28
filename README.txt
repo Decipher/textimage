@@ -14,6 +14,7 @@ Core issues:
 - settargeturi should implement forceExtansion
 - revise caching
 - split process in processText and build
+- check background color setting over a passthrogh image
 
 -------------------------------------------------------------------------------
 
@@ -244,14 +245,14 @@ Using Textimage image styles
     theme(
       'textimage_formatter',
       array(
-        'style_name' => 'my_image_style',
-        'text'   => array('text1', 'text2'),
+        'uri' => 'public://textimage/myimagestyle/mytextimage.png,
+        'width' => 50,
+        'height' => 100,
         'alt'    => 'Alternate text',
         'title'  => 'Image title',
         'attributes' => array(),
-        'caching' => TRUE,
-        'node' => NULL,
-        'source_image_file' => NULL,
+        'image_container_attributes' => array(),
+        'anchor_url' => NULL,
       ),
     ));
 
@@ -259,24 +260,24 @@ Using Textimage image styles
    <div> tag, and/or wrapping the entire output in an anchor tag.
 
     Variables:
-    - textimage - A fully processed Textimage object. If this variable is set,
+// @todo drop    - textimage - A fully processed Textimage object. If this variable is set,
       the theme function will use this object to render the image, and the
       variables style_name, effects, text, format, caching, node,
       source_image_file, target_uri will be ineffective.
-    - style_name - the image style name. If specified, it will override any
+// @todo drop    - style_name - the image style name. If specified, it will override any
       value passed in the 'effects' variable.
-    - effects - an array of image style effects. Given a $style image style
+// @todo drop    - effects - an array of image style effects. Given a $style image style
       array, corresponds to the $style['effects'] key.
-    - text - an array of text strings, with unresolved tokens; each string
+// @todo drop    - text - an array of text strings, with unresolved tokens; each string
       of the array will be consumed by a textimage_text effect in the sequence
       specified within the image style.
-    - caching - if set to TRUE, the image will be cached for future accesses;
+// @todo drop    - caching - if set to TRUE, the image will be cached for future accesses;
       otherwise, the image will be stored in textimage_store and deleted on
       cron run.
-    - source_image_file - a file entity. It is used to identify the source
+// @todo drop    - source_image_file - a file entity. It is used to identify the source
       image when the image derivative is created by Textimage and for resolving
       the tokens in the text effects.
-    - target_uri - allows to specify the URI where the textimage file should be
+// @todo drop    - target_uri - allows to specify the URI where the textimage file should be
       stored. If specified, the automatic URI generation performed by Textimage
       is bypassed and caching disabled.
     - alt - the image alternate text. This text will be used by screen readers,
@@ -286,12 +287,9 @@ Using Textimage image styles
       tag.
     - image_container_attributes - if specified, the <img> tag will be wrapped
       in a <div> container, whose attributes will be set to the array passed
-      here. Any attribute having the placeholder '#textimage_derivative_url#'
-      will be resolved at run-time with the actual Textimage URL.
+      here.
     - anchor_url - if specified, the entire output will be wrapped in a <a>
-      anchor, whose 'href' attribute will be set to the value passed here. If
-      '#textimage_derivative_url#' is passed, the 'href' attribute  will be
-      resolved at run-time with the actual Textimage URL.
+      anchor, whose 'href' attribute will be set to the value passed here.
 
 4. Programmers - using the API:
 
@@ -410,7 +408,6 @@ meta tags.
 
 Wishlist
 --------
-- allow token resolution in theme_textimage_formatter href.
 - textimage_text effect - if elements with different opacity overlap (e.g.
   in case of shadow/outline or if background color is opaque itself), then
   we get a combined color effect. One may want to refer each element's

@@ -16,6 +16,9 @@ use Drupal\node\Entity\Node;
  */
 class TextimageFieldFormatterTest extends TextimageTestBase {
 
+  /**
+   * Set headers to be displayed.
+   */
   protected $dumpHeaders = TRUE;
 
   /**
@@ -53,7 +56,6 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value);
     $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value);
-    $this->assertCacheTag('config:image.style.textimage_test');
 
     // Test the textimage formatter - linked to content.
     $display_options['settings']['image_link'] = 'content';
@@ -65,7 +67,6 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $field_value);
     $this->assertEqual($elements[0]['title'], 'Title: ' . $field_value);
-    $this->assertCacheTag('config:image.style.textimage_test');
 
     // Test the textimage formatter - linked to Textimage file.
     $display_options['settings']['image_link'] = 'file';
@@ -78,8 +79,19 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
     $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->adminUser->getUsername());
     $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername());
+
+    // Check that alternate text and title tokens are resolved and their
+    // cacheability metadata added.
+    $site_name = \Drupal::configFactory()->get('system.site')->get('name');
+    $display_options['settings']['image_alt'] = 'Alternate text: [node:author] [site:name]';
+    $display_options['settings']['image_title'] = 'Title: [node:author] [site:name]';
+    $display->setComponent($field_name, $display_options)
+      ->save();
+    $this->drupalGet($node->urlInfo());
+    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
+    $this->assertEqual($elements[0]['alt'], 'Alternate text: ' . $this->adminUser->getUsername() . ' ' . $site_name);
+    $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername() . ' ' . $site_name);
     $this->assertCacheTag('config:image.style.textimage_test');
-
+    $this->assertCacheTag('config:system.site');
   }
-
 }

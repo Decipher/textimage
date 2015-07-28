@@ -28,37 +28,51 @@ class TextimageTest extends TextimageTestBase {
     $stream_wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($config->get('default_scheme'));
     $directory_path = $stream_wrapper->getDirectoryPath();
 
-    // Generate a few derivative images via theme.
-    $textimage = array();
-    $textimage[0] = array(
-      '#theme' => 'textimage_formatter',
-      '#style_name' => 'textimage_test',
-      '#text' => array('preview text image'),
-    );
-    $textimage[1] = array(
-      '#theme' => 'textimage_formatter',
-      '#style_name' => 'textimage_test',
-      '#text' => array('Предварительный просмотр текста'),
-    );
-    $textimage[2] = array(
-      '#theme' => 'textimage_formatter',
-      '#style_name' => 'textimage_test',
-      '#text' => array('προεπισκόπηση της εικόνας κείμενο'),
-    );
-    $textimage[3] = array(
-      '#theme' => 'textimage_formatter',
-      '#style_name' => 'textimage_test',
-      '#text' => array('Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
-    );
-    $output = $this->renderer->renderRoot($textimage);
+    // Generate a few derivatives and render images via theme
+    // 'textimage_formatter'.
+    $input = [
+      [
+        'text' => ['preview text image'],
+        'width' => 177,
+        'height' => 28,
+      ],
+      [
+        'text' => ['Предварительный просмотр текста'],
+        'width' => 331,
+        'height' => 28,
+      ],
+      [
+        'text' => ['προεπισκόπηση της εικόνας κείμενο'],
+        'width' => 328,
+        'height' => 28,
+      ],
+      [
+        'text' => ['Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'],
+        'width' => 1148,
+        'height' => 28,
+      ],
+    ];
+    $build = array();
+    foreach ($input as $item) {
+      $textimage = $this->textimageFactory->get()
+        ->styleByName('textimage_test')
+        ->process($item['text']);
+      $element = array(
+        '#theme' => 'textimage_formatter',
+        '#uri' => $textimage->getUri(),
+        '#width' => $textimage->getWidth(),
+        '#height' => $textimage->getHeight(),
+      );
+      $textimage->getBubbleableMetadata()->applyTo($element);
+      $build[] = $element;
+      $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
+    }
+    $output = $this->renderer->renderRoot($build);
+    $this->verbose($output);
 
     // Check files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
     $this->assertEqual(4, $files_count);
-    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[0]['#text']), 177, 28);
-    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[1]['#text']), 331, 28);
-    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[2]['#text']), 328, 28);
-    $this->assertTextimage($this->getTextimageUriFromStyleAndText('textimage_test', $textimage[3]['#text']), 1148, 28);
 
     // Test build and display of a Textimage derivative via URL.
     $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image.png');
@@ -88,20 +102,6 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTrue($files_count == 1, 'Textimage replaced at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 113, 28);
 
-    // Build a textimage at target URI via theme.
-    $textimage = array();
-    $textimage[0] = array(
-      '#theme' => 'textimage_formatter',
-      '#style_name' => 'textimage_test',
-      '#text' => array('Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'),
-      '#target_uri' => 'public://textimage-testing/ut-enim.png',
-    );
-    $output = $this->renderer->renderRoot($textimage);
-
-    // Check file was generated.
-    $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
-    $this->assertTrue($files_count == 2, 'Textimage generation at target URI via theme.');
-
     // Test token resolution.
 
     // Create a text field for Textimage test.
@@ -123,10 +123,16 @@ class TextimageTest extends TextimageTestBase {
 
     // Check token.
     $node = Node::load($nid);
+    $site_name = \Drupal::configFactory()->get('system.site')->get('name');
     $bubbleable_metadata = new BubbleableMetadata();
-    $token_uri = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . ']', ['node' => $node], [], $bubbleable_metadata);
-    $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value), $token_uri);
-    $this->assertTrue(in_array('config:image.style.textimage_test', $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
+    $token_resolved = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . '] [site:name]', ['node' => $node], [], $bubbleable_metadata);
+    $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value) . ' ' . $site_name, $token_resolved);
+    $expected_tags = [
+      'config:image.style.textimage_test',
+      'config:system.site',
+      'node:' . $node->id(),
+    ];
+    $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
 
     // Test caching.
 

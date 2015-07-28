@@ -127,6 +127,20 @@ class Textimage implements ContainerInjectionInterface {
   protected $uri = NULL;
 
   /**
+   * Textimage width.
+   *
+   * @var int
+   */
+  protected $width = NULL;
+
+  /**
+   * Textimage height.
+   *
+   * @var int
+   */
+  protected $height = NULL;
+
+  /**
    * Image style used for this Textimage.
    *
    * @var \Drupal\image\ImageStyleInterface
@@ -206,6 +220,13 @@ class Textimage implements ContainerInjectionInterface {
    * @var bool
    */
   protected $forcedUri = FALSE;
+
+  /**
+   * Bubbleable metadata of the Textimage.
+   *
+   * @var \Drupal\Core\Render\BubbleableMetadata
+   */
+  protected $bubbleableMetadata = NULL;
 
   /**
    * Constructs a Textimage object.
@@ -379,7 +400,7 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function node(NodeInterface $node) {
+  public function node(NodeInterface $node = NULL) {
     return $this->set('node', $node);
   }
 
@@ -391,7 +412,7 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function user(UserInterface $user) {
+  public function user(UserInterface $user = NULL) {
     return $this->set('user', $user);
   }
 
@@ -436,7 +457,6 @@ class Textimage implements ContainerInjectionInterface {
     }
     return $this;
   }
-
 
   /**
    * Creates a full file path from a directory and filename.
@@ -493,7 +513,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Return the URI of the Textimage.
+   * Returns the URI of the Textimage.
    *
    * @return string
    *   An URI.
@@ -503,13 +523,55 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Return the URL of the Textimage.
+   * Returns the URL of the Textimage.
    *
    * @return string
    *   An URL.
    */
   public function getUrl() {
     return $this->processed ? ($this->uri ? file_create_url($this->uri) : NULL) : NULL;
+  }
+
+  /**
+   * Returns the height of the Textimage.
+   *
+   * @return int|null
+   *   The height of the Textimage, or NULL if not available.
+   */
+  public function getHeight() {
+    return $this->height;
+  }
+
+  /**
+   * Returns the width of the Textimage.
+   *
+   * @return int|null
+   *   The width of the Textimage, or NULL if not available.
+   */
+  public function getWidth() {
+    return $this->width;
+  }
+
+  /**
+   * Gets the bubbleable metadata of the Textimage.
+   *
+   * @return \Drupal\Core\Render\BubbleableMetadata
+   *   A BubbleableMetadata object.
+   */
+  public function getBubbleableMetadata() {
+    return $this->processed ? $this->bubbleableMetadata : NULL;
+  }
+
+  /**
+   * Sets the bubbleable metadata.
+   *
+   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   *   A BubbleableMetadata object.
+   *
+   * @return $this
+   */
+  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata) {
+    return $this->set('bubbleableMetadata', $bubbleable_metadata);
   }
 
   /**
@@ -595,6 +657,17 @@ class Textimage implements ContainerInjectionInterface {
       return $this;
     }
 
+    // Collect bubbleable metadata.
+    if (!$this->bubbleableMetadata) {
+      $this->bubbleableMetadata = new BubbleableMetadata();
+    }
+    if ($this->style) {
+      $this->bubbleableMetadata = $this->bubbleableMetadata->addCacheableDependency($this->style);
+    }
+    if ($this->sourceImageFile) {
+      $this->bubbleableMetadata = $this->bubbleableMetadata->addCacheableDependency($this->sourceImageFile);
+    }
+
     // Normalise $text to an array.
     if (!$text) {
       $text = array();
@@ -653,10 +726,10 @@ class Textimage implements ContainerInjectionInterface {
       if ($text_item) {
         // Replace any tokens in text with run-time values.
         $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-        $processed_text[$uuid] = $this->factory->processTextString($text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, new BubbleableMetadata()); // @todo check implications
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
       }
       else {
-        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, new BubbleableMetadata()); // @todo check implications
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
       }
     }
     $this->text = $processed_text;
@@ -748,6 +821,8 @@ class Textimage implements ContainerInjectionInterface {
         $this->logger->error('Textimage failed to build an image.');
       }
     }
+    $this->width = $image->getWidth();
+    $this->height = $image->getHeight();
     $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->uri]);
 
     // Release lock.
@@ -767,7 +842,6 @@ class Textimage implements ContainerInjectionInterface {
 
     // Stop the image generation timer.
     Timer::stop('Textimage::process');
-
   }
 
   /**

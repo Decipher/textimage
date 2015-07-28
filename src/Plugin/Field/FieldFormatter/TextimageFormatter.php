@@ -278,15 +278,10 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       }
     }
 
+    // Get image style.
     $image_style_setting = $this->getSetting('image_style');
-
-    // Collect bubbleable metadata for items in the field.
-    $bubbleable_metadata = new BubbleableMetadata();
-
-    // Add image style bubbleable metadata.
     if (!empty($image_style_setting)) {
       $image_style = $this->imageStyleStorage->load($image_style_setting);
-      $bubbleable_metadata = $bubbleable_metadata->addCacheableDependency($image_style);
     }
 
     $elements = array();
@@ -294,17 +289,26 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     switch($field->getTypeProvider()) {
       case 'text':
       case 'core';
+        // Collect bubbleable metadata.
+        $bubbleable_metadata = new BubbleableMetadata();
         // Get sanitized text strings from the text field.
         $text = $this->textimageFactory->getTextFieldText($items);
-        $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata); // @todo case conv
-        $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata); // @todo case conv
+        $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
+        $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
+        $textimage = $this->textimageFactory->get()
+          ->style($image_style)
+          ->node($node)
+          ->user($user)
+          ->setBubbleableMetadata($bubbleable_metadata)
+          ->process($text);
         $element = [
           '#theme' => 'textimage_formatter',
-          '#style_name' => $this->getSetting('image_style'),
-          '#text' => $text,
+          '#uri' => $textimage->getUri(),
+          '#width' => $textimage->getWidth(),
+          '#height' => $textimage->getHeight(),
           '#alt' => $image_alt ,
           '#title' => $image_title,
-          '#anchor_url' => $url,
+          '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
         ];
         $bubbleable_metadata->applyTo($element);
         $elements[] = $element;
@@ -313,31 +317,33 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       case 'image':
         // Get source images from the image field.
         foreach ($items as $delta => $item) {
-          // Add cache tags for the input source image file.
-          $image_bubbleable_metadata = clone $bubbleable_metadata;
-          $image_bubbleable_metadata->addCacheableDependency($item->entity);
+          // Collect bubbleable metadata.
+          $bubbleable_metadata = new BubbleableMetadata();
 
           $item_value = $item->getValue();
           $image_alt = $this->getSetting('image_alt');
           $image_alt = !empty($image_alt) ? $image_alt : $item_value['alt'];
-          $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, ['node' => $node, 'user' => $user], $image_bubbleable_metadata); // @todo case conv
+          $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
           $image_title = $this->getSetting('image_title');
           $image_title = !empty($image_title) ? $image_title : $item_value['title'];
-          $image_title = $this->textimageFactory->processTextString($image_title, NULL, ['node' => $node, 'user' => $user], $image_bubbleable_metadata); // @todo case conv
+          $image_title = $this->textimageFactory->processTextString($image_title, NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
+          $textimage = $this->textimageFactory->get()
+            ->style($image_style)
+            ->sourceImageFile($item->entity)
+            ->node($node)
+            ->user($user)
+            ->setBubbleableMetadata($bubbleable_metadata)
+            ->process(NULL);
           $element = [
             '#theme' => 'textimage_formatter',
-            '#style_name' => $this->getSetting('image_style'),
-            '#text' => NULL,
-            '#source_image_file' => $item->entity,
-            '#token_data' => [
-              'node' => $node,
-              'user' => $user,
-            ],
+            '#uri' => $textimage->getUri(),
+            '#width' => $textimage->getWidth(),
+            '#height' => $textimage->getHeight(),
             '#alt' => $image_alt,
             '#title' => $image_title,
-            '#anchor_url' => $url,
+            '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
           ];
-          $image_bubbleable_metadata->applyTo($element);
+          $bubbleable_metadata->applyTo($element);
           $elements[$delta] = $element;
         }
         break;
