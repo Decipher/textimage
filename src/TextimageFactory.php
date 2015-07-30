@@ -19,7 +19,6 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 use Psr\Log\LoggerInterface;
 
@@ -41,13 +40,6 @@ class TextimageFactory {
    * @var \Psr\Log\LoggerInterface.
    */
   protected $logger;
-
-  /**
-   * The image effect manager service.
-   *
-   * @var \Drupal\image\ImageEffectManager
-   */
-  protected $imageEffectManager;
 
   /**
    * The stream wrapper manager service.
@@ -104,8 +96,6 @@ class TextimageFactory {
    *   The Textimage cache service.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
-   * @param \Drupal\image\ImageEffectManager $image_effect_manager
-   *   The image effect manager service.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
    *   The stream wrapper manager service.
    * @param \Drupal\Core\Database\Connection $database
@@ -113,13 +103,12 @@ class TextimageFactory {
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The image style entity storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, ImageEffectManager $image_effect_manager, StreamWrapperManager $stream_wrapper_manager, Connection $database, EntityManagerInterface $entity_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, Connection $database, EntityManagerInterface $entity_manager) {
     $this->config = $config_factory->get('textimage.settings');
     $this->token = $token_service;
     $this->logger = $logger;
     $this->cache = $cache_service;
     $this->currentUser = $current_user;
-    $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
     $this->database = $database;
     $this->userStorage = $entity_manager->getStorage('user');
@@ -133,30 +122,6 @@ class TextimageFactory {
    */
   public function get() {
     return Textimage::create(\Drupal::getContainer());
-  }
-
-  /**
-   * Builds an image style from an array of effects.
-   *
-   * The runtime style object does not get saved. It is used to be
-   * passed to ImageStyle::createDerivative() to build an image derivative.
-   *
-   * @param array $effects
-   *   an array of image effects
-   *
-   * @return \Drupal\image\ImageStyleInterface
-   *   an image style object
-   */
-  public function buildStyleFromEffects($effects) {
-    $style = ImageStyle::create(array());
-    foreach ($effects as $effect) {
-      $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
-      $default_config = $effect_instance->defaultConfiguration();
-      $effect['data'] = array_replace_recursive($default_config, $effect['data']);
-      $style->addImageEffect($effect);
-    }
-    $style->getEffects()->sort();
-    return $style;
   }
 
   /**
@@ -298,6 +263,7 @@ class TextimageFactory {
    * the image styles, clear all cache and all store entries on the db.
    */
   public function flushAll() {
+    // @todo need to invalidate the image styles cache tags
     // Clear images, checking in all available schemes.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {

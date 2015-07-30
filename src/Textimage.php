@@ -19,6 +19,7 @@ use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
@@ -86,6 +87,13 @@ class Textimage implements ContainerInjectionInterface {
    * @var \Drupal\Core\File\FileSystemInterface
    */
   protected $fileSystem;
+
+  /**
+   * The image effect manager service.
+   *
+   * @var \Drupal\image\ImageEffectManager
+   */
+  protected $imageEffectManager;
 
   /**
    * Textimage id.
@@ -169,13 +177,6 @@ class Textimage implements ContainerInjectionInterface {
   protected $extension = NULL;
 
   /**
-   * The file extension override for this Textimage.
-   *
-   * @var string
-   */
-  protected $forcedExtension = NULL;
-
-  /**
    * RGB hex color to be used for GIF images.
    *
    * @var string
@@ -247,8 +248,10 @@ class Textimage implements ContainerInjectionInterface {
    *   The Textimage cache service.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   The file system service.
+   * @param \Drupal\image\ImageEffectManager $image_effect_manager
+   *   The image effect manager service.
    */
-  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, Connection $database, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system) {
+  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, Connection $database, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager) {
     $this->factory = $textimage_factory;
     $this->lock = $lock_service;
     $this->database = $database;
@@ -257,6 +260,7 @@ class Textimage implements ContainerInjectionInterface {
     $this->logger = $logger;
     $this->cache = $cache_service;
     $this->fileSystem = $file_system;
+    $this->imageEffectManager = $image_effect_manager;
   }
 
   /**
@@ -271,7 +275,8 @@ class Textimage implements ContainerInjectionInterface {
       $container->get('config.factory'),
       $container->get('textimage.logger'),
       $container->get('cache.textimage'),
-      $container->get('file_system')
+      $container->get('file_system'),
+      $container->get('plugin.manager.image.effect')
     );
   }
 
@@ -358,10 +363,11 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function forceExtension($extension) {
+    // @todo only to be called once
     if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
       throw new TextimageException('Attempted to set an unsupported file image extension "' . $extension . '"');
     }
-    return $this->set('forcedExtension', $extension);
+    return $this->set('extension', $extension);
   }
 
   /**
@@ -441,6 +447,8 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function setTargetUri($uri) {
+    // @todo only to be called once
+    // @todo should force the extension
     if ($uri) {
       if (!file_valid_uri($uri)) {
         throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
@@ -575,6 +583,30 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
+   * Builds an image style from an array of effects.
+   *
+   * The runtime style object does not get saved. It is used to be
+   * passed to ImageStyle::createDerivative() to build an image derivative.
+   *
+   * @param array $effects
+   *   an array of image effects
+   *
+   * @return \Drupal\image\ImageStyleInterface
+   *   an image style object
+   */
+  public function buildStyleFromEffects($effects) {
+    $style = ImageStyle::create(array());
+    foreach ($effects as $effect) {
+      $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
+      $default_config = $effect_instance->defaultConfiguration();
+      $effect['data'] = array_replace_recursive($default_config, $effect['data']);
+      $style->addImageEffect($effect);
+    }
+    $style->getEffects()->sort();
+    return $style;
+  }
+
+  /**
    * Load Textimage metadata from store.
    *
    * If the image file is missing at URI, it is rebuilt.
@@ -607,9 +639,7 @@ class Textimage implements ContainerInjectionInterface {
     $this->id = $stored_image['tiid'];
     $is_void = $stored_image['is_void'];
     $this->styleByName($stored_image['style_name']);
-    if ($is_void) {
-      $this->effects = unserialize($stored_image['effects_outline']);
-    }
+    $this->effects = unserialize($stored_image['effects_outline']);
     $this->imageData = unserialize($stored_image['image_data']);
     $this->text = $this->imageData['text'];
     $this->extension = $this->imageData['extension'];
@@ -622,15 +652,7 @@ class Textimage implements ContainerInjectionInterface {
     }
     else {
       // If not, rebuild image file.
-      $execution_effects = $this->effects;
-      $text = $this->text;
-      foreach ($execution_effects as $uuid => &$effect_configuration) {
-        if ($effect_configuration['id'] == 'textimage_text') {
-          $effect_configuration['data']['text_string'] = array_shift($text);
-        }
-      }
-      $runtime_style = $this->factory->buildStyleFromEffects($execution_effects);
-      $this->buildImage($runtime_style);
+      $this->buildImage();
     }
 
     return $this;
@@ -657,6 +679,18 @@ class Textimage implements ContainerInjectionInterface {
       return $this;
     }
 
+    // Set the output image file extension.
+    if (!$this->extension) {
+      if ($this->sourceImageFile) {
+        $this->extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
+      }
+      else {
+        $this->extension = $this->config->get('default_extension');
+      }
+      $runtime_style = $this->buildStyleFromEffects($this->effects);
+      $this->extension = $runtime_style->getDerivativeExtension($this->extension);
+    }
+
     // Collect bubbleable metadata.
     if (!$this->bubbleableMetadata) {
       $this->bubbleableMetadata = new BubbleableMetadata();
@@ -676,40 +710,11 @@ class Textimage implements ContainerInjectionInterface {
       $text = array($text);
     }
 
-    // Build a runtime-only style.
-    $runtime_style = $this->factory->buildStyleFromEffects($this->effects);
-
-    // Find the output image file extension.
-    $this->extension = $this->extension ?: $this->config->get('default_extension');
-    $this->extension = $runtime_style->getDerivativeExtension($this->extension);
-
-    // Manage request to force file extension change.
-    if ($this->forcedExtension && $this->forcedExtension != $this->extension) {
-      // Find the max weight from effects.
-      $max_weight = NULL;
-      foreach ($runtime_style->getEffects()->getConfiguration() as $effect_configuration) {
-        if (!$max_weight || $effect_configuration['weight'] > $max_weight) {
-          $max_weight = $effect_configuration['weight'];
-        }
-      }
-      // Add an image_convert effect as last effect.
-      $convert = [
-        'id' => 'image_convert',
-        'weight' => ++$max_weight,
-        'data' => [
-          'extension' => $this->forcedExtension,
-        ],
-      ];
-      $runtime_style->addImageEffect($convert);
-      $this->extension = $this->forcedExtension;
-    }
-
     // Find the default text from effects.
     $default_text = [];
-    $runtime_effects = $runtime_style->getEffects()->getConfiguration();
-    foreach ($runtime_effects as $uuid => &$effect_configuration) {
+    foreach ($this->effects as $uuid => &$effect_configuration) { // @todo review no need to pass by ref
       if ($effect_configuration['id'] == 'textimage_text') {
-        $uuid = $effect_configuration['uuid'];
+        $uuid = isset($effect_configuration['uuid']) ? $effect_configuration['uuid'] : $uuid;
         $default_text[$uuid] = $effect_configuration['data']['text_string'];
       }
     }
@@ -726,10 +731,10 @@ class Textimage implements ContainerInjectionInterface {
       if ($text_item) {
         // Replace any tokens in text with run-time values.
         $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-        $processed_text[$uuid] = $this->factory->processTextString($text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, $this->effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
       }
       else {
-        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $runtime_effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $this->effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
       }
     }
     $this->text = $processed_text;
@@ -740,16 +745,16 @@ class Textimage implements ContainerInjectionInterface {
 
     // Data for this textimage.
     $this->imageData = array(
-      'text'                => array_values($this->text),
+      'text'                => $this->text,
       'extension'           => $this->extension,
       'sourceImage'         => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
     );
 
     // Remove default text from effects outline, as actual runtime text
     // goes separately to the hash.
-    foreach ($this->effects as $uuid => &$effect_configuration) {
+    foreach ($this->effects as $uuid => $effect_configuration) {
       if ($effect_configuration['id'] == 'textimage_text') {
-        unset($effect_configuration['data']['text_string']);
+        unset($this->effects[$uuid]['data']['text_string']);
       }
     }
 
@@ -765,13 +770,11 @@ class Textimage implements ContainerInjectionInterface {
       $this->processed = TRUE;
     }
     else {
-      // Not found, build the image. Inject processed text in the
-      // textimage_text effects data for execution first.
-      foreach ($this->text as $uuid => $text_item) {
-        $runtime_effects[$uuid]['data']['text_string'] = $text_item;
+      // Not found, build the image.
+      if ($this->caching) {
+        $this->setCached();
       }
-      $runtime_style->getEffects()->setConfiguration($runtime_effects);
-      $this->buildImage($runtime_style);
+      $this->buildImage();
     }
 
     return $this;
@@ -782,8 +785,7 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  protected function buildImage($runtime_style) {
-
+  public function buildImage() {
     // Track the image generation time.
     Timer::start('Textimage::process');
 
@@ -812,6 +814,42 @@ class Textimage implements ContainerInjectionInterface {
       return file_exists($this->uri) ? TRUE : FALSE;
     }
 
+    // Inject processed text in the textimage_text effects data.
+    $xxx_effects = $this->effects;  // @todo review variable name
+    foreach ($this->text as $uuid => $text_item) {
+      $xxx_effects[$uuid]['data']['text_string'] = $text_item;
+    }
+
+    // Build a runtime-only style.
+    $runtime_style = $this->buildStyleFromEffects($xxx_effects);
+
+    // Manage change of file extension if needed.
+    if ($this->sourceImageFile) {
+      $runtime_extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
+    }
+    else {
+      $runtime_extension = $this->extension;
+    }
+    $runtime_extension = $runtime_style->getDerivativeExtension($runtime_extension);
+    if ($runtime_extension != $this->extension) {
+      // Find the max weight from effects.
+      $max_weight = NULL;
+      foreach ($runtime_style->getEffects()->getConfiguration() as $effect_configuration) {
+        if (!$max_weight || $effect_configuration['weight'] > $max_weight) {
+          $max_weight = $effect_configuration['weight'];
+        }
+      }
+      // Add an image_convert effect as last effect.
+      $convert = [
+        'id' => 'image_convert',
+        'weight' => ++$max_weight,
+        'data' => [
+          'extension' => $this->extension,
+        ],
+      ];
+      $runtime_style->addImageEffect($convert);
+    }
+
     // Generate the image.
     if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->uri)) {
       if (isset($this->style)) {
@@ -835,7 +873,6 @@ class Textimage implements ContainerInjectionInterface {
 
     // Saves db imagestore data.
     if ($this->processed && $this->caching) {
-      $this->setCached();
       $this->timer = Timer::read('Textimage::process');
       $this->putInStore();
     }

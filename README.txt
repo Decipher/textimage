@@ -15,6 +15,8 @@ Core issues:
 - revise caching
 - split process in processText and build
 - check background color setting over a passthrogh image
+- images not downloaded when anonymous
+- more tests for url generation
 
 -------------------------------------------------------------------------------
 

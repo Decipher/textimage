@@ -117,7 +117,7 @@ class TextimageApiTest extends TextimageTestBase {
     $effects_outline = unserialize($stored_image['effects_outline']);
 
     // Check processed text is stored in image data.
-    $this->assertTrue($expected_text_array == $image_data['text'], 'Processed text stored in image data');
+    $this->assertTrue($expected_text_array == array_values($image_data['text']), 'Processed text stored in image data');
 
     // Check count of effects is as expected.
     $this->assertTrue(count($effects_outline) == 7, 'Expected number of effects in the outline');
@@ -171,14 +171,14 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertEqual($textimage->getText(), $expected_text_array, 'Load - Text correct');
     $this->assertTextimageException(TRUE, array($textimage, 'styleByName'), array('textimage_test'));
     // File exists.
-    $this->assertTrue(file_exists($uri), 'Load - file exixts');
+    $this->assertTrue(file_exists($uri), 'Load - file exists');
     // File deletion.
     $this->assertTrue(file_unmanaged_delete($uri), 'Load - file was deleted');
     // Reload and rebuild.
     $textimage = $this->textimageFactory->get();
     $textimage
       ->load($id);
-    $this->assertTrue(file_exists($uri), 'Load - file exixts');
+    $this->assertTrue(file_exists($uri), 'Load - file exists');
 
     // Test output of theme textimage_formatter.
     $output = array(
