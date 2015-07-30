@@ -644,10 +644,10 @@ class Textimage implements ContainerInjectionInterface {
     $this->text = $this->imageData['text'];
     $this->extension = $this->imageData['extension'];
     $this->timer = $stored_image['timer'];
+    $this->uri = $stored_image['uri'];
 
     // In stock, check file is there.
-    if (is_file($stored_image['uri'])) {
-      $this->uri = $stored_image['uri'];
+    if (is_file($this->uri)) {
       $this->processed = TRUE;
     }
     else {
@@ -679,18 +679,6 @@ class Textimage implements ContainerInjectionInterface {
       return $this;
     }
 
-    // Set the output image file extension.
-    if (!$this->extension) {
-      if ($this->sourceImageFile) {
-        $this->extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
-      }
-      else {
-        $this->extension = $this->config->get('default_extension');
-      }
-      $runtime_style = $this->buildStyleFromEffects($this->effects);
-      $this->extension = $runtime_style->getDerivativeExtension($this->extension);
-    }
-
     // Collect bubbleable metadata.
     if (!$this->bubbleableMetadata) {
       $this->bubbleableMetadata = new BubbleableMetadata();
@@ -712,7 +700,7 @@ class Textimage implements ContainerInjectionInterface {
 
     // Find the default text from effects.
     $default_text = [];
-    foreach ($this->effects as $uuid => &$effect_configuration) { // @todo review no need to pass by ref
+    foreach ($this->effects as $uuid => $effect_configuration) {
       if ($effect_configuration['id'] == 'textimage_text') {
         $uuid = isset($effect_configuration['uuid']) ? $effect_configuration['uuid'] : $uuid;
         $default_text[$uuid] = $effect_configuration['data']['text_string'];
@@ -743,6 +731,38 @@ class Textimage implements ContainerInjectionInterface {
       return $this;
     }
 
+    // Set the output image file extension, and find derivative dimensions.
+    $xxx_effects = $this->effects;  // @todo review variable name
+    foreach ($this->text as $uuid => $text_item) {
+      $xxx_effects[$uuid]['data']['text_string'] = $text_item;
+    }
+    $runtime_style = $this->buildStyleFromEffects($xxx_effects);
+    if ($this->sourceImageFile) {
+      $source_image = $this->imageFactory->get($this->sourceImageFile->getFileUri()); // @todo avoid if possible
+      $dimensions = [
+        'width' => $source_image->getWidth(),
+        'height' => $source_image->getHeight(),
+      ];
+    }
+    else {
+      $dimensions = [
+        'width' => 1,
+        'height' => 1,
+      ];
+    }
+    $runtime_style->transformDimensions($dimensions);
+    $this->width = $dimensions['width'];
+    $this->height = $dimensions['height'];
+    if (!$this->extension) {
+      if ($this->sourceImageFile) {
+        $this->extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
+      }
+      else {
+        $this->extension = $this->config->get('default_extension');
+      }
+      $this->extension = $runtime_style->getDerivativeExtension($this->extension);
+    }
+
     // Data for this textimage.
     $this->imageData = array(
       'text'                => $this->text,
@@ -750,11 +770,11 @@ class Textimage implements ContainerInjectionInterface {
       'sourceImage'         => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
     );
 
-    // Remove default text from effects outline, as actual runtime text
-    // goes separately to the hash.
-    foreach ($this->effects as $uuid => $effect_configuration) {
+    // Remove text from effects outline, as actual runtime text goes
+    // separately to the hash.
+    foreach ($this->effects as $uuid => &$effect_configuration) {
       if ($effect_configuration['id'] == 'textimage_text') {
-        unset($this->effects[$uuid]['data']['text_string']);
+        unset($effect_configuration['data']['text_string']);
       }
     }
 
@@ -771,6 +791,10 @@ class Textimage implements ContainerInjectionInterface {
     }
     else {
       // Not found, build the image.
+      // Get URI of the to-be image file.
+      if (!$this->uri) {
+        $this->buildUri();
+      }
       if ($this->caching) {
         $this->setCached();
       }
@@ -788,11 +812,6 @@ class Textimage implements ContainerInjectionInterface {
   public function buildImage() {
     // Track the image generation time.
     Timer::start('Textimage::process');
-
-    // Get URI of the to-be image file.
-    if (!$this->uri) {
-      $this->buildUri();
-    }
 
     // If no source image specified, we are processing a pure Textimage
     // request. In that case we create a new 1x1 image to ensure we start
@@ -859,8 +878,6 @@ class Textimage implements ContainerInjectionInterface {
         $this->logger->error('Textimage failed to build an image.');
       }
     }
-    $this->width = $image->getWidth();
-    $this->height = $image->getHeight();
     $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->uri]);
 
     // Release lock.
@@ -1004,7 +1021,16 @@ class Textimage implements ContainerInjectionInterface {
     else {
       $tags = [];
     }
-    $this->cache->set('tiid:' . $this->id, ['uri' => $this->uri], time() + (60 * 60 * 24), $tags);
+    $data = [
+      'id' => $this->id,
+      'uri' => $this->uri,
+      'imageData' => $this->imageData,
+      'effects' => $this->effects,
+      'width' => $this->width,
+      'height' => $this->height,
+      'gifTransparentColor' => $this->gifTransparentColor,
+    ];
+    $this->cache->set('tiid:' . $this->id, $data, time() + (60 * 60 * 24), $tags);
     return $this;
   }
 
