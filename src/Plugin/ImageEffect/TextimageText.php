@@ -723,7 +723,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
   /**
    * {@inheritdoc}
    */
-  public function transformDimensions(array &$dimensions) {
+  public function transformDimensions(array &$dimensions, $uri) {
     // Dimensions are potentially affected only if the effect is set to
     // autoextend the background image in case of wrapper overflow. Also,
     // current dimensions must be known.

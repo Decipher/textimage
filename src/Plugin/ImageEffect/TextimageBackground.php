@@ -418,7 +418,7 @@ class TextimageBackground extends TextimageEffectBase {
   /**
    * {@inheritdoc}
    */
-  public function transformDimensions(array &$dimensions) {
+  public function transformDimensions(array &$dimensions, $uri) {
     // If exact size WxH, set and return.
     if ($this->configuration['exact']['width'] && $this->configuration['exact']['height']) {
       $dimensions['width'] = $this->configuration['exact']['width'];

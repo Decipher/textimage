@@ -3,7 +3,7 @@
 # Schema for settings.
 
 textimage.settings:
-  type: mapping
+  type: config_object
   label: 'Textimage settings'
   mapping:
     store_scheme:

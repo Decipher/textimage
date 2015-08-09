@@ -743,14 +743,16 @@ class Textimage implements ContainerInjectionInterface {
         'width' => $source_image->getWidth(),
         'height' => $source_image->getHeight(),
       ];
+      $uri = $this->sourceImageFile->getFileUri();
     }
     else {
       $dimensions = [
         'width' => 1,
         'height' => 1,
       ];
+      $uri = NULL;
     }
-    $runtime_style->transformDimensions($dimensions);
+    $runtime_style->transformDimensions($dimensions, $uri);
     $this->width = $dimensions['width'];
     $this->height = $dimensions['height'];
     if (!$this->extension) {
