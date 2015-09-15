@@ -35,22 +35,33 @@ class TextimageDefineCanvas extends GDTextimageOperationBase {
     $targetsize = $arguments['targetsize'];
 
     // Prepare the canvas.
-    $canvas_image = \Drupal::service('image.factory')->get();
+    $original_res = $this->getToolkit()->getResource();
     $data = array(
       'width' => $targetsize['width'],
       'height' => $targetsize['height'],
-      'extension' => image_type_to_extension($this->getToolkit()->getType(), FALSE), // @todo double check is this correct - if canvass is below ok, if above then it could be png
+      'extension' => image_type_to_extension($this->getToolkit()->getType(), FALSE),
       'transparent_color' => $this->getToolkit()->getTransparentColor(),
+      'is_temp' => TRUE,  // @todo needs core's #2531678
     );
-    $canvas_image->apply('create_new', $data);
+    $this->getToolkit()->apply('create_new', $data);
     $data = array(
       'rectangle' => new Rectangle($targetsize['width'], $targetsize['height']),
       'fill_color' => $arguments['background_color'],
     );
-    $canvas_image->apply('textimage_draw_rectangle', $data);
+    $this->getToolkit()->apply('textimage_draw_rectangle', $data);
 
     // Overlay the current image on the canvas.
-    return $this->getToolkit()->apply('textimage_overlay', array('layer' => $canvas_image, 'layer_on_top' => FALSE, 'x' => $targetsize['left'], 'y' => $targetsize['top']));
+    $x = $this->keywordFilter($targetsize['left'], $this->getToolkit()->getWidth(), imagesx($original_res));
+    $y = $this->keywordFilter($targetsize['top'], $this->getToolkit()->getHeight(), imagesy($original_res));
+    imagealphablending($original_res, TRUE);
+    imagesavealpha($original_res, TRUE);
+    imagealphablending($this->getToolkit()->getResource(), TRUE);
+    imagesavealpha($this->getToolkit()->getResource(), TRUE);
+    if (imagecopy($this->getToolkit()->getResource(), $original_res, $x, $y, 0, 0, imagesx($original_res), imagesy($original_res))) {
+      imagedestroy($original_res);
+      return TRUE;
+    }
+    return FALSE;
   }
 
 }

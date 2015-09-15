@@ -31,25 +31,13 @@ class TextimageOverlay extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    if ($arguments['layer_on_top']) {
-      $width = $arguments['layer']->getWidth();
-      $height = $arguments['layer']->getHeight();
-      $upper = $arguments['layer']->getToolkit()->getResource();
-      $lower = $this->getToolkit()->getResource();
-    }
-    else {
-      $width = $this->getToolkit()->getWidth();
-      $height = $this->getToolkit()->getHeight();
-      $upper = $this->getToolkit()->getResource();
-      $lower = $arguments['layer']->getToolkit()->getResource();
-    }
+    $upper = $arguments['layer']->getToolkit()->getResource();
+    $lower = $this->getToolkit()->getResource();
     imagealphablending($lower, TRUE);
     imagesavealpha($lower, TRUE);
     imagealphablending($upper, TRUE);
     imagesavealpha($upper, TRUE);
-    imagecopy($lower, $upper, $arguments['x'], $arguments['y'], 0, 0, $width, $height);
-    imagedestroy($upper);
-    $this->getToolkit()->setResource($lower);
+    imagecopy($lower, $upper, $arguments['x'], $arguments['y'], 0, 0, imagesx($upper), imagesy($upper));
     return TRUE;
   }
 

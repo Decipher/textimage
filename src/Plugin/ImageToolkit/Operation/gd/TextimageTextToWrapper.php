@@ -120,6 +120,7 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
       'width' => $outer_rect->getBoundingWidth(),
       'height' => $outer_rect->getBoundingHeight(),
       'extension' => 'png',
+//      'is_temp' => ??,  // @todo needs core's #2531678
     ]);
 
     // Draw and fill the outer text box, if required.

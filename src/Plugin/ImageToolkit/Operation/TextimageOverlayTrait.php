@@ -18,12 +18,7 @@ trait TextimageOverlayTrait {
   protected function arguments() {
     return array(
       'layer' => array(
-        'description' => 'Image object to be placed over or under the current image.',
-      ),
-      'layer_on_top' => array(
-        'description' => 'Flag to indicate if the layer goes on top of the current image.',
-        'required' => FALSE,
-        'default' => TRUE,
+        'description' => 'Image object to be placed over the current image.',
       ),
       'x' => array(
         'description' => 'x-position of the overlay.',
@@ -38,15 +33,8 @@ trait TextimageOverlayTrait {
    * {@inheritdoc}
    */
   protected function validateArguments(array $arguments) {
-    if ($arguments['layer_on_top']) {
-      $arguments['x'] = $this->keywordFilter($arguments['x'], $this->getToolkit()->getWidth(), $arguments['layer']->getWidth());
-      $arguments['y'] = $this->keywordFilter($arguments['y'], $this->getToolkit()->getHeight(), $arguments['layer']->getHeight());
-    }
-    else {
-      $arguments['x'] = $this->keywordFilter($arguments['x'], $arguments['layer']->getWidth(), $this->getToolkit()->getWidth());
-      $arguments['y'] = $this->keywordFilter($arguments['y'], $arguments['layer']->getHeight(), $this->getToolkit()->getHeight());
-    }
-
+    $arguments['x'] = $this->keywordFilter($arguments['x'], $this->getToolkit()->getWidth(), $arguments['layer']->getWidth());
+    $arguments['y'] = $this->keywordFilter($arguments['y'], $this->getToolkit()->getHeight(), $arguments['layer']->getHeight());
     return $arguments;
   }
 

@@ -28,10 +28,26 @@ class TextimageReplaceImage extends GDTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    imagedestroy($this->getToolkit()->getResource());
-    $this->getToolkit()->setResource($arguments['replacement_image']->getToolkit()->getResource());
-    $this->getToolkit()->setType($arguments['replacement_image']->getToolkit()->getType());
-    return TRUE;
+    // Prepare the new image.
+    $original_res = $this->getToolkit()->getResource();
+    $data = [
+      'width' => $arguments['replacement_image']->getWidth(),
+      'height' => $arguments['replacement_image']->getHeight(),
+      'extension' => image_type_to_extension($arguments['replacement_image']->getToolkit()->getType(), FALSE),
+      'transparent_color' => $arguments['replacement_image']->getToolkit()->getTransparentColor(),
+      'is_temp' => TRUE,  // @todo needs core's #2531678
+    ];
+    if (!$this->getToolkit()->apply('create_new', $data)) {
+      return FALSE;
+    }
+
+    // Overlay replacement image.
+    $data = [
+      'layer' => $arguments['replacement_image'],
+      'x' => 0,
+      'y' => 0,
+    ];
+    return $this->getToolkit()->apply('textimage_overlay', $data);
   }
 
 }
