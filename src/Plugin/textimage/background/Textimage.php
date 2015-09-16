@@ -114,7 +114,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     $filelist = array();
     if (is_dir($this->configuration['path']) && $handle = opendir($this->configuration['path'])) {
       while ($file = readdir($handle)) {
-        if (preg_match("/\.gif|\.png|\.jpg|\.jpeg$/i", $file) == 1) {
+        if (preg_match("/\.gif|\.png|\.jpg|\.jpeg$/i", $file) == 1) { // @todo make this list dependent on toolkit capabilities
           $filelist[] = $file;
         }
       }
