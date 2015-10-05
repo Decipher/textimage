@@ -13,12 +13,11 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
-use Drupal\Core\Utility\LinkGeneratorInterface;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -46,20 +45,6 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
    * @var \Drupal\Core\Session\AccountInterface
    */
   protected $currentUser;
-
-  /**
-   * The link generator.
-   *
-   * @var \Drupal\Core\Utility\LinkGeneratorInterface
-   */
-  protected $linkGenerator;
-
-  /**
-   * The url generator service.
-   *
-   * @var \Drupal\Core\Routing\UrlGeneratorInterface
-   */
-  protected $urlGenerator;
 
   /**
    * The Textimage factory service.
@@ -94,18 +79,12 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
    *   Any third party settings settings.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
-   * @param \Drupal\Core\Utility\LinkGeneratorInterface $link_generator
-   *   The link generator service.
-   * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
-   *   The url generator service.
    * @param \Drupal\Core\Entity\EntityStorageInterface $image_style_storage
    *   The image style entity storage.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, LinkGeneratorInterface $link_generator, UrlGeneratorInterface $url_generator, TextimageFactory $textimage_factory, EntityStorageInterface $image_style_storage) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, TextimageFactory $textimage_factory, EntityStorageInterface $image_style_storage) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->currentUser = $current_user;
-    $this->linkGenerator = $link_generator;
-    $this->urlGenerator = $url_generator;
     $this->textimageFactory = $textimage_factory;
     $this->imageStyleStorage = $image_style_storage;
   }
@@ -123,8 +102,6 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       $configuration['view_mode'],
       $configuration['third_party_settings'],
       $container->get('current_user'),
-      $container->get('link_generator'),
-      $container->get('url_generator'),
       $container->get('textimage.factory'),
       $container->get('entity.manager')->getStorage('image_style')
     );
@@ -152,20 +129,20 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     if (empty($image_styles)) {
       $image_styles[''] = $this->t('No Textimage style available');
     }
-    $element['image_style'] = array(
+    $description_link = Link::fromTextAndUrl(
+      $this->t('Configure Image Styles'),
+      Url::fromRoute('entity.image_style.collection')
+    );
+    $element['image_style'] = [
       '#title' => $this->t('Image style'),
       '#type' => 'select',
       '#default_value' => $this->getSetting('image_style'),
       '#options' => $image_styles,
       '#required' => TRUE,
-      '#description' => array(
-        '#markup' => $this->t('Only Textimage relevant image styles can be selected.'),
-        'link' => array(
-          '#markup' =>  ' ' . $this->linkGenerator->generate($this->t('Configure Image Styles'), new Url('entity.image_style.collection')),
-          '#access' => $this->currentUser->hasPermission('administer image styles'),
-        ),
-      ),
-    );
+      '#description' => $description_link->toRenderable() + [
+        '#access' => $this->currentUser->hasPermission('administer image styles')
+      ],
+    ];
 
     // Link setting.
     $link_types = array(
@@ -253,8 +230,8 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
   /**
    * {@inheritdoc}
    */
-  public function viewElements(FieldItemListInterface $items) {
-
+  public function viewElements(FieldItemListInterface $items, $langcode) {
+    // @todo what's the implication of adding $langcode to the method?
     $instance = $items->getFieldDefinition();
     $field = $instance->getFieldStorageDefinition();
 
