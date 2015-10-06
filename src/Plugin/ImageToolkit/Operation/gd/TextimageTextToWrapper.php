@@ -116,12 +116,15 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
     // Set image dimensions to allow fitting the text. Explicitly setting
     // extension to 'png' to ensure wrapper is full transparent alpha channel
     // enabled.
-    $this->getToolkit()->apply('create_new', [
+    $data = [
       'width' => $outer_rect->getBoundingWidth(),
       'height' => $outer_rect->getBoundingHeight(),
       'extension' => 'png',
-//      'is_temp' => ??,  // @todo needs core's #2531678
-    ]);
+      'is_temp' => FALSE,
+    ];
+    if (!$this->getToolkit()->apply('create_new', $data)) {
+      return FALSE;
+    }
 
     // Draw and fill the outer text box, if required.
     if ($arguments['layout']['background_color']) {

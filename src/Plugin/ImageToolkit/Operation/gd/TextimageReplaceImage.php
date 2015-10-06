@@ -29,13 +29,12 @@ class TextimageReplaceImage extends GDTextimageOperationBase {
    */
   protected function execute(array $arguments) {
     // Prepare the new image.
-    $original_res = $this->getToolkit()->getResource();
     $data = [
       'width' => $arguments['replacement_image']->getWidth(),
       'height' => $arguments['replacement_image']->getHeight(),
       'extension' => image_type_to_extension($arguments['replacement_image']->getToolkit()->getType(), FALSE),
       'transparent_color' => $arguments['replacement_image']->getToolkit()->getTransparentColor(),
-      'is_temp' => TRUE,  // @todo needs core's #2531678
+      'is_temp' => FALSE,
     ];
     if (!$this->getToolkit()->apply('create_new', $data)) {
       return FALSE;
