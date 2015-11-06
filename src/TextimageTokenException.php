@@ -7,8 +7,6 @@
 
 namespace Drupal\textimage;
 
-use Drupal\Component\Utility\SafeMarkup;
-
 /**
  * Exception thrown by Textimage factory on token processing failure.
  */
@@ -25,7 +23,7 @@ class TextimageTokenException extends \Exception {
    * Constructs a TextimageImagerTokenException object.
    */
   public function __construct($token, \Exception $previous = NULL) {
-      parent::__construct(SafeMarkup::format("Textimage token @token could not be resolved.", array('@token' => $token)), 0, $previous);
+      parent::__construct("Textimage token {$token} could not be resolved.", 0, $previous);
       $this->token = $token;
   }
 

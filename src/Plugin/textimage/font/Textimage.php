@@ -72,8 +72,8 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     $fonts_list = $this->getList();
     if (empty($fonts_list)) {
       $this->logger->warning(
-        'No fonts available. Make sure at least one font is available in the directory specified in the <a href="!url">configuration page</a>.',
-        ['!url' => $this->urlGenerator->generateFromRoute('textimage.settings')]
+        'No fonts available. Make sure at least one font is available in the directory specified in the <a href=":url">configuration page</a>.',
+        [':url' => $this->urlGenerator->generateFromRoute('textimage.settings')]
       );
       return [];
     }

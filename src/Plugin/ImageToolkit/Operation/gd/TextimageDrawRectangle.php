@@ -7,7 +7,6 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 
@@ -61,7 +60,7 @@ class TextimageDrawRectangle extends GDTextimageOperationBase {
   protected function validateArguments(array $arguments) {
     // Ensure 'rectangle' is an expected Rectangle object.
     if (!$arguments['rectangle'] instanceof Rectangle) {
-      throw new \InvalidArgumentException(SafeMarkup::format("Rectangle passed to the 'textimage_draw_rectangle' operation is invalid"));
+      throw new \InvalidArgumentException("Rectangle passed to the 'textimage_draw_rectangle' operation is invalid");
     }
     // Match color luma.
     if ($arguments['fill_color'] && $arguments['fill_color_luma']) {

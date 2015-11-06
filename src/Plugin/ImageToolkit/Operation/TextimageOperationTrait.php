@@ -7,7 +7,6 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\StreamWrapper\LocalStream;
 
 /**
@@ -58,7 +57,7 @@ trait TextimageOperationTrait {
     }
     if (!isset(static::$fontPaths[$font_uri])) {
       if (!$ret = $this->getRealPath($font_uri)) {
-        throw new \InvalidArgumentException(SafeMarkup::format('Textimage - Could not find the font file @fontfile', array('@fontfile' => $font_uri)));
+        throw new \InvalidArgumentException("Textimage - Could not find the font file {$font_uri}");
       }
       static::$fontPaths[$font_uri] = $ret;
     }

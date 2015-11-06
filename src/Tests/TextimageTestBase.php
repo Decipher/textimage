@@ -7,7 +7,6 @@
 
 namespace Drupal\textimage\Tests;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\simpletest\WebTestBase;
@@ -177,7 +176,7 @@ abstract class TextimageTestBase extends WebTestBase {
     $w_error = abs($image->getWidth() - $width);
     $h_error = abs($image->getHeight() - $height);
     $tolerance = 0.1;
-    $this->assertTrue($w_error < $width * $tolerance && $h_error < $height * $tolerance, SafeMarkup::format('Textimage @path width and height (@act_wx@act_h) approximate expected results (@exp_wx@exp_h)', array('@path' => $path, '@act_w' => $image->getWidth(), '@act_h' => $image->getHeight(), '@exp_w' => $width, '@exp_h' => $height)));
+    $this->assertTrue($w_error < $width * $tolerance && $h_error < $height * $tolerance, "Textimage {$path} width and height ({$image->getWidth()}x{$image->getHeight()}) approximate expected results ({$width}x{$height})");
   }
 
   /**
