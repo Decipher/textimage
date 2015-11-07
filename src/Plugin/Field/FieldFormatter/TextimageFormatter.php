@@ -113,6 +113,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
   public static function defaultSettings() {
     return array(
       'image_style' => '',
+      'image_text_values' => 'merge',
       'image_link' => '',
       'image_alt' => '',
       'image_title' => '',
@@ -143,6 +144,22 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
         '#access' => $this->currentUser->hasPermission('administer image styles')
       ],
     ];
+
+    // Multi-value text field image generation settings.
+    if (in_array($this->fieldDefinition->getFieldStorageDefinition()->getTypeProvider(), ['core', 'text']) && $this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
+      $options = array(
+        'merge' => $this->t("Build one single image, styling together text values."),
+        'itemize' => $this->t("Build multiple images, styling each text value in a separate image."),
+      );
+      $element['image_text_values'] = array(
+        '#title' => $this->t('Multiple values text field'),
+        '#type' => 'radios',
+        '#default_value' => $this->getSetting('image_text_values'),
+        '#options' => $options,
+        '#required' => TRUE,
+        '#description' => $this->t("Text values are styled following the sequence of 'Textimage text' effects in the image style."),
+      );
+    }
 
     // Link setting.
     $link_types = array(
@@ -203,6 +220,15 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
     }
     else {
       $summary[] = $this->t('Image style: undefined');
+    }
+
+    // Multi-value text field image generation settings.
+    if (in_array($this->fieldDefinition->getFieldStorageDefinition()->getTypeProvider(), ['core', 'text']) && $this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
+      $options = array(
+        'merge' => $this->t("Build one image"),
+        'itemize' => $this->t("Build multiple images"),
+      );
+      $summary[] = $this->t('Multiple text values:') . ' ' . $options[$this->getSetting('image_text_values')];
     }
 
     // Display link setting only if image is linked.
@@ -272,23 +298,48 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
         $text = $this->textimageFactory->getTextFieldText($items);
         $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
         $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
-        $textimage = $this->textimageFactory->get()
-          ->style($image_style)
-          ->node($node)
-          ->user($user)
-          ->setBubbleableMetadata($bubbleable_metadata)
-          ->process($text);
-        $element = [
-          '#theme' => 'textimage_formatter',
-          '#uri' => $textimage->getUri(),
-          '#width' => $textimage->getWidth(),
-          '#height' => $textimage->getHeight(),
-          '#alt' => $image_alt ,
-          '#title' => $image_title,
-          '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
-        ];
-        $bubbleable_metadata->applyTo($element);
-        $elements[] = $element;
+        if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {
+          // Build separate image for each text value.
+          foreach ($text as $text_value) {
+            $textimage = $this->textimageFactory->get()
+              ->style($image_style)
+              ->node($node)
+              ->user($user)
+              ->setBubbleableMetadata($bubbleable_metadata)
+              ->process($text_value);
+            $element = [
+              '#theme' => 'textimage_formatter',
+              '#uri' => $textimage->getUri(),
+              '#width' => $textimage->getWidth(),
+              '#height' => $textimage->getHeight(),
+              '#alt' => $image_alt,
+              '#title' => $image_title,
+              '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
+            ];
+            $bubbleable_metadata->applyTo($element);
+            $elements[] = $element;
+          }
+        }
+        else {
+          // Build single image with all text values.
+          $textimage = $this->textimageFactory->get()
+            ->style($image_style)
+            ->node($node)
+            ->user($user)
+            ->setBubbleableMetadata($bubbleable_metadata)
+            ->process($text);
+          $element = [
+            '#theme' => 'textimage_formatter',
+            '#uri' => $textimage->getUri(),
+            '#width' => $textimage->getWidth(),
+            '#height' => $textimage->getHeight(),
+            '#alt' => $image_alt,
+            '#title' => $image_title,
+            '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
+          ];
+          $bubbleable_metadata->applyTo($element);
+          $elements[] = $element;
+        }
         break;
 
       case 'image':

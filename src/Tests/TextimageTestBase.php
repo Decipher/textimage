@@ -155,11 +155,17 @@ abstract class TextimageTestBase extends WebTestBase {
    *   The type of node to create.
    */
   protected function createTextimageNode($field_name, $field_value, $type) {
+    if (!is_array($field_value)) {
+      $field_value = array($field_value);
+    }
     $edit = array(
-      'title[0][value]' => $field_value,
-      'body[0][value]' => $field_value,
-      $field_name . '[0][value]' => $field_value,
+      'title[0][value]' => $field_value[0],
+      'body[0][value]' => $field_value[0],
     );
+    for ($i = 0; $i < count($field_value); $i++) {
+      $index = $field_name . '[' .$i . '][value]';
+      $edit[$index] = $field_value[$i];
+    }
     $this->drupalPostForm('node/add/' . $type, $edit, t('Save'));
 
     // Retrieve ID of the newly created node from the current URL.

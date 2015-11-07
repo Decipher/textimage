@@ -302,6 +302,9 @@ field.formatter.settings.textimage:
     image_link:
       type: string
       label: 'Link image to'
+    image_text_values:
+      type: string
+      label: 'Multi-value text field'
     image_style:
       type: string
       label: 'Image style'

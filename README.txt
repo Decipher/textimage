@@ -214,6 +214,13 @@ Using Textimage image styles
    - Click on the gear icon
    - Select from the 'Image style' dropdown the image style you want to use to
      represent the content as a Textimage
+   - If the field is a multi-value text field, an option is presented to select
+     whether to generate a single image or multiple images. In the first case,
+     the formatter will pass sequentially each field value to a separate image
+     style's 'Textimage text' effect. Each effect must define where the text
+     should be placed on the image. In the second case, each field value will
+     be passed to a separate instance of the image style, and only the first
+     'Textimage text' effect will be used to produce a separate styled image.
    - Optionally, select from the 'Link image to' dropdown whether the Textimage
      should be clickable, linking to either the node content or the image file.
      By default, the Textimage is not linked.

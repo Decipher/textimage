@@ -24,7 +24,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   /**
    * Test Textimage formatter on node display.
    */
-  function testTextimageFieldFormatter() {
+  public function testTextimageFieldFormatter() {
 
     // Create a text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
@@ -93,5 +93,63 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername() . ' ' . $site_name);
     $this->assertCacheTag('config:image.style.textimage_test');
     $this->assertCacheTag('config:system.site');
+  }
+
+  /**
+   * Test Textimage formatter on multi-value text fields.
+   */
+  public function testTextimageMultiValueFieldFormatter() {
+
+    // Create a multi-value text field for Textimage test.
+    $field_name = strtolower($this->randomMachineName());
+    $this->createTextimageField($field_name, 'article', array('cardinality' => 4));
+
+    // Create a new node, with 4 text values for the field.
+    $field_value = array();
+    for ($i = 0; $i < 4; $i++) {
+      $field_value[] = $this->randomMachineName(20);
+    }
+    $nid = $this->createTextimageNode($field_name, $field_value, 'article');
+    $node = Node::load($nid);
+
+    // Test the textimage formatter - one image.
+    $textimage_url = $this->textimageFactory->get()
+      ->styleByName('textimage_test')
+      ->node($node)
+      ->process($field_value)
+      ->getUrl();
+    $display = entity_get_display('node', $node->getType(), 'default');
+    $display_options['type'] = 'textimage';
+    $display_options['settings']['image_style'] = 'textimage_test';
+    $display_options['settings']['image_text_values'] = 'merge';
+    $display_options['settings']['image_alt'] = 'Alternate text: [node:title]';
+    $display_options['settings']['image_title'] = 'Title: [node:title]';
+    $display->setComponent($field_name, $display_options)
+      ->save();
+    $this->drupalGet('node/' . $nid);
+    $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
+    $this->assertEqual(1, count($elements));
+    $this->assertEqual($textimage_url, $elements[0]['src'], 'Textimage has expected URL.');
+    $this->assertEqual('Alternate text: ' . $field_value[0], $elements[0]['alt'], 'Textimage has expected alt attribute.');
+    $this->assertEqual('Title: ' . $field_value[0], $elements[0]['title'], 'Textimage has expected title attribute.');
+
+    // Test the textimage formatter - multiple images.
+    $display = entity_get_display('node', $node->getType(), 'default');
+    $display_options['settings']['image_text_values'] = 'itemize';
+    $display->setComponent($field_name, $display_options)
+      ->save();
+    $this->drupalGet('node/' . $nid);
+    $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
+    $this->assertEqual(4, count($elements));
+    for ($i = 0; $i < 4; $i++) {
+      $textimage_url = $this->textimageFactory->get()
+        ->styleByName('textimage_test')
+        ->node($node)
+        ->process($field_value[$i])
+        ->getUrl();
+      $this->assertEqual($textimage_url, $elements[$i]['src'], 'Textimage has expected URL.');
+      $this->assertEqual('Alternate text: ' . $field_value[0], $elements[$i]['alt'], 'Textimage has expected alt attribute.');
+      $this->assertEqual('Title: ' . $field_value[0], $elements[$i]['title'], 'Textimage has expected title attribute.');
+    }
   }
 }
