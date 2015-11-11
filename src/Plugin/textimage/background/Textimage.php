@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Plugin\textimage\background;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -67,7 +68,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
     if (empty($image_files)) {
       $this->logger->warning(
         'No background images available. Make sure at least one image is available in the directory specified in the <a href=":url">configuration page</a>.',
-        [':url' => $this->urlGenerator->generateFromRoute('textimage.settings')]
+        [':url' => Url::fromRoute('textimage.settings')->toString()]
       );
     }
     // Element.

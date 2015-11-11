@@ -9,6 +9,7 @@ namespace Drupal\textimage\Plugin\textimage\font;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\textimage\Plugin\TextimageFontPluginInterface;
 use Drupal\textimage\Plugin\TextimagePluginBase;
 
@@ -73,7 +74,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     if (empty($fonts_list)) {
       $this->logger->warning(
         'No fonts available. Make sure at least one font is available in the directory specified in the <a href=":url">configuration page</a>.',
-        [':url' => $this->urlGenerator->generateFromRoute('textimage.settings')]
+        [':url' => Url::fromRoute('textimage.settings')->toString()]
       );
       return [];
     }
