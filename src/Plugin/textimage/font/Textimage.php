@@ -51,6 +51,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
     );
     if ($ajax_settings) {
       $element['path']['#ajax'] = $ajax_settings;
+      $element['path']['#ajax']['event'] = 'change';
     }
     return $element;
   }
