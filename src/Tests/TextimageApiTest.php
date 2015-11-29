@@ -86,6 +86,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is not available');
     $returned_text = $textimage->getText();
     $this->assertTrue(empty($returned_text), 'Processed text is not available');
+    $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
 
     // Process Textimage.
     $text_array = array('bingo', 'bongo', 'tengo', 'tango');
@@ -99,6 +100,9 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertNotNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is available');
     $this->assertTrue($textimage->getText() == $expected_text_array, 'Processed text is available');
 
+    // Build Textimage.
+    $this->assertTextimageException(FALSE, [$textimage, 'buildImage'], []);
+
     // Check API is not allowing changes after processing.
     $this->assertTextimageException(TRUE, array($textimage, 'styleByName'), array('textimage_test'));
     $this->assertTextimageException(TRUE, array($textimage, 'effects'), array(array()));
@@ -106,6 +110,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(TRUE, array($textimage, 'setCaching'), array(FALSE));
     $this->assertTextimageException(TRUE, array($textimage, 'user'), array($this->adminUser));
     $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo-bongo.png'));
+    $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
 
     // Get textimage_store entry.
     $stored_image = db_select('textimage_store', 'ic')
@@ -143,7 +148,8 @@ class TextimageApiTest extends TextimageTestBase {
       ->styleByName('textimage_test')
       ->sourceImageFile($file)
       ->forceExtension('gif')
-      ->process($text_array);
+      ->process($text_array)
+      ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
     $this->assertEqual('image/gif', $image->getMimeType());
 
@@ -155,7 +161,8 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->styleByName('textimage_test')
       ->sourceImageFile($file)
-      ->process($text_array);
+      ->process($text_array)
+      ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
     $this->assertEqual('image/gif', $image->getMimeType());
 
@@ -164,7 +171,8 @@ class TextimageApiTest extends TextimageTestBase {
     $uri = $textimage->getUri();
     $textimage = $this->textimageFactory->get();
     $textimage
-      ->load($id);
+      ->load($id)
+      ->buildImage();
     // Check loaded data.
     $this->assertEqual($textimage->id(), $id, 'Load - ID correct');
     $this->assertEqual($textimage->getUri(), $uri, 'Load - URI correct');
@@ -177,7 +185,8 @@ class TextimageApiTest extends TextimageTestBase {
     // Reload and rebuild.
     $textimage = $this->textimageFactory->get();
     $textimage
-      ->load($id);
+      ->load($id)
+      ->buildImage();
     $this->assertTrue(file_exists($uri), 'Load - file exists');
 
     // Test output of theme textimage_formatter.
@@ -214,7 +223,8 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->styleByName('textimage_test')
       ->setCaching(TRUE)
-      ->process('bingo');
+      ->process('bingo')
+      ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
     $this->assertEqual('image/png', $image->getMimeType());
 
@@ -240,7 +250,8 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->styleByName('textimage_test')
       ->setCaching(TRUE)
-      ->process('bingo');
+      ->process('bingo')
+      ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
     $this->assertEqual('image/jpeg', $image->getMimeType());
 

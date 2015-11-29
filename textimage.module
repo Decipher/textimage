@@ -364,7 +364,8 @@ function template_preprocess_textimage_preview(&$variables) {
       ]
     )
     ->setCaching(FALSE)
-    ->process([$variables['textimage_data']['text_string']]);
+    ->process([$variables['textimage_data']['text_string']])
+    ->buildImage();
   $variables['textimage_preview'] = array(
     '#theme' => 'textimage_formatter',
     '#uri' => $textimage->getUri(),

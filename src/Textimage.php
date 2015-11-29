@@ -107,11 +107,18 @@ class Textimage implements ContainerInjectionInterface {
   protected $id = NULL;
 
   /**
-   * If this Textimage has been processed.
+   * If data for this Textimage has been processed.
    *
    * @var bool
    */
   protected $processed = FALSE;
+
+  /**
+   * If this Textimage has been built.
+   *
+   * @var bool
+   */
+  protected $built = FALSE;
 
   /**
    * Textimage metadata.
@@ -645,15 +652,7 @@ class Textimage implements ContainerInjectionInterface {
     $this->extension = $this->imageData['extension'];
     $this->timer = $stored_image['timer'];
     $this->uri = $stored_image['uri'];
-
-    // In stock, check file is there.
-    if (is_file($this->uri)) {
-      $this->processed = TRUE;
-    }
-    else {
-      // If not, rebuild image file.
-      $this->buildImage();
-    }
+    $this->processed = TRUE;
 
     return $this;
   }
@@ -667,7 +666,6 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function process($text) {
-
     // Do not re-process.
     if ($this->processed) {
       return $this;
@@ -800,7 +798,9 @@ class Textimage implements ContainerInjectionInterface {
       if ($this->caching) {
         $this->setCached();
       }
-      $this->buildImage();
+      $this->timer = 0;
+      $this->putInStore();
+      $this->processed = TRUE;
     }
 
     return $this;
@@ -812,6 +812,16 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function buildImage() {
+    // Do not proceed if not processed.
+    if (!$this->processed) {
+      throw new TextimageException('Attempted to build Textimage before processing data');
+    }
+
+    // Do not re-build.
+    if ($this->built) {
+      throw new TextimageException('Attempted to build an already built Textimage');
+    }
+
     // Track the image generation time.
     Timer::start('Textimage::process');
 
@@ -835,14 +845,13 @@ class Textimage implements ContainerInjectionInterface {
       return file_exists($this->uri) ? TRUE : FALSE;
     }
 
-    // Inject processed text in the textimage_text effects data.
-    $xxx_effects = $this->effects;  // @todo review variable name
+    // Inject processed text in the textimage_text effects data, and build a
+    // runtime-only style
+    $runtime_effects = $this->effects;
     foreach ($this->text as $uuid => $text_item) {
-      $xxx_effects[$uuid]['data']['text_string'] = $text_item;
+      $runtime_effects[$uuid]['data']['text_string'] = $text_item;
     }
-
-    // Build a runtime-only style.
-    $runtime_style = $this->buildStyleFromEffects($xxx_effects);
+    $runtime_style = $this->buildStyleFromEffects($runtime_effects);
 
     // Manage change of file extension if needed.
     if ($this->sourceImageFile) {
@@ -893,11 +902,13 @@ class Textimage implements ContainerInjectionInterface {
     // Saves db imagestore data.
     if ($this->processed && $this->caching) {
       $this->timer = Timer::read('Textimage::process');
-      $this->putInStore();
     }
 
     // Stop the image generation timer.
     Timer::stop('Textimage::process');
+
+    $this->built = TRUE;
+    return $this;
   }
 
   /**

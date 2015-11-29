@@ -5,6 +5,9 @@ Core issues:
 ============
 - #1977206 - Default serialization of ConfigEntities
 - #2393387 - WSOD editing image effect when configuration form is Ajax enabled
+- #1826362 - ImageEffects of the same image style should be able to pass variables between them
+- #2359443 - Allow creating image derivatives from an Image object
+- #2479487 - ImageStyles can be deleted while having dependant configuration
 
 @todo:
 ======
@@ -13,7 +16,9 @@ Core issues:
 - is_void in textimage_store not set properly?
 - settargeturi should implement forceExtansion
 - revise caching
-- split process in processText and build
+- defer buildImage to download controller
+- implement a path processor for derivatives (both URL and deferred formatter)
+- remove table {textimage_store} and only rely on cache
 - check background color setting over a passthrogh image
 - images not downloaded when anonymous
 - more tests for url generation

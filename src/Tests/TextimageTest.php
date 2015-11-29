@@ -64,11 +64,13 @@ class TextimageTest extends TextimageTestBase {
         '#height' => $textimage->getHeight(),
       );
       $textimage->getBubbleableMetadata()->applyTo($element);
-      $build[] = $element;
+      $output = $this->renderer->renderRoot($element);
+      $this->assertFalse(file_exists($textimage->getUri()));
+      $textimage->buildImage(); // @todo should be deferred to download controller
+      $this->drupalGet($textimage->getUrl());
+      $this->assertTrue(file_exists($textimage->getUri()));
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
     }
-    $output = $this->renderer->renderRoot($build);
-    $this->verbose($output);
 
     // Check files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
@@ -86,6 +88,7 @@ class TextimageTest extends TextimageTestBase {
       ->styleByName('textimage_test')
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
+      ->buildImage()
       ->getUri();
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation at target URI via API.');
@@ -96,6 +99,7 @@ class TextimageTest extends TextimageTestBase {
       ->styleByName('textimage_test')
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('another test')
+      ->buildImage()
       ->getUri();
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));

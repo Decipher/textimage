@@ -138,6 +138,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       ->forceExtension($extension)
       ->setTargetUri('public://textimage/' . $image_style->id() . '/' . $text_string)
       ->process($text)
+      ->buildImage()
       ->getUri();
 
     // Don't try to send file if it is missing.
