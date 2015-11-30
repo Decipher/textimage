@@ -17,7 +17,6 @@ Core issues:
 - revise caching
 - defer buildImage to download controller
 - implement a path processor for derivatives (both URL and deferred formatter)
-- remove Timer in Textimage
 - check background color setting over a passthrogh image
 - images not downloaded when anonymous
 - more tests for url generation

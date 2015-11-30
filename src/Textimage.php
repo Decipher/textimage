@@ -8,7 +8,6 @@
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Crypt;
-use Drupal\Component\Utility\Timer;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -118,13 +117,6 @@ class Textimage implements ContainerInjectionInterface {
    * @var array
    */
   protected $imageData = array();
-
-  /**
-   * Textimage execution time.
-   *
-   * @var int
-   */
-  protected $timer = NULL;
 
   /**
    * Textimage URI.
@@ -803,9 +795,6 @@ class Textimage implements ContainerInjectionInterface {
       return $this;
     }
 
-    // Track the image generation time.
-    Timer::start('Textimage::process');
-
     // If no source image specified, we are processing a pure Textimage
     // request. In that case we create a new 1x1 image to ensure we start
     // with a clean background.
@@ -879,14 +868,6 @@ class Textimage implements ContainerInjectionInterface {
 
     // Reset state.
     $this->factory->setState();
-
-    // Saves db imagestore data.
-    if ($this->processed && $this->caching) {
-      $this->timer = Timer::read('Textimage::process');
-    }
-
-    // Stop the image generation timer.
-    Timer::stop('Textimage::process');
 
     $this->built = TRUE;
     return $this;
@@ -978,7 +959,6 @@ class Textimage implements ContainerInjectionInterface {
     $this->processed = $cached_data['processed'];
     $this->built = $cached_data['built'];
     $this->imageData = $cached_data['imageData'];
-    $this->timer = $cached_data['timer'];
     $this->uri = $cached_data['uri'];
     $this->width = $cached_data['width'];
     $this->height = $cached_data['height'];
@@ -1009,7 +989,6 @@ class Textimage implements ContainerInjectionInterface {
       'processed' => $this->processed,
       'built' => $this->built,
       'imageData' => $this->imageData,
-      'timer' => $this->timer,
       'uri' => $this->uri,
       'width' => $this->width,
       'height' => $this->height,
