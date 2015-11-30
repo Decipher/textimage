@@ -147,13 +147,14 @@ class TextimageTest extends TextimageTestBase {
     $this->createTextimageNode($field_name, $field_value, 'article');
     $this->assertRaw('Got Textimage from cache');
 
+    // @todo reimplement this once deferral to download controller is in place??
     // Invalidate tags for the ImageStyle.
-    $image_style = ImageStyle::load('textimage_test');
+/*    $image_style = ImageStyle::load('textimage_test');
     Cache::invalidateTags($image_style->getCacheTagsToInvalidate());
 
     // Create another node with same data. Textimage should be got from store.
     $this->createTextimageNode($field_name, $field_value, 'article');
-    $this->assertRaw('Got Textimage from store');
+    $this->assertRaw('Got Textimage from store');*/
 
   }
 

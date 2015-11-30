@@ -112,14 +112,10 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo-bongo.png'));
     $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
 
-    // Get textimage_store entry.
-    $stored_image = db_select('textimage_store', 'ic')
-        ->fields('ic')
-        ->condition('tiid', $textimage->id(), '=')
-        ->execute()
-        ->fetchAssoc();
-    $image_data = unserialize($stored_image['image_data']);
-    $effects_outline = unserialize($stored_image['effects_outline']);
+    // Get textimage cache entry.
+    $stored_image = $this->container->get('cache.textimage')->get('tiid:' . $textimage->id());
+    $image_data = $stored_image->data['imageData'];
+    $effects_outline = $stored_image->data['effects'];
 
     // Check processed text is stored in image data.
     $this->assertTrue($expected_text_array == array_values($image_data['text']), 'Processed text stored in image data');

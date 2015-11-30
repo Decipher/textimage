@@ -62,7 +62,7 @@ class FlushAllForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getDescription() {
-    return $this->t('This will remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.');
+    return $this->t('This will remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached.');
   }
 
   /**

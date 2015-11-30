@@ -12,7 +12,6 @@ use Drupal\Component\Utility\Timer;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
@@ -45,13 +44,6 @@ class Textimage implements ContainerInjectionInterface {
    * @var \Drupal\Core\Lock\LockBackendInterface
    */
   protected $lock;
-
-  /**
-   * The database connection.
-   *
-   * @var \Drupal\Core\Database\Connection
-   */
-  protected $database;
 
   /**
    * The image factory service.
@@ -243,8 +235,6 @@ class Textimage implements ContainerInjectionInterface {
    *   The Textimage factory.
    * @param \Drupal\Core\Lock\LockBackendInterface $lock_service
    *   The lock service.
-   * @param \Drupal\Core\Database\Connection $database
-   *   The database connection.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The image factory.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -258,10 +248,9 @@ class Textimage implements ContainerInjectionInterface {
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
    *   The image effect manager service.
    */
-  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, Connection $database, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager) {
+  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager) {
     $this->factory = $textimage_factory;
     $this->lock = $lock_service;
-    $this->database = $database;
     $this->imageFactory = $image_factory;
     $this->config = $config_factory->get('textimage.settings');
     $this->logger = $logger;
@@ -277,7 +266,6 @@ class Textimage implements ContainerInjectionInterface {
     return new static(
       $container->get('textimage.factory'),
       $container->get('lock'),
-      $container->get('database'),
       $container->get('image.factory'),
       $container->get('config.factory'),
       $container->get('textimage.logger'),
@@ -614,46 +602,27 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Load Textimage metadata from store.
-   *
-   * If the image file is missing at URI, it is rebuilt.
+   * Load Textimage metadata from cache.
    *
    * @param string $id
    *   The id of the Textimage to load.
    *
-   * @return $this
+   * @return bool
+   *   TRUE if cache entry exists, FALSE otherwise.
    */
   public function load($id) {
-
     // Do not re-process.
     if ($this->processed) {
       return $this;
     }
-
-    // Check if we have the hash in store.
-    $stored_image = $this->database->select('textimage_store', 'ic')
-        ->fields('ic')
-        ->condition('tiid', $id, '=')
-        ->execute()
-        ->fetchAssoc();
-
-    // Not in stock, return.
-    if (!$stored_image) {
-      return $this;
+    // Load from the cache.
+    $this->id = $id;
+    if ($cached_data = $this->getCachedData()) {
+      $this->restoreFromCache($cached_data);
     }
-
-    // Restore properties.
-    $this->id = $stored_image['tiid'];
-    $is_void = $stored_image['is_void'];
-    $this->styleByName($stored_image['style_name']);
-    $this->effects = unserialize($stored_image['effects_outline']);
-    $this->imageData = unserialize($stored_image['image_data']);
-    $this->text = $this->imageData['text'];
-    $this->extension = $this->imageData['extension'];
-    $this->timer = $stored_image['timer'];
-    $this->uri = $stored_image['uri'];
-    $this->processed = TRUE;
-
+    else {
+      throw new TextimageException('Missing Textimage cache entry {$id}');
+    }
     return $this;
   }
 
@@ -785,9 +754,11 @@ class Textimage implements ContainerInjectionInterface {
     );
     $this->id = hash('sha256', serialize($hash_input));
 
-    // Check cache and/or store and return if db and file hit.
-    if ($this->caching && $this->getCached()) {
+    // Check cache and return if hit.
+    if ($this->caching && ($cached_data = $this->getCachedData())) {
+      $this->uri = $cached_data['uri'];
       $this->processed = TRUE;
+      return $this;
     }
     else {
       // Not found, build the image.
@@ -795,12 +766,10 @@ class Textimage implements ContainerInjectionInterface {
       if (!$this->uri) {
         $this->buildUri();
       }
+      $this->processed = TRUE;
       if ($this->caching) {
         $this->setCached();
       }
-      $this->timer = 0;
-      $this->putInStore();
-      $this->processed = TRUE;
     }
 
     return $this;
@@ -820,6 +789,18 @@ class Textimage implements ContainerInjectionInterface {
     // Do not re-build.
     if ($this->built) {
       throw new TextimageException('Attempted to build an already built Textimage');
+    }
+
+    // Check cache and return if hit.
+    if ($this->getCachedData() && is_file($this->uri)) {
+      $this->logger->debug('Got Textimage from cache, @uri', ['@uri' => $this->uri]);
+      return $this;
+    }
+
+    // Check file store and return if hit.
+    if ($this->caching && is_file($this->uri)) {
+      $this->logger->debug('Got Textimage from store, @uri', ['@uri' => $this->uri]);
+      return $this;
     }
 
     // Track the image generation time.
@@ -978,52 +959,41 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Get a cached Textimage.
-   *
-   * Cache and store are checked for existing image files.
+   * Get cached Textimage data.
    *
    * @return bool
    *   TRUE if an existing image file can be used, FALSE if no hit
    */
-  protected function getCached() {
-
-    // At first, check cache.
+  protected function getCachedData() {
     if ($cached = $this->cache->get('tiid:' . $this->id)) {
-      if (is_file($cached->data['uri'])) {
-        $this->uri = $cached->data['uri'];
-        $this->logger->debug('Got Textimage from cache, @uri', array('@uri' => $this->uri));
-        return TRUE;
-      }
+      return $cached->data;
     }
-
-    // No cache. Check if we have the hash in store.
-    $stored_image = $this->database->select('textimage_store', 'ic')
-        ->fields('ic')
-        ->condition('tiid', $this->id, '=')
-        ->execute()
-        ->fetchAssoc();
-
-    // Not in stock, return to make.
-    if (!$stored_image) {
-      return FALSE;
-    }
-
-    // In stock, check file is there.
-    $uri = $stored_image['uri'];
-    if (is_file($uri)) {
-      $this->uri = $uri;
-      $this->logger->debug('Got Textimage from store, @uri', array('@uri' => $this->uri));
-      $this->setCached();
-      return TRUE;
-    }
-    else {
-      return FALSE;
-    }
-
+    return FALSE;
   }
 
   /**
-   * Cache image uri.
+   * @todo
+   */
+  protected function restoreFromCache($cached_data) {
+    $this->processed = $cached_data['processed'];
+    $this->built = $cached_data['built'];
+    $this->imageData = $cached_data['imageData'];
+    $this->timer = $cached_data['timer'];
+    $this->uri = $cached_data['uri'];
+    $this->width = $cached_data['width'];
+    $this->height = $cached_data['height'];
+    $this->effects = $cached_data['effects'];
+    $this->text = $cached_data['text'];
+    $this->extension = $cached_data['extension'];
+    $this->gifTransparentColor = $cached_data['gifTransparentColor'];
+    $this->caching = $cached_data['caching'];
+    $this->forcedUri = $cached_data['forcedUri'];
+    $this->bubbleableMetadata = $cached_data['bubbleableMetadata'];
+    return $this;
+  }
+
+  /**
+   * Cache Textimage data.
    *
    * @return $this
    */
@@ -1036,35 +1006,23 @@ class Textimage implements ContainerInjectionInterface {
     }
     $data = [
       'id' => $this->id,
-      'uri' => $this->uri,
+      'processed' => $this->processed,
+      'built' => $this->built,
       'imageData' => $this->imageData,
-      'effects' => $this->effects,
+      'timer' => $this->timer,
+      'uri' => $this->uri,
       'width' => $this->width,
       'height' => $this->height,
+      'effects' => $this->effects,
+      'text' => $this->text,
+      'extension' => $this->extension,
       'gifTransparentColor' => $this->gifTransparentColor,
+      'caching' => $this->caching,
+      'forcedUri' => $this->forcedUri,
+      'bubbleableMetadata' => $this->bubbleableMetadata,
     ];
-    $this->cache->set('tiid:' . $this->id, $data, time() + (60 * 60 * 24), $tags);
+    $this->cache->set('tiid:' . $this->id, $data, time() + (60 * 60 * 24), $tags); // @todo permanent cache
     return $this;
-  }
-
-  /**
-   * Store image details.
-   */
-  protected function putInStore() {
-    $stored_image = array(
-      'tiid' => $this->id,
-      'is_void' => 0,
-      'style_name' =>  $this->style ? $this->style->id() : NULL,
-      'uri' =>  $this->uri,
-      'effects_outline' => serialize($this->effects),
-      'image_data' => serialize($this->imageData),
-      'timer' => $this->timer,
-      'timestamp' => REQUEST_TIME,
-    );
-    $this->database->merge('textimage_store')
-      ->key(array('tiid' => $this->id))
-      ->fields($stored_image)
-      ->execute();
   }
 
 }

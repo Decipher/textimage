@@ -13,15 +13,15 @@ Core issues:
 ======
 - #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
-- is_void in textimage_store not set properly?
 - settargeturi should implement forceExtansion
 - revise caching
 - defer buildImage to download controller
 - implement a path processor for derivatives (both URL and deferred formatter)
-- remove table {textimage_store} and only rely on cache
+- remove Timer in Textimage
 - check background color setting over a passthrogh image
 - images not downloaded when anonymous
 - more tests for url generation
+- revise directory structure for textimage_store
 
 -------------------------------------------------------------------------------
 

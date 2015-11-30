@@ -10,7 +10,6 @@ namespace Drupal\textimage;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -70,13 +69,6 @@ class TextimageFactory {
   protected $currentUser;
 
   /**
-   * The database connection.
-   *
-   * @var \Drupal\Core\Database\Connection
-   */
-  protected $database;
-
-  /**
    * The User entity storage.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -98,19 +90,16 @@ class TextimageFactory {
    *   The current user.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
    *   The stream wrapper manager service.
-   * @param \Drupal\Core\Database\Connection $database
-   *   The database connection.
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The image style entity storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, Connection $database, EntityManagerInterface $entity_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityManagerInterface $entity_manager) {
     $this->config = $config_factory->get('textimage.settings');
     $this->token = $token_service;
     $this->logger = $logger;
     $this->cache = $cache_service;
     $this->currentUser = $current_user;
     $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->database = $database;
     $this->userStorage = $entity_manager->getStorage('user');
   }
 
@@ -281,7 +270,6 @@ class TextimageFactory {
       file_unmanaged_delete_recursive($directory);
     }
     $this->cache->deleteAll();
-    $this->database->truncate('textimage_store')->execute();
     $this->logger->notice('All Textimage images were removed.');
   }
 

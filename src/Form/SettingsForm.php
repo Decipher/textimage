@@ -297,7 +297,7 @@ class SettingsForm extends ConfigFormBase {
       )),
     );
     $form['settings']['maintenance']['flush_all_label'] = [
-      '#markup' => $this->t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached and stored in the database.') . '<br/>',
+      '#markup' => $this->t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached.') . '<br/>',
     ];
     $form['settings']['maintenance']['flush_all'] = array(
       '#type' => 'submit',
