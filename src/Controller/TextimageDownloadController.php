@@ -122,10 +122,9 @@ class TextimageDownloadController extends FileDownloadController implements Cont
 
     // Manage the [extension].
     $last_text = array_pop($text);
-    $offset = strrpos($last_text, '.'); // @todo use more clever way to find extension
-    if ($offset && (Unicode::strlen($last_text) - $offset) <= 5) {
-      $extension = Unicode::substr($last_text, $offset + 1);
-      $text[] = Unicode::substr($last_text, 0, $offset);
+    $extension = pathinfo($last_text, PATHINFO_EXTENSION);
+    if ($extension) {
+      $text[] = str_replace('.' . $extension, '', pathinfo($last_text, PATHINFO_BASENAME));
     }
     else {
       throw new NotFoundHttpException('No file extension specified.');
@@ -140,7 +139,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       ->buildImage()
       ->getUri();
 
-    return $this->returnBinary($image_uri);
+    return $this->returnBinary($request, $image_uri);
   }
 
   /**
@@ -167,26 +166,27 @@ class TextimageDownloadController extends FileDownloadController implements Cont
 
     // @todo manage exception if $tiid is not existing in cache.
 
-    return $this->returnBinary($image_uri);
+    return $this->returnBinary($request, $image_uri);
   }
 
   /**
    * Returns the image file at URI.
    *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
    * @param string $uri
    *   The URI of the file to be returned.
    *
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  protected function returnBinary($uri) {
+  protected function returnBinary($request, $uri) {
     // Don't try to send file if it is missing.
     if (!file_exists($uri)) {
       $this->logger->notice('Textimage image at %source_image_path not found.',  ['%source_image_path' => $uri]);
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
-    // @todo it shouldn't be on private if it's only invoked by textimage.public route - other downloads should be checked by the hook_download??
     if (($scheme = file_uri_scheme($uri)) == 'private') {
       // If using the private scheme, defer control to FileDownloadController.
       $request->query->set('file', file_uri_target($uri));

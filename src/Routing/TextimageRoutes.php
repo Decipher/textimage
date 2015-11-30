@@ -79,6 +79,19 @@ class TextimageRoutes implements ContainerInjectionInterface {
       );
     }
 
+    if ($this->streamWrapperManager->getViaScheme('private')) {
+      // Route for deferred generation in private scheme.
+      // If the textimage derivative does not exist, Drupal will create it
+      // via TextimageDownloadController::deferredDelivery.
+      // If the textimage derivative already exists, Drupal will
+      // deliver it via file_download.
+      $routes['textimage_store.private'] = new Route(
+        '/system/files/textimage_store',
+        ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery'],
+        ['_access' => 'TRUE']
+      );
+    }
+
     return $routes;
   }
 

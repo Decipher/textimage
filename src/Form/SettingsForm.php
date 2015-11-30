@@ -185,7 +185,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'radios',
       '#options' => $scheme_options,
       '#title' => $this->t('Textimage store location'),
-      '#description' => $this->t('Select where the main Textimage file structure should be stored. It is recommended to keep it in the <strong>private</strong> file storage area.'),
+      '#description' => $this->t('Select where the main Textimage file structure should be stored. This can be overridden at image style level specifying a different scheme on the Textimage options. This setting does not affect image derivatives created by the Image module.'),
       '#default_value' => $default_scheme,
       '#required' => TRUE,
     );

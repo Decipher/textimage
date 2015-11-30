@@ -24,9 +24,8 @@ class TextimageTest extends TextimageTestBase {
    */
   public function testTextimage() {
 
-    $config = \Drupal::service('config.factory')->get('system.file');
-    $stream_wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($config->get('default_scheme'));
-    $directory_path = $stream_wrapper->getDirectoryPath();
+    $public_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('public')->getDirectoryPath();
+    $private_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('private')->getDirectoryPath();
 
     // Generate a few derivatives and render images via theme
     // 'textimage_formatter'.
@@ -52,7 +51,8 @@ class TextimageTest extends TextimageTestBase {
         'height' => 28,
       ],
     ];
-    $build = array();
+
+    // Generate files on public.
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
         ->styleByName('textimage_test')
@@ -71,8 +71,8 @@ class TextimageTest extends TextimageTestBase {
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
     }
 
-    // Check that files were generated.
-    $files_count = count(file_scan_directory($directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
+    // Check that files were generated on public.
+    $files_count = count(file_scan_directory($public_directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
     $this->assertEqual(4, $files_count);
 
     // Check that cache entries were generated.
@@ -93,10 +93,51 @@ class TextimageTest extends TextimageTestBase {
       $this->assertTrue(file_exists($textimage->getUri()));
     }
 
-    // Test build and display of a Textimage derivative via URL.
-    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
+    // Set image storage to 'private' wrapper.
+    $edit = array(
+      'textimage_options[uri_scheme]' => 'private',
+    );
+    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
+
+    // Generate files on private.
+    foreach ($input as $item) {
+      $textimage = $this->textimageFactory->get()
+        ->styleByName('textimage_test')
+        ->process($item['text']);
+      $element = array(
+        '#theme' => 'textimage_formatter',
+        '#uri' => $textimage->getUri(),
+        '#width' => $textimage->getWidth(),
+        '#height' => $textimage->getHeight(),
+      );
+      $textimage->getBubbleableMetadata()->applyTo($element);
+      $output = $this->renderer->renderRoot($element);
+      $this->assertFalse(file_exists($textimage->getUri()));
+      $this->drupalGet($textimage->getUrl());
+      $this->assertTrue(file_exists($textimage->getUri()));
+      $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
+    }
+
+    // Check that files were generated on private.
+    $files_count = count(file_scan_directory($private_directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
+    $this->assertEqual(4, $files_count);
+
+    // Test failure of a Textimage derivative via URL, on image style set to
+    // private.
+    $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
+    $this->assertResponse(403);
+
+    // Set image storage to 'public' wrapper.
+    $edit = array(
+      'textimage_options[uri_scheme]' => 'public',
+    );
+    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
+
+    // Test build of a Textimage derivative via URL, on image style set to
+    // public.
+    $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
     $this->assertResponse(200);
-    $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
+    $files_count = count(file_scan_directory($public_directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation via request URL.');
     $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 225, 28);
 
