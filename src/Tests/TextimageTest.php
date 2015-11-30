@@ -66,22 +66,39 @@ class TextimageTest extends TextimageTestBase {
       $textimage->getBubbleableMetadata()->applyTo($element);
       $output = $this->renderer->renderRoot($element);
       $this->assertFalse(file_exists($textimage->getUri()));
-      $textimage->buildImage(); // @todo should be deferred to download controller
       $this->drupalGet($textimage->getUrl());
       $this->assertTrue(file_exists($textimage->getUri()));
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
     }
 
-    // Check files were generated.
+    // Check that files were generated.
     $files_count = count(file_scan_directory($directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
     $this->assertEqual(4, $files_count);
 
+    // Check that cache entries were generated.
+    foreach ($input as $item) {
+      $textimage = $this->textimageFactory->get()
+        ->styleByName('textimage_test')
+        ->process($item['text']);
+      $cached = $this->container->get('cache.textimage')->get('tiid:' . $textimage->id());
+      $this->assertEqual($textimage->getUri(), $cached->data['uri']);
+    }
+
+    // Delete cache, files are still there upon re-processing, before buildImage.
+    $this->container->get('cache.textimage')->deleteAll();
+    foreach ($input as $item) {
+      $textimage = $this->textimageFactory->get()
+        ->styleByName('textimage_test')
+        ->process($item['text']);
+      $this->assertTrue(file_exists($textimage->getUri()));
+    }
+
     // Test build and display of a Textimage derivative via URL.
-    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image.png');
+    $this->drupalGet($directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
     $this->assertResponse(200);
     $files_count = count(file_scan_directory($directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation via request URL.');
-    $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image.png', 225, 28);
+    $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 225, 28);
 
     // Test build a textimage at target URI via API.
     $uri = $this->textimageFactory->get()
@@ -137,24 +154,6 @@ class TextimageTest extends TextimageTestBase {
       'node:' . $node->id(),
     ];
     $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
-
-    // Test caching.
-
-    // From previous get, textimage is built.
-    $this->assertRaw('Built Textimage');
-
-    // Create another node with same data. Textimage should be got from cache.
-    $this->createTextimageNode($field_name, $field_value, 'article');
-    $this->assertRaw('Got Textimage from cache');
-
-    // @todo reimplement this once deferral to download controller is in place??
-    // Invalidate tags for the ImageStyle.
-/*    $image_style = ImageStyle::load('textimage_test');
-    Cache::invalidateTags($image_style->getCacheTagsToInvalidate());
-
-    // Create another node with same data. Textimage should be got from store.
-    $this->createTextimageNode($field_name, $field_value, 'article');
-    $this->assertRaw('Got Textimage from store');*/
 
   }
 

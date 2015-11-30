@@ -165,10 +165,8 @@ class TextimageApiTest extends TextimageTestBase {
     // Test loading the Textimage metadata.
     $id = $textimage->id();
     $uri = $textimage->getUri();
-    $textimage = $this->textimageFactory->get();
-    $textimage
-      ->load($id)
-      ->buildImage();
+    $textimage = $this->textimageFactory->load($id);
+
     // Check loaded data.
     $this->assertEqual($textimage->id(), $id, 'Load - ID correct');
     $this->assertEqual($textimage->getUri(), $uri, 'Load - URI correct');
@@ -179,10 +177,8 @@ class TextimageApiTest extends TextimageTestBase {
     // File deletion.
     $this->assertTrue(file_unmanaged_delete($uri), 'Load - file was deleted');
     // Reload and rebuild.
-    $textimage = $this->textimageFactory->get();
-    $textimage
-      ->load($id)
-      ->buildImage();
+    $textimage = $this->textimageFactory->load($id);
+    $textimage->buildImage();
     $this->assertTrue(file_exists($uri), 'Load - file exists');
 
     // Test output of theme textimage_formatter.

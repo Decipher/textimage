@@ -114,6 +114,21 @@ class TextimageFactory {
   }
 
   /**
+   * Loads a cached Textimage object.
+   *
+   * @param string $tiid
+   *   The Textimage ID.
+   *
+   * @return \Drupal\textimage\Textimage
+   *   A Textimage object with properties loaded from cache.
+   */
+  public function load($tiid) {
+    $textimage = $this->get();
+    $textimage->load($tiid);
+    return $textimage;
+  }
+
+  /**
    * Process text string, detokenise and apply case conversion.
    */
   public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata) {
@@ -252,8 +267,16 @@ class TextimageFactory {
    * the image styles, clear all cache and all store entries on the db.
    */
   public function flushAll() {
-    // @todo need to invalidate the image styles cache tags
-    // Clear images, checking in all available schemes.
+    // Flush Textimage relevant styles so to invalidate the image styles cache
+    // tags.
+    $styles = ImageStyle::loadMultiple();
+    foreach ($styles as $style) {
+      if ($this->isTextimage($style)) {
+        $style->flush();
+      }
+    }
+    // Clear whatever directory structure remaining, checking in all available
+    // schemes.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
       if (file_exists($directory = $wrapper . '://textimage_store/styled_hashed')) {
@@ -266,9 +289,11 @@ class TextimageFactory {
         file_unmanaged_delete_recursive($directory);
       }
     }
+    // Remove the URL generation directory.
     if (file_exists($directory = 'public://textimage')) {
       file_unmanaged_delete_recursive($directory);
     }
+    // Wipe Textimage cache.
     $this->cache->deleteAll();
     $this->logger->notice('All Textimage images were removed.');
   }

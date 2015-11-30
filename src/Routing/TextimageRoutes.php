@@ -54,16 +54,28 @@ class TextimageRoutes implements ContainerInjectionInterface {
     $routes = array();
 
     // Route for generation of textimages from URL.
-    // If the textimage derivative does not exist, Drupal will create the
-    // derivative via TextimageDownloadController::urlDeliver.
-    // If the textimage derivative already exists, the web server will deliver
-    // it directly.
     $stream_wrapper = $this->streamWrapperManager->getViaScheme('public');
     if (method_exists($stream_wrapper, 'getDirectoryPath')) {
+      // Route for direct URL Textimage generation.
+      // If the textimage derivative does not exist, Drupal will create it
+      // via TextimageDownloadController::urlDeliver.
+      // If the textimage derivative already exists, the web server will
+      // deliver it directly.
       $routes['textimage.public'] = new Route(
-        '/' . $stream_wrapper->getDirectoryPath() . '/textimage/{image_style}/{text_string}',
+        '/' . $stream_wrapper->getDirectoryPath() . '/textimage/{image_style}',
         ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::urlDeliver'],
         ['_permission' => 'generate textimage url derivatives']
+      );
+
+      // Route for deferred generation in public scheme.
+      // If the textimage derivative does not exist, Drupal will create it
+      // via TextimageDownloadController::deferredDelivery.
+      // If the textimage derivative already exists, the web server will
+      // deliver it directly.
+      $routes['textimage_store.public'] = new Route(
+        '/' . $stream_wrapper->getDirectoryPath() . '/textimage_store',
+        ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery'],
+        ['_access' => 'TRUE']
       );
     }
 

@@ -306,8 +306,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
               ->node($node)
               ->user($user)
               ->setBubbleableMetadata($bubbleable_metadata)
-              ->process($text_value)
-              ->buildImage();  // @todo defer this to doenload controller
+              ->process($text_value);
             $element = [
               '#theme' => 'textimage_formatter',
               '#uri' => $textimage->getUri(),
@@ -328,8 +327,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             ->node($node)
             ->user($user)
             ->setBubbleableMetadata($bubbleable_metadata)
-            ->process($text)
-            ->buildImage();  // @todo defer this to doenload controller
+            ->process($text);
           $element = [
             '#theme' => 'textimage_formatter',
             '#uri' => $textimage->getUri(),
@@ -363,8 +361,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
             ->node($node)
             ->user($user)
             ->setBubbleableMetadata($bubbleable_metadata)
-            ->process(NULL)
-            ->buildImage();  // @todo defer this to doenload controller
+            ->process(NULL);
           $element = [
             '#theme' => 'textimage_formatter',
             '#uri' => $textimage->getUri(),

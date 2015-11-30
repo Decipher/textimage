@@ -86,10 +86,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * After generating an image, transfer it to the requesting agent.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The request object.
-   * @param string $text_string
-   *   The text string, coming from the URL, to be used to deliver the
-   *   Textimage.
+   *   The request object. The 'text' query parameter coming from the URL
+   *   contains the text elements to be used to deliver the Textimage.
    * @param \Drupal\image\ImageStyleInterface $image_style
    *   The image style to deliver.
    *
@@ -101,7 +99,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  public function urlDeliver(Request $request, $text_string, ImageStyleInterface $image_style) {
+  public function urlDeliver(Request $request, ImageStyleInterface $image_style) {
     // Check if the URL generation is enabled.
     if (!$this->config->get('url_generation.enabled')) {
       throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
@@ -119,11 +117,12 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     }
 
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
+    $text_string = $request->query->get('text');
     $text = explode($this->config->get('url_generation.text_separator'), $text_string);
 
     // Manage the [extension].
     $last_text = array_pop($text);
-    $offset = strrpos($last_text, '.');
+    $offset = strrpos($last_text, '.'); // @todo use more clever way to find extension
     if ($offset && (Unicode::strlen($last_text) - $offset) <= 5) {
       $extension = Unicode::substr($last_text, $offset + 1);
       $text[] = Unicode::substr($last_text, 0, $offset);
@@ -141,21 +140,61 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       ->buildImage()
       ->getUri();
 
+    return $this->returnBinary($image_uri);
+  }
+
+  /**
+   * Deliver a Textimage from a deferred request.
+   *
+   * After generating an image, transfer it to the requesting agent.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   *
+   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
+   *   The transferred file as response or some error response.
+   */
+  public function deferredDelivery(Request $request) {
+    // Identify Textimage id.
+    $file = $request->query->get('file');
+    $tiid = str_replace('.' . pathinfo($file, PATHINFO_EXTENSION), '', pathinfo($file, PATHINFO_BASENAME));
+
+    // Get the Textimage URI.
+    $image_uri = $this->textimageFactory
+      ->load($tiid)
+      ->buildImage()
+      ->getUri();
+
+    // @todo manage exception if $tiid is not existing in cache.
+
+    return $this->returnBinary($image_uri);
+  }
+
+  /**
+   * Returns the image file at URI.
+   *
+   * @param string $uri
+   *   The URI of the file to be returned.
+   *
+   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
+   *   The transferred file as response or some error response.
+   */
+  protected function returnBinary($uri) {
     // Don't try to send file if it is missing.
-    if (!file_exists($image_uri)) {
-      $this->logger->notice('Textimage image at %source_image_path not found.',  ['%source_image_path' => $image_uri]);
+    if (!file_exists($uri)) {
+      $this->logger->notice('Textimage image at %source_image_path not found.',  ['%source_image_path' => $uri]);
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
     // @todo it shouldn't be on private if it's only invoked by textimage.public route - other downloads should be checked by the hook_download??
-    if (($scheme = file_uri_scheme($image_uri)) == 'private') {
+    if (($scheme = file_uri_scheme($uri)) == 'private') {
       // If using the private scheme, defer control to FileDownloadController.
-      $request->query->set('file', file_uri_target($image_uri));
+      $request->query->set('file', file_uri_target($uri));
       return parent::download($request, $scheme);
     }
     else {
       // Get the image and transfer to client.
-      $image = $this->imageFactory->get($image_uri);
+      $image = $this->imageFactory->get($uri);
       $uri = $image->getSource();
       $headers = array(
         'Content-Type' => $image->getMimeType(),

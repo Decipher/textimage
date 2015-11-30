@@ -5,6 +5,11 @@ services:
       - { name: cache.bin }
     factory: cache_factory:get
     arguments: [textimage]
+  path_processor.textimage:
+    class: Drupal\textimage\PathProcessor\TextimagePathProcessor
+    arguments: ['@stream_wrapper_manager']
+    tags:
+      - { name: path_processor_inbound, priority: 300 }
   logger.channel.textimage:
     parent: logger.channel_base
     arguments: ['textimage']

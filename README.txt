@@ -14,13 +14,13 @@ Core issues:
 - #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
 - settargeturi should implement forceExtansion
-- revise caching
-- defer buildImage to download controller
-- implement a path processor for derivatives (both URL and deferred formatter)
+- defer buildImage for the private scheme
+- implement the path processor for private derivatives
 - check background color setting over a passthrogh image
 - images not downloaded when anonymous
 - more tests for url generation
 - revise directory structure for textimage_store
+- buildImage fails to convert to specified image format
 
 -------------------------------------------------------------------------------
 

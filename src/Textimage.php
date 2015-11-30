@@ -9,6 +9,7 @@ namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -613,7 +614,7 @@ class Textimage implements ContainerInjectionInterface {
       $this->restoreFromCache($cached_data);
     }
     else {
-      throw new TextimageException('Missing Textimage cache entry {$id}');
+      throw new TextimageException("Missing Textimage cache entry {$this->id}");
     }
     return $this;
   }
@@ -957,7 +958,6 @@ class Textimage implements ContainerInjectionInterface {
    */
   protected function restoreFromCache($cached_data) {
     $this->processed = $cached_data['processed'];
-    $this->built = $cached_data['built'];
     $this->imageData = $cached_data['imageData'];
     $this->uri = $cached_data['uri'];
     $this->width = $cached_data['width'];
@@ -966,7 +966,7 @@ class Textimage implements ContainerInjectionInterface {
     $this->text = $cached_data['text'];
     $this->extension = $cached_data['extension'];
     $this->gifTransparentColor = $cached_data['gifTransparentColor'];
-    $this->caching = $cached_data['caching'];
+    $this->caching = TRUE;
     $this->forcedUri = $cached_data['forcedUri'];
     $this->bubbleableMetadata = $cached_data['bubbleableMetadata'];
     return $this;
@@ -985,9 +985,7 @@ class Textimage implements ContainerInjectionInterface {
       $tags = [];
     }
     $data = [
-      'id' => $this->id,
       'processed' => $this->processed,
-      'built' => $this->built,
       'imageData' => $this->imageData,
       'uri' => $this->uri,
       'width' => $this->width,
@@ -996,11 +994,10 @@ class Textimage implements ContainerInjectionInterface {
       'text' => $this->text,
       'extension' => $this->extension,
       'gifTransparentColor' => $this->gifTransparentColor,
-      'caching' => $this->caching,
       'forcedUri' => $this->forcedUri,
       'bubbleableMetadata' => $this->bubbleableMetadata,
     ];
-    $this->cache->set('tiid:' . $this->id, $data, time() + (60 * 60 * 24), $tags); // @todo permanent cache
+    $this->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $tags);
     return $this;
   }
 
