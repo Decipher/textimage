@@ -11,7 +11,7 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
  * Implements hook_requirements().
  */
 function textimage_requirements($phase) {
-  $requirements = array();
+  $requirements = [];
 
   // Check PHP GD2 library enabled and providing FreeType support.
   if (function_exists('imagegd2')) {
@@ -19,22 +19,13 @@ function textimage_requirements($phase) {
     // Check for FreeType support.
     if (!function_exists('imagettftext') || !isset($info["FreeType Support"])) {
       // No FreeType support, raise error.
-      $requirements['textimage_gd'] = array(
+      $requirements['textimage_gd'] = [
         'title' => t('GD library FreeType support'),
         'value' => $info['GD Version'],
         'severity' => REQUIREMENT_ERROR,
         'description' => t('The GD Library for PHP is enabled, but was compiled without FreeType support. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://www.php.net/manual/book.image.php">the PHP manual</a>.'),
-      );
+      ];
     }
-  }
-  else {
-    // No GD2, raise error.
-    $requirements['textimage_gd'] = array(
-      'title' => t('GD library'),
-      'value' => t('Not installed'),
-      'severity' => REQUIREMENT_ERROR,
-      'description' => t('The GD library for PHP is missing or outdated.'),
-    );
   }
 
   return $requirements;
@@ -44,15 +35,5 @@ function textimage_requirements($phase) {
  * Implements hook_uninstall().
  */
 function textimage_uninstall() {
-  // Delete the textimage_store directory from each registered wrapper.
-  $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
-  foreach ($wrappers as $wrapper => $wrapper_data) {
-    if (file_exists($directory = \Drupal::service('textimage.factory')->getStorePath(NULL, $wrapper))) {
-      file_unmanaged_delete_recursive($directory);
-    }
-  }
-  // Delete the public textimage directory.
-  if (file_exists($directory = 'public://textimage')) {
-    file_unmanaged_delete_recursive($directory);
-  }
+  \Drupal::service('textimage.factory')->flushAll();
 }
