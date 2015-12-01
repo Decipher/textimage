@@ -122,6 +122,10 @@ class TextimageTest extends TextimageTestBase {
     $files_count = count(file_scan_directory($private_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
     $this->assertEqual(4, $files_count);
 
+    // Try loading a missing Textimage ID, should fail with not found.
+    $this->drupalGet($public_directory_path . '/textimage_store/cache/styles/textimage_test/8/8f/8f3f0c1a0d01c0487f97d068b2a77c792964eedfbe7e2f24eb1207429118aaff.png');
+    $this->assertResponse(404);
+
     // Test failure of a Textimage derivative via URL, on image style set to
     // private.
     $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');

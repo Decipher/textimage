@@ -14,6 +14,7 @@ use Drupal\Core\Image\ImageFactory;
 use Drupal\image\ImageStyleInterface;
 use Drupal\system\FileDownloadController;
 use Drupal\textimage\TextimageFactory;
+use Drupal\textimage\TextimageException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -150,6 +151,9 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
+   * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+   *   Thrown when the textimage ID is not found.
+   *
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
@@ -159,14 +163,16 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     $tiid = str_replace('.' . pathinfo($file, PATHINFO_EXTENSION), '', pathinfo($file, PATHINFO_BASENAME));
 
     // Get the Textimage URI.
-    $image_uri = $this->textimageFactory
-      ->load($tiid)
-      ->buildImage()
-      ->getUri();
-
-    // @todo manage exception if $tiid is not existing in cache.
-
-    return $this->returnBinary($request, $image_uri);
+    try {
+      $image_uri = $this->textimageFactory
+        ->load($tiid)
+        ->buildImage()
+        ->getUri();
+      return $this->returnBinary($request, $image_uri);
+    }
+    catch (TextimageException $e) {
+      throw new NotFoundHttpException('Image not found.');
+    }
   }
 
   /**

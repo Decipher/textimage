@@ -282,13 +282,13 @@ class Textimage implements ContainerInjectionInterface {
    */
   protected function set($property, $value) {
     if (!property_exists($this, $property)) {
-      throw new TextimageException('Attempted to set non existing property "' . $property . '"');
+      throw new TextimageException("Attempted to set non existing property '{$property}'");
     }
     if (!$this->processed) {
       $this->$property = $value;
     }
     else {
-      throw new TextimageException('Attempted to set property "' . $property . '" when image was processed already');
+      throw new TextimageException("Attempted to set property '{$property}' when image was processed already");
     }
     return $this;
   }
@@ -351,9 +351,11 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function forceExtension($extension) {
-    // @todo only to be called once
     if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
-      throw new TextimageException('Attempted to set an unsupported file image extension "' . $extension . '"');
+      throw new TextimageException("Attempted to set an unsupported file image extension ({$extension})");
+    }
+    if ($this->extension) {
+      throw new TextimageException("Extension already set");
     }
     return $this->set('extension', $extension);
   }
@@ -381,7 +383,6 @@ class Textimage implements ContainerInjectionInterface {
   public function sourceImageFile(FileInterface $source_image_file) {
     if ($source_image_file) {
       $this->set('sourceImageFile', $source_image_file);
-      $this->set('extension', pathinfo($source_image_file->getFilename(), PATHINFO_EXTENSION));
     }
     return $this;
   }
@@ -435,17 +436,19 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function setTargetUri($uri) {
-    // @todo only to be called once
+    if ($this->uri) {
+      throw new TextimageException("URI already set");
+    }
     // @todo should force the extension
     if ($uri) {
       if (!file_valid_uri($uri)) {
-        throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
+        throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
       $dir_name = $this->fileSystem->dirname($uri);
       $base_name = $this->fileSystem->basename($uri);
       $valid_uri = $this->createFilename($base_name, $dir_name);
       if ($uri != $valid_uri) {
-        throw new TextimageException('Textimage - Invalid target URI \'' . $uri . '\' specified');
+        throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
       $this->set('uri', $uri);
       $this->set('caching', FALSE);
@@ -776,7 +779,7 @@ class Textimage implements ContainerInjectionInterface {
   public function buildImage() {
     // Do not proceed if not processed.
     if (!$this->processed) {
-      throw new TextimageException('Attempted to build Textimage before processing data');
+      throw new TextimageException("Attempted to build Textimage before processing data");
     }
 
     // Do not re-build.
@@ -954,7 +957,12 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * @todo
+   * Restore Textimage object properties from cached data.
+   *
+   * @param array $cached_data
+   *   An array of data from a cache->data array.
+   *
+   * @return $this
    */
   protected function restoreFromCache($cached_data) {
     $this->processed = $cached_data['processed'];
