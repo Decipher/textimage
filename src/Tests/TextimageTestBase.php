@@ -9,6 +9,7 @@ namespace Drupal\textimage\Tests;
 
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -192,7 +193,7 @@ abstract class TextimageTestBase extends WebTestBase {
    */
   protected function getTextimageUriFromStyleAndText($style_name, $text) {
     return $this->textimageFactory->get()
-      ->styleByName($style_name)
+      ->setStyle(ImageStyle::load($style_name))
       ->process($text)
       ->getUri();
   }

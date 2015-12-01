@@ -301,30 +301,11 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function style(ImageStyleInterface $image_style) {
+  public function setStyle(ImageStyleInterface $image_style) {
     if ($this->factory->isTextimage($image_style)) {
       $this->set('style', $image_style);
       $effects = @$this->style->getEffects()->getConfiguration();
       $this->set('effects', $effects);
-    }
-    return $this;
-  }
-
-  /**
-   * Set the image style, from the style name
-   *
-   * @param string $image_style_name
-   *   the name of the image style to be used to derive the Textimage
-   *
-   * @return $this
-   */
-  public function styleByName($image_style_name) {
-    // Retrieve Textimage style.
-    if ($image_style = ImageStyle::load($image_style_name)) {
-      return $this->style($image_style);
-    }
-    else {
-      $this->logger->error('Textimage could not find image style \'@style\'.', ['@style' => $image_style_name]);
     }
     return $this;
   }
@@ -350,7 +331,7 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setExtension($extension) {
+  public function setTargetExtension($extension) {
     if ($this->extension) {
       throw new TextimageException("Extension already set");
     }
@@ -449,7 +430,7 @@ class Textimage implements ContainerInjectionInterface {
       if ($uri != $valid_uri) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
-      $this->setExtension(pathinfo($uri, PATHINFO_EXTENSION));
+      $this->setTargetExtension(pathinfo($uri, PATHINFO_EXTENSION));
       $this->set('uri', $uri);
       $this->set('caching', FALSE);
       $this->set('forcedUri', TRUE);
@@ -727,7 +708,7 @@ class Textimage implements ContainerInjectionInterface {
       else {
         $extension = $this->config->get('default_extension');
       }
-      $this->setExtension($runtime_style->getDerivativeExtension($extension));
+      $this->setTargetExtension($runtime_style->getDerivativeExtension($extension));
     }
 
     // Data for this textimage.

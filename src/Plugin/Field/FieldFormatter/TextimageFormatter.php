@@ -302,7 +302,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           // Build separate image for each text value.
           foreach ($text as $text_value) {
             $textimage = $this->textimageFactory->get()
-              ->style($image_style)
+              ->setStyle($image_style)
               ->node($node)
               ->user($user)
               ->setBubbleableMetadata($bubbleable_metadata)
@@ -323,7 +323,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
         else {
           // Build single image with all text values.
           $textimage = $this->textimageFactory->get()
-            ->style($image_style)
+            ->setStyle($image_style)
             ->node($node)
             ->user($user)
             ->setBubbleableMetadata($bubbleable_metadata)
@@ -356,7 +356,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           $image_title = !empty($image_title) ? $image_title : $item_value['title'];
           $image_title = $this->textimageFactory->processTextString($image_title, NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
           $textimage = $this->textimageFactory->get()
-            ->style($image_style)
+            ->setStyle($image_style)
             ->sourceImageFile($item->entity)
             ->node($node)
             ->user($user)

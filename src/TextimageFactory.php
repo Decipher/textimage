@@ -422,7 +422,7 @@ class TextimageFactory {
           $text = $this->getTextFieldText($items);
           try {
             $textimage = $this->get()
-              ->style($image_style)
+              ->setStyle($image_style)
               ->node($node)
               ->setBubbleableMetadata($bubbleable_metadata)
               ->process($text);
@@ -456,7 +456,7 @@ class TextimageFactory {
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
               $textimage = $this->get()
-                ->style($image_style)
+                ->setStyle($image_style)
                 ->node($node)
                 ->sourceImageFile($item->entity)
                 ->setBubbleableMetadata($bubbleable_metadata)

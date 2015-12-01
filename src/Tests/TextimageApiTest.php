@@ -8,6 +8,7 @@
 namespace Drupal\textimage\Tests;
 
 use Drupal\file\Entity\File;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\textimage\TextimageException;
 
 /**
@@ -75,10 +76,11 @@ class TextimageApiTest extends TextimageTestBase {
 
     // Test Textimage API.
     $textimage = $this->textimageFactory->get();
+    $style = ImageStyle::load('textimage_test');
 
     // Check API is accepting input, but not providing output, before process.
-    $this->assertTextimageException(FALSE, array($textimage, 'styleByName'), array('textimage_test'));
-    $this->assertTextimageException(FALSE, array($textimage, 'setTemporary'), array(FALSE));
+    $this->assertTextimageException(FALSE, array($textimage, 'setStyle'), [$style]);
+    $this->assertTextimageException(FALSE, array($textimage, 'setTemporary'), [FALSE]);
     $this->assertTextimageException(FALSE, array($textimage, 'user'), array($this->adminUser));
     $this->assertNull($textimage->id(), 'ID is not available');
     $this->assertNull($textimage->getUri(), 'URI is not available');
@@ -104,9 +106,9 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(FALSE, [$textimage, 'buildImage'], []);
 
     // Check API is not allowing changes after processing.
-    $this->assertTextimageException(TRUE, array($textimage, 'styleByName'), array('textimage_test'));
+    $this->assertTextimageException(TRUE, array($textimage, 'setStyle'), [$style]);
     $this->assertTextimageException(TRUE, array($textimage, 'effects'), array(array()));
-    $this->assertTextimageException(TRUE, array($textimage, 'setExtension'), array('png'));
+    $this->assertTextimageException(TRUE, array($textimage, 'setTargetExtension'), array('png'));
     $this->assertTextimageException(TRUE, array($textimage, 'setTemporary'), array(TRUE));
     $this->assertTextimageException(TRUE, array($textimage, 'user'), array($this->adminUser));
     $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo-bongo.png'));
@@ -141,9 +143,9 @@ class TextimageApiTest extends TextimageTestBase {
     $file->save();
     $textimage = $this->textimageFactory->get();
     $textimage
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->sourceImageFile($file)
-      ->setExtension('gif')
+      ->setTargetExtension('gif')
       ->process($text_array)
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
@@ -155,7 +157,7 @@ class TextimageApiTest extends TextimageTestBase {
     $file->save();
     $textimage = $this->textimageFactory->get();
     $textimage
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->sourceImageFile($file)
       ->process($text_array)
       ->buildImage();
@@ -166,12 +168,13 @@ class TextimageApiTest extends TextimageTestBase {
     $id = $textimage->id();
     $uri = $textimage->getUri();
     $textimage = $this->textimageFactory->load($id);
+    $style = ImageStyle::load('textimage_test');
 
     // Check loaded data.
     $this->assertEqual($textimage->id(), $id, 'Load - ID correct');
     $this->assertEqual($textimage->getUri(), $uri, 'Load - URI correct');
     $this->assertEqual($textimage->getText(), $expected_text_array, 'Load - Text correct');
-    $this->assertTextimageException(TRUE, array($textimage, 'styleByName'), array('textimage_test'));
+    $this->assertTextimageException(TRUE, [$textimage, 'setStyle'], [$style]);
     // File exists.
     $this->assertTrue(file_exists($uri), 'Load - file exists');
     // File deletion.
@@ -213,7 +216,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Process, should generate a PNG image file.
     $textimage = $this->textimageFactory->get();
     $textimage
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->process('bingo')
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
@@ -239,7 +242,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Process, should generate a JPEG image file.
     $textimage = $this->textimageFactory->get();
     $textimage
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->process('bingo')
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());

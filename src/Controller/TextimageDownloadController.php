@@ -133,7 +133,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
 
     // Get the Textimage URI.
     $image_uri = $this->textimageFactory->get()
-      ->style($image_style)
+      ->setStyle($image_style)
       ->setTargetUri('public://textimage/' . $image_style->id() . '/' . $text_string)
       ->process($text)
       ->buildImage()

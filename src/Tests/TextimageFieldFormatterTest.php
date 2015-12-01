@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Tests;
 
+use Drupal\image\Entity\ImageStyle;
 use Drupal\node\Entity\Node;
 
 /**
@@ -37,7 +38,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Get Textimage URL.
     $textimage_url = $this->textimageFactory->get()
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->node($node)
       ->process($field_value)
       ->getUrl();
@@ -114,7 +115,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Test the textimage formatter - one image.
     $textimage_url = $this->textimageFactory->get()
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->node($node)
       ->process($field_value)
       ->getUrl();
@@ -143,7 +144,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertEqual(4, count($elements));
     for ($i = 0; $i < 4; $i++) {
       $textimage_url = $this->textimageFactory->get()
-        ->styleByName('textimage_test')
+        ->setStyle(ImageStyle::load('textimage_test'))
         ->node($node)
         ->process($field_value[$i])
         ->getUrl();

@@ -55,7 +55,7 @@ class TextimageTest extends TextimageTestBase {
     // Generate files on public.
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
-        ->styleByName('textimage_test')
+        ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $element = array(
         '#theme' => 'textimage_formatter',
@@ -78,7 +78,7 @@ class TextimageTest extends TextimageTestBase {
     // Check that cache entries were generated.
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
-        ->styleByName('textimage_test')
+        ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $cached = $this->container->get('cache.textimage')->get('tiid:' . $textimage->id());
       $this->assertEqual($textimage->getUri(), $cached->data['uri']);
@@ -88,7 +88,7 @@ class TextimageTest extends TextimageTestBase {
     $this->container->get('cache.textimage')->deleteAll();
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
-        ->styleByName('textimage_test')
+        ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $this->assertTrue(file_exists($textimage->getUri()));
     }
@@ -102,7 +102,7 @@ class TextimageTest extends TextimageTestBase {
     // Generate files on private.
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
-        ->styleByName('textimage_test')
+        ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $element = array(
         '#theme' => 'textimage_formatter',
@@ -147,7 +147,7 @@ class TextimageTest extends TextimageTestBase {
 
     // Test build a textimage at target URI via API.
     $uri = $this->textimageFactory->get()
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
       ->buildImage()
@@ -158,7 +158,7 @@ class TextimageTest extends TextimageTestBase {
 
     // Test build another textimage at same target URI.
     $uri = $this->textimageFactory->get()
-      ->styleByName('textimage_test')
+      ->setStyle(ImageStyle::load('textimage_test'))
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('another test')
       ->buildImage()
