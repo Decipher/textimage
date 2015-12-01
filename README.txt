@@ -14,7 +14,7 @@ Core issues:
 - #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
 - settargeturi should implement forceExtansion
-- check background color setting over a passthrogh image
+- check background color setting over a passthrogh image ++
 - buildImage fails to convert to specified image format
 
 -------------------------------------------------------------------------------

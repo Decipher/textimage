@@ -31,9 +31,6 @@ class TextimageOverlay extends ImagemagickTextimageOperationBase {
    * {@inheritdoc}
    */
   protected function execute(array $arguments) {
-    // Reset any gravity settings from earlier effects.
-    $this->getToolkit()->addArgument('-gravity none');
-
     // In Imagemagick terms:
     // - $this is the destination (the image being constructed).
     // - $arguments['layer'] is the source (the source of the current
@@ -42,17 +39,14 @@ class TextimageOverlay extends ImagemagickTextimageOperationBase {
     if (!$source_path = $arguments['layer']->getToolkit()->getSourceLocalPath()) {
       return FALSE;
     }
-    $this->getToolkit()->addArgument($this->getToolkit()->escapeShellArg($source_path));
+    $source = $this->getToolkit()->escapeShellArg($source_path);
 
     // Set offset. Offset arguments require a sign in front.
     $x = ($arguments['x'] >= 0) ? "+" . $arguments['x'] : $arguments['x'];
     $y = ($arguments['y'] >= 0) ? "+" . $arguments['y'] : $arguments['y'];
 
-    // Compose the layer with the destination.
-    $this->getToolkit()
-      ->addArgument("-geometry $x$y")
-      ->addArgument("-compose src-over")
-      ->addArgument("-composite");
+    // Add argument, compose the layer with the destination.
+    $this->getToolkit()->addArgument("-gravity none {$source} -geometry {$x}{$y} -compose src-over -composite");
 
     return TRUE;
   }
