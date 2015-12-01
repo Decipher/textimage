@@ -39,14 +39,16 @@ class TextimageDefineCanvas extends ImagemagickTextimageOperationBase {
       $geometry .= sprintf('%+d%+d', -$targetsize['left'], -$targetsize['top']);
     }
 
-    // Add arguments.
-    $this->getToolkit()->addArgument('-gravity none');
+    // Determine background.
     if ($arguments['background_color']) {
-      $this->getToolkit()->addArgument('-background ' . $this->getToolkit()->escapeShellArg($arguments['background_color']));
-    } // @todo transparency
-    $this->getToolkit()
-      ->addArgument('-compose src-over')
-      ->addArgument('-extent ' . $geometry);
+      $bg = '-background ' . $this->getToolkit()->escapeShellArg($arguments['background_color']);
+    }
+    else {
+      $bg = '-background transparent';
+    }
+
+    // Add argument.
+    $this->getToolkit()->addArgument("-gravity none {$bg} -compose src-over -extent {$geometry}");
 
     // Set dimensions.
     $this->getToolkit()
