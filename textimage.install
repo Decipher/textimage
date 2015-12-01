@@ -41,54 +41,18 @@ function textimage_requirements($phase) {
 }
 
 /**
- * Implements hook_install().
- */
-function textimage_install() {
-
-  $config = \Drupal::configFactory()->getEditable('textimage.settings');
-
-  // Find out scheme to use for the textimage_store directory. Preference to
-  // 'private'.
-  $scheme = 'private';
-  if ($private_wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme($scheme)) {
-    $private_directory = $private_wrapper->getDirectoryPath();
-  }
-  if (!$private_wrapper || !isset($private_directory) || !file_prepare_directory($private_directory, FILE_CREATE_DIRECTORY)) {
-    $scheme = 'public';
-    \Drupal::service('textimage.logger')->notice('Textimage used the <b>public</b> file storage to create a structure of directories it needs to operate. You can change the set up in the Textimage settings.');
-  }
-
-  // Set store scheme in config.
-  $config->set('store_scheme', $scheme);
-
-  // Create fonts directory.
-  $fonts_path = $config->get('font.plugin_settings.textimage.path');
-  $fonts_path = str_replace('[scheme]', $scheme, $fonts_path);
-  if (!file_prepare_directory($fonts_path, FILE_CREATE_DIRECTORY)) {
-    \Drupal::service('textimage.logger')->error('Failed to create directory "%path". Visit the Textimage settings page to setup font management.', array('%path' => $fonts_path));
-  }
-  $config->set('font.plugin_settings.textimage.path', $fonts_path);
-
-  // Create backgrounds directory.
-  $backgrounds_path = $config->get('background.plugin_settings.textimage.path');
-  $backgrounds_path = str_replace('[scheme]', $scheme, $backgrounds_path);
-  if (!file_prepare_directory($backgrounds_path, FILE_CREATE_DIRECTORY)) {
-    \Drupal::service('textimage.logger')->error('Failed to create directory "%path". Visit the Textimage settings page to setup background images management.', array('%path' => $backgrounds_path));
-  }
-  $config->set('background.plugin_settings.textimage.path', $backgrounds_path);
-
-  $config->save();
-}
-
-/**
  * Implements hook_uninstall().
  */
 function textimage_uninstall() {
-  // Delete the textimage directory from each registered wrapper.
+  // Delete the textimage_store directory from each registered wrapper.
   $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
-    if (file_exists($directory = $wrapper . '://textimage')) {
+    if (file_exists($directory = \Drupal::service('textimage.factory')->getStorePath(NULL, $wrapper))) {
       file_unmanaged_delete_recursive($directory);
     }
+  }
+  // Delete the public textimage directory.
+  if (file_exists($directory = 'public://textimage')) {
+    file_unmanaged_delete_recursive($directory);
   }
 }

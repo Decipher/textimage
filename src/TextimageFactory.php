@@ -55,11 +55,11 @@ class TextimageFactory {
   protected $cache;
 
   /**
-   * The configuration object.
+   * The configuration factory.
    *
-   * @var \Drupal\Core\Config\Config
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
-  protected $config;
+  protected $configFactory;
 
   /**
    * The current user.
@@ -94,7 +94,7 @@ class TextimageFactory {
    *   The image style entity storage.
    */
   public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityManagerInterface $entity_manager) {
-    $this->config = $config_factory->get('textimage.settings');
+    $this->configFactory = $config_factory;
     $this->token = $token_service;
     $this->logger = $logger;
     $this->cache = $cache_service;
@@ -248,15 +248,15 @@ class TextimageFactory {
    */
   public function flushStyle($style) {
     // Clear hashed filename images.
-    if (file_exists($directory = $this->getStorePath('styled_hashed/') . $style->id())) {
-      file_unmanaged_delete_recursive($directory);
-    }
-    // Clear images, checking in all available schemes.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
-      if (file_exists($directory = $wrapper . '://textimage/' . $style->id())) {
+      if (file_exists($directory = $this->getStorePath('/cache/styles/', $wrapper) . $style->id())) {
         file_unmanaged_delete_recursive($directory);
       }
+    }
+    // Clear public textimage directory.
+    if (file_exists($directory = 'public://textimage/' . $style->id())) {
+      file_unmanaged_delete_recursive($directory);
     }
   }
 
@@ -275,17 +275,11 @@ class TextimageFactory {
         $style->flush();
       }
     }
-    // Clear whatever directory structure remaining, checking in all available
+    // Clear whatever directory structure remains, checking in all available
     // schemes.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
-      if (file_exists($directory = $wrapper . '://textimage_store/styled_hashed')) {
-        file_unmanaged_delete_recursive($directory);
-      }
-      if (file_exists($directory = $wrapper . '://textimage_store/unstyled_hashed')) {
-        file_unmanaged_delete_recursive($directory);
-      }
-      if (file_exists($directory = $wrapper . '://textimage_store/uncached')) {
+      if (file_exists($directory = $this->getStorePath(NULL, $wrapper))) {
         file_unmanaged_delete_recursive($directory);
       }
     }
@@ -301,8 +295,11 @@ class TextimageFactory {
   /**
    * Return a path within the textimage_store structure.
    */
-  public function getStorePath($path) {
-    return $this->config->get('store_scheme') . '://textimage_store/' . $path;
+  public function getStorePath($path, $scheme = NULL) {
+    if (!$scheme) {
+      $scheme = $this->configFactory->get('system.file')->get('default_scheme');
+    }
+    return  $scheme . '://textimage_store' . $path;
   }
 
   /**

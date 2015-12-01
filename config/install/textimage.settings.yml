@@ -1,14 +1,13 @@
-store_scheme: ''
 debug: FALSE
 default_extension: 'png'
 url_generation:
-  enabled: TRUE
+  enabled: FALSE
   text_separator: '---'
 font:
   plugin_id: textimage
   plugin_settings:
     textimage:
-      path: '[scheme]://textimage_store/fonts'
+      path: ''
 default_font:
   name:
   uri:
@@ -16,7 +15,7 @@ background:
   plugin_id: textimage
   plugin_settings:
     textimage:
-      path: '[scheme]://textimage_store/backgrounds'
+      path: ''
 color:
   plugin_id: textimage
   plugin_settings:

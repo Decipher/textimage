@@ -116,7 +116,7 @@ function textimage_cron() {
   // Remove temporary, uncached, image files in all available schemes.
   $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
-    if (file_exists($directory = $wrapper . '://textimage_store/uncached')) {
+    if (file_exists($directory = \Drupal::service('textimage.factory')->getStorePath('/temp', $wrapper))) {
       if (file_unmanaged_delete_recursive($directory)) {
         \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
       }
@@ -208,7 +208,7 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
   if ($relevant) {
     // If Textimage TPSs are not yet set, set defaults.
     if (!in_array('textimage', $style->getThirdPartyProviders())) {
-      $style->setThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('textimage.settings')->get('store_scheme'));
+      $style->setThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('system.file')->get('default_scheme'));
     }
   }
   else {

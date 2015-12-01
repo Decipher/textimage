@@ -15,8 +15,6 @@ Core issues:
 - use of gifTransparentColor in Textimage.php
 - settargeturi should implement forceExtansion
 - check background color setting over a passthrogh image
-- more tests for url generation
-- revise directory structure for textimage_store
 - buildImage fails to convert to specified image format
 
 -------------------------------------------------------------------------------

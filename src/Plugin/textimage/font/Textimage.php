@@ -31,7 +31,7 @@ class Textimage extends TextimagePluginBase implements TextimageFontPluginInterf
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array('path' => 'private://textimage_store/fonts');
+    return array('path' => '');
   }
 
   /**

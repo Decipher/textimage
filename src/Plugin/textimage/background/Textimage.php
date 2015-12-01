@@ -30,7 +30,7 @@ class Textimage extends TextimagePluginBase implements TextimageBackgroundPlugin
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array('path' => 'private://textimage_store/backgrounds');
+    return array('path' => '');
   }
 
   /**

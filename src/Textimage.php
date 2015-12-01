@@ -914,29 +914,29 @@ class Textimage implements ContainerInjectionInterface {
    * unstyled and uncached (temporary) image files:
    *
    * for images with a supporting image style (styled) -
-   *   {style_wrapper}://textimage_store/styled_hashed/{style}/{file name}.{extension}
+   *   {style_wrapper}://textimage_store/cache/styles/{style}/{substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
    *
    * for images generated via direct theme (unstyled) -
-   *   {textimage_store_wrapper}://textimage_store/unstyled_hashed/{file name}.{extension}
+   *   {default_wrapper}://textimage_store/cache/api/{substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
    *
    * for uncached, temporary -
-   *   {textimage_store_wrapper}://textimage_store/uncached/{file name}.{extension}
+   *   {default_wrapper}://textimage_store/temp/{file name}.{extension}
    */
   protected function buildUri() {
     // The file name will be the Textimage hash.
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
-        $style_scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme');
-        $this->uri = $style_scheme . '://textimage_store/styled_hashed/' . $this->style->id() . '/' . $base_name;
+        $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme');
+        $this->uri = $this->factory->getStorePath('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name;
       }
       else {
-        $this->uri = $this->factory->getStorePath('unstyled_hashed/') . $base_name;
+        $this->uri = $this->factory->getStorePath('/cache/api/') . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name;
       }
     }
     else {
       $base_name = hash('sha256', session_id() . microtime()) . '.' . $this->extension;
-      $this->uri = $this->factory->getStorePath('uncached/') . $base_name;
+      $this->uri = $this->factory->getStorePath('/temp/') . $base_name;
     }
   }
 

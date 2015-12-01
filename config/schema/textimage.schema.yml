@@ -6,9 +6,6 @@ textimage.settings:
   type: config_object
   label: 'Textimage settings'
   mapping:
-    store_scheme:
-      type: string
-      label: 'Scheme wrapper for the textimage store'
     debug:
       type: boolean
       label: 'Display debugging information'

@@ -13,8 +13,6 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\textimage\Plugin\TextimagePluginManager;
 use Drupal\textimage\Plugin\TextimagePluginBaseInterface;
 use Drupal\textimage\TextimageFactory;
@@ -31,13 +29,6 @@ class SettingsForm extends ConfigFormBase {
    * @var \Drupal\textimage\TextimageFactory
    */
   protected $textimageFactory;
-
-  /**
-   * The stream wrapper manager.
-   *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManager
-   */
-  protected $streamWrapperManager;
 
   /**
    * The font plugin manager.
@@ -74,8 +65,6 @@ class SettingsForm extends ConfigFormBase {
    *   The Textimage factory.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
-   *   The stream wrapper manager.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $font_plugin_manager
    *   The font plugin manager.
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $background_plugin_manager
@@ -85,13 +74,12 @@ class SettingsForm extends ConfigFormBase {
    * @param \Drupal\textimage\Plugin\TextimagePluginManager $image_factory
    *   The Image factory.
    */
-  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, StreamWrapperManager $stream_wrapper_manager, TextimagePluginManager $font_plugin_manager, TextimagePluginManager $background_plugin_manager, TextimagePluginManager $color_plugin_manager, ImageFactory $image_factory) {
+  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, TextimagePluginManager $font_plugin_manager, TextimagePluginManager $background_plugin_manager, TextimagePluginManager $color_plugin_manager, ImageFactory $image_factory) {
     parent::__construct($config_factory);
     $this->textimageFactory = $textimage_factory;
     $this->fontManager = $font_plugin_manager;
     $this->backgroundManager = $background_plugin_manager;
     $this->colorManager = $color_plugin_manager;
-    $this->streamWrapperManager = $stream_wrapper_manager;
     $this->imageFactory = $image_factory;
   }
 
@@ -102,7 +90,6 @@ class SettingsForm extends ConfigFormBase {
     return new static(
       $container->get('textimage.factory'),
       $container->get('config.factory'),
-      $container->get('stream_wrapper_manager'),
       $container->get('plugin.manager.textimage.font'),
       $container->get('plugin.manager.textimage.background'),
       $container->get('plugin.manager.textimage.color'),
@@ -175,19 +162,6 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'details',
       '#open' => TRUE,
       '#title' => $this->t('Main settings'),
-    );
-
-    // Textimage store location.
-    $scheme_options = $this->streamWrapperManager->getNames(StreamWrapperInterface::WRITE_VISIBLE);
-    $default_scheme = $config->get('store_scheme');
-    $default_scheme = isset($scheme_options[$default_scheme]) ? $default_scheme : 'public';
-    $form['settings']['main']['store_scheme'] = array(
-      '#type' => 'radios',
-      '#options' => $scheme_options,
-      '#title' => $this->t('Textimage store location'),
-      '#description' => $this->t('Select where the main Textimage file structure should be stored. This can be overridden at image style level specifying a different scheme on the Textimage options. This setting does not affect image derivatives created by the Image module.'),
-      '#default_value' => $default_scheme,
-      '#required' => TRUE,
     );
 
     // Default image file format/extension.
@@ -330,14 +304,8 @@ class SettingsForm extends ConfigFormBase {
       return;
     }
 
-    // Overall module flush if storage scheme gets changed.
-    if ($form_state->getValue(['settings', 'main', 'store_scheme']) != $config->get('store_scheme')) {
-      $this->textimageFactory->flushAll();
-    }
-
     // Main settings.
     $config
-      ->set('store_scheme', $form_state->getValue(['settings', 'main', 'store_scheme']))
       ->set('default_extension', $form_state->getValue(['settings', 'main', 'default_extension']));
 
     // Font plugin.

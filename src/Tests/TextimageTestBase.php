@@ -49,10 +49,12 @@ abstract class TextimageTestBase extends WebTestBase {
     ));
     $this->drupalLogin($this->adminUser);
 
-    // Change Textimage font directory.
+    // Change Textimage settings.
     $config = \Drupal::configFactory()->getEditable('textimage.settings');
     $config
       ->set('font.plugin_settings.textimage.path', drupal_get_path('module', 'textimage') . '/tests/fonts')
+      ->set('background.plugin_settings.textimage.path', drupal_get_path('module', 'textimage') . '/tests')
+      ->set('url_generation.enabled', TRUE)
       ->set('debug', TRUE)
       ->save();
 

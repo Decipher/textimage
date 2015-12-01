@@ -72,7 +72,7 @@ class TextimageTest extends TextimageTestBase {
     }
 
     // Check that files were generated on public.
-    $files_count = count(file_scan_directory($public_directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
+    $files_count = count(file_scan_directory($public_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
     $this->assertEqual(4, $files_count);
 
     // Check that cache entries were generated.
@@ -119,7 +119,7 @@ class TextimageTest extends TextimageTestBase {
     }
 
     // Check that files were generated on private.
-    $files_count = count(file_scan_directory($private_directory_path . '/textimage_store/styled_hashed/textimage_test', '/.*/'));
+    $files_count = count(file_scan_directory($private_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
     $this->assertEqual(4, $files_count);
 
     // Test failure of a Textimage derivative via URL, on image style set to
