@@ -78,7 +78,7 @@ class TextimageApiTest extends TextimageTestBase {
 
     // Check API is accepting input, but not providing output, before process.
     $this->assertTextimageException(FALSE, array($textimage, 'styleByName'), array('textimage_test'));
-    $this->assertTextimageException(FALSE, array($textimage, 'setCaching'), array(TRUE));
+    $this->assertTextimageException(FALSE, array($textimage, 'setTemporary'), array(FALSE));
     $this->assertTextimageException(FALSE, array($textimage, 'user'), array($this->adminUser));
     $this->assertNull($textimage->id(), 'ID is not available');
     $this->assertNull($textimage->getUri(), 'URI is not available');
@@ -106,8 +106,8 @@ class TextimageApiTest extends TextimageTestBase {
     // Check API is not allowing changes after processing.
     $this->assertTextimageException(TRUE, array($textimage, 'styleByName'), array('textimage_test'));
     $this->assertTextimageException(TRUE, array($textimage, 'effects'), array(array()));
-    $this->assertTextimageException(TRUE, array($textimage, 'forceExtension'), array('png'));
-    $this->assertTextimageException(TRUE, array($textimage, 'setCaching'), array(FALSE));
+    $this->assertTextimageException(TRUE, array($textimage, 'setExtension'), array('png'));
+    $this->assertTextimageException(TRUE, array($textimage, 'setTemporary'), array(TRUE));
     $this->assertTextimageException(TRUE, array($textimage, 'user'), array($this->adminUser));
     $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo-bongo.png'));
     $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
@@ -143,7 +143,7 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->styleByName('textimage_test')
       ->sourceImageFile($file)
-      ->forceExtension('gif')
+      ->setExtension('gif')
       ->process($text_array)
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
@@ -214,7 +214,6 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
-      ->setCaching(TRUE)
       ->process('bingo')
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
@@ -241,7 +240,6 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage = $this->textimageFactory->get();
     $textimage
       ->styleByName('textimage_test')
-      ->setCaching(TRUE)
       ->process('bingo')
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());

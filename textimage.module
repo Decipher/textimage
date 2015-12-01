@@ -363,7 +363,7 @@ function template_preprocess_textimage_preview(&$variables) {
         ],
       ]
     )
-    ->setCaching(FALSE)
+    ->setTemporary(TRUE)
     ->process([$variables['textimage_data']['text_string']])
     ->buildImage();
   $variables['textimage_preview'] = array(

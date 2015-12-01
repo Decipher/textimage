@@ -343,19 +343,19 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Forces the image file extension.
+   * Sets the image file extension.
    *
    * @param string $extension
    *   The file extension to be used (e.g. jpeg/png/gif).
    *
    * @return $this
    */
-  public function forceExtension($extension) {
-    if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
-      throw new TextimageException("Attempted to set an unsupported file image extension ({$extension})");
-    }
+  public function setExtension($extension) {
     if ($this->extension) {
       throw new TextimageException("Extension already set");
+    }
+    if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
+      throw new TextimageException("Attempted to set an unsupported file image extension ({$extension})");
     }
     return $this->set('extension', $extension);
   }
@@ -412,17 +412,17 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Set caching.
+   * Set Textimage to be temporary.
    *
-   * @param bool $caching
-   *   TRUE if caching is required for this Textimage.
+   * @param bool $is_temp
+   *   FALSE if caching is required for this Textimage.
    *
    * @return $this
    */
-  public function setCaching($caching) {
+  public function setTemporary($is_temp) {
     // If destination URI has been forced, this setting is not effective.
     if (!$this->forcedUri) {
-      $this->set('caching', $caching);
+      $this->set('caching', !$is_temp);
     }
     return $this;
   }
@@ -439,7 +439,6 @@ class Textimage implements ContainerInjectionInterface {
     if ($this->uri) {
       throw new TextimageException("URI already set");
     }
-    // @todo should force the extension
     if ($uri) {
       if (!file_valid_uri($uri)) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
@@ -450,6 +449,7 @@ class Textimage implements ContainerInjectionInterface {
       if ($uri != $valid_uri) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
+      $this->setExtension(pathinfo($uri, PATHINFO_EXTENSION));
       $this->set('uri', $uri);
       $this->set('caching', FALSE);
       $this->set('forcedUri', TRUE);
@@ -718,14 +718,16 @@ class Textimage implements ContainerInjectionInterface {
     $runtime_style->transformDimensions($dimensions, $uri);
     $this->width = $dimensions['width'];
     $this->height = $dimensions['height'];
+
+    // Resolve image file extension.
     if (!$this->extension) {
       if ($this->sourceImageFile) {
-        $this->extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
+        $extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
       }
       else {
-        $this->extension = $this->config->get('default_extension');
+        $extension = $this->config->get('default_extension');
       }
-      $this->extension = $runtime_style->getDerivativeExtension($this->extension);
+      $this->setExtension($runtime_style->getDerivativeExtension($extension));
     }
 
     // Data for this textimage.
@@ -965,14 +967,14 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   protected function restoreFromCache($cached_data) {
-    $this->processed = $cached_data['processed'];
+    $this->processed = TRUE;
     $this->imageData = $cached_data['imageData'];
     $this->uri = $cached_data['uri'];
     $this->width = $cached_data['width'];
     $this->height = $cached_data['height'];
     $this->effects = $cached_data['effects'];
-    $this->text = $cached_data['text'];
-    $this->extension = $cached_data['extension'];
+    $this->text = $cached_data['imageData']['text'];
+    $this->extension = $cached_data['imageData']['extension'];
     $this->gifTransparentColor = $cached_data['gifTransparentColor'];
     $this->caching = TRUE;
     $this->forcedUri = $cached_data['forcedUri'];
@@ -993,14 +995,11 @@ class Textimage implements ContainerInjectionInterface {
       $tags = [];
     }
     $data = [
-      'processed' => $this->processed,
       'imageData' => $this->imageData,
       'uri' => $this->uri,
       'width' => $this->width,
       'height' => $this->height,
       'effects' => $this->effects,
-      'text' => $this->text,
-      'extension' => $this->extension,
       'gifTransparentColor' => $this->gifTransparentColor,
       'forcedUri' => $this->forcedUri,
       'bubbleableMetadata' => $this->bubbleableMetadata,

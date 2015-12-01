@@ -134,7 +134,6 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     // Get the Textimage URI.
     $image_uri = $this->textimageFactory->get()
       ->style($image_style)
-      ->forceExtension($extension)
       ->setTargetUri('public://textimage/' . $image_style->id() . '/' . $text_string)
       ->process($text)
       ->buildImage()
@@ -171,7 +170,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return $this->returnBinary($request, $image_uri);
     }
     catch (TextimageException $e) {
-      throw new NotFoundHttpException('Image not found.');
+      throw new NotFoundHttpException('Image not found');
     }
   }
 
