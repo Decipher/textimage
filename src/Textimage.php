@@ -208,13 +208,6 @@ class Textimage implements ContainerInjectionInterface {
   protected $user = NULL;
 
   /**
-   * If this Textimage has to be created at a specific URI.
-   *
-   * @var bool
-   */
-  protected $forcedUri = FALSE;
-
-  /**
    * Bubbleable metadata of the Textimage.
    *
    * @var \Drupal\Core\Render\BubbleableMetadata
@@ -302,10 +295,13 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function setStyle(ImageStyleInterface $image_style) {
+    if ($this->style) {
+      throw new TextimageException("Image style already set");
+    }
     if ($this->factory->isTextimage($image_style)) {
       $this->set('style', $image_style);
       $effects = @$this->style->getEffects()->getConfiguration();
-      $this->set('effects', $effects);
+      $this->setEffects($effects);
     }
     return $this;
   }
@@ -319,7 +315,10 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function effects(array $effects) {
+  public function setEffects(array $effects) {
+    if ($this->effects) {
+      throw new TextimageException("Image effects already set");
+    }
     return $this->set('effects', $effects);
   }
 
@@ -401,10 +400,10 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   public function setTemporary($is_temp) {
-    // If destination URI has been forced, this setting is not effective.
-    if (!$this->forcedUri) {
-      $this->set('caching', !$is_temp);
+    if ($this->uri) {
+      throw new TextimageException("URI already set");
     }
+    $this->set('caching', !$is_temp);
     return $this;
   }
 
@@ -433,7 +432,6 @@ class Textimage implements ContainerInjectionInterface {
       $this->setTargetExtension(pathinfo($uri, PATHINFO_EXTENSION));
       $this->set('uri', $uri);
       $this->set('caching', FALSE);
-      $this->set('forcedUri', TRUE);
     }
     return $this;
   }
@@ -509,7 +507,7 @@ class Textimage implements ContainerInjectionInterface {
    *   An URL.
    */
   public function getUrl() {
-    return $this->processed ? ($this->uri ? file_create_url($this->uri) : NULL) : NULL;
+    return $this->processed ? file_create_url($this->getUri()) : NULL;
   }
 
   /**
@@ -519,7 +517,7 @@ class Textimage implements ContainerInjectionInterface {
    *   The height of the Textimage, or NULL if not available.
    */
   public function getHeight() {
-    return $this->height;
+    return $this->processed ? $this->height : NULL;
   }
 
   /**
@@ -529,7 +527,7 @@ class Textimage implements ContainerInjectionInterface {
    *   The width of the Textimage, or NULL if not available.
    */
   public function getWidth() {
-    return $this->width;
+    return $this->processed ? $this->width : NULL;
   }
 
   /**
@@ -697,8 +695,8 @@ class Textimage implements ContainerInjectionInterface {
       $uri = NULL;
     }
     $runtime_style->transformDimensions($dimensions, $uri);
-    $this->width = $dimensions['width'];
-    $this->height = $dimensions['height'];
+    $this->set('width', $dimensions['width']);
+    $this->set('height', $dimensions['height']);
 
     // Resolve image file extension.
     if (!$this->extension) {
@@ -735,7 +733,7 @@ class Textimage implements ContainerInjectionInterface {
 
     // Check cache and return if hit.
     if ($this->caching && ($cached_data = $this->getCachedData())) {
-      $this->uri = $cached_data['uri'];
+      $this->set('uri', $cached_data['uri']);
       $this->processed = TRUE;
       return $this;
     }
@@ -771,14 +769,14 @@ class Textimage implements ContainerInjectionInterface {
     }
 
     // Check cache and return if hit.
-    if ($this->getCachedData() && is_file($this->uri)) {
-      $this->logger->debug('Got Textimage from cache, @uri', ['@uri' => $this->uri]);
+    if ($this->getCachedData() && is_file($this->getUri())) {
+      $this->logger->debug('Got Textimage from cache, @uri', ['@uri' => $this->getUri()]);
       return $this;
     }
 
     // Check file store and return if hit.
-    if ($this->caching && is_file($this->uri)) {
-      $this->logger->debug('Got Textimage from store, @uri', ['@uri' => $this->uri]);
+    if ($this->caching && is_file($this->getUri())) {
+      $this->logger->debug('Got Textimage from store, @uri', ['@uri' => $this->getUri()]);
       return $this;
     }
 
@@ -797,9 +795,9 @@ class Textimage implements ContainerInjectionInterface {
 
     // Try a lock to the file generation process. If cannot get the lock,
     // return success if the file exists already. Otherwise return failure.
-    $lock_name = 'textimage_process:' . Crypt::hashBase64($this->uri);
+    $lock_name = 'textimage_process:' . Crypt::hashBase64($this->getUri());
     if(!$lock_acquired = $this->lock->acquire($lock_name)) {
-      return file_exists($this->uri) ? TRUE : FALSE;
+      return file_exists($this->getUri()) ? TRUE : FALSE;
     }
 
     // Inject processed text in the textimage_text effects data, and build a
@@ -838,7 +836,7 @@ class Textimage implements ContainerInjectionInterface {
     }
 
     // Generate the image.
-    if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->uri)) {
+    if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->getUri())) {
       if (isset($this->style)) {
         $this->logger->error('Textimage failed to build an image for image style \'@style\'.', ['@style' => $this->style->id()]);
       }
@@ -846,7 +844,7 @@ class Textimage implements ContainerInjectionInterface {
         $this->logger->error('Textimage failed to build an image.');
       }
     }
-    $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->uri]);
+    $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->getUri()]);
 
     // Release lock.
     if (!empty($lock_acquired)) {
@@ -907,6 +905,8 @@ class Textimage implements ContainerInjectionInterface {
    *
    * for uncached, temporary -
    *   {default_wrapper}://textimage_store/temp/{file name}.{extension}
+   *
+   * @return $this
    */
   protected function buildUri() {
     // The file name will be the Textimage hash.
@@ -914,16 +914,17 @@ class Textimage implements ContainerInjectionInterface {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
         $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme');
-        $this->uri = $this->factory->getStorePath('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name;
+        $this->set('uri', $this->factory->getStorePath('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
       }
       else {
-        $this->uri = $this->factory->getStorePath('/cache/api/') . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name;
+        $this->set('uri', $this->factory->getStorePath('/cache/api/') . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
       }
     }
     else {
       $base_name = hash('sha256', session_id() . microtime()) . '.' . $this->extension;
-      $this->uri = $this->factory->getStorePath('/temp/') . $base_name;
+      $this->set('uri', $this->factory->getStorePath('/temp/') . $base_name);
     }
+    return $this;
   }
 
   /**
@@ -948,18 +949,17 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   protected function restoreFromCache($cached_data) {
+    $this->set('imageData', $cached_data['imageData']);
+    $this->set('uri', $cached_data['uri']);
+    $this->set('width', $cached_data['width']);
+    $this->set('height', $cached_data['height']);
+    $this->set('effects', $cached_data['effects']);
+    $this->set('text', $cached_data['imageData']['text']);
+    $this->set('extension', $cached_data['imageData']['extension']);
+    $this->set('gifTransparentColor', $cached_data['gifTransparentColor']);
+    $this->set('caching', TRUE);
+    $this->set('bubbleableMetadata', $cached_data['bubbleableMetadata']);
     $this->processed = TRUE;
-    $this->imageData = $cached_data['imageData'];
-    $this->uri = $cached_data['uri'];
-    $this->width = $cached_data['width'];
-    $this->height = $cached_data['height'];
-    $this->effects = $cached_data['effects'];
-    $this->text = $cached_data['imageData']['text'];
-    $this->extension = $cached_data['imageData']['extension'];
-    $this->gifTransparentColor = $cached_data['gifTransparentColor'];
-    $this->caching = TRUE;
-    $this->forcedUri = $cached_data['forcedUri'];
-    $this->bubbleableMetadata = $cached_data['bubbleableMetadata'];
     return $this;
   }
 
@@ -977,13 +977,12 @@ class Textimage implements ContainerInjectionInterface {
     }
     $data = [
       'imageData' => $this->imageData,
-      'uri' => $this->uri,
-      'width' => $this->width,
-      'height' => $this->height,
+      'uri' => $this->getUri(),
+      'width' => $this->getWidth(),
+      'height' => $this->getHeight(),
       'effects' => $this->effects,
       'gifTransparentColor' => $this->gifTransparentColor,
-      'forcedUri' => $this->forcedUri,
-      'bubbleableMetadata' => $this->bubbleableMetadata,
+      'bubbleableMetadata' => $this->getBubbleableMetadata(),
     ];
     $this->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $tags);
     return $this;

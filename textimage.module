@@ -355,7 +355,7 @@ function template_preprocess_textimage_preview(&$variables) {
   $variables['textimage_data']['layout']['overflow_action'] = 'extend';
   $variables['textimage_data']['debug_visuals'] = $variables['textimage_data']['preview_bar']['debug_visuals'];
   $textimage = \Drupal::service('textimage.factory')->get()
-    ->effects(
+    ->setEffects(
       [
         [
           'id' => 'textimage_text',
