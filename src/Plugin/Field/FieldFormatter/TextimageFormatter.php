@@ -294,17 +294,18 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       case 'core';
         // Collect bubbleable metadata.
         $bubbleable_metadata = new BubbleableMetadata();
+        // Provide token data.
+        $token_data = ['node' => $node, 'user' => $user];
         // Get sanitized text strings from the text field.
         $text = $this->textimageFactory->getTextFieldText($items);
-        $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
-        $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
+        $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, $token_data, $bubbleable_metadata);
+        $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, $token_data, $bubbleable_metadata);
         if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {
           // Build separate image for each text value.
           foreach ($text as $text_value) {
             $textimage = $this->textimageFactory->get()
               ->setStyle($image_style)
-              ->node($node)
-              ->user($user)
+              ->setTokenData($token_data)
               ->setBubbleableMetadata($bubbleable_metadata)
               ->process($text_value);
             $element = [
@@ -324,8 +325,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
           // Build single image with all text values.
           $textimage = $this->textimageFactory->get()
             ->setStyle($image_style)
-            ->node($node)
-            ->user($user)
+            ->setTokenData($token_data)
             ->setBubbleableMetadata($bubbleable_metadata)
             ->process($text);
           $element = [
@@ -343,23 +343,26 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
         break;
 
       case 'image':
+        // Provide token data.
+        $token_data = ['node' => $node, 'user' => $user];
         // Get source images from the image field.
         foreach ($items as $delta => $item) {
           // Collect bubbleable metadata.
           $bubbleable_metadata = new BubbleableMetadata();
+          // Provide token data for this image file.
+          $token_data['file'] = $item->entity;
 
           $item_value = $item->getValue();
           $image_alt = $this->getSetting('image_alt');
           $image_alt = !empty($image_alt) ? $image_alt : $item_value['alt'];
-          $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
+          $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, $token_data, $bubbleable_metadata);
           $image_title = $this->getSetting('image_title');
           $image_title = !empty($image_title) ? $image_title : $item_value['title'];
-          $image_title = $this->textimageFactory->processTextString($image_title, NULL, ['node' => $node, 'user' => $user], $bubbleable_metadata);
+          $image_title = $this->textimageFactory->processTextString($image_title, NULL, $token_data, $bubbleable_metadata);
           $textimage = $this->textimageFactory->get()
             ->setStyle($image_style)
             ->sourceImageFile($item->entity)
-            ->node($node)
-            ->user($user)
+            ->setTokenData($token_data)
             ->setBubbleableMetadata($bubbleable_metadata)
             ->process(NULL);
           $element = [

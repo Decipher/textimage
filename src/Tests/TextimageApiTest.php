@@ -81,7 +81,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Check API is accepting input, but not providing output, before process.
     $this->assertTextimageException(FALSE, [$textimage, 'setStyle'], [$style]);
     $this->assertTextimageException(FALSE, [$textimage, 'setTemporary'], [FALSE]);
-    $this->assertTextimageException(FALSE, [$textimage, 'user'], [$this->adminUser]);
+    $this->assertTextimageException(FALSE, [$textimage, 'setTokenData'], [['user' => $this->adminUser]]);
     $this->assertNull($textimage->id(), 'ID is not available');
     $this->assertNull($textimage->getUri(), 'URI is not available');
     $this->assertNull($textimage->getUrl(), 'URL is not available');
@@ -110,7 +110,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(TRUE, [$textimage, 'setEffects'], [[]]);
     $this->assertTextimageException(TRUE, [$textimage, 'setTargetExtension'], ['png']);
     $this->assertTextimageException(TRUE, [$textimage, 'setTemporary'], [TRUE]);
-    $this->assertTextimageException(TRUE, [$textimage, 'user'], [$this->adminUser]);
+    $this->assertTextimageException(TRUE, [$textimage, 'setTokenData'], [['user' => $this->adminUser]]);
     $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['public://textimage-testing/bingo-bongo.png']);
     $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
 

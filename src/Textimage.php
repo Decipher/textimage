@@ -20,10 +20,9 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
+use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\node\NodeInterface;
-use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -183,13 +182,6 @@ class Textimage implements ContainerInjectionInterface {
   protected $caching = TRUE;
 
   /**
-   * A node entity to resolve node tokens.
-   *
-   * @var \Drupal\node\NodeInterface;
-   */
-  protected $node = NULL;
-
-  /**
    * An image file entity.
    *
    * The source file used to build the image derivative in standard image
@@ -201,11 +193,11 @@ class Textimage implements ContainerInjectionInterface {
   protected $sourceImageFile = NULL;
 
   /**
-   * An user entity to resolve user tokens.
+   * An array of objects to resolve tokens.
    *
-   * @var \Drupal\user\UserInterface;
+   * @var array
    */
-  protected $user = NULL;
+  protected $tokenData = [];
 
   /**
    * Bubbleable metadata of the Textimage.
@@ -368,27 +360,18 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Sets a node entity to resolve node tokens.
+   * Sets the token data to resolve tokens.
    *
-   * @param \Drupal\node\NodeInterface $node
-   *   A node entity.
-   *
-   * @return $this
-   */
-  public function node(NodeInterface $node = NULL) {
-    return $this->set('node', $node);
-  }
-
-  /**
-   * Sets an user entity to resolve user tokens.
-   *
-   * @param \Drupal\user\UserInterface $user
-   *   An user entity.
+   * @param array $token_data
+   *   An array of objects to resolve tokens.
    *
    * @return $this
    */
-  public function user(UserInterface $user = NULL) {
-    return $this->set('user', $user);
+  public function setTokenData(array $token_data) {
+    if ($this->tokenData) {
+      throw new TextimageException("Token data already set");
+    }
+    return $this->set('tokenData', $token_data);
   }
 
   /**
@@ -651,20 +634,16 @@ class Textimage implements ContainerInjectionInterface {
 
     // Process text to resolve tokens and required case conversions.
     $processed_text = [];
-    $token_data = [
-      'node' => $this->node,
-      'file' => $this->sourceImageFile,
-      'user' => $this->user,
-    ];
+    $this->tokenData['file'] = isset($this->tokenData['file']) ? $this->tokenData['file'] : $this->sourceImageFile;
     foreach ($default_text as $uuid => $default_text_item) {
       $text_item = array_shift($text);
       if ($text_item) {
         // Replace any tokens in text with run-time values.
         $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-        $processed_text[$uuid] = $this->factory->processTextString($text_item, $this->effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, $this->effects[$uuid]['data']['text']['case_format'], $this->tokenData, $this->bubbleableMetadata);
       }
       else {
-        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $this->effects[$uuid]['data']['text']['case_format'], $token_data, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $this->effects[$uuid]['data']['text']['case_format'], $this->tokenData, $this->bubbleableMetadata);
       }
     }
     $this->text = $processed_text;
@@ -713,7 +692,8 @@ class Textimage implements ContainerInjectionInterface {
     $this->imageData = array(
       'text'                => $this->text,
       'extension'           => $this->extension,
-      'sourceImage'         => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
+      'sourceImageFileId'   => $this->sourceImageFile ? $this->sourceImageFile->id() : NULL,
+      'sourceImageFileUri'  => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
     );
 
     // Remove text from effects outline, as actual runtime text goes
@@ -956,6 +936,9 @@ class Textimage implements ContainerInjectionInterface {
     $this->set('effects', $cached_data['effects']);
     $this->set('text', $cached_data['imageData']['text']);
     $this->set('extension', $cached_data['imageData']['extension']);
+    if ($cached_data['imageData']['sourceImageFileId']) {
+      $this->set('sourceImageFile', File::load($cached_data['imageData']['sourceImageFileId']));
+    }
     $this->set('gifTransparentColor', $cached_data['gifTransparentColor']);
     $this->set('caching', TRUE);
     $this->set('bubbleableMetadata', $cached_data['bubbleableMetadata']);

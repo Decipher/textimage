@@ -162,14 +162,14 @@ function textimage_tokens($type, $tokens, array $data, array $options, Bubbleabl
   if ($type != 'textimage') {
     return array();
   }
-  // Jumps out with a warning if node is not available.
+  // Jumps out with a warning if node is not available. @todo another entity may be tokenised...
   if (!isset($data['node'])) {
     \Drupal::service('textimage.logger')->warning('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens)));
     return array();
   }
   // Process tokens.
-  $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data['node'], $bubbleable_metadata);
-  $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data['node'], $bubbleable_metadata);
+  $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data, $bubbleable_metadata);
+  $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data, $bubbleable_metadata);
   return $replacements;
 }
 

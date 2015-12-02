@@ -310,15 +310,17 @@ class TextimageFactory {
    *   Key can take 'uri' or 'url' values.
    * @param array $tokens
    *   The tokens to resolve.
-   * @param object $node
-   *   The node for which to resolve the tokens.
+   * @param array $data
+   *   Token data array.
    * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
    *   The bubbleable metadata.
    *
    * @return array
    *   An array of token replacements.
    */
-  public function processTokens($key, $tokens, $node, BubbleableMetadata $bubbleable_metadata) {
+  public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata) {
+
+    $node = isset($data['node']) ?  $data['node'] : NULL;
 
     // Need to avoid endless loops, that would occur if there are
     // circular references in the tokens. Set static variables for
@@ -423,7 +425,7 @@ class TextimageFactory {
           try {
             $textimage = $this->get()
               ->setStyle($image_style)
-              ->node($node)
+              ->setTokenData($data)
               ->setBubbleableMetadata($bubbleable_metadata)
               ->process($text);
             $replacements[$original] = $textimage->$callback_method();
@@ -457,7 +459,7 @@ class TextimageFactory {
               // Get source image from the image field item.
               $textimage = $this->get()
                 ->setStyle($image_style)
-                ->node($node)
+                ->setTokenData($data)
                 ->sourceImageFile($item->entity)
                 ->setBubbleableMetadata($bubbleable_metadata)
                 ->process(NULL);

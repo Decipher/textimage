@@ -39,7 +39,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Get Textimage URL.
     $textimage_url = $this->textimageFactory->get()
       ->setStyle(ImageStyle::load('textimage_test'))
-      ->node($node)
+      ->setTokenData(['node' => $node])
       ->process($field_value)
       ->getUrl();
 
@@ -116,7 +116,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Test the textimage formatter - one image.
     $textimage_url = $this->textimageFactory->get()
       ->setStyle(ImageStyle::load('textimage_test'))
-      ->node($node)
+      ->setTokenData(['node' => $node])
       ->process($field_value)
       ->getUrl();
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -145,7 +145,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     for ($i = 0; $i < 4; $i++) {
       $textimage_url = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
-        ->node($node)
+        ->setTokenData(['node' => $node])
         ->process($field_value[$i])
         ->getUrl();
       $this->assertEqual($textimage_url, $elements[$i]['src'], 'Textimage has expected URL.');
