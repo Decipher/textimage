@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Defines a path processor to rewrite Textimage URLs.
  *
- * Supports deferred Textimage generation from textimage_formatter theme for
+ * Supports deferred Textimage generation from textimage formatter themes for
  * both public and private stream wrappers, and direct URL generation of
  * derivatives.
  */

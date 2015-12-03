@@ -7,11 +7,12 @@
 
 namespace Drupal\textimage\Tests;
 
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\node\Entity\Node;
 
 /**
- * Test Textimage formatter on node display.
+ * Test Textimage formatters on node display.
  *
  * @group Textimage
  */
@@ -23,9 +24,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   protected $dumpHeaders = TRUE;
 
   /**
-   * Test Textimage formatter on node display.
+   * Test Textimage formatter on node display and text field.
    */
-  public function testTextimageFieldFormatter() {
+  public function testTextimageTextFieldFormatter() {
 
     // Create a text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
@@ -45,7 +46,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');
-    $display_options['type'] = 'textimage';
+    $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_link'] = '';
     $display_options['settings']['image_alt'] = 'Alternate text: [node:title]';
@@ -94,12 +95,23 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertEqual($elements[0]['title'], 'Title: ' . $this->adminUser->getUsername() . ' ' . $site_name);
     $this->assertCacheTag('config:image.style.textimage_test');
     $this->assertCacheTag('config:system.site');
+
+    // Check token.
+    $bubbleable_metadata = new BubbleableMetadata();
+    $token_resolved = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . '] [site:name]', ['node' => $node], [], $bubbleable_metadata);
+    $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value) . ' ' . $site_name, $token_resolved);
+    $expected_tags = [
+      'config:image.style.textimage_test',
+      'config:system.site',
+      'node:' . $node->id(),
+    ];
+    $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
   }
 
   /**
    * Test Textimage formatter on multi-value text fields.
    */
-  public function testTextimageMultiValueFieldFormatter() {
+  public function testTextimageMultiValueTextFieldFormatter() {
 
     // Create a multi-value text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
@@ -120,7 +132,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->process($field_value)
       ->getUrl();
     $display = entity_get_display('node', $node->getType(), 'default');
-    $display_options['type'] = 'textimage';
+    $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_text_values'] = 'merge';
     $display_options['settings']['image_alt'] = 'Alternate text: [node:title]';

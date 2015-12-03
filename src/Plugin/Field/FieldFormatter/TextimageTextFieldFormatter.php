@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\textimage\Plugin\Field\FieldFormatter\TextimageFormatter.
+ * Contains \Drupal\textimage\Plugin\Field\FieldFormatter\TextimageTextFieldFormatter.
  */
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
@@ -22,22 +22,21 @@ use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Plugin implementation of the 'textimage' formatter.
+ * Plugin implementation of the Textimage text field formatter.
  *
  * @FieldFormatter(
- *   id = "textimage",
+ *   id = "textimage_text_field_formatter",
  *   label = @Translation("Textimage"),
  *   field_types = {
  *     "string",
  *     "string_long",
  *     "text",
  *     "text_with_summary",
- *     "text_long",
- *     "image"
+ *     "text_long"
  *   }
  * )
  */
-class TextimageFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
+class TextimageTextFieldFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
 
   /**
    * The current user.
@@ -61,7 +60,7 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
   protected $imageStyleStorage;
 
   /**
-   * Constructs an TextimageFormatter object.
+   * Constructs an TextimageTextFieldFormatter object.
    *
    * @param string $plugin_id
    *   The plugin_id for the formatter.
@@ -257,12 +256,11 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    // @todo what's the implication of adding $langcode to the method?
     $instance = $items->getFieldDefinition();
     $field = $instance->getFieldStorageDefinition();
 
     // If formatting within a node or an user entity, store entity for passing
-    // to theme for token resolution.
+    // to API for token resolution.
     $node = ($instance->getTargetEntityTypeId() == 'node') ? $items->getEntity() : NULL;
     $user = ($instance->getTargetEntityTypeId() == 'user') ? $items->getEntity() : NULL;
 
@@ -287,98 +285,57 @@ class TextimageFormatter extends FormatterBase implements ContainerFactoryPlugin
       $image_style = $this->imageStyleStorage->load($image_style_setting);
     }
 
-    $elements = array();
+    // Collect bubbleable metadata.
+    $bubbleable_metadata = new BubbleableMetadata();
 
-    switch($field->getTypeProvider()) {
-      case 'text':
-      case 'core';
-        // Collect bubbleable metadata.
-        $bubbleable_metadata = new BubbleableMetadata();
-        // Provide token data.
-        $token_data = ['node' => $node, 'user' => $user];
-        // Get sanitized text strings from the text field.
-        $text = $this->textimageFactory->getTextFieldText($items);
-        $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, $token_data, $bubbleable_metadata);
-        $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, $token_data, $bubbleable_metadata);
-        if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {
-          // Build separate image for each text value.
-          foreach ($text as $text_value) {
-            $textimage = $this->textimageFactory->get()
-              ->setStyle($image_style)
-              ->setTokenData($token_data)
-              ->setBubbleableMetadata($bubbleable_metadata)
-              ->process($text_value);
-            $element = [
-              '#theme' => 'textimage_formatter',
-              '#uri' => $textimage->getUri(),
-              '#width' => $textimage->getWidth(),
-              '#height' => $textimage->getHeight(),
-              '#alt' => $image_alt,
-              '#title' => $image_title,
-              '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
-            ];
-            $bubbleable_metadata->applyTo($element);
-            $elements[] = $element;
-          }
-        }
-        else {
-          // Build single image with all text values.
-          $textimage = $this->textimageFactory->get()
-            ->setStyle($image_style)
-            ->setTokenData($token_data)
-            ->setBubbleableMetadata($bubbleable_metadata)
-            ->process($text);
-          $element = [
-            '#theme' => 'textimage_formatter',
-            '#uri' => $textimage->getUri(),
-            '#width' => $textimage->getWidth(),
-            '#height' => $textimage->getHeight(),
-            '#alt' => $image_alt,
-            '#title' => $image_title,
-            '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
-          ];
-          $bubbleable_metadata->applyTo($element);
-          $elements[] = $element;
-        }
-        break;
+    // Provide token data.
+    $token_data = ['node' => $node, 'user' => $user];
 
-      case 'image':
-        // Provide token data.
-        $token_data = ['node' => $node, 'user' => $user];
-        // Get source images from the image field.
-        foreach ($items as $delta => $item) {
-          // Collect bubbleable metadata.
-          $bubbleable_metadata = new BubbleableMetadata();
-          // Provide token data for this image file.
-          $token_data['file'] = $item->entity;
+    // Get sanitized text strings from the text field.
+    $text = $this->textimageFactory->getTextFieldText($items);
+    $image_alt = $this->textimageFactory->processTextString($this->getSetting('image_alt'), NULL, $token_data, $bubbleable_metadata);
+    $image_title = $this->textimageFactory->processTextString($this->getSetting('image_title'), NULL, $token_data, $bubbleable_metadata);
 
-          $item_value = $item->getValue();
-          $image_alt = $this->getSetting('image_alt');
-          $image_alt = !empty($image_alt) ? $image_alt : $item_value['alt'];
-          $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, $token_data, $bubbleable_metadata);
-          $image_title = $this->getSetting('image_title');
-          $image_title = !empty($image_title) ? $image_title : $item_value['title'];
-          $image_title = $this->textimageFactory->processTextString($image_title, NULL, $token_data, $bubbleable_metadata);
-          $textimage = $this->textimageFactory->get()
-            ->setStyle($image_style)
-            ->sourceImageFile($item->entity)
-            ->setTokenData($token_data)
-            ->setBubbleableMetadata($bubbleable_metadata)
-            ->process(NULL);
-          $element = [
-            '#theme' => 'textimage_formatter',
-            '#uri' => $textimage->getUri(),
-            '#width' => $textimage->getWidth(),
-            '#height' => $textimage->getHeight(),
-            '#alt' => $image_alt,
-            '#title' => $image_title,
-            '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
-          ];
-          $bubbleable_metadata->applyTo($element);
-          $elements[$delta] = $element;
-        }
-        break;
-
+    $elements = [];
+    if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {
+      // Build separate image for each text value.
+      foreach ($text as $text_value) {
+        $textimage = $this->textimageFactory->get()
+          ->setStyle($image_style)
+          ->setTokenData($token_data)
+          ->setBubbleableMetadata($bubbleable_metadata)
+          ->process($text_value);
+        $element = [
+          '#theme' => 'textimage_text_formatter',
+          '#uri' => $textimage->getUri(),
+          '#width' => $textimage->getWidth(),
+          '#height' => $textimage->getHeight(),
+          '#alt' => $image_alt,
+          '#title' => $image_title,
+          '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
+        ];
+        $bubbleable_metadata->applyTo($element);
+        $elements[] = $element;
+      }
+    }
+    else {
+      // Build single image with all text values.
+      $textimage = $this->textimageFactory->get()
+        ->setStyle($image_style)
+        ->setTokenData($token_data)
+        ->setBubbleableMetadata($bubbleable_metadata)
+        ->process($text);
+      $element = [
+        '#theme' => 'textimage_text_formatter',
+        '#uri' => $textimage->getUri(),
+        '#width' => $textimage->getWidth(),
+        '#height' => $textimage->getHeight(),
+        '#alt' => $image_alt,
+        '#title' => $image_title,
+        '#anchor_url' => (is_string($url) && $url === '#textimage_derivative_url#') ? $textimage->getUrl() : $url,
+      ];
+      $bubbleable_metadata->applyTo($element);
+      $elements[] = $element;
     }
 
     return $elements;

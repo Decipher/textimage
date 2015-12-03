@@ -8,7 +8,6 @@
 namespace Drupal\textimage\Tests;
 
 use Drupal\Core\Cache\Cache;
-use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\node\Entity\Node;
 
@@ -28,7 +27,7 @@ class TextimageTest extends TextimageTestBase {
     $private_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('private')->getDirectoryPath();
 
     // Generate a few derivatives and render images via theme
-    // 'textimage_formatter'.
+    // 'textimage_text_formatter'.
     $input = [
       [
         'text' => ['preview text image'],
@@ -58,7 +57,7 @@ class TextimageTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $element = array(
-        '#theme' => 'textimage_formatter',
+        '#theme' => 'textimage_text_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
@@ -105,7 +104,7 @@ class TextimageTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $element = array(
-        '#theme' => 'textimage_formatter',
+        '#theme' => 'textimage_text_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
@@ -167,39 +166,6 @@ class TextimageTest extends TextimageTestBase {
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage replaced at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 113, 28);
-
-    // Test token resolution.
-
-    // Create a text field for Textimage test.
-    $field_name = strtolower($this->randomMachineName());
-    $this->createTextimageField($field_name, 'article');
-
-    // Create a new node.
-    $field_value = $this->randomMachineName(20);
-    $nid = $this->createTextimageNode($field_name, $field_value, 'article');
-    $node = Node::load($nid);
-
-    // Set the textimage formatter - no link.
-    $display = entity_get_display('node', $node->getType(), 'default');
-    $display_options['type'] = 'textimage';
-    $display_options['settings']['image_style'] = 'textimage_test';
-    $display->setComponent($field_name, $display_options)
-      ->save();
-    $this->drupalGet('node/' . $nid);
-
-    // Check token.
-    $node = Node::load($nid);
-    $site_name = \Drupal::configFactory()->get('system.site')->get('name');
-    $bubbleable_metadata = new BubbleableMetadata();
-    $token_resolved = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . '] [site:name]', ['node' => $node], [], $bubbleable_metadata);
-    $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value) . ' ' . $site_name, $token_resolved);
-    $expected_tags = [
-      'config:image.style.textimage_test',
-      'config:system.site',
-      'node:' . $node->id(),
-    ];
-    $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
-
   }
 
 }

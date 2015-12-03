@@ -292,9 +292,9 @@ image.effect.textimage_background:
 
 # Schema for Textimage provided field formatter settings.
 
-field.formatter.settings.textimage:
+field.formatter.settings.textimage_text_field_formatter:
   type: mapping
-  label: 'Image field display format settings'
+  label: 'Textimage text field formatter settings'
   mapping:
     image_link:
       type: string
@@ -302,6 +302,22 @@ field.formatter.settings.textimage:
     image_text_values:
       type: string
       label: 'Multi-value text field'
+    image_style:
+      type: string
+      label: 'Image style'
+    image_alt:
+      type: string
+      label: 'Image alternate text'
+    image_title:
+      type: string
+      label: 'Image title'
+field.formatter.settings.textimage_image_field_formatter:
+  type: mapping
+  label: 'Textimage image field formatter settings'
+  mapping:
+    image_link:
+      type: string
+      label: 'Link image to'
     image_style:
       type: string
       label: 'Image style'

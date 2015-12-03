@@ -144,7 +144,7 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage = $this->textimageFactory->get();
     $textimage
       ->setStyle(ImageStyle::load('textimage_test'))
-      ->sourceImageFile($file)
+      ->setSourceImageFile($file)
       ->setTargetExtension('gif')
       ->process($text_array)
       ->buildImage();
@@ -158,7 +158,7 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage = $this->textimageFactory->get();
     $textimage
       ->setStyle(ImageStyle::load('textimage_test'))
-      ->sourceImageFile($file)
+      ->setSourceImageFile($file)
       ->process($text_array)
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
@@ -184,9 +184,9 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage->buildImage();
     $this->assertTrue(file_exists($uri), 'Load - file exists');
 
-    // Test output of theme textimage_formatter.
+    // Test output of theme textimage_text_formatter.
     $output = array(
-      '#theme' => 'textimage_formatter',
+      '#theme' => 'textimage_text_formatter',
       '#uri' => $textimage->getUri(),
       '#width' => $textimage->getWidth(),
       '#height' => $textimage->getHeight(),

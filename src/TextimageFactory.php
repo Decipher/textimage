@@ -406,7 +406,7 @@ class TextimageFactory {
       // At this point, if Textimage is providing field formatting for the
       // current field, we can proceed accessing the data needed to resolve
       // the token.
-      if ($entity_display_component['type'] == 'textimage') {
+      if ($entity_display_component['type'] == 'textimage_text_field_formatter') {  // @todo it can be image
 
         // Get the image style used for the field formatting.
         $image_style_name = isset($entity_display_component['settings']['image_style']) ? $entity_display_component['settings']['image_style'] : NULL;
@@ -457,10 +457,11 @@ class TextimageFactory {
             $ret = array();
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
+              $item_value = $item->getValue();
               $textimage = $this->get()
                 ->setStyle($image_style)
                 ->setTokenData($data)
-                ->sourceImageFile($item->entity)
+                ->setSourceImageFile($item->entity, $item_value['width'], $item_value['height'])
                 ->setBubbleableMetadata($bubbleable_metadata)
                 ->process(NULL);
               $ret[] = $textimage->$callback_method();

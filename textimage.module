@@ -37,8 +37,8 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
  */
 function textimage_theme() {
   $theme = array(
-    // Format a textimage.
-    'textimage_formatter' => array(
+    // Format a textimage from text.
+    'textimage_text_formatter' => array(
       'variables' => array(
         'uri' => NULL,
         'width' => NULL,
@@ -277,11 +277,11 @@ function _textimage_form_image_style_form_validate($form, FormStateInterface $fo
 }
 
 /**
- * Prepares variables to get a Textimage.
+ * Prepares variables to get a Textimage from text.
  *
- * Default template: textimage-formatter.html.twig.
+ * Default template: textimage-text-formatter.html.twig.
  */
-function template_preprocess_textimage_formatter(&$variables) {
+function template_preprocess_textimage_text_formatter(&$variables) {
   // Render only if the image URI is passed in.
   if ($image_uri = $variables['uri']) {
 
@@ -367,7 +367,7 @@ function template_preprocess_textimage_preview(&$variables) {
     ->process([$variables['textimage_data']['text_string']])
     ->buildImage();
   $variables['textimage_preview'] = array(
-    '#theme' => 'textimage_formatter',
+    '#theme' => 'textimage_text_formatter',
     '#uri' => $textimage->getUri(),
     '#width' => $textimage->getWidth(),
     '#height' => $textimage->getHeight(),

@@ -352,9 +352,13 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function sourceImageFile(FileInterface $source_image_file) {
+  public function setSourceImageFile(FileInterface $source_image_file, $width = NULL, $height = NULL) {
     if ($source_image_file) {
       $this->set('sourceImageFile', $source_image_file);
+    }
+    if ($width && $height) {
+      $this->set('width', $width);
+      $this->set('height', $height);
     }
     return $this;
   }
@@ -420,37 +424,15 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Creates a full file path from a directory and filename.
+   * Sets the bubbleable metadata.
    *
-   * Copied parts of file_create_filename() to avoid file existence check.
+   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   *   A BubbleableMetadata object.
    *
-   * @param string $basename
-   *   String filename
-   * @param string $directory
-   *   String containing the directory or parent URI.
-   *
-   * @return string
-   *   File path consisting of $directory and a unique filename based off
-   *   of $basename.
+   * @return $this
    */
-  protected function createFilename($basename, $directory) {
-    // Strip control characters (ASCII value < 32). Though these are allowed in
-    // some filesystems, not many applications handle them well.
-    $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
-    if (substr(PHP_OS, 0, 3) == 'WIN') {
-      // These characters are not allowed in Windows filenames
-      $basename = str_replace(array(':', '*', '?', '"', '<', '>', '|'), '_', $basename);
-    }
-
-    // A URI or path may already have a trailing slash or look like "public://".
-    if (substr($directory, -1) == '/') {
-      $separator = '';
-    }
-    else {
-      $separator = '/';
-    }
-
-    return $directory . $separator . $basename;
+  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata) {
+    return $this->set('bubbleableMetadata', $bubbleable_metadata);
   }
 
   /**
@@ -524,42 +506,6 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Sets the bubbleable metadata.
-   *
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *   A BubbleableMetadata object.
-   *
-   * @return $this
-   */
-  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata) {
-    return $this->set('bubbleableMetadata', $bubbleable_metadata);
-  }
-
-  /**
-   * Builds an image style from an array of effects.
-   *
-   * The runtime style object does not get saved. It is used to be
-   * passed to ImageStyle::createDerivative() to build an image derivative.
-   *
-   * @param array $effects
-   *   an array of image effects
-   *
-   * @return \Drupal\image\ImageStyleInterface
-   *   an image style object
-   */
-  public function buildStyleFromEffects($effects) {
-    $style = ImageStyle::create(array());
-    foreach ($effects as $effect) {
-      $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
-      $default_config = $effect_instance->defaultConfiguration();
-      $effect['data'] = array_replace_recursive($default_config, $effect['data']);
-      $style->addImageEffect($effect);
-    }
-    $style->getEffects()->sort();
-    return $style;
-  }
-
-  /**
    * Load Textimage metadata from cache.
    *
    * @param string $id
@@ -576,7 +522,20 @@ class Textimage implements ContainerInjectionInterface {
     // Load from the cache.
     $this->id = $id;
     if ($cached_data = $this->getCachedData()) {
-      $this->restoreFromCache($cached_data);
+      $this->set('imageData', $cached_data['imageData']);
+      $this->set('uri', $cached_data['uri']);
+      $this->set('width', $cached_data['width']);
+      $this->set('height', $cached_data['height']);
+      $this->set('effects', $cached_data['effects']);
+      $this->set('text', $cached_data['imageData']['text']);
+      $this->set('extension', $cached_data['imageData']['extension']);
+      if ($cached_data['imageData']['sourceImageFileId']) {
+        $this->set('sourceImageFile', File::load($cached_data['imageData']['sourceImageFileId']));
+      }
+      $this->set('gifTransparentColor', $cached_data['gifTransparentColor']);
+      $this->set('caching', TRUE);
+      $this->set('bubbleableMetadata', $cached_data['bubbleableMetadata']);
+      $this->processed = TRUE;
     }
     else {
       throw new TextimageException("Missing Textimage cache entry {$this->id}");
@@ -659,11 +618,21 @@ class Textimage implements ContainerInjectionInterface {
     }
     $runtime_style = $this->buildStyleFromEffects($xxx_effects);
     if ($this->sourceImageFile) {
-      $source_image = $this->imageFactory->get($this->sourceImageFile->getFileUri()); // @todo avoid if possible
-      $dimensions = [
-        'width' => $source_image->getWidth(),
-        'height' => $source_image->getHeight(),
-      ];
+      if ($this->width && $this->height) {
+        $dimensions = [
+          'width' => $this->width,
+          'height' => $this->height,
+        ];
+      }
+      else {
+        // @todo (core) we need to take dimensions via image system as they are
+        // not available from the file entity, see #1448124.
+        $source_image = $this->imageFactory->get($this->sourceImageFile->getFileUri());
+        $dimensions = [
+          'width' => $source_image->getWidth(),
+          'height' => $source_image->getHeight(),
+        ];
+      }
       $uri = $this->sourceImageFile->getFileUri();
     }
     else {
@@ -839,6 +808,64 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
+   * Builds an image style from an array of effects.
+   *
+   * The runtime style object does not get saved. It is used to be
+   * passed to ImageStyle::createDerivative() to build an image derivative.
+   *
+   * @param array $effects
+   *   an array of image effects
+   *
+   * @return \Drupal\image\ImageStyleInterface
+   *   an image style object
+   */
+  protected function buildStyleFromEffects($effects) {
+    $style = ImageStyle::create(array());
+    foreach ($effects as $effect) {
+      $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
+      $default_config = $effect_instance->defaultConfiguration();
+      $effect['data'] = array_replace_recursive($default_config, $effect['data']);
+      $style->addImageEffect($effect);
+    }
+    $style->getEffects()->sort();
+    return $style;
+  }
+
+  /**
+   * Creates a full file path from a directory and filename.
+   *
+   * Copied parts of file_create_filename() to avoid file existence check.
+   *
+   * @param string $basename
+   *   String filename
+   * @param string $directory
+   *   String containing the directory or parent URI.
+   *
+   * @return string
+   *   File path consisting of $directory and a unique filename based off
+   *   of $basename.
+   */
+  protected function createFilename($basename, $directory) {
+    // Strip control characters (ASCII value < 32). Though these are allowed in
+    // some filesystems, not many applications handle them well.
+    $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
+    if (substr(PHP_OS, 0, 3) == 'WIN') {
+      // These characters are not allowed in Windows filenames
+      $basename = str_replace(array(':', '*', '?', '"', '<', '>', '|'), '_', $basename);
+    }
+
+    // A URI or path may already have a trailing slash or look like "public://".
+    if (substr($directory, -1) == '/') {
+      $separator = '';
+    }
+    else {
+      $separator = '/';
+    }
+
+    return $directory . $separator . $basename;
+  }
+
+  /**
    * Create the derivative image from the Image object.
    *
    * @todo (core) remove if #2359443 gets in
@@ -918,32 +945,6 @@ class Textimage implements ContainerInjectionInterface {
       return $cached->data;
     }
     return FALSE;
-  }
-
-  /**
-   * Restore Textimage object properties from cached data.
-   *
-   * @param array $cached_data
-   *   An array of data from a cache->data array.
-   *
-   * @return $this
-   */
-  protected function restoreFromCache($cached_data) {
-    $this->set('imageData', $cached_data['imageData']);
-    $this->set('uri', $cached_data['uri']);
-    $this->set('width', $cached_data['width']);
-    $this->set('height', $cached_data['height']);
-    $this->set('effects', $cached_data['effects']);
-    $this->set('text', $cached_data['imageData']['text']);
-    $this->set('extension', $cached_data['imageData']['extension']);
-    if ($cached_data['imageData']['sourceImageFileId']) {
-      $this->set('sourceImageFile', File::load($cached_data['imageData']['sourceImageFileId']));
-    }
-    $this->set('gifTransparentColor', $cached_data['gifTransparentColor']);
-    $this->set('caching', TRUE);
-    $this->set('bubbleableMetadata', $cached_data['bubbleableMetadata']);
-    $this->processed = TRUE;
-    return $this;
   }
 
   /**
