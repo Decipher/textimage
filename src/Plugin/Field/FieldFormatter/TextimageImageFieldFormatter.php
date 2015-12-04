@@ -89,7 +89,6 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    */
   public static function defaultSettings() {
     return array(
-      'image_text_values' => 'merge',
       'image_alt' => '',
       'image_title' => '',
     ) + parent::defaultSettings();

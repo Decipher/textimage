@@ -102,22 +102,24 @@ abstract class TextimageTestBase extends WebTestBase {
   /**
    * Create a new field for Textimage formatter.
    *
+   * @param string $type
+   *   The type of the new field.
    * @param $name
    *   The name of the new field (all lowercase), exclude the "field_" prefix.
-   * @param $type_name
+   * @param $bundle
    *   The node type that this field will be added to.
    * @param $storage_settings
    *   A list of field storage settings that will be added to the defaults.
-   * @param $instance_settings
-   *   A list of instance settings that will be added to the instance defaults.
+   * @param $field_settings
+   *   A list of field settings that will be added to the field defaults.
    * @param $widget_settings
    *   A list of widget settings that will be added to the widget defaults.
    */
-  protected function createTextimageField($name, $type_name, $storage_settings = array(), $instance_settings = array(), $widget_settings = array()) {
+  protected function createTextimageField($type, $name, $bundle, $storage_settings = array(), $field_settings = array(), $widget_settings = array()) {
     FieldStorageConfig::create([
       'field_name' => $name,
       'entity_type' => 'node',
-      'type' => 'text',
+      'type' => $type,
       'settings' => $storage_settings,
       'cardinality' => !empty($storage_settings['cardinality']) ? $storage_settings['cardinality'] : 1,
     ])->save();
@@ -126,20 +128,20 @@ abstract class TextimageTestBase extends WebTestBase {
       'field_name' => $name,
       'label' => $name,
       'entity_type' => 'node',
-      'bundle' => $type_name,
-      'required' => !empty($instance_settings['required']),
-      'description' => !empty($instance_settings['description']) ? $instance_settings['description'] : '',
-      'settings' => $instance_settings,
+      'bundle' => $bundle,
+      'required' => !empty($field_settings['required']),
+      'description' => !empty($field_settings['description']) ? $field_settings['description'] : '',
+      'settings' => $field_settings,
     ])->save();
 
-    entity_get_form_display('node', $type_name, 'default')
+    entity_get_form_display('node', $bundle, 'default')
       ->setComponent($name, array(
-        'type' => 'text_textfield',
+        'type' => $type == 'text' ? 'text_textfield' : 'image_image',
         'settings' => $widget_settings,
       ))
       ->save();
 
-    entity_get_display('node', $type_name, 'default')
+    entity_get_display('node', $bundle, 'default')
       ->setComponent($name)
       ->save();
 
@@ -154,22 +156,37 @@ abstract class TextimageTestBase extends WebTestBase {
    *   Name of the field formatted by Textimage.
    * @param $field_value
    *   Value of the field formatted by Textimage.
-   * @param $type
+   * @param $bundle
    *   The type of node to create.
    */
-  protected function createTextimageNode($field_name, $field_value, $type) {
-    if (!is_array($field_value)) {
-      $field_value = array($field_value);
+  protected function createTextimageNode($field_type, $field_name, $field_value, $bundle) {
+    switch ($field_type) {
+      case 'text':
+        if (!is_array($field_value)) {
+          $field_value = array($field_value);
+        }
+        $edit = array(
+          'title[0][value]' => $field_value[0],
+          'body[0][value]' => $field_value[0],
+        );
+        for ($i = 0; $i < count($field_value); $i++) {
+          $index = $field_name . '[' .$i . '][value]';
+          $edit[$index] = $field_value[$i];
+        }
+        $this->drupalPostForm('node/add/' . $bundle, $edit, t('Save'));
+        break;
+
+      case 'image':
+        $edit = array(
+          'title[0][value]' => $this->randomMachineName(),
+        );
+        $edit['files[' . $field_name . '_0]'] = drupal_realpath($field_value->uri);
+        $this->drupalPostForm('node/add/' . $bundle, $edit, t('Save'));
+        // Add alt text.
+        $this->drupalPostForm(NULL, [$field_name . '[0][alt]' => 'test alt text'], t('Save'));
+        break;
+
     }
-    $edit = array(
-      'title[0][value]' => $field_value[0],
-      'body[0][value]' => $field_value[0],
-    );
-    for ($i = 0; $i < count($field_value); $i++) {
-      $index = $field_name . '[' .$i . '][value]';
-      $edit[$index] = $field_value[$i];
-    }
-    $this->drupalPostForm('node/add/' . $type, $edit, t('Save'));
 
     // Retrieve ID of the newly created node from the current URL.
     $matches = array();

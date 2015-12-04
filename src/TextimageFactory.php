@@ -406,7 +406,7 @@ class TextimageFactory {
       // At this point, if Textimage is providing field formatting for the
       // current field, we can proceed accessing the data needed to resolve
       // the token.
-      if ($entity_display_component['type'] == 'textimage_text_field_formatter') {  // @todo it can be image
+      if (in_array($entity_display_component['type'], ['textimage_text_field_formatter', 'textimage_image_field_formatter'])) {
 
         // Get the image style used for the field formatting.
         $image_style_name = isset($entity_display_component['settings']['image_style']) ? $entity_display_component['settings']['image_style'] : NULL;

@@ -16,7 +16,6 @@ Core issues:
 - check background color setting over a passthrogh image ++
 - buildImage fails to convert to specified image format
 - test for token for multi-value text field
-- tests for image formatter
 - remove filtering of textimage only styles
 - Textimage::getUrl to return a url object
 
