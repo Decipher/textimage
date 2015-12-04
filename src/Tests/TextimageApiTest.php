@@ -184,9 +184,9 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage->buildImage();
     $this->assertTrue(file_exists($uri), 'Load - file exists');
 
-    // Test output of theme textimage_text_formatter.
+    // Test output of theme textimage_formatter.
     $output = array(
-      '#theme' => 'textimage_text_formatter',
+      '#theme' => 'textimage_formatter',
       '#uri' => $textimage->getUri(),
       '#width' => $textimage->getWidth(),
       '#height' => $textimage->getHeight(),

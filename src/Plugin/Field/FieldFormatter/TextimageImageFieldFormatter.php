@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\textimage\Plugin\Field\FieldFormatter\TextimageTextFieldFormatter.
+ * Contains \Drupal\textimage\Plugin\Field\FieldFormatter\TextimageImageFieldFormatter.
  */
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
@@ -10,39 +10,27 @@ namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
+use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Plugin implementation of the Textimage text field formatter.
+ * Plugin implementation of the Textimage image field formatter.
  *
  * @FieldFormatter(
- *   id = "textimage_text_field_formatter",
+ *   id = "textimage_image_field_formatter",
  *   label = @Translation("Textimage"),
  *   field_types = {
- *     "string",
- *     "string_long",
- *     "text",
- *     "text_with_summary",
- *     "text_long"
+ *     "image"
  *   }
  * )
  */
-class TextimageTextFieldFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
-
-  /**
-   * The current user.
-   *
-   * @var \Drupal\Core\Session\AccountInterface
-   */
-  protected $currentUser;
+class TextimageImageFieldFormatter extends ImageFormatter {
 
   /**
    * The Textimage factory service.
@@ -52,14 +40,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   protected $textimageFactory;
 
   /**
-   * The image style entity storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $imageStyleStorage;
-
-  /**
-   * Constructs an TextimageTextFieldFormatter object.
+   * Constructs an TextimageImageFieldFormatter object.
    *
    * @param string $plugin_id
    *   The plugin_id for the formatter.
@@ -80,11 +61,9 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    * @param \Drupal\Core\Entity\EntityStorageInterface $image_style_storage
    *   The image style entity storage.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, TextimageFactory $textimage_factory, EntityStorageInterface $image_style_storage) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
-    $this->currentUser = $current_user;
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, EntityStorageInterface $image_style_storage, TextimageFactory $textimage_factory) {
+    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage);
     $this->textimageFactory = $textimage_factory;
-    $this->imageStyleStorage = $image_style_storage;
   }
 
   /**
@@ -100,8 +79,8 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       $configuration['view_mode'],
       $configuration['third_party_settings'],
       $container->get('current_user'),
-      $container->get('textimage.factory'),
-      $container->get('entity.manager')->getStorage('image_style')
+      $container->get('entity.manager')->getStorage('image_style'),
+      $container->get('textimage.factory')
     );
   }
 
@@ -110,9 +89,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    */
   public static function defaultSettings() {
     return array(
-      'image_style' => '',
       'image_text_values' => 'merge',
-      'image_link' => '',
       'image_alt' => '',
       'image_title' => '',
     ) + parent::defaultSettings();
@@ -143,26 +120,11 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       ],
     ];
 
-    // Multi-value text field image generation settings.
-    if (in_array($this->fieldDefinition->getFieldStorageDefinition()->getTypeProvider(), ['core', 'text']) && $this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
-      $options = array(
-        'merge' => $this->t("Build one single image, styling together text values."),
-        'itemize' => $this->t("Build multiple images, styling each text value in a separate image."),
-      );
-      $element['image_text_values'] = array(
-        '#title' => $this->t('Multiple values text field'),
-        '#type' => 'radios',
-        '#default_value' => $this->getSetting('image_text_values'),
-        '#options' => $options,
-        '#required' => TRUE,
-        '#description' => $this->t("Text values are styled following the sequence of 'Textimage text' effects in the image style."),
-      );
-    }
-
     // Link setting.
     $link_types = array(
       'content' => $this->t('Content'),
-      'file' => $this->t('Styled image'),
+      'file' => $this->t('Original image'),
+      'derivative' => $this->t('Styled image'),
     );
     $element['image_link'] = array(
       '#title' => $this->t('Link image to'),
@@ -220,19 +182,11 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       $summary[] = $this->t('Image style: undefined');
     }
 
-    // Multi-value text field image generation settings.
-    if (in_array($this->fieldDefinition->getFieldStorageDefinition()->getTypeProvider(), ['core', 'text']) && $this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
-      $options = array(
-        'merge' => $this->t("Build one image"),
-        'itemize' => $this->t("Build multiple images"),
-      );
-      $summary[] = $this->t('Multiple text values:') . ' ' . $options[$this->getSetting('image_text_values')];
-    }
-
     // Display link setting only if image is linked.
     $link_types = array(
       'content' => $this->t('Linked to content'),
-      'file' => $this->t('Linked to styled image'),
+      'file' => $this->t('Linked to original image'),
+      'derivative' => $this->t('Linked to styled image'),
     );
     if (isset($link_types[$this->getSetting('image_link')])) {
       $summary[] = $link_types[$this->getSetting('image_link')];
@@ -255,7 +209,12 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    // @todo langcode should be used to get the translated text via $this->getEntitiesToView($items, $langcode)
+    $files = $this->getEntitiesToView($items, $langcode);
+
+    // Early opt-out if the field is empty.
+    if (empty($files)) {
+      return $elements;
+    }
 
     // Get image style.
     $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
@@ -267,9 +226,6 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     $instance = $items->getFieldDefinition();
     $field = $instance->getFieldStorageDefinition();
     $token_data = [$instance->getTargetEntityTypeId() => $items->getEntity()];
-
-    // Get sanitized text strings from the text field.
-    $text = $this->textimageFactory->getTextFieldText($items);
 
     // Get alt and title text from the formatter settings, and resolve tokens.
     if ($image_alt = $this->getSetting('image_alt')) {
@@ -283,63 +239,44 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->urlInfo() : NULL;
 
     $elements = [];
-    if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {
-      // Build separate image for each text value.
-      foreach ($text as $text_value) {
-        $textimage = $this->textimageFactory->get()
-          ->setStyle($image_style)
-          ->setTokenData($token_data)
-          ->setBubbleableMetadata($bubbleable_metadata)
-          ->process($text_value);
-
-        // Check if the formatter involves a link to the derived image.
-        if (!$entity_url && $this->getSetting('image_link') == 'file') {
-          $url = $textimage->getUrl();
-        }
-        else {
-          $url = NULL;
-        }
-
-        $element = [
-          '#theme' => 'textimage_formatter',
-          '#uri' => $textimage->getUri(),
-          '#width' => $textimage->getWidth(),
-          '#height' => $textimage->getHeight(),
-          '#alt' => $image_alt,
-          '#title' => $image_title,
-          '#anchor_url' => $entity_url ?: $url,
-        ];
-        $bubbleable_metadata->applyTo($element);
-        $elements[] = $element;
-      }
-    }
-    else {
-      // Build single image with all text values.
+    foreach ($files as $delta => $file) {
       $textimage = $this->textimageFactory->get()
         ->setStyle($image_style)
+        ->setSourceImageFile($file)
         ->setTokenData($token_data)
         ->setBubbleableMetadata($bubbleable_metadata)
-        ->process($text);
+        ->process(NULL);
 
-      // Check if the formatter involves a link to the derived image.
-      if (!$entity_url && $this->getSetting('image_link') == 'file') {
-        $url = $textimage->getUrl();
-      }
-      else {
-        $url = NULL;
+      // Check if the formatter involves a link to the original or derived
+      // image.
+      if (!$entity_url) {
+        switch ($this->getSetting('image_link')) {
+          case 'file':
+            $url = Url::fromUri(file_create_url($file->getFileUri()));
+            break;
+
+          case 'derivative':
+            $url = $textimage->getUrl();
+            break;
+
+          default:
+            $url = NULL;
+            break;
+
+        }
       }
 
-      $element = [
+      $elements[$delta] = array(
         '#theme' => 'textimage_formatter',
+        '#item' => $file->_referringItem,
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
         '#alt' => $image_alt,
         '#title' => $image_title,
         '#anchor_url' => $entity_url ?: $url,
-      ];
-      $bubbleable_metadata->applyTo($element);
-      $elements[] = $element;
+      );
+      $bubbleable_metadata->applyTo($elements[$delta]);
     }
 
     return $elements;

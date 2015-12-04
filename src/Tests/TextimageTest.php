@@ -27,7 +27,7 @@ class TextimageTest extends TextimageTestBase {
     $private_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('private')->getDirectoryPath();
 
     // Generate a few derivatives and render images via theme
-    // 'textimage_text_formatter'.
+    // 'textimage_formatter'.
     $input = [
       [
         'text' => ['preview text image'],
@@ -57,7 +57,7 @@ class TextimageTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $element = array(
-        '#theme' => 'textimage_text_formatter',
+        '#theme' => 'textimage_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
@@ -104,7 +104,7 @@ class TextimageTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $element = array(
-        '#theme' => 'textimage_text_formatter',
+        '#theme' => 'textimage_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
