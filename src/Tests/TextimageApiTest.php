@@ -198,7 +198,7 @@ class TextimageApiTest extends TextimageTestBase {
     );
     $this->setRawContent($this->renderer->renderRoot($output));
     $this->verbose($this->getRawContent());
-    $url = $textimage->getUrl();
+    $url = $textimage->getUrl()->toString();
     $elements = $this->cssSelect("a[href='$url'] div.textimage-container-test img[src='$url']");
     $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');
 

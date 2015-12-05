@@ -43,7 +43,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTokenData(['node' => $node])
       ->process($field_value)
-      ->getUrl();
+      ->getUrl()->toString();
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -131,7 +131,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTokenData(['node' => $node])
       ->process($field_value)
-      ->getUrl();
+      ->getUrl()->toString();
     $display = entity_get_display('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
@@ -160,7 +160,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->setTokenData(['node' => $node])
         ->process($field_value[$i])
-        ->getUrl();
+        ->getUrl()->toString();
       $this->assertEqual($textimage_url, $elements[$i]['src']->__toString());
       $this->assertEqual('Alternate text: ' . $field_value[0], $elements[$i]['alt']->__toString());
       $this->assertEqual('Title: ' . $field_value[0], $elements[$i]['title']->__toString());
@@ -201,7 +201,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL)
-      ->getUrl();
+      ->getUrl()->toString();
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');

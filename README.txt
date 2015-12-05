@@ -17,7 +17,6 @@ Core issues:
 - buildImage fails to convert to specified image format
 - test for token for multi-value text field
 - remove filtering of textimage only styles
-- Textimage::getUrl to return a url object
 
 -------------------------------------------------------------------------------
 

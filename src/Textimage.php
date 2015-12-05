@@ -18,6 +18,7 @@ use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 use Drupal\file\Entity\File;
@@ -468,11 +469,11 @@ class Textimage implements ContainerInjectionInterface {
   /**
    * Returns the URL of the Textimage.
    *
-   * @return string
-   *   An URL.
+   * @return \Drupal\Core\Url
+   *   The Url object for the textimage.
    */
   public function getUrl() {
-    return $this->processed ? file_create_url($this->getUri()) : NULL;
+    return $this->processed ? Url::fromUri(file_create_url($this->getUri())) : NULL;
   }
 
   /**
