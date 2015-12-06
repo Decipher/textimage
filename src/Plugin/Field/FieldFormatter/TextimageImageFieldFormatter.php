@@ -239,11 +239,10 @@ class TextimageImageFieldFormatter extends ImageFormatter {
 
     $elements = [];
     foreach ($files as $delta => $file) {
-      $textimage = $this->textimageFactory->get()
+      $textimage = $this->textimageFactory->get($bubbleable_metadata)
         ->setStyle($image_style)
         ->setSourceImageFile($file)
         ->setTokenData($token_data)
-        ->setBubbleableMetadata($bubbleable_metadata)
         ->process(NULL);
 
       // Check if the formatter involves a link to the original or derived

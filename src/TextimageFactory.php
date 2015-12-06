@@ -106,11 +106,16 @@ class TextimageFactory {
   /**
    * Gets a Textimage object.
    *
+   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   *   A BubbleableMetadata object.
+   *
    * @return \Drupal\textimage\Textimage
    *   A new Textimage object.
    */
-  public function get() {
-    return Textimage::create(\Drupal::getContainer());
+  public function get(BubbleableMetadata $bubbleable_metadata = NULL) {
+    $textimage = Textimage::create(\Drupal::getContainer());
+    $textimage->setBubbleableMetadata($bubbleable_metadata);
+    return $textimage;
   }
 
   /**
@@ -423,10 +428,9 @@ class TextimageFactory {
           // Text field. Get sanitized text items and return a single image.
           $text = $this->getTextFieldText($items);
           try {
-            $textimage = $this->get()
+            $textimage = $this->get($bubbleable_metadata)
               ->setStyle($image_style)
               ->setTokenData($data)
-              ->setBubbleableMetadata($bubbleable_metadata)
               ->process($text);
             $replacements[$original] = $textimage->$callback_method();
           }
@@ -458,11 +462,10 @@ class TextimageFactory {
             foreach ($items as $delta => $item) {
               // Get source image from the image field item.
               $item_value = $item->getValue();
-              $textimage = $this->get()
+              $textimage = $this->get($bubbleable_metadata)
                 ->setStyle($image_style)
                 ->setTokenData($data)
                 ->setSourceImageFile($item->entity, $item_value['width'], $item_value['height'])
-                ->setBubbleableMetadata($bubbleable_metadata)
                 ->process(NULL);
               $ret[] = $textimage->$callback_method();
             }

@@ -286,10 +286,9 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {
       // Build separate image for each text value.
       foreach ($text as $text_value) {
-        $textimage = $this->textimageFactory->get()
+        $textimage = $this->textimageFactory->get($bubbleable_metadata)
           ->setStyle($image_style)
           ->setTokenData($token_data)
-          ->setBubbleableMetadata($bubbleable_metadata)
           ->process($text_value);
 
         // Check if the formatter involves a link to the derived image.
@@ -315,10 +314,9 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     }
     else {
       // Build single image with all text values.
-      $textimage = $this->textimageFactory->get()
+      $textimage = $this->textimageFactory->get($bubbleable_metadata)
         ->setStyle($image_style)
         ->setTokenData($token_data)
-        ->setBubbleableMetadata($bubbleable_metadata)
         ->process($text);
 
       // Check if the formatter involves a link to the derived image.

@@ -432,8 +432,12 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata) {
-    return $this->set('bubbleableMetadata', $bubbleable_metadata);
+  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL) {
+    if ($this->bubbleableMetadata) {
+      throw new TextimageException("Bubbleable metadata already set");
+    }
+    $bubbleable_metadata = $bubbleable_metadata ?: new BubbleableMetadata();
+    return $this->set('bubbleableMetadata', $bubbleable_metadata );
   }
 
   /**
@@ -565,9 +569,6 @@ class Textimage implements ContainerInjectionInterface {
     }
 
     // Collect bubbleable metadata.
-    if (!$this->bubbleableMetadata) {
-      $this->bubbleableMetadata = new BubbleableMetadata();
-    }
     if ($this->style) {
       $this->bubbleableMetadata = $this->bubbleableMetadata->addCacheableDependency($this->style);
     }
@@ -954,12 +955,6 @@ class Textimage implements ContainerInjectionInterface {
    * @return $this
    */
   protected function setCached() {
-    if (isset($this->style) && $this->style->id()) {
-      $tags = $this->style->getCacheTags();
-    }
-    else {
-      $tags = [];
-    }
     $data = [
       'imageData' => $this->imageData,
       'uri' => $this->getUri(),
@@ -969,7 +964,7 @@ class Textimage implements ContainerInjectionInterface {
       'gifTransparentColor' => $this->gifTransparentColor,
       'bubbleableMetadata' => $this->getBubbleableMetadata(),
     ];
-    $this->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $tags);
+    $this->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $this->getBubbleableMetadata()->getCacheTags());
     return $this;
   }
 
