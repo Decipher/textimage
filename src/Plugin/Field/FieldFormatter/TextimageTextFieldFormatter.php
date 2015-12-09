@@ -124,7 +124,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   public function settingsForm(array $form, FormStateInterface $form_state) {
 
     // Image style setting.
-    $image_styles = $this->textimageFactory->getTextimageStyleOptions();
+    $image_styles = $this->textimageFactory->getTextimageStyleOptions(TRUE);
     if (empty($image_styles)) {
       $image_styles[''] = $this->t('No Textimage style available');
     }
@@ -144,7 +144,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     ];
 
     // Multi-value text field image generation settings.
-    if (in_array($this->fieldDefinition->getFieldStorageDefinition()->getTypeProvider(), ['core', 'text']) && $this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
+    if ($this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
       $options = array(
         'merge' => $this->t("Build one single image, styling together text values."),
         'itemize' => $this->t("Build multiple images, styling each text value in a separate image."),
@@ -221,7 +221,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     }
 
     // Multi-value text field image generation settings.
-    if (in_array($this->fieldDefinition->getFieldStorageDefinition()->getTypeProvider(), ['core', 'text']) && $this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
+    if ($this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
       $options = array(
         'merge' => $this->t("Build one image"),
         'itemize' => $this->t("Build multiple images"),
@@ -255,8 +255,6 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    // @todo langcode should be used to get the translated text via $this->getEntitiesToView($items, $langcode)
-
     // Get image style.
     $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
 

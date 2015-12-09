@@ -173,7 +173,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Default image file extension'),
       '#default_value' => $config->get('default_extension'),
       '#required' => TRUE,
-      '#description' => $this->t('Select the default extension of the image files produced by Textimage. This can be overridden by image style effects that specifiy a format conversion like e.g. <em>Convert</em> or <em>Textimage Background</em>. This setting does not affect image derivatives created by the Image module.'),
+      '#description' => $this->t('Select the default extension of the image files produced by Textimage. This can be overridden by image style effects that specify a format conversion like e.g. <em>Convert</em> or <em>Textimage Background</em>. This setting does not affect image derivatives created by the Image module.'),
     );
 
     $ajax_settings = ['callback' => [$this, 'processAjax']];
@@ -271,7 +271,7 @@ class SettingsForm extends ConfigFormBase {
       )),
     );
     $form['settings']['maintenance']['flush_all_label'] = [
-      '#markup' => $this->t('Remove all image files generated via Textimage, flush all the Textimage image styles, and clear all image entries cached.') . '<br/>',
+      '#markup' => $this->t('Remove all image files generated via Textimage, flush all the image styles, and clear the Textimage cache.') . '<br/>',
     ];
     $form['settings']['maintenance']['flush_all'] = array(
       '#type' => 'submit',

@@ -53,11 +53,11 @@ class Textimage implements ContainerInjectionInterface {
   protected $imageFactory;
 
   /**
-   * The configuration object.
+   * The configuration factory.
    *
-   * @var \Drupal\Core\Config\Config
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
-  protected $config;
+  protected $configFactory;
 
   /**
    * The textimage cache service.
@@ -231,7 +231,7 @@ class Textimage implements ContainerInjectionInterface {
     $this->factory = $textimage_factory;
     $this->lock = $lock_service;
     $this->imageFactory = $image_factory;
-    $this->config = $config_factory->get('textimage.settings');
+    $this->configFactory = $config_factory;
     $this->logger = $logger;
     $this->cache = $cache_service;
     $this->fileSystem = $file_system;
@@ -291,11 +291,9 @@ class Textimage implements ContainerInjectionInterface {
     if ($this->style) {
       throw new TextimageException("Image style already set");
     }
-    if ($this->factory->isTextimage($image_style)) {
-      $this->set('style', $image_style);
-      $effects = @$this->style->getEffects()->getConfiguration();
-      $this->setEffects($effects);
-    }
+    $this->set('style', $image_style);
+    $effects = @$this->style->getEffects()->getConfiguration();
+    $this->setEffects($effects);
     return $this;
   }
 
@@ -608,10 +606,6 @@ class Textimage implements ContainerInjectionInterface {
       }
     }
     $this->text = $processed_text;
-    if(empty($this->text)) {
-      $this->logger->error('Textimage had no text to process.');
-      return $this;
-    }
 
     // Set the output image file extension, and find derivative dimensions.
     $xxx_effects = $this->effects;  // @todo review variable name
@@ -654,7 +648,7 @@ class Textimage implements ContainerInjectionInterface {
         $extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
       }
       else {
-        $extension = $this->config->get('default_extension');
+        $extension = $this->configFactory->get('textimage.settings')->get('default_extension');
       }
       $this->setTargetExtension($runtime_style->getDerivativeExtension($extension));
     }
@@ -883,6 +877,7 @@ class Textimage implements ContainerInjectionInterface {
     }
 
     if (!$image->isValid()) {
+      $this->logger->error('Invalid image %image.', ['%image' => $image->getSource() ?: '-new-' ]);
       return FALSE;
     }
 
@@ -922,7 +917,7 @@ class Textimage implements ContainerInjectionInterface {
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
-        $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme');
+        $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme'));
         $this->set('uri', $this->factory->getStorePath('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
       }
       else {

@@ -24,7 +24,6 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
       $output = '<p>';
       $output .= t('Textimage provides image effects to generate images with overlaid text. ');
       $output .= t('Use <a href="@image">Image styles</a> features to create Image styles. ', array('@image' => \Drupal::url('entity.image_style.collection')));
-      $output .= t('Adding Textimage effects to a style will identify it as relevant for Textimage. ');
       $output .= t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
       $output .= '</p>';
       return $output;
@@ -181,10 +180,7 @@ function textimage_tokens($type, $tokens, array $data, array $options, Bubbleabl
  */
 function textimage_image_style_flush($style) {
   // Manage the textimage part of image style flushing.
-  $factory = \Drupal::service('textimage.factory');
-  if ($factory->isTextimage($style)) {
-    $factory->flushStyle($style);
-  }
+  \Drupal::service('textimage.factory')->flushStyle($style);
 }
 
 /**
@@ -193,49 +189,9 @@ function textimage_image_style_flush($style) {
  * Deals with Textimage third party settings.
  */
 function textimage_image_style_presave(ImageStyleInterface $style) {
-  $factory = \Drupal::service('textimage.factory');
-  $original_relevant = $factory->isTextimage($style);
-
-  // Check if there are Textimage effects.
-  $relevant = FALSE;
-  foreach ($style->getEffects() as $effect) {
-    $definition = $effect->getPluginDefinition();
-    if ($definition['provider'] == 'textimage') {
-      $relevant = TRUE;
-      break;
-    }
-  }
-
-  if ($relevant) {
-    // If Textimage TPSs are not yet set, set defaults.
-    if (!in_array('textimage', $style->getThirdPartyProviders())) {
-      $style->setThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('system.file')->get('default_scheme'));
-    }
-  }
-  else {
-    // Flush Textimage if original was relevant but no longer.
-    if ($original_relevant) {
-      $factory->flushStyle($style);
-    }
-    // Remove the third party settings.
-    foreach ($style->getThirdPartySettings('textimage') as $key => $value) {
-      $style->unsetThirdPartySetting('textimage', $key);
-    }
-    // Re-run dependencies calculation to ensure Textimage dependency is
-    // removed.
-    $style->calculateDependencies();
-  }
-}
-
-/**
- * Implements hook_image_style_predelete().
- */
-function textimage_image_style_predelete(ImageStyleInterface $style) {
-  // Manage the textimage part of image style deletion.
-  // @todo is this needed? shouldn't the image style run flush already?
-  $factory = \Drupal::service('textimage.factory');
-  if ($factory->isTextimage($style)) {
-    $factory->flushStyle($style);
+  // If Textimage TPSs are not yet set, set defaults.
+  if (!in_array('textimage', $style->getThirdPartyProviders())) {
+    $style->setThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('system.file')->get('default_scheme'));
   }
 }
 
@@ -246,27 +202,25 @@ function textimage_image_style_predelete(ImageStyleInterface $style) {
  */
 function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $image_style = $form_state->getFormObject()->getEntity();
-  if (\Drupal::service('textimage.factory')->isTextimage($image_style)) {
-    $form['textimage_options'] = array(
-      '#type' => 'details',
-      '#weight' => 10,
-      '#tree' => TRUE,
-      '#open' => FALSE,
-      '#title' => t('Textimage options'),
-      '#description' => t('Define Textimage options specific for this image style.'),
-    );
-    // Define file storage wrapper used for the style images.
-    $scheme_options = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::WRITE_VISIBLE);
-    $form['textimage_options']['uri_scheme'] = array(
-      '#type' => 'radios',
-      '#options' => $scheme_options,
-      '#title' => t('Image destination'),
-      '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
-      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme'),
-    );
-    // Adds a validate handler to deal with textimage options.
-    $form['#validate'][] = '_textimage_form_image_style_form_validate';
-  }
+  $form['textimage_options'] = array(
+    '#type' => 'details',
+    '#weight' => 10,
+    '#tree' => TRUE,
+    '#open' => FALSE,
+    '#title' => t('Textimage options'),
+    '#description' => t('Define Textimage options specific for this image style.'),
+  );
+  // Define file storage wrapper used for the style images.
+  $scheme_options = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::WRITE_VISIBLE);
+  $form['textimage_options']['uri_scheme'] = array(
+    '#type' => 'radios',
+    '#options' => $scheme_options,
+    '#title' => t('Image destination'),
+    '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
+    '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('system.file')->get('default_scheme')),
+  );
+  // Adds a validate handler to deal with textimage options.
+  $form['#validate'][] = '_textimage_form_image_style_form_validate';
 }
 
 /**

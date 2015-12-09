@@ -222,21 +222,36 @@ class TextimageFactory {
    *   TRUE if style is Textimage relevant, otherwise FALSE
    */
   public function isTextimage(ImageStyleInterface $image_style) {
-    $dependencies = $image_style->getDependencies();
-    return isset($dependencies['module']) ? in_array('textimage', $dependencies['module']) : FALSE;
+    foreach ($image_style->getEffects() as $effect) {
+      $definition = $effect->getPluginDefinition();
+      if ($definition['provider'] == 'textimage') {
+        return TRUE;
+        break;
+
+      }
+    }
+    return FALSE;
   }
 
   /**
    * Gets an array of Textimage image styles suitable for select list options.
    *
+   * @param bool $limit_to_textimage
+   *   (optional) TRUE to limit styles to only those with Textimage effects.
+   *
    * @return
    *   Array of image styles both key and value are set to style name.
    */
-  public function getTextimageStyleOptions() {
+  public function getTextimageStyleOptions($limit_to_textimage = FALSE) {
     $image_styles = ImageStyle::loadMultiple();
-    $options = array();
+    $options = [];
     foreach ($image_styles as $name => $image_style) {
-      if ($this->isTextimage($image_style)) {
+      if ($limit_to_textimage) {
+        if ($this->isTextimage($image_style)) {
+          $options[$name] = $image_style->label();
+        }
+      }
+      else {
         $options[$name] = $image_style->label();
       }
     }
@@ -249,7 +264,7 @@ class TextimageFactory {
    * Clears immediate cache and all the image files associated.
    *
    * @param array $style
-   *   the style being flushed
+   *   The style being flushed.
    */
   public function flushStyle($style) {
     // Clear hashed filename images.
@@ -276,9 +291,7 @@ class TextimageFactory {
     // tags.
     $styles = ImageStyle::loadMultiple();
     foreach ($styles as $style) {
-      if ($this->isTextimage($style)) {
-        $style->flush();
-      }
+      $style->flush();
     }
     // Clear whatever directory structure remains, checking in all available
     // schemes.
@@ -426,7 +439,7 @@ class TextimageFactory {
         // Invoke Textimage API functions to return the token value requested.
         if ($field_info->getFieldStorageDefinition()->getTypeProvider() == 'text') {
           // Text field. Get sanitized text items and return a single image.
-          $text = $this->getTextFieldText($items);
+          $text = $this->getTextFieldText($items); // @todo langcode???
           try {
             $textimage = $this->get($bubbleable_metadata)
               ->setStyle($image_style)

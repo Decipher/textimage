@@ -41,7 +41,7 @@ class TextimageSetGifTransparentColor extends GDTextimageOperationBase  {
   protected function validateArguments(array $arguments) {
     // Assure transparent color is a valid hex string.
     if ($arguments['transparent_color'] && !Color::validateHex($arguments['transparent_color'])) {
-      $transparent_color = $arguments['transparent_color']
+      $transparent_color = $arguments['transparent_color'];
       throw new \InvalidArgumentException("Invalid transparent color ({$transparent_color}) specified for the image 'textimage_set_gif_transparent_color' operation");
     }
 

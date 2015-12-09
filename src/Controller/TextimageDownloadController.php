@@ -43,11 +43,11 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   protected $imageFactory;
 
   /**
-   * The configuration object.
+   * The configuration factory.
    *
-   * @var \Drupal\Core\Config\Config
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
-  protected $config;
+  protected $configFactory;
 
   /**
    * The Textimage logger.
@@ -65,7 +65,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger) {
     $this->textimageFactory = $textimage_factory;
     $this->imageFactory = $image_factory;
-    $this->config = $config_factory->get('textimage.settings');
+    $this->configFactory = $config_factory;
     $this->logger = $logger;
   }
 
@@ -102,7 +102,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    */
   public function urlDeliver(Request $request, ImageStyleInterface $image_style) {
     // Check if the URL generation is enabled.
-    if (!$this->config->get('url_generation.enabled')) {
+    if (!$this->configFactory->get('textimage.settings')->get('url_generation.enabled')) {
       throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
     }
 
@@ -113,13 +113,13 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     if (!$this->textimageFactory->isTextimage($image_style)) {
       throw new NotFoundHttpException('The image style requested is not relevant for Textimage');
     }
-    if ($image_style->getThirdPartySetting('textimage', 'uri_scheme') !== 'public') {
+    if ($image_style->getThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme')) !== 'public') {
       throw new AccessDeniedHttpException('The image style requested is not set to produce image files for the \'public\' file scheme');
     }
 
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
     $text_string = $request->query->get('text');
-    $text = explode($this->config->get('url_generation.text_separator'), $text_string);
+    $text = explode($this->configFactory->get('textimage.settings')->get('url_generation.text_separator'), $text_string);
 
     // Manage the [extension].
     $last_text = array_pop($text);

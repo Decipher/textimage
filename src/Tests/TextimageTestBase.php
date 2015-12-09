@@ -90,13 +90,6 @@ abstract class TextimageTestBase extends WebTestBase {
         $this->drupalPostForm(NULL, $edit, t('Add effect'));
       }
     }
-
-    // Set image storage to 'public' wrapper.
-    $edit = array(
-      'textimage_options[uri_scheme]' => 'public',
-    );
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
-
   }
 
   /**
