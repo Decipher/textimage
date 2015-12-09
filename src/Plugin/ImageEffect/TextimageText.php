@@ -813,9 +813,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $this->info['image_width'] = $image_width - $this->info['wrapper_xpos'];
       $this->info['image_xpos'] = -$this->info['wrapper_xpos'];
       $this->info['wrapper_xpos'] = 0;
-      if (isset($frame)) {
-        $this->info['frame_left'] = $this->info['image_width'] - $image_width;
-      }
+      $this->info['frame_left'] = $this->info['image_width'] - $image_width;
       $resized = TRUE;
     }
 
@@ -825,9 +823,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       $this->info['image_height'] = $image_height - $this->info['wrapper_ypos'];
       $this->info['image_ypos'] = -$this->info['wrapper_ypos'];
       $this->info['wrapper_ypos'] = 0;
-      if (isset($frame)) {
-        $this->info['frame_top'] = $this->info['image_height'] - $image_height;
-      }
+      $this->info['frame_top'] = $this->info['image_height'] - $image_height;
       $resized = TRUE;
     }
 
@@ -836,9 +832,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     if (($this->info['wrapper_xpos'] + $wrapper_width) > $this->info['image_width']) {
       $tmp = $this->info['image_width'];
       $this->info['image_width'] = $this->info['wrapper_xpos'] + $wrapper_width;
-      if (isset($frame)) {
-        $this->info['frame_right'] = $this->info['image_width'] - $tmp;
-      }
+      $this->info['frame_right'] = $this->info['image_width'] - $tmp;
       $resized = TRUE;
     }
 
@@ -847,9 +841,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     if (($this->info['wrapper_ypos'] + $wrapper_height) > $this->info['image_height']) {
       $tmp = $this->info['image_height'];
       $this->info['image_height'] = $this->info['wrapper_ypos'] + $wrapper_height;
-      if (isset($frame)) {
-        $this->info['frame_bottom'] = $this->info['image_height'] - $tmp;
-      }
+      $this->info['frame_bottom'] = $this->info['image_height'] - $tmp;
       $resized = TRUE;
     }
 

@@ -13,7 +13,8 @@ Core issues:
 ======
 - #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
-- check background color setting over a passthrogh image ++
+- check background color setting over a passthrogh image ++ OK now but no image has draw line in
+- implement textimage_set_gif_transparent_color for imagemagick
 - test for token for multi-value text field
 - add original image option for image field formatter
 
