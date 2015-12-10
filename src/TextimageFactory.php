@@ -338,7 +338,7 @@ class TextimageFactory {
    */
   public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata) {
 
-    $node = isset($data['node']) ?  $data['node'] : NULL;
+    $node = isset($data['node']) ?  $data['node'] : NULL; // @todo not only node
 
     // Need to avoid endless loops, that would occur if there are
     // circular references in the tokens. Set static variables for
@@ -401,7 +401,7 @@ class TextimageFactory {
       $field_stack[$nesting_level] = $field_name;
 
       // Get requested display mode, default to 'default'.
-      $display_mode = isset($sub_token_array[1]) ? $sub_token_array[1] : 'default';
+      $display_mode = isset($sub_token_array[1]) ? ($sub_token_array[1] ?: 'default') : 'default';
 
       // Get requested sequence, default to NULL.
       $index = isset($sub_token_array[2]) ? $sub_token_array[2] : NULL;
@@ -437,33 +437,75 @@ class TextimageFactory {
         $items = $node->get($field_name);
 
         // Invoke Textimage API functions to return the token value requested.
-        if ($field_info->getFieldStorageDefinition()->getTypeProvider() == 'text') {
-          // Text field. Get sanitized text items and return a single image.
-          $text = $this->getTextFieldText($items); // @todo langcode???
-          try {
-            $textimage = $this->get($bubbleable_metadata)
-              ->setStyle($image_style)
-              ->setTokenData($data)
-              ->process($text);
-            $replacements[$original] = $textimage->$callback_method();
-          }
-          catch (TextimageTokenException $e) {
-            // Callback ended up in circular loop, mark the failing token.
-            $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
-            if ($nesting_level > 0) {
-              // Returns up in the nesting of iteration with the failing token.
-              $this->rollbackStack($nesting_level, $field_stack);
-              throw new TextimageTokenException($e->getToken());
+        if (in_array($field_info->getFieldStorageDefinition()->getTypeProvider(), ['text', 'core'])) {
+          $text = $this->getTextFieldText($items);
+          if ($field_info->getFieldStorageDefinition()->getCardinality() != 1 && $entity_display_component['settings']['image_text_values'] == 'itemize') {
+            // Build separate image for each text value.
+            try {
+              $ret = [];
+              foreach ($text as $text_value) {
+                $textimage = $this->get($bubbleable_metadata)
+                  ->setStyle($image_style)
+                  ->setTokenData($data)
+                  ->process($text_value);
+                $ret[] = $textimage->$callback_method();
+              }
+              // Return a single URI/URL if requested, or a comma separated
+              // list of all the URIs/URLs generated.
+              if (!is_null($index) && isset($ret[$index])) {
+                $replacements[$original] = $ret[$index];
+              }
+              else {
+                $replacements[$original] = implode(',', $ret);
+              }
             }
-            else {
-              // Inform about the token failure.
-              $this->logger->warning(
-                'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
-                [
-                  '@token' => $original,
-                  '@node_title' => $node->getTitle(),
-                ]
-              );
+            catch (TextimageTokenException $e) {
+              // Callback ended up in circular loop, mark the failing token.
+              $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
+              if ($nesting_level > 0) {
+                // Returns up in the nesting of iteration with the failing token.
+                $this->rollbackStack($nesting_level, $field_stack);
+                throw new TextimageTokenException($e->getToken());
+              }
+              else {
+                // Inform about the token failure.
+                $this->logger->warning(
+                  'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
+                  [
+                    '@token' => $original,
+                    '@node_title' => $node->getTitle(),
+                  ]
+                );
+              }
+            }
+          }
+          else {
+            // Build single image with all text values.
+            try {
+              $textimage = $this->get($bubbleable_metadata)
+                ->setStyle($image_style)
+                ->setTokenData($data)
+                ->process($text);
+              $replacements[$original] = $textimage->$callback_method();
+            }
+            catch (TextimageTokenException $e) {
+              // Callback ended up in circular loop, mark the failing token.
+              $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
+              if ($nesting_level > 0) {
+                // Returns up in the nesting of iteration with the failing token.
+                $this->rollbackStack($nesting_level, $field_stack);
+                throw new TextimageTokenException($e->getToken());
+              }
+              else {
+                // Inform about the token failure.
+                $this->logger->warning(
+                  'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
+                  [
+                    '@token' => $original,
+                    '@node_title' => $node->getTitle(),
+                  ]
+                );
+              }
             }
           }
         }

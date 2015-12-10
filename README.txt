@@ -7,6 +7,7 @@ Blockers:
 - #2393387 - WSOD editing image effect when configuration form is Ajax enabled
 - #2479487 - ImageStyles can be deleted while having dependant configuration
 - #1977206 - Default serialization of ConfigEntities
+- #2546212 - Entity view/form mode formatter/widget settings have no translation UI
 Nice to have:
 - #1826362 - ImageEffects of the same image style should be able to pass variables between them
 - #2359443 - Allow creating image derivatives from an Image object
@@ -15,9 +16,7 @@ Nice to have:
 ======
 - use of gifTransparentColor in Textimage.php
 - implement textimage_set_gif_transparent_color for imagemagick
-- test for token for multi-value text field
 - add original image option for image field formatter
-- check alt / title in translated nodes and token resolution
 
 -------------------------------------------------------------------------------
 
