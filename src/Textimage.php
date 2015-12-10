@@ -609,11 +609,11 @@ class Textimage implements ContainerInjectionInterface {
     $this->text = $processed_text;
 
     // Set the output image file extension, and find derivative dimensions.
-    $xxx_effects = $this->effects;  // @todo review variable name
+    $runtime_effects = $this->effects;
     foreach ($this->text as $uuid => $text_item) {
-      $xxx_effects[$uuid]['data']['text_string'] = $text_item;
+      $runtime_effects[$uuid]['data']['text_string'] = $text_item;
     }
-    $runtime_style = $this->buildStyleFromEffects($xxx_effects);
+    $runtime_style = $this->buildStyleFromEffects($runtime_effects);
     if ($this->sourceImageFile) {
       if ($this->width && $this->height) {
         $dimensions = [
