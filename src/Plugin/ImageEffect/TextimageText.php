@@ -618,8 +618,14 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
    */
   public function applyEffect(ImageInterface $image) {
     // Preserve current background image dimensions.
-    $image_width = $image->getWidth();
-    $image_height = $image->getHeight();
+    if ($image->getWidth() === 1 && $image->getHeight() === 1) {
+      $image_width = 0;
+      $image_height = 0;
+    }
+    else {
+      $image_width = $image->getWidth();
+      $image_height = $image->getHeight();
+    }
 
     $this->info['image_width'] = $image_width;
     $this->info['image_height'] = $image_height;
@@ -640,12 +646,13 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
       // Check wrapper image overflowing the original image.
       if ($this->canvasResizeNeeded($wrapper)) {
         // Apply textimage_define_canvas, transparent background.
-        if (!$image->apply('textimage_define_canvas', ['exact' => [
+        if (!$image->apply('textimage_define_canvas', [
+                'exact' => [
                   'width' => $this->info['image_width'],
                   'height' => $this->info['image_height'],
                   'xpos' => $this->info['image_xpos'],
                   'ypos' => $this->info['image_ypos'],
-                ]
+                ],
               ]
             )) {
           return FALSE;

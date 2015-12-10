@@ -3,20 +3,22 @@ Drupal 8 version
 
 Core issues:
 ============
-- #1977206 - Default serialization of ConfigEntities
+Blockers:
 - #2393387 - WSOD editing image effect when configuration form is Ajax enabled
+- #2479487 - ImageStyles can be deleted while having dependant configuration
+- #1977206 - Default serialization of ConfigEntities
+Nice to have:
 - #1826362 - ImageEffects of the same image style should be able to pass variables between them
 - #2359443 - Allow creating image derivatives from an Image object
-- #2479487 - ImageStyles can be deleted while having dependant configuration
 
 @todo:
 ======
 - #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
-- check background color setting over a passthrogh image ++ OK now but no image has draw line in
 - implement textimage_set_gif_transparent_color for imagemagick
 - test for token for multi-value text field
 - add original image option for image field formatter
+- check alt / title in translated nodes and token resolution
 
 -------------------------------------------------------------------------------
 
