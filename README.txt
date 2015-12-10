@@ -13,7 +13,6 @@ Nice to have:
 
 @todo:
 ======
-- #2134439 - array_replace_recursive
 - use of gifTransparentColor in Textimage.php
 - implement textimage_set_gif_transparent_color for imagemagick
 - test for token for multi-value text field

@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageEffect;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
@@ -38,7 +39,7 @@ class TextimageText extends TextimageEffectBase {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array_replace_recursive(
+    return NestedArray::mergeDeep(
       array(
         'font'          => array(
           'name'                  => \Drupal::service('config.factory')->get('textimage.settings')->get('default_font.name'),

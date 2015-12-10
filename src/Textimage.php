@@ -8,6 +8,7 @@
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Crypt;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
@@ -820,7 +821,7 @@ class Textimage implements ContainerInjectionInterface {
     foreach ($effects as $effect) {
       $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
       $default_config = $effect_instance->defaultConfiguration();
-      $effect['data'] = array_replace_recursive($default_config, $effect['data']);
+      $effect['data'] = NestedArray::mergeDeep($default_config, $effect['data']);
       $style->addImageEffect($effect);
     }
     $style->getEffects()->sort();

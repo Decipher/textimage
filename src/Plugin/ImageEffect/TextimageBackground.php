@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageEffect;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Image;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
@@ -27,7 +28,7 @@ class TextimageBackground extends TextimageEffectBase {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array_replace_recursive(
+    return NestedArray::mergeDeep(
       array(
         'background_image' => array(
           'mode' => 'passthrough',
