@@ -44,7 +44,14 @@ class TextimageDefineCanvas extends ImagemagickTextimageOperationBase {
       $bg = '-background ' . $this->getToolkit()->escapeShellArg($arguments['background_color']);
     }
     else {
-      $bg = '-background transparent';
+      $format = $this->getToolkit()->getDestinationFormat() ?: $this->getToolkit()->getSourceFormat();
+      if (strpos($format, 'JPEG') === 0) {
+        // JPEG does not allow transparency. Set to white. @todo allow to be configurable.
+        $bg = '-background ' . $this->getToolkit()->escapeShellArg('#FFFFFF');
+      }
+      else {
+        $bg = '-background transparent';
+      }
     }
 
     // Add argument.

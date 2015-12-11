@@ -172,9 +172,12 @@ class Textimage implements ContainerInjectionInterface {
   /**
    * RGB hex color to be used for GIF images.
    *
+   * Image effects may override this setting, this is here in case we build
+   * a Textimage from scratch.
+   *
    * @var string
    */
-  protected $gifTransparentColor;
+  protected $gifTransparentColor = '#FFFFFF';
 
   /**
    * If this Textimage has to be cached.
@@ -340,7 +343,7 @@ class Textimage implements ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function gifTransparentColor($color) {
+  public function setGifTransparentColor($color) {
     return $this->set('gifTransparentColor', $color);
   }
 
@@ -536,7 +539,7 @@ class Textimage implements ContainerInjectionInterface {
       if ($cached_data['imageData']['sourceImageFileId']) {
         $this->set('sourceImageFile', File::load($cached_data['imageData']['sourceImageFileId']));
       }
-      $this->set('gifTransparentColor', $cached_data['gifTransparentColor']);
+      $this->set('gifTransparentColor', $cached_data['imageData']['gifTransparentColor']);
       $this->set('caching', TRUE);
       $this->set('bubbleableMetadata', $cached_data['bubbleableMetadata']);
       $this->processed = TRUE;
@@ -660,6 +663,7 @@ class Textimage implements ContainerInjectionInterface {
       'extension'           => $this->extension,
       'sourceImageFileId'   => $this->sourceImageFile ? $this->sourceImageFile->id() : NULL,
       'sourceImageFileUri'  => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
+      'gifTransparentColor' => $this->gifTransparentColor,
     );
 
     // Remove text from effects outline, as actual runtime text goes
@@ -957,7 +961,6 @@ class Textimage implements ContainerInjectionInterface {
       'width' => $this->getWidth(),
       'height' => $this->getHeight(),
       'effects' => $this->effects,
-      'gifTransparentColor' => $this->gifTransparentColor,
       'bubbleableMetadata' => $this->getBubbleableMetadata(),
     ];
     $this->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $this->getBubbleableMetadata()->getCacheTags());

@@ -275,6 +275,7 @@ class TextimageBackground extends TextimageEffectBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configuration = $form_state->getValues();
+    // @todo void gif_transparent_color when not needed (<> gif and *oriignal)
     if ($this->configuration['background_image']['mode'] !== 'select') {
       unset(
         $this->configuration['background_image']['fid'],
