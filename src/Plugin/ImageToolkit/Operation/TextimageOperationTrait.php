@@ -15,6 +15,13 @@ use Drupal\Core\StreamWrapper\LocalStream;
 trait TextimageOperationTrait {
 
   /**
+   * The stream wrapper manager service.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
+   */
+  protected $streamWrapperManager;
+
+  /**
    * An array of resolved font file URIs.
    *
    * @var array
@@ -31,9 +38,7 @@ trait TextimageOperationTrait {
    *   The local path of the file.
    */
   protected function getRealPath($uri) {
-    // @todo (core) when image operations plugins implement
-    // ContainerFactoryPluginInterface, inject the service.
-    $uri_wrapper = \Drupal::service('stream_wrapper_manager')->getViaUri($uri);
+    $uri_wrapper = $this->getStreamWrapperManager()->getViaUri($uri);
     if ($uri_wrapper instanceof LocalStream) {
       return $uri_wrapper->realpath();
     }
@@ -62,6 +67,19 @@ trait TextimageOperationTrait {
       static::$fontPaths[$font_uri] = $ret;
     }
     return static::$fontPaths[$font_uri];
+  }
+
+  /**
+   * Returns the stream wrapper manager service.
+   *
+   * @return \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
+   *   The stream wrapper manager service.
+   */
+  protected function getStreamWrapperManager() {
+    if (!$this->streamWrapperManager) {
+      $this->streamWrapperManager = \Drupal::service('stream_wrapper_manager');
+    }
+    return $this->streamWrapperManager;
   }
 
   /**

@@ -29,7 +29,8 @@ class TextimageSetGifTransparentColor extends ImagemagickTextimageOperationBase 
    */
   protected function execute(array $arguments) {
     $format = $this->getToolkit()->getDestinationFormat() ?: $this->getToolkit()->getSourceFormat();
-    if (strpos($format, 'GIF') === 0 && $arguments['transparent_color']) {
+    $mime_type = $this->getFormatMapper()->getMimeTypeFromFormat($format);
+    if ($mime_type === 'image/gif' && $arguments['transparent_color']) {
       $index = $this->getToolkit()->findArgument('-transparent-color');
       if ($index !== FALSE) {
         $this->getToolkit()->removeArgument($index);

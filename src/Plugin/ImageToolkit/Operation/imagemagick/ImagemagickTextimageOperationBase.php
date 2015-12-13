@@ -17,4 +17,24 @@ abstract class ImagemagickTextimageOperationBase extends ImagemagickImageToolkit
 
   use TextimageOperationTrait;
 
+  /**
+   * The format mapper service.
+   *
+   * @var \Drupal\imagemagick\ImagemagickFormatMapperInterface
+   */
+  protected $formatMapper;
+
+  /**
+   * Returns the format mapper service.
+   *
+   * @return \Drupal\imagemagick\ImagemagickFormatMapperInterface
+   *   The format mapper service.
+   */
+  protected function getFormatMapper() {
+    if (!$this->formatMapper) {
+      $this->formatMapper = \Drupal::service('imagemagick.format_mapper');
+    }
+    return $this->formatMapper;
+  }
+
 }
