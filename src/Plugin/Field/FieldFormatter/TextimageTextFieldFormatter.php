@@ -115,6 +115,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       'image_link' => '',
       'image_alt' => '',
       'image_title' => '',
+      'image_build_deferred' => TRUE,
     ) + parent::defaultSettings();
   }
 
@@ -288,6 +289,9 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
           ->setStyle($image_style)
           ->setTokenData($token_data)
           ->process($text_value);
+        if (!$this->getSetting('image_build_deferred')) {
+          $textimage->buildImage();
+        }
 
         // Check if the formatter involves a link to the derived image.
         if (!$entity_url && $this->getSetting('image_link') == 'file') {
@@ -316,6 +320,9 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
         ->setStyle($image_style)
         ->setTokenData($token_data)
         ->process($text);
+      if (!$this->getSetting('image_build_deferred')) {
+        $textimage->buildImage();
+      }
 
       // Check if the formatter involves a link to the derived image.
       if (!$entity_url && $this->getSetting('image_link') == 'file') {

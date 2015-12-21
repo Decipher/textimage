@@ -330,6 +330,7 @@ class Textimage implements ContainerInjectionInterface {
       throw new TextimageException("Extension already set");
     }
     if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
+      $this->logger->error("Unsupported image file extension (%extension) requested.", ['%extension' => $extension]);
       throw new TextimageException("Attempted to set an unsupported file image extension ({$extension})");
     }
     return $this->set('extension', $extension);
@@ -561,7 +562,7 @@ class Textimage implements ContainerInjectionInterface {
   public function process($text) {
     // Do not re-process.
     if ($this->processed) {
-      return $this;
+      throw new TextimageException("Attempted to re-process an already processed Textimage");
     }
 
     // Effects must be loaded.
@@ -685,6 +686,10 @@ class Textimage implements ContainerInjectionInterface {
     if ($this->caching && ($cached_data = $this->getCachedData())) {
       $this->set('uri', $cached_data['uri']);
       $this->processed = TRUE;
+      $this->logger->debug('Cached Textimage, @uri', ['@uri' => $this->getUri()]);
+      if (is_file($this->getUri())) {
+        $this->built = TRUE;
+      }
       return $this;
     }
     else {
@@ -715,18 +720,12 @@ class Textimage implements ContainerInjectionInterface {
 
     // Do not re-build.
     if ($this->built) {
-      throw new TextimageException('Attempted to build an already built Textimage');
-    }
-
-    // Check cache and return if hit.
-    if ($this->getCachedData() && is_file($this->getUri())) {
-      $this->logger->debug('Got Textimage from cache, @uri', ['@uri' => $this->getUri()]);
       return $this;
     }
 
     // Check file store and return if hit.
     if ($this->caching && is_file($this->getUri())) {
-      $this->logger->debug('Got Textimage from store, @uri', ['@uri' => $this->getUri()]);
+      $this->logger->debug('Stored Textimage, @uri', ['@uri' => $this->getUri()]);
       return $this;
     }
 
@@ -788,10 +787,10 @@ class Textimage implements ContainerInjectionInterface {
     // Generate the image.
     if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->getUri())) {
       if (isset($this->style)) {
-        $this->logger->error('Textimage failed to build an image for image style \'@style\'.', ['@style' => $this->style->id()]);
+        throw new TextimageException("Textimage failed to build an image for image style '{$this->style->id()}'");
       }
       else {
-        $this->logger->error('Textimage failed to build an image.');
+        throw new TextimageException("Textimage failed to build an image");
       }
     }
     $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->getUri()]);
@@ -882,7 +881,12 @@ class Textimage implements ContainerInjectionInterface {
     }
 
     if (!$image->isValid()) {
-      $this->logger->error('Invalid image %image.', ['%image' => $image->getSource() ?: '-new-' ]);
+      if ($image->getSource()) {
+        $this->logger->error("Invalid image at '%image'.", ['%image' => $image->getSource()]);
+      }
+      else {
+        $this->logger->error("Invalid source image.");
+      }
       return FALSE;
     }
 

@@ -107,14 +107,13 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     }
 
     // Check if the style exists, is relevant, and set to 'public' scheme in TPS.
-    if (empty($image_style)) {
-      throw new NotFoundHttpException('Could not find the image style requested');
-    }
     if (!$this->textimageFactory->isTextimage($image_style)) {
-      throw new NotFoundHttpException('The image style requested is not relevant for Textimage');
+      $this->logger->error("URL generation - The image style '%style_name' is not relevant for Textimage.", ['%style_name' => $image_style->getName()]);
+      throw new NotFoundHttpException("The image style requested is not relevant for Textimage");
     }
     if ($image_style->getThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme')) !== 'public') {
-      throw new AccessDeniedHttpException('The image style requested is not set to produce image files for the \'public\' file scheme');
+      $this->logger->error("URL generation - The image style '%style_name' is not set to produce image files for the 'public' file scheme -> disabled.", ['%style_name' => $image_style->getName()]);
+      throw new AccessDeniedHttpException("The image style requested is not set to produce image files for the 'public' file scheme");
     }
 
     // {Text_0}[sep]{Text_1}[sep]...[sep]{Text_n} to the $text array.
@@ -128,18 +127,25 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       $text[] = str_replace('.' . $extension, '', pathinfo($last_text, PATHINFO_BASENAME));
     }
     else {
-      throw new NotFoundHttpException('No file extension specified.');
+      $this->logger->error("URL generation - No file extension specified.");
+      throw new NotFoundHttpException('No file extension specified');
     }
 
     // Get the Textimage URI.
-    $image_uri = $this->textimageFactory->get()
-      ->setStyle($image_style)
-      ->setTargetUri('public://textimage/' . $image_style->id() . '/' . $text_string)
-      ->process($text)
-      ->buildImage()
-      ->getUri();
-
-    return $this->returnBinary($request, $image_uri);
+    $file_uri = 'public://textimage/' . $image_style->id() . '/' . $text_string;
+    try {
+      $image_uri = $this->textimageFactory->get()
+        ->setStyle($image_style)
+        ->setTargetUri($file_uri)
+        ->process($text)
+        ->buildImage()
+        ->getUri();
+      return $this->returnBinary($request, $image_uri);
+    }
+    catch (TextimageException $e) {
+      $this->logger->error("URL generation - Failed to build an image at '%file_uri'.",  ['%file_uri' => $file_uri]);
+      throw new NotFoundHttpException('Image not found');
+    }
   }
 
   /**
@@ -170,6 +176,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return $this->returnBinary($request, $image_uri);
     }
     catch (TextimageException $e) {
+      $this->logger->error("Failed to build an image at '%file_uri'.",  ['%file_uri' => $file]);
       throw new NotFoundHttpException('Image not found');
     }
   }
@@ -188,7 +195,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   protected function returnBinary($request, $uri) {
     // Don't try to send file if it is missing.
     if (!file_exists($uri)) {
-      $this->logger->notice('Textimage image at %source_image_path not found.',  ['%source_image_path' => $uri]);
+      $this->logger->notice("Textimage image at '%source_image_path' not found.",  ['%source_image_path' => $uri]);
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 

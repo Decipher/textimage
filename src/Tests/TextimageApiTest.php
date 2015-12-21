@@ -112,7 +112,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(TRUE, [$textimage, 'setTemporary'], [TRUE]);
     $this->assertTextimageException(TRUE, [$textimage, 'setTokenData'], [['user' => $this->adminUser]]);
     $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['public://textimage-testing/bingo-bongo.png']);
-    $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
+    $this->assertTextimageException(TRUE, [$textimage, 'process'], [$text_array]);
 
     // Get textimage cache entry.
     $stored_image = $this->container->get('cache.textimage')->get('tiid:' . $textimage->id());

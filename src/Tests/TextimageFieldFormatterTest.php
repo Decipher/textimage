@@ -7,6 +7,7 @@
 
 namespace Drupal\textimage\Tests;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\file\Entity\File;
 use Drupal\image\Entity\ImageStyle;
@@ -284,4 +285,51 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     ];
     $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
   }
+
+  /**
+   * Test Textimage caching.
+   */
+  public function testTextimageCaching() {
+    // Create a text field for Textimage test.
+    $field_name = 'test_caching';
+    $this->createTextimageField('text', $field_name, 'article');
+
+    // Create a new node.
+    $field_value = 'test for caching';
+    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article');
+    $node = Node::load($nid);
+
+    // Set textimage formatter - no link.
+    $display = entity_get_display('node', $node->getType(), 'default');
+    $display_options['type'] = 'textimage_text_field_formatter';
+    $display_options['settings']['image_style'] = 'textimage_test';
+    $display_options['settings']['image_link'] = '';
+    $display_options['settings']['image_build_deferred'] = FALSE;
+    $display->setComponent($field_name, $display_options)
+      ->save();
+    $this->drupalGet('node/' . $nid);
+
+    // From previous get, Textimage was built.
+    $this->assertText('Built Textimage');
+
+    // Invalidate the rendered objects cache. Textimage should find the image
+    // in its cache.
+    Cache::invalidateTags(['rendered']);
+    $this->drupalGet('node/' . $nid);
+    $this->assertText('Cached Textimage');
+
+    // Invalidate the rendered objects cache, and delete the Textimage cache.
+    // Textimage should still find a built image in the store.
+    Cache::invalidateTags(['rendered']);
+    $this->container->get('cache.textimage')->deleteAll();
+    $this->drupalGet('node/' . $nid);
+    $this->assertText('Stored Textimage');
+
+    // Invalidate 'rendered' again, Textimage should find the image in its
+    // cache.
+    Cache::invalidateTags(['rendered']);
+    $this->drupalGet('node/' . $nid);
+    $this->assertText('Cached Textimage');
+  }
+
 }

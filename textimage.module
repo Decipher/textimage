@@ -14,6 +14,7 @@ use Drupal\Core\Template\Attribute;
 use Drupal\image\ImageStyleInterface;
 use Drupal\textimage\Component\ColorUtility;
 use Drupal\textimage\Textimage;
+use Drupal\textimage\TextimageException;
 
 /**
  * Implements hook_help().
@@ -316,25 +317,30 @@ function template_preprocess_textimage_preview(&$variables) {
   $variables['textimage_data']['layout']['y_offset'] = 0;
   $variables['textimage_data']['layout']['overflow_action'] = 'extend';
   $variables['textimage_data']['debug_visuals'] = $variables['textimage_data']['preview_bar']['debug_visuals'];
-  $textimage = \Drupal::service('textimage.factory')->get()
-    ->setEffects(
-      [
+  try {
+    $textimage = \Drupal::service('textimage.factory')->get()
+      ->setEffects(
         [
-          'id' => 'textimage_text',
-          'data' => $variables['textimage_data'],
-        ],
-      ]
-    )
-    ->setTemporary(TRUE)
-    ->process([$variables['textimage_data']['text_string']])
-    ->buildImage();
-  $variables['textimage_preview'] = array(
-    '#theme' => 'textimage_formatter',
-    '#uri' => $textimage->getUri(),
-    '#width' => $textimage->getWidth(),
-    '#height' => $textimage->getHeight(),
-    '#title' => t('Preview'),
-    '#alt' => t('Display preview not available.'),
-  );
-  $textimage->getBubbleableMetadata()->applyTo($variables['textimage_preview']);
+          [
+            'id' => 'textimage_text',
+            'data' => $variables['textimage_data'],
+          ],
+        ]
+      )
+      ->setTemporary(TRUE)
+      ->process([$variables['textimage_data']['text_string']])
+      ->buildImage();
+    $variables['textimage_preview'] = array(
+      '#theme' => 'textimage_formatter',
+      '#uri' => $textimage->getUri(),
+      '#width' => $textimage->getWidth(),
+      '#height' => $textimage->getHeight(),
+      '#title' => t('Preview'),
+      '#alt' => t('Display preview not available.'),
+    );
+    $textimage->getBubbleableMetadata()->applyTo($variables['textimage_preview']);
+  }
+  catch (TextimageException $e) {
+    \Drupal::service('textimage.logger')->error("Failed to build preview image.");
+  }
 }
