@@ -265,19 +265,25 @@ Using Textimage image styles
    advised you use one of the methods detailed below.
 
 3. via the Textimage API and the theme system:
---------------------------------
-NOTE: this section is incomplete
---------------------------------
 
     Programmers can get a Textimage object from the Textimage factory, and
-    use the relevant API methods to build an image. Then, the
-    'textimage_formatter' theme can be used to build a render array to display
-    the image. Example:
+    use the relevant API methods in a fluent interface to build an image. Then,
+    the 'textimage_formatter' theme can be used to build a render array to
+    display the image.
+
+    Notes:
+    1) Textimage provides by default a caching mechanism that will keep track
+       of the Textimage files generated based on the input image style/effects
+       and text to be overlaid. It's possible to opt-out from this caching via
+       the setTemporary() or the setTargetUri() methods.
+    2) The Textimage API throws exceptions in case of errors, so mind to
+       include calls to the API in a try/catch block.
+
+    Example:
 
     try {
-      $textimage = \Drupal::service('textimage.factory')->get()
+      $textimage = \Drupal::service('textimage.factory')->get($bubbleable_metadata)
         ->setStyle(ImageStyle::load($style_name)
-        ->setTemporary(TRUE)
         ->process([$text_strings])
         ->buildImage();
       $variables['textimage_image'] = array(
@@ -294,67 +300,91 @@ NOTE: this section is incomplete
       \Drupal::service('textimage.logger')->error("Failed to build a Textimage image.");
     }
 
-    Note that the Textimage API throws exceptions in case of errors, so mind
-    to include calls to the API in a try...catch block.
- 
-    API methods:
-    - setStyle(\Drupal\image\ImageStyleInterface $image_style) - an image style
-      object, whose effects will be used to build the Textimage.
-
-
-    - setEffects(array $effects) - an array of image style effects.
-      Given a $style['effects'] array, corresponds to the array of 'name' and 'data'
-      keys of each element. You can use the helper function
-      TextimageStyles::getStyleEffectsOutline($style_name) to get this array
-      based on a style name. If not used, then $style is expected.
-    - setTargetExtension($extension) - the file format of the resulting image
-      (png/gif/jpg/jpeg). If not set, defaults to 'png'.
-    - setGifTransparentColor($color)
-    - setSourceImageFile(FileInterface $source_image_file, $width = NULL, $height = NULL)
-      a file entity. It is used for resolving
-      the tokens in the text effects.
+    ---------------------------------------------------------------------------
+    API methods that set input information to the API - can be called only
+    BEFORE processing
+    ---------------------------------------------------------------------------
+    - setStyle(\Drupal\image\ImageStyleInterface $image_style) - an ImageStyle
+      object, whose effects will be used to build the Textimage. This is the
+      way to produce a Textimage from an image style stored in configuration.
+    - setEffects(array $effects) - an array of image style effects. This allows
+      to produce Textimage images programmatically from a dynamic set of
+      effects, and should be used in alternative to ::setStyle.
+    - setTargetExtension($extension) - the file format of the output image
+      (png/gif/jpg/jpeg). If not called, Textimage will default to the value
+      set in the Textimage settings, or any override specified by an image
+      effect that implements a ::getDerivativeExtension method.
+    - setGifTransparentColor($color) - an RGB hex string indicating the color
+      to be used for setting transparency in a GIF image. If not called, and
+      a GIF file is passed via ::setSourceImageFile, then the source image
+      color set for transparent will be used.
+    - setSourceImageFile(\Drupal\file\FileInterface\FileInterface $source_image_file, $width = NULL, $height = NULL)
+      a File object representing an image file, with optional width and height.
+      It can be used to set the background image on top of which text should
+      be overlaid. It can be overridden by a Textimage Background effect
+      setting a different image.
     - setTokenData(array $token_data) - It is used for resolving the tokens
-      in the text effects.
+      in the text effects. $token_data has the same structure as the $data
+      parameter of core's \Drupal\Core\Utility\Token::replace().
     - setTemporary($is_temp) - if set to TRUE, the image will be stored in
-      textimage_store/temp and deleted on cron run. Defaults to TRUE.
-    - setTargetUri($uri) - specifies the URI where the textimage file
-      should be stored. Allows to bypass the automatic URI generation performed
-      by Textimage. NOTE: It disables caching, as, given an URI, there is no
-      control on the actual text that gets into the image.
-    - setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL)
+      a temporary textimage_store/temp directory and deleted on cron run. This
+      is useful to generate one-off images like e.g. previews. Generated images
+      will not be cached.
+    - setTargetUri($uri) - specifies the URI where the output image file
+      should be stored. Generated images will not be cached.
+
+    ---------------------------------------------------------------------------
+    API methods to produce a Textimage
+    ---------------------------------------------------------------------------
     - process($text) - processes the Textimage metadata, using an array of text
       strings, with unresolved tokens; each string of the array will be
       consumed by a Textimage Text effect in the sequence specified within the
-      image style.
-    - buildImage() - retrieves or builds a Textimage, using the processed
-      metadata.
-    - id()
-    - getText()
-    - getUri()
-    - getUrl()
-    - getHeight()
-    - getWidth()
-    - getBubbleableMetadata()
-    - load($id)
+      image style. If the Textimage caching is active, after execution of
+      ::process the ::id method will return the Textimage ID, and ::getUri and
+      ::getUrl respectively the URI and URL of the image file that will be
+      generated once ::buildImage is called.
+    - load($id) - loads from cache the Textimage metadata. This can be used to
+      defer generation of the image to a separate request from the one where
+      the Textimage metadata was processed, i.e. request A will call ::process,
+      and request B will ::load the Textimage metadata and generate the image
+      via ::buildImage.
+    - buildImage() - builds a Textimage, using the processed metadata. Should
+      be called after ::process() to generate an image within the same request,
+      or after ::load() to generate an image in a deferred request.
 
-   This theme allows also to specify wrapping the <img> tag in a container
-   <div> tag, and/or wrapping the entire output in an anchor tag.
+    ---------------------------------------------------------------------------
+    API methods to get information about a Textimage - can be called only
+    AFTER processing
+    ---------------------------------------------------------------------------
+    - id() - Returns the ID of a cached Textimage.
+    - getText() - Returns the text elements after processing, with tokens
+      replaced.
+    - getUri() - Returns the URI of the Textimage image file.
+    - getUrl() - Returns the URL of the Textimage image file.
+    - getHeight() - Returns the height of the Textimage image.
+    - getWidth() - Returns the width of the Textimage image.
+    - getBubbleableMetadata() - Returns the bubbleable metadata that was
+      collected during execution of ::process.
 
-   Theme variables:
-    - item
-    - uri
-    - width
-    - height
-    - alt - the image alternate text. This text will be used by screen readers,
-      search engines, or when the image cannot be loaded.
-    - title - the text to be displayed when hovering the image on the browser.
-    - attributes - associative array of attributes to be placed in the <img>
-      tag.
-    - image_container_attributes - if specified, the <img> tag will be wrapped
-      in a <div> container, whose attributes will be set to the array passed
+    ---------------------------------------------------------------------------
+    'textimage_formatter' theme variables
+    ---------------------------------------------------------------------------
+    - 'item' - (optional) the entity for which the Textimage is being produced.
+    - 'uri' - the URI of the Textimage.
+    - 'width' - (optional) the width of the Textimage, in pixels.
+    - 'height' - (optional) the height of the Textimage, in pixels.
+    - 'alt' - (optional) the image alternate text. This text will be used by
+      screen readers, search engines, or when the image cannot be loaded.
+    - 'title' - (optional) the text to be displayed when hovering the image on
+      the browser.
+    - 'attributes' - (optional) associative array of attributes to be placed in
+      the <img> tag.
+    - 'image_container_attributes' - (optional) if specified, the <img> tag
+      will be wrapped in a <div> container, whose attributes will be set to the
+      array passed here.
+    - anchor_url - (optional) if specified, the entire output will be wrapped
+      in a <a> anchor, whose 'href' attribute will be set to the value passed
       here.
-    - anchor_url - if specified, the entire output will be wrapped in a <a>
-      anchor, whose 'href' attribute will be set to the value passed here.
 
 
 -------------------------------------------------------------------------------

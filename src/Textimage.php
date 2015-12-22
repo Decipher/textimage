@@ -434,6 +434,8 @@ class Textimage implements ContainerInjectionInterface {
    *   A BubbleableMetadata object.
    *
    * @return $this
+   *
+   * @internal
    */
   public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL) {
     if ($this->bubbleableMetadata) {
