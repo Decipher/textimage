@@ -287,7 +287,7 @@ class Textimage implements ContainerInjectionInterface {
    * Set the image style.
    *
    * @param \Drupal\image\ImageStyleInterface $image_style
-   *   the image style to be used to derive the Textimage
+   *   The image style to be used to derive the Textimage.
    *
    * @return $this
    */

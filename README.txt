@@ -1,26 +1,3 @@
-Drupal 8 version
-================
-
-Core issues:
-============
-Blockers:
-- #2393387 - WSOD editing image effect when configuration form is Ajax enabled
-- #2479487 - ImageStyles can be deleted while having dependant configuration
-- #1977206 - Default serialization of ConfigEntities
-- #2546212 - Entity view/form mode formatter/widget settings have no translation UI
-Nice to have:
-- #1826362 - ImageEffects of the same image style should be able to pass variables between them
-- #2359443 - Allow creating image derivatives from an Image object
-
-@todo:
-======
-- add original image option for image field formatter
-- 8.1.x align to #2571521 Make the logger available on the controllerBase, remove logger from constructor of download controller ?
-
-
--------------------------------------------------------------------------------
-
-
 -----------------
 Textimage 8.x-3.x
 -----------------
@@ -34,22 +11,58 @@ Textimage was originally written by Fabiano Sant'Ana (wundo).
 
 Co-maintained by:
 - Stuart Clark (Deciphered) http://stuar.tc/lark
-- Mondrake http://drupal.org/user/1307444
+- mondrake https://www.drupal.org/u/mondrake
+
+Ported to Drupal 8 by:
+- mondrake https://www.drupal.org/u/mondrake
+
+
+-------------------------------------------------------------------------------
+
+
+Drupal 8 version
+================
+
+Note: the port to Drupal 8 is in development. Please expect changes to API and
+configuration that may lead to the need to uninistall/reinstall the module.
+There is no support yet to updates between different builds of the development
+branch.
+
+There is a number of core issues that need to be addressed before a stable
+release:
+==========================================================================
+Blockers:
+- #2393387 - WSOD editing image effect when configuration form is Ajax enabled
+- #2479487 - ImageStyles can be deleted while having dependant configuration
+- #1977206 - Default serialization of ConfigEntities
+- #2546212 - Entity view/form mode formatter/widget settings have no translation UI
+Nice to have:
+- #1826362 - ImageEffects of the same image style should be able to pass variables between them
+- #2359443 - Allow creating image derivatives from an Image object
+
+The following @todo items need to be addressed in the module:
+==========================================================================
+- add original image option for image field formatter
+- 8.1.x align to #2571521 Make the logger available on the controllerBase,
+  remove logger from constructor of download controller ?
+
+
+-------------------------------------------------------------------------------
 
 
 Quick start instructions
 ------------------------
 - Check requirements (below) and install / configure the modules needed.
 - Install and enable the module.
-- Check the Configuration page (Administration->Configuration->Media->
-  Textimage) and setup.
+- Check the Configuration page (Manage > Configuration > Media > Textimage)
+  and setup.
 - Ensure at least one font file is available.
-- Create an image style (Administration->Configuration->Media->Image Styles)
+- Create an image style (Manage > Configuration > Media > Image Styles)
   and use Textimage effects in combination with other effects as needed.
-- Change a field of a content type (Administration->Structure->Content Types->
-  {your type}->Manage Display) to be represented by a Textimage:
+- Change a field of a content type (Manage > Structure > Content Types >
+  {your type} > Manage Display) to be represented by a Textimage:
     - select 'Textimage' in the format dropdown (applicable to Text and Image
-      fields
+      fields)
     - click on the gear icon
     - select the image style you created earlier from the dropdown displayed
 - Your field content is now presented as a (Text)image!
@@ -79,7 +92,6 @@ Features
 * Field display formatters for Text and Image fields.
 * Textimage API to generate Textimage images programmatically.
 * Textimage tokens to retrieve URI/URL of generated Textimage images.
-* Integrates with Metatag to use Textimage tokens in meta tags.
 
 
 Requirements
@@ -88,30 +100,35 @@ Requirements
 - GD2 and FreeType libraries
 
 Recommended modules, for a feature rich set:
-- @font-your-face       (@todo)
-- Media                 (@todo)
-- Token                 (@todo)
+- Token
 
-Integration with modules:
-- Metatag               (@todo)
 
 Installation instructions (long version)
 ----------------------------------------
 - Consider recommended modules:
-  - @todo @font-your-face - if you use this module, all 'local fonts' installed
-    and enabled on your system can be used by Textimage.
-  - @todo Media - if you use this module, background images can be selected via
-    the media browser form.
   - Token - this module allows to list available tokens when entering the
     default text for a 'Textimage text' effect.
 - Install and enable Textimage.
-- Check Textimage configuration page (Administration->Configuration->
-  Media->Textimage):
-  - Fonts - select the plugin that will manage fonts in Textimage, and a
-    default font to use. Make sure at least one font file is available.
-  - Background Images - select the plugin that will manage background
+- Check Textimage configuration page (Manage > Configuration > Media >
+  Textimage):
+  - Default image file extension - Select the default extension of the image
+    files produced by Textimage. This can be overridden by image style effects
+    that specify a format conversion like e.g. Convert or Textimage
+    Background. This setting does not affect image derivatives created by the
+    Drupal core Image module.
+  - Fonts manager - select the plugin that will manage fonts in Textimage, and
+    a default font to use. Make sure at least one font file is available.
+  - Background images managers - select the plugin that will manage background
     images in Textimage.
-  - Colors - select the plugin for selecting colors in Textimage.
+  - Color manager - select the plugin for selecting colors in Textimage.
+  - URL generation - select whether to enable direct URL generation (see below)
+    and the string to be used to separate text elements that need to be pushed
+    to separate Textimage Text effects during generation.
+  - Maintenance - select whether Textimage needs to log debug messages of its
+    operations. The 'Cleanup Textimage' button allows to completely clean all
+    the images and image metadata generated by Textimage. NOTE: this
+    functionality also flushes all image derivatives generated by Drupal core
+    Image module.
 
 
 -------------------------------------------------------------------------------
@@ -121,13 +138,13 @@ Creating Textimage image styles
 -------------------------------
 - Textimage extends Drupal image system providing additional image effects.
 - Just combine Textimage effects with any other image effect to deliver
-  the result needed in a image style (Administration->Configuration->Media->
+  the result needed in a image style (Manage > Configuration > Media >
   Image Styles).
 - Image styles are extended to collect Textimage options:
   - Image destination - allows to specify in which file system the derivative
     images (i.e. the final output) shall be stored. By default, this is
-    the same destination as specified in 'Default download method' (Manage->
-    Configuration->Media->File System) in configuration, but can be set to
+    the same destination as specified in 'Default download method' (Manage >
+    Configuration > Media > File System) in configuration, but can be set to
     alternative file systems (e.g. private etc.). This option affects only
     derivative images generated by Textimage, not those generated by core's
     Image module.
@@ -193,18 +210,18 @@ Using Textimage image styles
 
 1. via Content Type field display formatters
 
-   - Access 'Content type' administration features via Administration->
-     Structure->Content Types
+   - Access 'Content type' administration features via Manage > Structure >
+     Content Types.
    - Select the content type for which you want to manage a Textimage field
-     (e.g. Article, Basic page, etc.)
+     (e.g. Article, Basic page, etc.).
    - If you need to create a new field, in the 'Manage Fields' tab, add a new
      field of type 'Text' (or 'Long text', or 'Long text and summary') or
-     'Image'
+     'Image'.
    - In the 'Manage Display' tab, select a 'Textimage' format for the field
-     created above (or any existing one)
-   - Click on the gear icon
+     created above (or any existing one).
+   - Click on the gear icon.
    - Select from the 'Image style' dropdown the image style you want to use to
-     represent the content as a Textimage
+     represent the content as a Textimage.
    - If the field is a multi-value text field, an option is presented to select
      whether to generate a single image or multiple images. In the first case,
      the formatter will pass sequentially each field value to a separate image
@@ -217,69 +234,117 @@ Using Textimage image styles
      By default, the Textimage is not linked.
    - Optionally, enter a value for the image 'alt' attribute in the 'Alternate
      text' textbox. This text will be used by screen readers, search engines,
-     or when the image cannot be loaded. Tokens can be used.
+     or when the image cannot be loaded. Tokens can be used. When left blank,
+     the 'alt' information provided in the field will be used.
    - Optionally, enter a value for the image 'title' attribute in the 'Title'
      textbox. The title is used as a tool tip when the user hovers the mouse
-     over the image. Tokens can be used.
+     over the image. Tokens can be used.  When left blank, the 'title'
+     information provided in the field will be used.
 
-2. via URL:
+2. via direct URL generation:
 
    Create an image with the URL in following format:
-   http://[your_domain]{/your_drupal_directory}/[path_to_public_files]/textimage/[style_name]/[Text_0]/[Text_1]/.../[Text_n].[extension]
+   http://[your_domain]{/your_drupal_directory}/[path_to_public_files]/textimage/[style_name]/[Text_0][text_separator][Text_1][text_separator]...[text_separator][Text_n].[extension]
 
    In a standard installation, [path_to_public_files] = 'sites/default/files'.
 
-   Text_0...n - each string will be consumed by a textimage_text effect in the
-   sequence specified within the image style.
+   [style_name] - the image style must have at least a Textimage Text effect,
+   and must be set to output Textimage images in the 'Public files' through
+   the 'Image destination' setting on the image style 'Textimage options'.
+
+   [Text_0]...[Text_n] - each string will be consumed by a Textimage text
+   effect in the sequence specified within the image style.
+
+   [text_separator] - the string that is configured to be used as text
+   separator between different text strings (see configuration above). By
+   default, this is counfigured to be '---' (three dashes).
 
    Note: This method can only be used by users with the 'generate textimage url
    derivatives' permission. This is to prevent Anonymous users from creating
    random images. If you need dynamically created Textimages, it is strongly
    advised you use one of the methods detailed below.
 
-3. Programmers/themers - via theming:
+3. via the Textimage API and the theme system:
+--------------------------------
+NOTE: this section is incomplete
+--------------------------------
 
-   You can use the 'textimage_formatter' theme to render a Textimage via
-   a render array, like e.g.:
+    Programmers can get a Textimage object from the Textimage factory, and
+    use the relevant API methods to build an image. Then, the
+    'textimage_formatter' theme can be used to build a render array to display
+    the image. Example:
 
-    theme(
-      'textimage_formatter',
-      array(
-        'uri' => 'public://textimage/myimagestyle/mytextimage.png,
-        'width' => 50,
-        'height' => 100,
-        'alt'    => 'Alternate text',
-        'title'  => 'Image title',
-        'attributes' => array(),
-        'image_container_attributes' => array(),
-        'anchor_url' => NULL,
-      ),
-    ));
+    try {
+      $textimage = \Drupal::service('textimage.factory')->get()
+        ->setStyle(ImageStyle::load($style_name)
+        ->setTemporary(TRUE)
+        ->process([$text_strings])
+        ->buildImage();
+      $variables['textimage_image'] = array(
+        '#theme' => 'textimage_formatter',
+        '#uri' => $textimage->getUri(),
+        '#width' => $textimage->getWidth(),
+        '#height' => $textimage->getHeight(),
+        '#title' => t('textimage'),
+        '#alt' => t('Textimage image.'),
+      );
+      $textimage->getBubbleableMetadata()->applyTo($variables['textimage_image']);
+    }
+    catch (TextimageException $e) {
+      \Drupal::service('textimage.logger')->error("Failed to build a Textimage image.");
+    }
+
+    Note that the Textimage API throws exceptions in case of errors, so mind
+    to include calls to the API in a try...catch block.
+ 
+    API methods:
+    - setStyle(\Drupal\image\ImageStyleInterface $image_style) - an image style
+      object, whose effects will be used to build the Textimage.
+
+
+    - setEffects(array $effects) - an array of image style effects.
+      Given a $style['effects'] array, corresponds to the array of 'name' and 'data'
+      keys of each element. You can use the helper function
+      TextimageStyles::getStyleEffectsOutline($style_name) to get this array
+      based on a style name. If not used, then $style is expected.
+    - setTargetExtension($extension) - the file format of the resulting image
+      (png/gif/jpg/jpeg). If not set, defaults to 'png'.
+    - setGifTransparentColor($color)
+    - setSourceImageFile(FileInterface $source_image_file, $width = NULL, $height = NULL)
+      a file entity. It is used for resolving
+      the tokens in the text effects.
+    - setTokenData(array $token_data) - It is used for resolving the tokens
+      in the text effects.
+    - setTemporary($is_temp) - if set to TRUE, the image will be stored in
+      textimage_store/temp and deleted on cron run. Defaults to TRUE.
+    - setTargetUri($uri) - specifies the URI where the textimage file
+      should be stored. Allows to bypass the automatic URI generation performed
+      by Textimage. NOTE: It disables caching, as, given an URI, there is no
+      control on the actual text that gets into the image.
+    - setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL)
+    - process($text) - processes the Textimage metadata, using an array of text
+      strings, with unresolved tokens; each string of the array will be
+      consumed by a Textimage Text effect in the sequence specified within the
+      image style.
+    - buildImage() - retrieves or builds a Textimage, using the processed
+      metadata.
+    - id()
+    - getText()
+    - getUri()
+    - getUrl()
+    - getHeight()
+    - getWidth()
+    - getBubbleableMetadata()
+    - load($id)
 
    This theme allows also to specify wrapping the <img> tag in a container
    <div> tag, and/or wrapping the entire output in an anchor tag.
 
-    Variables:
-// @todo drop    - textimage - A fully processed Textimage object. If this variable is set,
-      the theme function will use this object to render the image, and the
-      variables style_name, effects, text, format, caching, node,
-      source_image_file, target_uri will be ineffective.
-// @todo drop    - style_name - the image style name. If specified, it will override any
-      value passed in the 'effects' variable.
-// @todo drop    - effects - an array of image style effects. Given a $style image style
-      array, corresponds to the $style['effects'] key.
-// @todo drop    - text - an array of text strings, with unresolved tokens; each string
-      of the array will be consumed by a textimage_text effect in the sequence
-      specified within the image style.
-// @todo drop    - caching - if set to TRUE, the image will be cached for future accesses;
-      otherwise, the image will be stored in textimage_store and deleted on
-      cron run.
-// @todo drop    - source_image_file - a file entity. It is used to identify the source
-      image when the image derivative is created by Textimage and for resolving
-      the tokens in the text effects.
-// @todo drop    - target_uri - allows to specify the URI where the textimage file should be
-      stored. If specified, the automatic URI generation performed by Textimage
-      is bypassed and caching disabled.
+   Theme variables:
+    - item
+    - uri
+    - width
+    - height
     - alt - the image alternate text. This text will be used by screen readers,
       search engines, or when the image cannot be loaded.
     - title - the text to be displayed when hovering the image on the browser.
@@ -290,49 +355,6 @@ Using Textimage image styles
       here.
     - anchor_url - if specified, the entire output will be wrapped in a <a>
       anchor, whose 'href' attribute will be set to the value passed here.
-
-4. Programmers - using the API:
-
-    Programmers can get a Textimage object from the Textimage factory, and
-    use the relevant methods to process an image. Example:
-
-    $my_textimage = \Drupal::service('textimage.factory')->get();
-    $my_textimage_url = $my_textimage
-      ->styleByName('textimage_test')
-      ->node($node)
-      ->process($field_value)
-      ->getUrl();
-
-    Methods:
-    - style($style) - an image style.
-    - styleByName($style_name) - an image style name.
-    - effects($effects_outline) - an array of image style effects.
-      Given a $style['effects'] array, corresponds to the array of 'name' and 'data'
-      keys of each element. You can use the helper function
-      TextimageStyles::getStyleEffectsOutline($style_name) to get this array
-      based on a style name. If not used, then $style is expected.
-    - extension($extension) - the file format of the resulting image
-      (png/gif/jpg/jpeg). If not set, defaults to 'png'.
-    - setCaching($caching) - if set to TRUE, the image will be cached for
-      future access; otherwise, the image will be stored in
-      textimage_store/uncached and deleted on cron run. Defaults to TRUE.
-// @todo revise
-//    - node($node) - a node entity. It is used for resolving the tokens
-//      in the text effects.
-//    - sourceImageFile($source_image_file) - a file entity. It is used for resolving
-//      the tokens in the text effects.
-    - setTargetUri($target_uri) - specifies the URI where the textimage file
-      should be stored. Allows to bypass the automatic URI generation performed
-      by Textimage. NOTE: It disables caching, as, given an URI, there is no
-      control on the actual text that gets into the image.
-    - process($text) - retrieves or builds a textimage file, using an array of text strings, with unresolved tokens; each string
-      of the array will be consumed by a textimage_text effect in the sequence
-      specified within the image style.
-    - load
-    - id
-    - getText
-    - getUri
-    - getUrl
 
 
 -------------------------------------------------------------------------------
@@ -356,11 +378,8 @@ If you select a Textimage formatter for a 'text' field, Textimage will use
 the text entered in the field to produce an image with it. In the field text
 you can enter the tokens directly, or [textimage:default] in which case
 Textimage will just fetch and use the default text entered in the image effect
-UI. If your image style is built with multiple 'Textimage text' effects, the
-text field needs to be multi-value as well. Each text field value will be used
-by one 'Textimage text' effect in the same sequence.
-Tokens will be resolved against the 'node' (current content) and 'user' token
-types.
+UI. Tokens will be resolved against the 'node' (current content) and 'user'
+token types.
 
 If you select a Textimage formatter for an 'image' field, Textimage will use
 the text entered in the default text in the image effect UI to produce the
@@ -398,9 +417,6 @@ where:
   produces more images for the same field (like e.g. in a multi-value Image
   field); if not specified, a comma-delimited string of all the URLs/URIs
   generated will be returned.
-
-Textimage tokens can be used with the Metatag module to specify e.g. URL
-meta tags.
 
 
 -------------------------------------------------------------------------------
