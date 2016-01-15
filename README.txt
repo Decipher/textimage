@@ -43,8 +43,13 @@ Nice to have:
 The following @todo items need to be addressed in the module:
 ==========================================================================
 - add original image option for image field formatter
-- 8.1.x align to #2571521 Make the logger available on the controllerBase,
+
+@todo related to Drupal 8.1:
+==========================================================================
+- align to #2571521 Make the logger available on the controllerBase,
   remove logger from constructor of download controller ?
+- align to #1494670 References to CSS, JS, and similar files should be
+  root-relative URLs: avoids mixed content warnings & fewer bytes to send
 
 
 -------------------------------------------------------------------------------
