@@ -45,6 +45,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node])
       ->process($field_value)
       ->getUrl()->toString();
+    $rel_url = file_url_transform_relative($textimage_url);
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -56,7 +57,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
-    $elements = $this->cssSelect("img[src='$textimage_url']");
+    $elements = $this->cssSelect("img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $field_value);
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $field_value);
@@ -67,7 +68,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->save();
     $href = $node->urlInfo()->toString();
     $this->drupalGet($node->urlInfo());
-    $elements = $this->cssSelect("a[href*='$href'] img[src='$textimage_url']");
+    $elements = $this->cssSelect("a[href*='$href'] img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $field_value);
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $field_value);
@@ -79,7 +80,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet($node->urlInfo());
-    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
+    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $this->adminUser->getUsername());
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $this->adminUser->getUsername());
@@ -92,7 +93,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet($node->urlInfo());
-    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
+    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $this->adminUser->getUsername() . ' ' . $site_name);
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $this->adminUser->getUsername() . ' ' . $site_name);
     $this->assertCacheTag('config:image.style.textimage_test');
@@ -133,6 +134,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node])
       ->process($field_value)
       ->getUrl()->toString();
+    $rel_url = file_url_transform_relative($textimage_url);
+
     $display = entity_get_display('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
@@ -144,7 +147,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
     $this->assertEqual(1, count($elements));
-    $this->assertEqual($textimage_url, $elements[0]['src']->__toString());
+    $this->assertEqual($rel_url, $elements[0]['src']->__toString());
     $this->assertEqual('Alternate text: ' . $field_value[0], $elements[0]['alt']->__toString());
     $this->assertEqual('Title: ' . $field_value[0], $elements[0]['title']->__toString());
 
@@ -162,7 +165,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
         ->setTokenData(['node' => $node])
         ->process($field_value[$i])
         ->getUrl()->toString();
-      $this->assertEqual($textimage_url, $elements[$i]['src']->__toString());
+      $rel_url = file_url_transform_relative($textimage_url);
+
+      $this->assertEqual($rel_url, $elements[$i]['src']->__toString());
       $this->assertEqual('Alternate text: ' . $field_value[0], $elements[$i]['alt']->__toString());
       $this->assertEqual('Title: ' . $field_value[0], $elements[$i]['title']->__toString());
     }
@@ -203,6 +208,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL)
       ->getUrl()->toString();
+    $rel_url = file_url_transform_relative($textimage_url);
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -214,7 +220,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
-    $elements = $this->cssSelect("img[src='$textimage_url']");
+    $elements = $this->cssSelect("img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $node_title);
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $node_title);
@@ -227,7 +233,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->save();
     $href = $node->urlInfo()->toString();
     $this->drupalGet($node->urlInfo());
-    $elements = $this->cssSelect("a[href*='$href'] img[src='$textimage_url']");
+    $elements = $this->cssSelect("a[href*='$href'] img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'test alt text');
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $node_title);
@@ -239,7 +245,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet($node->urlInfo());
-    $elements = $this->cssSelect("a[href='$source_image_file_url'] img[src='$textimage_url']");
+    $elements = $this->cssSelect("a[href='$source_image_file_url'] img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to original image file.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $this->adminUser->getUsername());
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $this->adminUser->getUsername());
@@ -249,7 +255,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet($node->urlInfo());
-    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$textimage_url']");
+    $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to derivative image file.');
     $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $this->adminUser->getUsername());
     $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $this->adminUser->getUsername());

@@ -198,8 +198,9 @@ class TextimageApiTest extends TextimageTestBase {
     );
     $this->setRawContent($this->renderer->renderRoot($output));
     $this->verbose($this->getRawContent());
-    $url = $textimage->getUrl()->toString();
-    $elements = $this->cssSelect("a[href='$url'] div.textimage-container-test img[src='$url']");
+    $abs_url = $textimage->getUrl()->toString();
+    $rel_url = file_url_transform_relative($abs_url);
+    $elements = $this->cssSelect("a[href='$abs_url'] div.textimage-container-test img[src='$rel_url']"); // @todo changing behaviour in D8.1, need to watch #2646744
     $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');
 
     // Test targeting invalid URIs.
