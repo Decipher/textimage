@@ -31,23 +31,23 @@ class TextimageTest extends TextimageTestBase {
     $input = [
       [
         'text' => ['preview text image'],
-        'width' => 177,
-        'height' => 28,
+        'width' => 171,
+        'height' => 24,
       ],
       [
         'text' => ['Предварительный просмотр текста'],
-        'width' => 331,
-        'height' => 28,
+        'width' => 335,
+        'height' => 24,
       ],
       [
         'text' => ['προεπισκόπηση της εικόνας κείμενο'],
-        'width' => 328,
-        'height' => 28,
+        'width' => 325,
+        'height' => 24,
       ],
       [
         'text' => ['Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'],
-        'width' => 1148,
-        'height' => 28,
+        'width' => 1104,
+        'height' => 24,
       ],
     ];
 
@@ -142,7 +142,7 @@ class TextimageTest extends TextimageTestBase {
     $this->assertResponse(200);
     $files_count = count(file_scan_directory($public_directory_path . '/textimage/textimage_test', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation via request URL.');
-    $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 225, 28);
+    $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 217, 24);
 
     // Test build a textimage at target URI via API.
     $uri = $this->textimageFactory->get()
@@ -153,7 +153,7 @@ class TextimageTest extends TextimageTestBase {
       ->getUri();
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation at target URI via API.');
-    $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 35, 28);
+    $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 33, 24);
 
     // Test build another textimage at same target URI.
     $uri = $this->textimageFactory->get()
@@ -165,7 +165,7 @@ class TextimageTest extends TextimageTestBase {
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage replaced at target URI via API.');
-    $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 113, 28);
+    $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 107, 24);
   }
 
 }

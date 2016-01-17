@@ -3,20 +3,6 @@ default_extension: 'png'
 url_generation:
   enabled: FALSE
   text_separator: '---'
-font:
-  plugin_id: textimage
-  plugin_settings:
-    textimage:
-      path: ''
 default_font:
   name:
   uri:
-background:
-  plugin_id: textimage
-  plugin_settings:
-    textimage:
-      path: ''
-color:
-  plugin_id: textimage
-  plugin_settings:
-    textimage: { }

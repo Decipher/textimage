@@ -13,8 +13,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\image\ConfigurableImageEffectBase;
-use Drupal\textimage\Plugin\TextimageBackgroundPluginInterface;
-use Drupal\textimage\Plugin\TextimageFontPluginInterface;
+use Drupal\image_effects\Plugin\ImageEffectsFontSelectorPluginInterface;
+use Drupal\image_effects\Plugin\ImageEffectsPluginBaseInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -45,29 +45,29 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
   protected $imageFactory;
 
   /**
-   * The font plugin.
+   * The font selector plugin.
    *
-   * @var \Drupal\textimage\Plugin\TextimageFontPluginInterface
+   * @var \Drupal\image_effects\Plugin\ImageEffectsFontSelectorPluginInterface
    */
-  protected $fontPlugin;
+  protected $fontSelector;
 
   /**
-   * The background plugin.
+   * The image selector plugin.
    *
-   * @var \Drupal\textimage\Plugin\TextimageBackgroundPluginInterface
+   * @var \Drupal\image_effects\Plugin\ImageEffectsPluginBaseInterface
    */
-  protected $backgroundPlugin;
+  protected $imageSelector;
 
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ModuleHandlerInterface $module_handler, LoggerInterface $logger, ImageFactory $image_factory, $textimage_factory, TextimageFontPluginInterface $font_plugin, TextimageBackgroundPluginInterface $background_plugin) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ModuleHandlerInterface $module_handler, LoggerInterface $logger, ImageFactory $image_factory, $textimage_factory, ImageEffectsFontSelectorPluginInterface $font_selector_plugin, ImageEffectsPluginBaseInterface $image_selector_plugin) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $logger);
     $this->moduleHandler = $module_handler;
     $this->imageFactory = $image_factory;
     $this->textimageFactory = $textimage_factory;
-    $this->fontPlugin = $font_plugin;
-    $this->backgroundPlugin = $background_plugin;
+    $this->fontSelector = $font_selector_plugin;
+    $this->imageSelector = $image_selector_plugin;
   }
 
   /**
@@ -82,8 +82,8 @@ abstract class TextimageEffectBase extends ConfigurableImageEffectBase implement
       $container->get('textimage.logger'),
       $container->get('image.factory'),
       $container->get('textimage.factory'),
-      $container->get('plugin.manager.textimage.font')->getPlugin(),
-      $container->get('plugin.manager.textimage.background')->getPlugin()
+      $container->get('plugin.manager.image_effects.font_selector')->getPlugin(),
+      $container->get('plugin.manager.image_effects.image_selector')->getPlugin()
     );
   }
 

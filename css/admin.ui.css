@@ -12,11 +12,3 @@
   margin: 0;
   padding: 0;
 }
-
-/* Color box in image style UI */
-
-span.textimage-color-box {
-  border: 1px solid;
-  font-weight: bold;
-  padding: 0.1em 0.5em;
-}

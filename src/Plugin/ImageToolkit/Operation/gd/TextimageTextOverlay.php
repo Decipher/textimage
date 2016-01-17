@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
-use Drupal\textimage\Component\ColorUtility;
+use Drupal\image_effects\Component\ColorUtility;
 
 /**
  * Defines Textimage GD2 text overlay operation.

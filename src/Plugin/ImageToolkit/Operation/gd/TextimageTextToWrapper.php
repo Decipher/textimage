@@ -9,7 +9,7 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Image\ImageInterface;
-use Drupal\textimage\Component\ColorUtility;
+use Drupal\image_effects\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait;

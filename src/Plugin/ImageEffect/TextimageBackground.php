@@ -72,7 +72,6 @@ class TextimageBackground extends TextimageEffectBase {
       '#name' => 'background_image',
       '#type' => 'fieldset',
       '#title' => $this->t('Background image'),
-      '#description' => $this->t('Select a background image to be used.'),
     );
     // Background image mode - options.
     $image_options = array(
@@ -86,7 +85,13 @@ class TextimageBackground extends TextimageEffectBase {
       '#default_value' => $this->configuration['background_image']['mode'],
     );
     // Background image selection.
-    $form['background_image']['uri'] = $this->backgroundPlugin->selectionElement($this->configuration);
+    $options = [
+      '#states' => [
+        'visible' => [':input[name="data[background_image][mode]"]' => ['value' => 'select']],
+      ],
+      '#default_value' => $this->configuration['background_image']['uri'],
+    ];
+    $form['background_image']['uri'] = $this->imageSelector->selectionElement($options);
 
     // Derivative image format.
     $form['format'] = array(
@@ -108,7 +113,7 @@ class TextimageBackground extends TextimageEffectBase {
     );
     // Derivative image format - GIF color.
     $form['format']['gif_transparent_color'] = array(
-      '#type' => 'textimage_color',
+      '#type' => 'image_effects_color',
       '#title' => $this->t('Transparent color for GIF images'),
       '#description'  => $this->t('Select a color to be used for transparency of GIF image files. Leave the checkbox ticked to use the color of the image being processed, if it has one.'),
       '#allow_null' => TRUE,
@@ -132,7 +137,7 @@ class TextimageBackground extends TextimageEffectBase {
       '#description'  => $this->t('Select the color you wish to use for the background of the image. This color will be placed around the image or fill the background if no image is selected.'),
     );
     $form['background']['color'] = array(
-      '#type' => 'textimage_color',
+      '#type' => 'image_effects_color',
       '#title' => $this->t('Color'),
       '#allow_null' => TRUE,
       '#allow_opacity' => TRUE,
@@ -291,7 +296,7 @@ class TextimageBackground extends TextimageEffectBase {
     $data = $this->configuration;
     if ($data['background']['color']) {
       $data['background_color_detail'] = array(
-        '#theme' => 'textimage_color_detail',
+        '#theme' => 'image_effects_color_detail',
         '#color' => $data['background']['color'],
         '#border' => TRUE,
         '#border_color' => 'matchLuma',

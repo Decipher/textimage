@@ -7,7 +7,7 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation;
 
-use Drupal\textimage\Component\ColorUtility;
+use Drupal\image_effects\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
 
 /**

@@ -21,18 +21,6 @@ textimage.settings:
         text_separator:
           type: string
           label: 'Sequence of characters to be used to split the URL text string'
-    font:
-      type: mapping
-      label: 'Font management'
-      mapping:
-        plugin_id:
-          type: text
-          label: 'Selected plugin id'
-        plugin_settings:
-          type: sequence
-          label: 'Plugins settings'
-          sequence:
-            type: textimage.plugin.font.[%key]
     default_font:
       type: mapping
       label: 'Default font'
@@ -43,65 +31,6 @@ textimage.settings:
         uri:
           type: string
           label: 'Default font file URI'
-    background:
-      type: mapping
-      label: 'Background image management'
-      mapping:
-        plugin_id:
-          type: text
-          label: 'Selected plugin id'
-        plugin_settings:
-          type: sequence
-          label: 'Plugins settings'
-          sequence:
-            type: textimage.plugin.background.[%key]
-    color:
-      type: mapping
-      label: 'Color form element management'
-      mapping:
-        plugin_id:
-          type: text
-          label: 'Selected plugin id'
-        plugin_settings:
-          type: sequence
-          label: 'Plugins settings'
-          sequence:
-            type: textimage.plugin.color.[%key]
-
-
-# Schema for Textimage plugins settings.
-textimage.plugin.font.*:
-  type: mapping
-  label: 'Font plugin settings'
-
-textimage.plugin.font.textimage:
-  type: mapping
-  label: 'Textimage font plugin settings'
-  mapping:
-    path:
-      type: string
-      label: 'Path where font files can be found'
-
-textimage.plugin.background.*:
-  type: mapping
-  label: 'Background image plugin settings'
-
-textimage.plugin.background.textimage:
-  type: mapping
-  label: 'Textimage background image plugin settings'
-  mapping:
-    path:
-      type: string
-      label: 'Path where image files can be found'
-
-textimage.plugin.color.*:
-  type: mapping
-  label: 'Color element plugin settings'
-
-textimage.plugin.color.textimage:
-  type: mapping
-  label: 'Textimage color element plugin settings'
-
 
 # Schema for Textimage third party settings for image styles.
 image.style.*.third_party.textimage:

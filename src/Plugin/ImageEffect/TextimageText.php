@@ -14,9 +14,8 @@ use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\textimage\Component\ColorUtility;
+use Drupal\image_effects\Component\ColorUtility;
 use Drupal\textimage\Component\Rectangle;
-use Drupal\textimage\Element\TextimageColor;
 
 /**
  * Define the Textimage text.
@@ -156,10 +155,10 @@ class TextimageText extends TextimageEffectBase {
       '#title' => $this->t('Font settings'),
       '#group'   => 'settings',
     );
-    $form['font']['name'] = $this->fontPlugin->selectionElement(array(
+    $form['font']['uri'] = $this->fontSelector->selectionElement(array(
       '#title' => $this->t('Font'),
       '#description' => $this->t('Select the font to be used in this image.'),
-      '#default_value' => $this->configuration['font']['name'],
+      '#default_value' => $this->configuration['font']['uri'],
     ));
     $form['font']['size'] = array(
       '#type'  => 'number',
@@ -183,7 +182,7 @@ class TextimageText extends TextimageEffectBase {
       '#max' => 360,
     );
     $form['font']['color'] = array(
-      '#type' => 'textimage_color',
+      '#type' => 'image_effects_color',
       '#title' => $this->t('Font color'),
       '#description'  => $this->t('Set the font color.'),
       '#allow_opacity' => TRUE,
@@ -318,7 +317,7 @@ class TextimageText extends TextimageEffectBase {
       ),
     );
     $form['font']['stroke']['color'] = array(
-      '#type' => 'textimage_color',
+      '#type' => 'image_effects_color',
       '#title' => $this->t('Color'),
       '#description'  => $this->t('Set the outline/shadow color.'),
       '#allow_opacity' => TRUE,
@@ -490,7 +489,7 @@ class TextimageText extends TextimageEffectBase {
     );
     // Background color.
     $form['layout']['background_color'] = array(
-      '#type' => 'textimage_color',
+      '#type' => 'image_effects_color',
       '#title' => $this->t('Background color'),
       '#description'  => $this->t('Select the color you wish to use for the background of the text.'),
       '#allow_null' => TRUE,
@@ -525,13 +524,10 @@ class TextimageText extends TextimageEffectBase {
     // Get x-y position from the anchor element.
     list($x_pos, $y_pos) = explode('-', $form_state->getValue(['layout', 'position', 'placement']));
 
-    // Get the font URI.
-    $font_uri = $form_state->hasValue(['font', 'name']) ? $this->fontPlugin->getUri($form_state->getValue(['font', 'name'])) : NULL;
-
     $this->configuration = array(
       'font'   => array(
-        'name'                 => $form_state->hasValue(['font', 'name']) ? $form_state->getValue(['font', 'name']) : NULL,
-        'uri'                  => $font_uri,
+        'name'                 => $form_state->hasValue(['font', 'uri']) ? $this->fontSelector->getDescription($form_state->getValue(['font', 'uri'])) : NULL,
+        'uri'                  => $form_state->getValue(['font', 'uri']),
         'size'                 => $form_state->getValue(['font', 'size']),
         'angle'                => $form_state->getValue(['font', 'angle']),
         'color'                => $form_state->getValue(['font', 'color']),
@@ -585,7 +581,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
   public function getSummary() {
     $data = $this->configuration;
     $data['font_color_detail'] = array(
-      '#theme' => 'textimage_color_detail',
+      '#theme' => 'image_effects_color_detail',
       '#color' => $data['font']['color'],
       '#border' => TRUE,
       '#border_color' => 'matchLuma',
@@ -593,7 +589,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     if ($stroke_mode = $this->strokeMode()) {
       $data['stroke_mode'] = $stroke_mode;
       $data['stroke_color_detail'] = array(
-        '#theme' => 'textimage_color_detail',
+        '#theme' => 'image_effects_color_detail',
         '#color' => $data['font']['stroke_color'],
         '#border' => TRUE,
         '#border_color' => 'matchLuma',
@@ -601,7 +597,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     }
     if ($data['layout']['background_color']) {
       $data['background_color_detail'] = array(
-        '#theme' => 'textimage_color_detail',
+        '#theme' => 'image_effects_color_detail',
         '#color' => $data['layout']['background_color'],
         '#border' => TRUE,
         '#border_color' => 'matchLuma',

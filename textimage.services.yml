@@ -13,15 +13,6 @@ services:
   logger.channel.textimage:
     parent: logger.channel_base
     arguments: ['textimage']
-  plugin.manager.textimage.font:
-    class: Drupal\textimage\Plugin\TextimagePluginManager
-    arguments: [font, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
-  plugin.manager.textimage.background:
-    class: Drupal\textimage\Plugin\TextimagePluginManager
-    arguments: [background, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
-  plugin.manager.textimage.color:
-    class: Drupal\textimage\Plugin\TextimagePluginManager
-    arguments: [color, '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory']
   textimage.factory:
     class: Drupal\textimage\TextimageFactory
     arguments: ['@config.factory', '@token', '@textimage.logger', '@cache.textimage', '@current_user', '@stream_wrapper_manager', '@entity.manager']

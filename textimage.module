@@ -12,7 +12,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\image\ImageStyleInterface;
-use Drupal\textimage\Component\ColorUtility;
+use Drupal\image_effects\Component\ColorUtility;
 use Drupal\textimage\Textimage;
 use Drupal\textimage\TextimageException;
 
@@ -63,14 +63,6 @@ function textimage_theme() {
     'textimage_preview' => array(
       'variables' => array(
         'textimage_data' => [],
-      ),
-    ),
-    // Render a color information box and string.
-    'textimage_color_detail' => array(
-      'variables' => array(
-        'color' => '#000000',
-        'border' => FALSE,
-        'border_color' => '#000000',
       ),
     ),
   );
@@ -281,27 +273,6 @@ function template_preprocess_textimage_formatter(&$variables) {
     if (!empty($variables['alt'])) {
       $variables['image']['#alt'] = $variables['alt'];
     }
-  }
-}
-
-/**
- * Prepares variables to get a color info.
- *
- * Default template: textimage-color-detail.html.twig.
- */
-function template_preprocess_textimage_color_detail(&$variables) {
-  $variables['#attached']['library'][] = 'textimage/admin.ui';
-  if ($variables['color']) {
-    if ($variables['border']) {
-      if ($variables['border_color'] == 'matchLuma') {
-        $variables['border_color'] = ColorUtility::matchLuma($variables['color']);
-      }
-      else {
-        $variables['border_color'] = Unicode::substr($variables['border_color'], 0, 7);
-      }
-    }
-    $variables['color_opacity'] = ColorUtility::rgbaToOpacity($variables['color']);
-    $variables['color'] = Unicode::substr($variables['color'], 0, 7);
   }
 }
 

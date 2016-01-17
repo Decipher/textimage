@@ -21,7 +21,7 @@ abstract class TextimageTestBase extends WebTestBase {
   protected $textimageFactory;
   protected $renderer;
 
-  public static $modules = array('textimage', 'node');
+  public static $modules = array('textimage', 'node', 'image_effects');
 
   /**
    * {@inheritdoc}
@@ -50,11 +50,18 @@ abstract class TextimageTestBase extends WebTestBase {
     ));
     $this->drupalLogin($this->adminUser);
 
+    // Change Image Effects settings.
+    $config = \Drupal::configFactory()->getEditable('image_effects.settings');
+    $config
+      ->set('image_selector.plugin_id', 'dropdown')
+      ->set('image_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'textimage') . '/tests')
+      ->set('font_selector.plugin_id', 'dropdown')
+      ->set('font_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02')
+      ->save();
+
     // Change Textimage settings.
     $config = \Drupal::configFactory()->getEditable('textimage.settings');
     $config
-      ->set('font.plugin_settings.textimage.path', drupal_get_path('module', 'textimage') . '/tests/fonts')
-      ->set('background.plugin_settings.textimage.path', drupal_get_path('module', 'textimage') . '/tests')
       ->set('url_generation.enabled', TRUE)
       ->set('debug', TRUE)
       ->save();
@@ -62,7 +69,7 @@ abstract class TextimageTestBase extends WebTestBase {
     // Set default font.
     $this->drupalGet($this->textimageAdmin);
     $edit = array(
-      'settings[font][default_font_name]' => 'Old Standard TT Regular',
+      'settings[main][default_font_uri]' => 'LinLibertine_Rah.ttf',
     );
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
 
