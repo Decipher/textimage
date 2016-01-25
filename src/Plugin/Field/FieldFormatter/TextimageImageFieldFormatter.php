@@ -40,7 +40,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   protected $textimageFactory;
 
   /**
-   * Constructs an TextimageImageFieldFormatter object.
+   * Constructs a TextimageImageFieldFormatter object.
    *
    * @param string $plugin_id
    *   The plugin_id for the formatter.
@@ -60,6 +60,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   The current user.
    * @param \Drupal\Core\Entity\EntityStorageInterface $image_style_storage
    *   The image style entity storage.
+   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   *   The Textimage factory service.
    */
   public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, EntityStorageInterface $image_style_storage, TextimageFactory $textimage_factory) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage);

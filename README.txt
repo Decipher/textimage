@@ -23,17 +23,19 @@ Ported to Drupal 8 by:
 Drupal 8 version
 ================
 
-Note: the port to Drupal 8 is in development. Please expect changes to API and
+Notes:
+1) the port to Drupal 8 is in development. Please expect changes to API and
 configuration that may lead to the need to uninistall/reinstall the module.
 There is no support yet to updates between different builds of the development
 branch.
+2) As of alpha2, Textimage will require the Image Effects module to be
+installed and configured before installation.
 
 There is a number of core issues that need to be addressed before a stable
 release:
 ==========================================================================
 Blockers:
 - #2393387 - WSOD editing image effect when configuration form is Ajax enabled
-- #2479487 - ImageStyles can be deleted while having dependant configuration
 - #1977206 - Default serialization of ConfigEntities
 - #2546212 - Entity view/form mode formatter/widget settings have no translation UI
 Nice to have:
@@ -103,6 +105,7 @@ Requirements
 ------------
 - Drupal 8
 - GD2 and FreeType libraries
+- Image Effects module
 
 Recommended modules, for a feature rich set:
 - Token
@@ -110,6 +113,7 @@ Recommended modules, for a feature rich set:
 
 Installation instructions (long version)
 ----------------------------------------
+- Install required modules.
 - Consider recommended modules:
   - Token - this module allows to list available tokens when entering the
     default text for a 'Textimage text' effect.
