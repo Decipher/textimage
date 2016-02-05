@@ -8,6 +8,9 @@
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Component\Utility\Color;
+use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\gd\GDOperationTrait;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageSetGifTransparentColorTrait;
 
 /**
@@ -21,8 +24,10 @@ use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageSetGifTransparentCol
  *   description = @Translation("Set the image transparent color for GIF images.")
  * )
  */
-class TextimageSetGifTransparentColor extends GDTextimageOperationBase  {
+class TextimageSetGifTransparentColor extends GDImageToolkitOperationBase {
 
+  use TextimageOperationTrait;
+  use GDOperationTrait;
   use TextimageSetGifTransparentColorTrait;
 
   /**

@@ -9,10 +9,13 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Image\ImageInterface;
+use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
 use Drupal\image_effects\Component\ColorUtility;
-use Drupal\textimage\Component\Rectangle;
+use Drupal\image_effects\Component\PositionedRectangle;
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\gd\GDOperationTrait;
 use Drupal\textimage\Component\TextUtility;
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 
 /**
  * Defines Textimage GD2 text-to-wrapper operation.
@@ -25,8 +28,10 @@ use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait;
  *   description = @Translation("Overlays text over a GD resource.")
  * )
  */
-class TextimageTextToWrapper extends GDTextimageOperationBase {
+class TextimageTextToWrapper extends GDImageToolkitOperationBase {
 
+  use TextimageOperationTrait;
+  use GDOperationTrait;
   use TextimageTextToWrapperTrait;
 
   /**
@@ -103,12 +108,12 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
     $inner_box_height = ($height_info['height'] * $num_lines) + ($arguments['text']['line_spacing'] * ($num_lines - 1));
 
     // Get outer box.
-    $outer_rect = new Rectangle($inner_box_width + $arguments['layout']['padding_right'] + $arguments['layout']['padding_left'], $inner_box_height + $arguments['layout']['padding_top'] + $arguments['layout']['padding_bottom']);
+    $outer_rect = new PositionedRectangle($inner_box_width + $arguments['layout']['padding_right'] + $arguments['layout']['padding_left'], $inner_box_height + $arguments['layout']['padding_top'] + $arguments['layout']['padding_bottom']);
     $outer_rect->rotate($arguments['font']['angle']);
     $outer_rect->translate($outer_rect->getRotationOffset());
 
     // Get inner box.
-    $inner_rect = new Rectangle($inner_box_width, $inner_box_height);
+    $inner_rect = new PositionedRectangle($inner_box_width, $inner_box_height);
     $inner_rect->translate([$arguments['layout']['padding_left'], $arguments['layout']['padding_top']]);
     $inner_rect->rotate($arguments['font']['angle']);
     $inner_rect->translate($outer_rect->getRotationOffset());
@@ -132,7 +137,7 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
         'rectangle' => $outer_rect,
         'fill_color' => $arguments['layout']['background_color'],
       );
-      $this->getToolkit()->apply('textimage_draw_rectangle', $data_rectangle);
+      $this->getToolkit()->apply('draw_rectangle', $data_rectangle);
     }
 
     // In debug mode, visually display the text boxes.
@@ -143,20 +148,20 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
         'border_color' => $arguments['layout']['background_color'] ?: '#FFFFFF',
         'border_color_luma' => TRUE,
       );
-      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
+      $this->getToolkit()->apply('draw_rectangle', $data);
       // Outer box.
       $data = array(
         'rectangle' => $outer_rect,
         'border_color' => $arguments['layout']['background_color'] ?: '#FFFFFF',
         'border_color_luma' => TRUE,
       );
-      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
+      $this->getToolkit()->apply('draw_rectangle', $data);
       // Wrapper.
       $data = array(
-        'rectangle' => new Rectangle($this->getToolkit()->getWidth(), $this->getToolkit()->getHeight()),
+        'rectangle' => new PositionedRectangle($this->getToolkit()->getWidth(), $this->getToolkit()->getHeight()),
         'border_color' => '#000000',
       );
-      $this->getToolkit()->apply('textimage_draw_rectangle', $data);
+      $this->getToolkit()->apply('draw_rectangle', $data);
     }
 
     // Process each of the text lines.
@@ -164,7 +169,7 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
     foreach ($text_lines as $text_line) {
       // This text line's width.
       $text_line_width = $this->getTextWidth($text_line, $arguments['font']['size'], $arguments['font']['uri']);
-      $text_line_rect = new Rectangle($text_line_width, $line_height);
+      $text_line_rect = new PositionedRectangle($text_line_width, $line_height);
       $text_line_rect->setPoint('basepoint', $height_info['basepoint']);
 
       // Manage text alignment within the line.
@@ -278,8 +283,8 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
    *
    * Credit to Ruquay K Calloway
    *
-   * @param \Drupal\textimage\Component\Rectangle $rect
-   *   A Rectangle object, including basepoint.
+   * @param \Drupal\image_effects\Component\PositionedRectangle $rect
+   *   A PositionedRectangle object, including basepoint.
    * @param string $rgba
    *   RGBA color of the rectangle.
    * @param bool $luma
@@ -287,7 +292,7 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
    *
    * @see http://ruquay.com/sandbox/imagettf
    */
-  protected function drawDebugBox(Rectangle $rect, $rgba, $luma = FALSE) {
+  protected function drawDebugBox(PositionedRectangle $rect, $rgba, $luma = FALSE) {
 
     // Check color.
     if (!$rgba) {
@@ -305,7 +310,7 @@ class TextimageTextToWrapper extends GDTextimageOperationBase {
       'rectangle' => $rect,
       'border_color' => $rgba,
     );
-    $this->getToolkit()->apply('textimage_draw_rectangle', $data);
+    $this->getToolkit()->apply('draw_rectangle', $data);
 
     // Draw diagonal.
     $data = array(

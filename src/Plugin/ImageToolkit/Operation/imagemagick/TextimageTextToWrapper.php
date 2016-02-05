@@ -7,6 +7,9 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\imagemagick;
 
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickOperationTrait;
+use Drupal\imagemagick\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickImageToolkitOperationBase;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait;
 
 /**
@@ -20,8 +23,10 @@ use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageTextToWrapperTrait;
  *   description = @Translation("Overlays text over an image.")
  * )
  */
-class TextimageTextToWrapper extends ImagemagickTextimageOperationBase {
+class TextimageTextToWrapper extends ImagemagickImageToolkitOperationBase {
 
+  use ImagemagickOperationTrait;
+  use TextimageOperationTrait;
   use TextimageTextToWrapperTrait;
 
   /**

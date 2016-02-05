@@ -9,6 +9,10 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageReplaceImageTrait;
 
+use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\gd\GDOperationTrait;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
+
 /**
  * Defines Textimage GD2 image replace operation.
  *
@@ -20,8 +24,10 @@ use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageReplaceImageTrait;
  *   description = @Translation("Replace the current image with another one.")
  * )
  */
-class TextimageReplaceImage extends GDTextimageOperationBase {
+class TextimageReplaceImage extends GDImageToolkitOperationBase {
 
+  use TextimageOperationTrait;
+  use GDOperationTrait;
   use TextimageReplaceImageTrait;
 
   /**
@@ -42,11 +48,11 @@ class TextimageReplaceImage extends GDTextimageOperationBase {
 
     // Overlay replacement image.
     $data = [
-      'layer' => $arguments['replacement_image'],
-      'x' => 0,
-      'y' => 0,
+      'watermark_image' => $arguments['replacement_image'],
+      'x_offset' => 0,
+      'y_offset' => 0,
     ];
-    return $this->getToolkit()->apply('textimage_overlay', $data);
+    return $this->getToolkit()->apply('watermark', $data);
   }
 
 }

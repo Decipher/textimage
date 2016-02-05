@@ -24,12 +24,16 @@ Drupal 8 version
 ================
 
 Notes:
-1) the port to Drupal 8 is in development. Please expect changes to API and
-configuration that may lead to the need to uninistall/reinstall the module.
+1) the port to Drupal 8 is in development. PLEASE EXPECT CHANGES TO API AND
+CONFIGURATION THAT MAY LEAD TO THE NEED TO UNINISTALL/REINSTALL THE MODULE.
 There is no support yet to updates between different builds of the development
 branch.
 2) As of alpha2, Textimage will require the Image Effects module to be
 installed and configured before installation.
+3) In alpha3, the 'Textimage Text' image effect will most likely be dropped
+and replaced by an equivalent effect in the Image Effects module - THIS WILL
+REQUIRE TO UNINISTALL/REINSTALL THE MODULE, AND IMAGE STYLES USING THE
+TEXTIMAGE TEXT EFFECT WILL BREAK.
 
 There is a number of core issues that need to be addressed before a stable
 release:
@@ -125,11 +129,6 @@ Installation instructions (long version)
     that specify a format conversion like e.g. Convert or Textimage
     Background. This setting does not affect image derivatives created by the
     Drupal core Image module.
-  - Fonts manager - select the plugin that will manage fonts in Textimage, and
-    a default font to use. Make sure at least one font file is available.
-  - Background images managers - select the plugin that will manage background
-    images in Textimage.
-  - Color manager - select the plugin for selecting colors in Textimage.
   - URL generation - select whether to enable direct URL generation (see below)
     and the string to be used to separate text elements that need to be pushed
     to separate Textimage Text effects during generation.

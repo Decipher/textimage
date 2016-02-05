@@ -7,6 +7,10 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
+use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\gd\GDOperationTrait;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
+
 /**
  * Defines Textimage GD2 draw line operation.
  *
@@ -18,7 +22,10 @@ namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
  *   description = @Translation("Draws on the image a line of the specified color.")
  * )
  */
-class TextimageDrawLine extends GDTextimageOperationBase {
+class TextimageDrawLine extends GDImageToolkitOperationBase {
+
+  use TextimageOperationTrait;
+  use GDOperationTrait;
 
   /**
    * {@inheritdoc}

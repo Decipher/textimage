@@ -15,7 +15,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\image_effects\Component\ColorUtility;
-use Drupal\textimage\Component\Rectangle;
+use Drupal\image_effects\Component\PositionedRectangle;
 
 /**
  * Define the Textimage text.
@@ -642,14 +642,12 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
 
       // Check wrapper image overflowing the original image.
       if ($this->canvasResizeNeeded($wrapper)) {
-        // Apply textimage_define_canvas, transparent background.
-        if (!$image->apply('textimage_define_canvas', [
-                'exact' => [
-                  'width' => $this->info['image_width'],
-                  'height' => $this->info['image_height'],
-                  'xpos' => $this->info['image_xpos'],
-                  'ypos' => $this->info['image_ypos'],
-                ],
+        // Apply set_canvas, transparent background.
+        if (!$image->apply('set_canvas', [
+                'width' => $this->info['image_width'],
+                'height' => $this->info['image_height'],
+                'x_pos' => $this->info['image_xpos'],
+                'y_pos' => $this->info['image_ypos'],
               ]
             )) {
           return FALSE;
@@ -657,7 +655,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
         // Color fill the frame with carried on background color.
         if ($main_bg_color = $this->textimageFactory->getState('background_color')) {
           // Top rectangle.
-          $rectangle = new Rectangle();
+          $rectangle = new PositionedRectangle();
           if ($this->info['frame_top']) {
             $rectangle->setFromCorners([
               'c_a' => [0, $this->info['frame_top'] - 1],
@@ -665,7 +663,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
               'c_c' => [$this->info['image_width'] - 1, 0],
               'c_d' => [0, 0],
             ]);
-            if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+            if (!$image->apply('draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
               return FALSE;
             };
           }
@@ -677,7 +675,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
               'c_c' => [$this->info['image_width'] - 1, $image_height + $this->info['frame_top']],
               'c_d' => [0, $image_height + $this->info['frame_top']],
             ]);
-            if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+            if (!$image->apply('draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
               return FALSE;
             };
           }
@@ -689,7 +687,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
               'c_c' => [$this->info['frame_left'] - 1, $this->info['frame_top']],
               'c_d' => [0, $this->info['frame_top']],
             ]);
-            if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+            if (!$image->apply('draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
               return FALSE;
             };
           }
@@ -701,7 +699,7 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
               'c_c' => [$this->info['image_width'] - 1, $this->info['frame_top']],
               'c_d' => [$this->info['frame_left'] + $image_width, $this->info['frame_top']],
             ]);
-            if (!$image->apply('textimage_draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
+            if (!$image->apply('draw_rectangle', ['rectangle' => $rectangle, 'fill_color' => $main_bg_color])) {
               return FALSE;
             };
           }
@@ -717,7 +715,11 @@ $form_state->setValue(['ajax_config', 'preview_bar', 'debug_visuals'], $form_sta
     }
 
     // Finally, lay the wrapper over the source image.
-    if (!$image->apply('textimage_overlay', ['layer' => $wrapper, 'x' => $this->info['wrapper_xpos'], 'y' => $this->info['wrapper_ypos']])) {
+    if (!$image->apply('watermark', [
+        'watermark_image' => $wrapper,
+        'x_offset' => $this->info['wrapper_xpos'],
+        'y_offset' => $this->info['wrapper_ypos'],
+      ])) {
       return FALSE;
     }
 

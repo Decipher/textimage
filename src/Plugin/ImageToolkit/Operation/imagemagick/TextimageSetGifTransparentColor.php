@@ -7,6 +7,9 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\imagemagick;
 
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickOperationTrait;
+use Drupal\imagemagick\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickImageToolkitOperationBase;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageSetGifTransparentColorTrait;
 
 /**
@@ -20,8 +23,10 @@ use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageSetGifTransparentCol
  *   description = @Translation("Set the image transparent color for GIF images.")
  * )
  */
-class TextimageSetGifTransparentColor extends ImagemagickTextimageOperationBase {
+class TextimageSetGifTransparentColor extends ImagemagickImageToolkitOperationBase {
 
+  use ImagemagickOperationTrait;
+  use TextimageOperationTrait;
   use TextimageSetGifTransparentColorTrait;
 
   /**

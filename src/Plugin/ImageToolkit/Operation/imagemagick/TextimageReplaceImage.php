@@ -7,6 +7,9 @@
 
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\imagemagick;
 
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickOperationTrait;
+use Drupal\imagemagick\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickImageToolkitOperationBase;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageReplaceImageTrait;
 
 /**
@@ -20,8 +23,10 @@ use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageReplaceImageTrait;
  *   description = @Translation("Replace the current image with another one.")
  * )
  */
-class TextimageReplaceImage extends ImagemagickTextimageOperationBase {
+class TextimageReplaceImage extends ImagemagickImageToolkitOperationBase {
 
+  use ImagemagickOperationTrait;
+  use TextimageOperationTrait;
   use TextimageReplaceImageTrait;
 
   /**

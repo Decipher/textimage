@@ -8,6 +8,9 @@
 namespace Drupal\textimage\Plugin\ImageToolkit\Operation\gd;
 
 use Drupal\image_effects\Component\ColorUtility;
+use Drupal\system\Plugin\ImageToolkit\Operation\gd\GDImageToolkitOperationBase;
+use Drupal\image_effects\Plugin\ImageToolkit\Operation\gd\GDOperationTrait;
+use Drupal\textimage\Plugin\ImageToolkit\Operation\TextimageOperationTrait;
 
 /**
  * Defines Textimage GD2 text overlay operation.
@@ -20,7 +23,10 @@ use Drupal\image_effects\Component\ColorUtility;
  *   description = @Translation("Overlays a given text into the image.")
  * )
  */
-class TextimageTextOverlay extends GDTextimageOperationBase {
+class TextimageTextOverlay extends GDImageToolkitOperationBase {
+
+  use TextimageOperationTrait;
+  use GDOperationTrait;
 
   /**
    * {@inheritdoc}

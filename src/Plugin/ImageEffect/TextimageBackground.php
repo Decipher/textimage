@@ -387,26 +387,29 @@ class TextimageBackground extends TextimageEffectBase {
       }
     }
 
-    // If resizing, apply textimage_define_canvas to finalise layout.
+    // If resizing, apply set_canvas to finalise layout.
     if ($this->configuration['exact']['width'] || $this->configuration['exact']['height'] || $this->configuration['relative']['leftdiff'] || $this->configuration['relative']['rightdiff'] || $this->configuration['relative']['topdiff'] || $this->configuration['relative']['bottomdiff']) {
-      list($xpos, $ypos) = explode('-', $this->configuration['exact']['position']);
-      $canvas_data = array(
-        'background_color' => $this->configuration['background']['color'],
-        'exact' => array(
+      if ($this->configuration['exact']['width'] || $this->configuration['exact']['height']) {
+        list($x_pos, $y_pos) = explode('-', $this->configuration['exact']['position']);
+        $canvas_data = [
+          'canvas_color' => $this->configuration['background']['color'],
           'width' => $this->configuration['exact']['width'],
           'height' => $this->configuration['exact']['height'],
-          'xpos' => $xpos,
-          'ypos' => $ypos,
-        ),
-        'relative' => array(
-          'leftdiff' => $this->configuration['relative']['leftdiff'],
-          'rightdiff' => $this->configuration['relative']['rightdiff'],
-          'topdiff' => $this->configuration['relative']['topdiff'],
-          'bottomdiff' => $this->configuration['relative']['bottomdiff'],
-        ),
-      );
+          'x_pos' => image_filter_keyword($x_pos, $this->configuration['exact']['width'], $image->getWidth()),
+          'y_pos' => image_filter_keyword($y_pos, $this->configuration['exact']['height'], $image->getHeight()),
+        ];
+      }
+      else {
+        $canvas_data = [
+          'canvas_color' => $this->configuration['background']['color'],
+          'width' => $image->getWidth() + $this->configuration['relative']['leftdiff'] + $this->configuration['relative']['rightdiff'],
+          'height' => $image->getHeight() + $this->configuration['relative']['topdiff'] + $this->configuration['relative']['bottomdiff'],
+          'x_pos' => $this->configuration['relative']['leftdiff'],
+          'y_pos' => $this->configuration['relative']['topdiff'],
+        ];
+      }
 
-      $success = $image->apply('textimage_define_canvas', $canvas_data);
+      $success = $image->apply('set_canvas', $canvas_data);
     }
 
     if (!$success) {
