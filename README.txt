@@ -39,8 +39,6 @@ There is a number of core issues that need to be addressed before a stable
 release:
 ==========================================================================
 Blockers:
-- #2393387 - WSOD editing image effect when configuration form is Ajax enabled
-- #1977206 - Default serialization of ConfigEntities
 - #2546212 - Entity view/form mode formatter/widget settings have no translation UI
 Nice to have:
 - #1826362 - ImageEffects of the same image style should be able to pass variables between them
