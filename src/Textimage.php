@@ -592,7 +592,7 @@ class Textimage implements ContainerInjectionInterface {
     // Find the default text from effects.
     $default_text = [];
     foreach ($this->effects as $uuid => $effect_configuration) {
-      if ($effect_configuration['id'] == 'textimage_text') {
+      if ($effect_configuration['id'] == 'image_effects_text_overlay') {
         $uuid = isset($effect_configuration['uuid']) ? $effect_configuration['uuid'] : $uuid;
         $default_text[$uuid] = $effect_configuration['data']['text_string'];
       }
@@ -672,7 +672,7 @@ class Textimage implements ContainerInjectionInterface {
     // Remove text from effects outline, as actual runtime text goes
     // separately to the hash.
     foreach ($this->effects as $uuid => &$effect_configuration) {
-      if ($effect_configuration['id'] == 'textimage_text') {
+      if ($effect_configuration['id'] == 'image_effects_text_overlay') {
         unset($effect_configuration['data']['text_string']);
       }
     }
@@ -751,8 +751,8 @@ class Textimage implements ContainerInjectionInterface {
       return file_exists($this->getUri()) ? TRUE : FALSE;
     }
 
-    // Inject processed text in the textimage_text effects data, and build a
-    // runtime-only style
+    // Inject processed text in the image_effects_text_overlay effects data,
+    // and build a runtime-only style.
     $runtime_effects = $this->effects;
     foreach ($this->text as $uuid => $text_item) {
       $runtime_effects[$uuid]['data']['text_string'] = $text_item;

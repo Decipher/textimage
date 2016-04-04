@@ -224,7 +224,7 @@ class TextimageFactory {
   public function isTextimage(ImageStyleInterface $image_style) {
     foreach ($image_style->getEffects() as $effect) {
       $definition = $effect->getPluginDefinition();
-      if ($definition['provider'] == 'textimage') {
+      if ($definition['id'] == 'image_effects_text_overlay') {
         return TRUE;
         break;
 

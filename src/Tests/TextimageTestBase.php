@@ -54,7 +54,7 @@ abstract class TextimageTestBase extends WebTestBase {
     $config = \Drupal::configFactory()->getEditable('image_effects.settings');
     $config
       ->set('image_selector.plugin_id', 'dropdown')
-      ->set('image_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'textimage') . '/tests')
+      ->set('image_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/images')
       ->set('font_selector.plugin_id', 'dropdown')
       ->set('font_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02')
       ->save();
@@ -84,9 +84,9 @@ abstract class TextimageTestBase extends WebTestBase {
     $this->drupalPostForm('admin/config/media/image-styles/add', $edit, t('Create new style'));
     $this->assertRaw(t('Style %name was created.', array('%name' => $style_label)));
 
-    // Create a test textimage_text effect.
+    // Create a test image_effects_text_overlay effect.
     $effect_edits = array(
-      'textimage_text' => array(
+      'image_effects_text_overlay' => array(
         'data[text_default][text_string]' => 'Test preview',
       ),
     );

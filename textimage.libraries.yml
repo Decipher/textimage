@@ -1,7 +1,0 @@
-# Libraries are defined in alphabetical order.
-
-admin.ui:
-  version: VERSION
-  css:
-    component:
-      css/admin.ui.css: {}

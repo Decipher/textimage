@@ -319,7 +319,7 @@ class TextimageBackground extends TextimageEffectBase {
       // image built thus far.
       case 'select':
         $background_image = $this->imageFactory->get($this->configuration['background_image']['uri']);
-        if (!$image->apply('textimage_replace_image', array('replacement_image' => $background_image))) {
+        if (!$image->apply('replace_image', array('replacement_image' => $background_image))) {
           return FALSE;
         }
         break;
@@ -347,7 +347,7 @@ class TextimageBackground extends TextimageEffectBase {
       }
       // Set GIF transparent color if needed.
       if ($this->configuration['format']['gif_transparent_color']) {
-        $image->apply('textimage_set_gif_transparent_color', ['transparent_color' => $this->configuration['format']['gif_transparent_color']]);
+        $image->apply('set_gif_transparent_color', ['transparent_color' => $this->configuration['format']['gif_transparent_color']]);
       }
     }
 

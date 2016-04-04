@@ -33,7 +33,7 @@ class TextimageApiTest extends TextimageTestBase {
       ],
     ];
     $effect_edits[] = array(
-      'effect' => 'textimage_text',
+      'effect' => 'image_effects_text_overlay',
       'data' => array(
         'data[font][angle]' => '90',
         'data[font][color][container][hex]' => '#FF0000',
@@ -41,7 +41,7 @@ class TextimageApiTest extends TextimageTestBase {
       ),
     );
     $effect_edits[] = array(
-      'effect' => 'textimage_text',
+      'effect' => 'image_effects_text_overlay',
       'data' => array(
         'data[font][angle]' => '-90',
         'data[font][color][container][hex]' => '#00FF00',
@@ -49,7 +49,7 @@ class TextimageApiTest extends TextimageTestBase {
       ),
     );
     $effect_edits[] = array(
-      'effect' => 'textimage_text',
+      'effect' => 'image_effects_text_overlay',
       'data' => array(
         'data[font][angle]' => '45',
         'data[font][color][container][hex]' => '#0000FF',
@@ -127,7 +127,7 @@ class TextimageApiTest extends TextimageTestBase {
 
     // Check processed text is not stored in the effects outline.
     foreach ($effects_outline as $effect) {
-      if ($effect['id'] == 'textimage_text') {
+      if ($effect['id'] == 'image_effects_text_overlay') {
         $this->assertTrue(!isset($effect['data']['text_string']), 'Processed text not stored in the effects outline');
       }
     }
