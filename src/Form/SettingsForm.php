@@ -117,7 +117,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Default image file extension'),
       '#default_value' => $config->get('default_extension'),
       '#required' => TRUE,
-      '#description' => $this->t('Select the default extension of the image files produced by Textimage. This can be overridden by image style effects that specify a format conversion like e.g. <em>Convert</em> or <em>Textimage Background</em>. This setting does not affect image derivatives created by the Image module.'),
+      '#description' => $this->t('Select the default extension of the image files produced by Textimage. This can be overridden by image style effects that specify a format conversion like e.g. <em>Convert</em>. This setting does not affect image derivatives created by the Image module.'),
     );
     // Default font.
     $font_plugin = $this->fontManager->getPlugin($this->config('image_effects.settings')->get('font_selector.plugin_id'));
@@ -144,7 +144,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Text separator'),
       '#maxlength' => 5,
       '#required' => TRUE,
-      '#description' => $this->t('Indicate the sequence of characters to be used to split the URL text string in separate strings. Each string will be consumed by a \'Textimage Text\' effect in the sequence specified within the image style. Note that slashes \'/\' and plus \'+\' characters are not allowed.'),
+      '#description' => $this->t('Indicate the sequence of characters to be used to split the URL text string in separate strings. Each string will be consumed by a \'Text overlay\' effect in the sequence specified within the image style. Note that slashes \'/\' and plus \'+\' characters are not allowed.'),
       '#default_value' => $config->get('url_generation.text_separator'),
     );
 

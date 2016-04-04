@@ -23,9 +23,9 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     case 'textimage.settings':
       $output = '<p>';
-      $output .= t('Textimage provides image effects to generate images with overlaid text. ');
-      $output .= t('Use <a href="@image">Image styles</a> features to create Image styles. ', array('@image' => \Drupal::url('entity.image_style.collection')));
-      $output .= t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
+      $output .= t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', array('@image_effects_url' => 'https://www.drupal.org/project/image_effects'));
+      $output .= ' ' . t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specifiy the text appeareance on the generated image.', array('@image' => \Drupal::url('entity.image_style.collection')));
+      $output .= ' ' . t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
       $output .= '</p>';
       return $output;
 
@@ -36,26 +36,22 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_theme().
  */
 function textimage_theme() {
-  $theme = array(
+  $theme = [
     // Format a textimage.
-    'textimage_formatter' => array(
-      'variables' => array(
+    'textimage_formatter' => [
+      'variables' => [
         'item' => NULL,
         'uri' => NULL,
         'width' => NULL,
         'height' => NULL,
         'alt' => '',
         'title' => '',
-        'attributes' => array(),
-        'image_container_attributes' => array(),
+        'attributes' => [],
+        'image_container_attributes' => [],
         'anchor_url' => NULL,
-      ),
-    ),
-    // Textimage background image effect - summary.
-    'textimage_background_summary' => array(
-      'variables' => array('data' => NULL),
-    ),
-  );
+      ],
+    ],
+  ];
   return $theme;
 }
 

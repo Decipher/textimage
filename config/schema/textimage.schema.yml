@@ -41,77 +41,6 @@ image.style.*.third_party.textimage:
       type: string
       label: 'Textimage derivative scheme destination'
 
-
-# Schema for Textimage provided image effects.
-image.effect.textimage_background:
-  type: mapping
-  label: 'Textimage background effect'
-  mapping:
-    background_image:
-      type: mapping
-      mapping:
-        mode:
-          type: string
-          label: 'Background image mode'
-        uri:
-          type: string
-          label: 'Image file URI'
-        fid:
-          type: integer
-          label: 'Image file FID'
-    format:
-      type: mapping
-      mapping:
-        extension:
-          type: string
-          label: 'Output image file extension'
-        gif_transparent_color:
-          type: color_hex
-          label: 'Color to be used for transparency in GIF images'
-    background:
-      type: mapping
-      mapping:
-        color:
-          type: color_hex
-          label: 'Color'
-        repeat:
-          type: boolean
-          label: 'Flag to reuse the color in following effects'
-    exact:
-      type: mapping
-      mapping:
-        width:
-          type: integer
-          label: 'Exact width in px'
-        height:
-          type: integer
-          label: 'Exact height in px'
-        position:
-          type: string
-          label: 'Position of the image on the resulting canvas'
-        dimensions:
-          type: string
-          label: 'Action to take when the background image selected is bigger size than the canvas'
-        crop:
-          type: string
-          label: 'Part of the selected background image that should be cropped'
-    relative:
-      type: mapping
-      mapping:
-        leftdiff:
-          type: integer
-          label: 'Left ribbon in px'
-        rightdiff:
-          type: integer
-          label: 'Right ribbon in px'
-        topdiff:
-          type: integer
-          label: 'Top ribbon in px'
-        bottomdiff:
-          type: integer
-          label: 'Bottom ribbon in px'
-
-
 # Schema for Textimage provided field formatter settings.
 field.formatter.settings.textimage_text_field_formatter:
   type: mapping
@@ -135,6 +64,7 @@ field.formatter.settings.textimage_text_field_formatter:
     image_build_deferred:
       type: boolean
       label: 'Defer building of textimage to subsequent request'
+
 field.formatter.settings.textimage_image_field_formatter:
   type: mapping
   label: 'Textimage image field formatter settings'

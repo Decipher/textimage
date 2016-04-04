@@ -171,7 +171,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
         '#default_value' => $this->getSetting('image_text_values'),
         '#options' => $options,
         '#required' => TRUE,
-        '#description' => $this->t("Text values are styled following the sequence of 'Textimage text' effects in the image style."),
+        '#description' => $this->t("Text values are styled following the sequence of 'Text overlay' effects in the image style."),
       );
     }
 

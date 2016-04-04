@@ -26,12 +26,6 @@ class TextimageApiTest extends TextimageTestBase {
     // Add more effects to the style.
     $style_path = 'admin/config/media/image-styles/manage/textimage_test';
     $effect_edits = array();
-    $effect_edits[] = [
-      'effect' => 'textimage_background',
-      'data' => [
-        'data[background_image][mode]' => 'passthrough',
-      ],
-    ];
     $effect_edits[] = array(
       'effect' => 'image_effects_text_overlay',
       'data' => array(
@@ -123,7 +117,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTrue($expected_text_array == array_values($image_data['text']), 'Processed text stored in image data');
 
     // Check count of effects is as expected.
-    $this->assertTrue(count($effects_outline) == 7, 'Expected number of effects in the outline');
+    $this->assertTrue(count($effects_outline) == 6, 'Expected number of effects in the outline');
 
     // Check processed text is not stored in the effects outline.
     foreach ($effects_outline as $effect) {
@@ -227,10 +221,9 @@ class TextimageApiTest extends TextimageTestBase {
     $style_path = 'admin/config/media/image-styles/manage/textimage_test';
     $effect_edits = [];
     $effect_edits[] = [
-      'effect' => 'textimage_background',
+      'effect' => 'image_convert',
       'data' => [
-        'data[background_image][mode]' => 'passthrough',
-        'data[format][extension]' => 'jpeg',
+        'data[extension]' => 'jpeg',
       ],
     ];
     foreach ($effect_edits as $effect) {
