@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\Plugin\Field\FieldFormatter\TextimageTextFieldFormatter.
- */
-
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -124,14 +119,14 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    * {@inheritdoc}
    */
   public static function defaultSettings() {
-    return array(
+    return [
       'image_style' => '',
       'image_text_values' => 'merge',
       'image_link' => '',
       'image_alt' => '',
       'image_title' => '',
       'image_build_deferred' => TRUE,
-    ) + parent::defaultSettings();
+    ] + parent::defaultSettings();
   }
 
   /**
@@ -161,32 +156,32 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
 
     // Multi-value text field image generation settings.
     if ($this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
-      $options = array(
+      $options = [
         'merge' => $this->t("Build one single image, styling together text values."),
         'itemize' => $this->t("Build multiple images, styling each text value in a separate image."),
-      );
-      $element['image_text_values'] = array(
+      ];
+      $element['image_text_values'] = [
         '#title' => $this->t('Multiple values text field'),
         '#type' => 'radios',
         '#default_value' => $this->getSetting('image_text_values'),
         '#options' => $options,
         '#required' => TRUE,
         '#description' => $this->t("Text values are styled following the sequence of 'Text overlay' effects in the image style."),
-      );
+      ];
     }
 
     // Link setting.
-    $link_types = array(
+    $link_types = [
       'content' => $this->t('Content'),
       'file' => $this->t('Styled image'),
-    );
-    $element['image_link'] = array(
+    ];
+    $element['image_link'] = [
       '#title' => $this->t('Link image to'),
       '#type' => 'select',
       '#default_value' => $this->getSetting('image_link'),
       '#empty_option' => $this->t('Nothing'),
       '#options' => $link_types,
-    );
+    ];
 
     // Image alt and title attribute settings.
     $description = $this->t('This text will be used by screen readers, search engines, or when the image cannot be loaded.');
@@ -194,25 +189,25 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     if ($this->fieldDefinition->getType() == 'image') {
       $description .= ' ' . $this->t('Leave empty to use the alternative text set on content level.');
     }
-    $element['image_alt'] = array(
+    $element['image_alt'] = [
       '#title' => $this->t('Alternative text'),
       '#type' => 'textfield',
       '#default_value' => $this->getSetting('image_alt'),
       '#description' => $description,
       '#maxlength' => 512,
-    );
+    ];
     $description = $this->t('The title is used as a tool tip when the user hovers the mouse over the image.');
     $description .= ' ' . $this->t('Tokens can be used.');
     if ($this->fieldDefinition->getType() == 'image') {
       $description .= ' ' . $this->t('Leave empty to use the title set on content level.');
     }
-    $element['image_title'] = array(
+    $element['image_title'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Title'),
       '#default_value' => $this->getSetting('image_title'),
       '#description' => $description,
       '#maxlength' => 1024,
-    );
+    ];
 
     return $element;
   }
@@ -221,7 +216,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    * {@inheritdoc}
    */
   public function settingsSummary() {
-    $summary = array();
+    $summary = [];
 
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
     // Unset possible 'No defined styles' option.
@@ -230,7 +225,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     // their styles in code.
     $image_style_setting = $this->getSetting('image_style');
     if (isset($image_styles[$image_style_setting])) {
-      $summary[] = $this->t('Image style: @style', array('@style' => $image_styles[$image_style_setting]));
+      $summary[] = $this->t('Image style: @style', ['@style' => $image_styles[$image_style_setting]]);
     }
     else {
       $summary[] = $this->t('Image style: undefined');
@@ -238,30 +233,30 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
 
     // Multi-value text field image generation settings.
     if ($this->fieldDefinition->getFieldStorageDefinition()->getCardinality() != 1) {
-      $options = array(
+      $options = [
         'merge' => $this->t("Build one image"),
         'itemize' => $this->t("Build multiple images"),
-      );
+      ];
       $summary[] = $this->t('Multiple text values:') . ' ' . $options[$this->getSetting('image_text_values')];
     }
 
     // Display link setting only if image is linked.
-    $link_types = array(
+    $link_types = [
       'content' => $this->t('Linked to content'),
       'file' => $this->t('Linked to styled image'),
-    );
+    ];
     if (isset($link_types[$this->getSetting('image_link')])) {
       $summary[] = $link_types[$this->getSetting('image_link')];
     }
 
     // Display this setting only if alt text is specified.
     if ($this->getSetting('image_alt')) {
-      $summary[] = $this->t('Alternative text: @image_alt', array('@image_alt' => $this->getSetting('image_alt')));
+      $summary[] = $this->t('Alternative text: @image_alt', ['@image_alt' => $this->getSetting('image_alt')]);
     }
 
     // Display this setting only if title is specified.
     if ($this->getSetting('image_title')) {
-      $summary[] = $this->t('Title: @image_title', array('@image_title' => $this->getSetting('image_title')));
+      $summary[] = $this->t('Title: @image_title', ['@image_title' => $this->getSetting('image_title')]);
     }
 
     return $summary;

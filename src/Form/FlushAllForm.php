@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\Form\FlushAllForm.
- */
-
 namespace Drupal\textimage\Form;
 
 use Drupal\Core\Form\ConfirmFormBase;

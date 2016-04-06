@@ -8,30 +8,6 @@
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 
 /**
- * Implements hook_requirements().
- */
-function textimage_requirements($phase) {
-  $requirements = [];
-
-  // Check PHP GD2 library enabled and providing FreeType support.
-  if (function_exists('imagegd2')) {
-    $info = gd_info();
-    // Check for FreeType support.
-    if (!function_exists('imagettftext') || !isset($info["FreeType Support"])) {
-      // No FreeType support, raise error.
-      $requirements['textimage_gd'] = [
-        'title' => t('GD library FreeType support'),
-        'value' => $info['GD Version'],
-        'severity' => REQUIREMENT_ERROR,
-        'description' => t('The GD Library for PHP is enabled, but was compiled without FreeType support. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://www.php.net/manual/book.image.php">the PHP manual</a>.'),
-      ];
-    }
-  }
-
-  return $requirements;
-}
-
-/**
  * Implements hook_uninstall().
  */
 function textimage_uninstall() {

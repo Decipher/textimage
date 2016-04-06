@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\Routing\TextimageRoutes.
- */
-
 namespace Drupal\textimage\Routing;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -51,7 +46,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
    */
   public function routes() {
 
-    $routes = array();
+    $routes = [];
 
     // Route for generation of textimages from URL.
     $stream_wrapper = $this->streamWrapperManager->getViaScheme('public');

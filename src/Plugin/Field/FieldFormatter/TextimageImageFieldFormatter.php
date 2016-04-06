@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\Plugin\Field\FieldFormatter\TextimageImageFieldFormatter.
- */
-
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -90,10 +85,10 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    * {@inheritdoc}
    */
   public static function defaultSettings() {
-    return array(
+    return [
       'image_alt' => '',
       'image_title' => '',
-    ) + parent::defaultSettings();
+    ] + parent::defaultSettings();
   }
 
   /**
@@ -122,18 +117,18 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     ];
 
     // Link setting.
-    $link_types = array(
+    $link_types = [
       'content' => $this->t('Content'),
       'file' => $this->t('Original image'),
       'derivative' => $this->t('Styled image'),
-    );
-    $element['image_link'] = array(
+    ];
+    $element['image_link'] = [
       '#title' => $this->t('Link image to'),
       '#type' => 'select',
       '#default_value' => $this->getSetting('image_link'),
       '#empty_option' => $this->t('Nothing'),
       '#options' => $link_types,
-    );
+    ];
 
     // Image alt and title attribute settings.
     $description = $this->t('This text will be used by screen readers, search engines, or when the image cannot be loaded.');
@@ -141,25 +136,25 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     if ($this->fieldDefinition->getType() == 'image') {
       $description .= ' ' . $this->t('Leave empty to use the alternative text set on content level.');
     }
-    $element['image_alt'] = array(
+    $element['image_alt'] = [
       '#title' => $this->t('Alternative text'),
       '#type' => 'textfield',
       '#default_value' => $this->getSetting('image_alt'),
       '#description' => $description,
       '#maxlength' => 512,
-    );
+    ];
     $description = $this->t('The title is used as a tool tip when the user hovers the mouse over the image.');
     $description .= ' ' . $this->t('Tokens can be used.');
     if ($this->fieldDefinition->getType() == 'image') {
       $description .= ' ' . $this->t('Leave empty to use the title set on content level.');
     }
-    $element['image_title'] = array(
+    $element['image_title'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Title'),
       '#default_value' => $this->getSetting('image_title'),
       '#description' => $description,
       '#maxlength' => 1024,
-    );
+    ];
 
     return $element;
   }
@@ -168,7 +163,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    * {@inheritdoc}
    */
   public function settingsSummary() {
-    $summary = array();
+    $summary = [];
 
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
     // Unset possible 'No defined styles' option.
@@ -177,30 +172,30 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     // their styles in code.
     $image_style_setting = $this->getSetting('image_style');
     if (isset($image_styles[$image_style_setting])) {
-      $summary[] = $this->t('Image style: @style', array('@style' => $image_styles[$image_style_setting]));
+      $summary[] = $this->t('Image style: @style', ['@style' => $image_styles[$image_style_setting]]);
     }
     else {
       $summary[] = $this->t('Image style: undefined');
     }
 
     // Display link setting only if image is linked.
-    $link_types = array(
+    $link_types = [
       'content' => $this->t('Linked to content'),
       'file' => $this->t('Linked to original image'),
       'derivative' => $this->t('Linked to styled image'),
-    );
+    ];
     if (isset($link_types[$this->getSetting('image_link')])) {
       $summary[] = $link_types[$this->getSetting('image_link')];
     }
 
     // Display this setting only if alt text is specified.
     if ($this->getSetting('image_alt')) {
-      $summary[] = $this->t('Alternative text: @image_alt', array('@image_alt' => $this->getSetting('image_alt')));
+      $summary[] = $this->t('Alternative text: @image_alt', ['@image_alt' => $this->getSetting('image_alt')]);
     }
 
     // Display this setting only if title is specified.
     if ($this->getSetting('image_title')) {
-      $summary[] = $this->t('Title: @image_title', array('@image_title' => $this->getSetting('image_title')));
+      $summary[] = $this->t('Title: @image_title', ['@image_title' => $this->getSetting('image_title')]);
     }
 
     return $summary;
@@ -266,7 +261,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
         }
       }
 
-      $elements[$delta] = array(
+      $elements[$delta] = [
         '#theme' => 'textimage_formatter',
         '#item' => $file->_referringItem,
         '#uri' => $textimage->getUri(),
@@ -275,7 +270,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
         '#alt' => $image_alt,
         '#title' => $image_title,
         '#anchor_url' => $entity_url ?: $url,
-      );
+      ];
       $bubbleable_metadata->applyTo($elements[$delta]);
     }
 

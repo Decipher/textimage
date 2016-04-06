@@ -5,16 +5,12 @@
  * Textimage - Provides text to image manipulations.
  */
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\image\ImageStyleInterface;
-use Drupal\image_effects\Component\ColorUtility;
-use Drupal\textimage\Textimage;
-use Drupal\textimage\TextimageException;
 
 /**
  * Implements hook_help().
@@ -23,8 +19,8 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     case 'textimage.settings':
       $output = '<p>';
-      $output .= t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', array('@image_effects_url' => 'https://www.drupal.org/project/image_effects'));
-      $output .= ' ' . t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specifiy the text appeareance on the generated image.', array('@image' => \Drupal::url('entity.image_style.collection')));
+      $output .= t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', ['@image_effects_url' => 'https://www.drupal.org/project/image_effects']);
+      $output .= ' ' . t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specifiy the text appeareance on the generated image.', ['@image' => \Drupal::url('entity.image_style.collection')]);
       $output .= ' ' . t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
       $output .= '</p>';
       return $output;
@@ -67,14 +63,14 @@ function textimage_file_download($uri) {
     // Check that the file exists and is an image.
     $image = \Drupal::service('image.factory')->get($uri);
     if ($image->isValid()) {
-      return array(
+      return [
         // Send headers describing the image's size, and MIME-type...
         'Content-Type' => $image->getMimeType(),
         'Content-Length' => $image->getFileSize(),
         // By not explicitly setting them here, this uses normal Drupal
         // Expires, Cache-Control and ETag headers to prevent proxy or
         // browser caching of private images.
-      );
+      ];
     }
     return -1;
   }
@@ -85,7 +81,7 @@ function textimage_file_download($uri) {
  * Implements hook_cache_flush().
  */
 function textimage_cache_flush() {
-  return array('textimage');
+  return ['textimage'];
 }
 
 /**
@@ -110,27 +106,27 @@ function textimage_cron() {
  * Implements hook_token_info().
  */
 function textimage_token_info() {
-  $type = array(
+  $type = [
     'name' => t('Textimage'),
     'description' => t('Tokens related to Textimage'),
     'needs-data' => 'node',
-  );
-  $tokens = array(
-    'uri' => array(
+  ];
+  $tokens = [
+    'uri' => [
       'name' => t("URI"),
       'description' => t("The URI(s) of a Textimage generated for a node's field. Use like <strong>[textimage:uri:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URI to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URIs generated will be returned."),
       'dynamic' => TRUE,
-    ),
-    'url' => array(
+    ],
+    'url' => [
       'name' => t("URL"),
       'description' => t("The URL(s) of a Textimage generated for a node's field. Use like <strong>[textimage:url:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URL to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URLs generated will be returned."),
       'dynamic' => TRUE,
-    ),
-  );
-  return array(
-    'types'  => array('textimage' => $type),
-    'tokens' => array('textimage' => $tokens),
-  );
+    ],
+  ];
+  return [
+    'types'  => ['textimage' => $type],
+    'tokens' => ['textimage' => $tokens],
+  ];
 }
 
 /**
@@ -139,12 +135,12 @@ function textimage_token_info() {
 function textimage_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
   // Jumps out if not processing textimage tokens.
   if ($type != 'textimage') {
-    return array();
+    return [];
   }
   // Jumps out with a warning if node is not available. @todo another entity may be tokenised...
   if (!isset($data['node'])) {
-    \Drupal::service('textimage.logger')->warning('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', array('@tokens_list' => implode(', ', $tokens)));
-    return array();
+    \Drupal::service('textimage.logger')->warning('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', ['@tokens_list' => implode(', ', $tokens)]);
+    return [];
   }
   // Process tokens.
   $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data, $bubbleable_metadata);
@@ -181,23 +177,23 @@ function textimage_image_style_presave(ImageStyleInterface $style) {
  */
 function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $image_style = $form_state->getFormObject()->getEntity();
-  $form['textimage_options'] = array(
+  $form['textimage_options'] = [
     '#type' => 'details',
     '#weight' => 10,
     '#tree' => TRUE,
     '#open' => FALSE,
     '#title' => t('Textimage options'),
     '#description' => t('Define Textimage options specific for this image style.'),
-  );
+  ];
   // Define file storage wrapper used for the style images.
   $scheme_options = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::WRITE_VISIBLE);
-  $form['textimage_options']['uri_scheme'] = array(
+  $form['textimage_options']['uri_scheme'] = [
     '#type' => 'radios',
     '#options' => $scheme_options,
     '#title' => t('Image destination'),
     '#description' => t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
     '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', \Drupal::service('config.factory')->get('system.file')->get('default_scheme')),
-  );
+  ];
   // Adds a validate handler to deal with textimage options.
   $form['#validate'][] = '_textimage_form_image_style_form_validate';
 }
@@ -246,13 +242,13 @@ function template_preprocess_textimage_formatter(&$variables) {
     }
 
     // Get the <img>.
-    $variables['image'] = array(
+    $variables['image'] = [
       '#theme' => 'image__textimage',
       '#uri' => $image_uri,
       '#width' => $variables['width'],
       '#height' => $variables['height'],
       '#attributes' => $variables['attributes'],
-    );
+    ];
     if (!empty($variables['title'])) {
       $variables['image']['#title'] = $variables['title'];
     }

@@ -1,13 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\Controller\TextimageDownloadController.
- */
-
 namespace Drupal\textimage\Controller;
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Image\ImageFactory;
@@ -208,10 +202,10 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       // Get the image and transfer to client.
       $image = $this->imageFactory->get($uri);
       $uri = $image->getSource();
-      $headers = array(
+      $headers = [
         'Content-Type' => $image->getMimeType(),
         'Content-Length' => $image->getFileSize(),
-      );
+      ];
       return new BinaryFileResponse($uri, 200, $headers);
     }
   }

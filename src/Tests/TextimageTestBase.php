@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Textimage test case script.
- */
-
 namespace Drupal\textimage\Tests;
 
 use Drupal\field\Entity\FieldConfig;

@@ -1,7 +1,7 @@
 type: module
 core: 8.x
 name: Textimage
-description: 'Provides Text-to-Image image effects, and field formatters for Text and Image fields.'
+description: 'Provides Text and Image field formatters, and an API, to allow building image styles with variable text.'
 package: Media
 configure: textimage.settings
 dependencies:
