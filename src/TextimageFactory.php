@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\TextimageFactory.
- */
-
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Unicode;

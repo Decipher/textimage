@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\TextimageTokenException.
- */
-
 namespace Drupal\textimage;
 
 /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\TextimageException.
- */
-
 namespace Drupal\textimage;
 
 /**

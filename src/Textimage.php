@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\Textimage.
- */
-
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Crypt;

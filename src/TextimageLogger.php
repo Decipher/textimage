@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\textimage\TextimageLogger.
- */
-
 namespace Drupal\textimage;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
