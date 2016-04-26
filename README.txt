@@ -23,19 +23,7 @@ Ported to Drupal 8 by:
 Drupal 8 version
 ================
 
-Notes:
-1) the port to Drupal 8 is in development. PLEASE EXPECT CHANGES TO API AND
-CONFIGURATION THAT MAY LEAD TO THE NEED TO UNINISTALL/REINSTALL THE MODULE.
-There is no support yet to updates between different builds of the development
-branch.
-2) As of alpha2, Textimage will require the Image Effects module to be
-installed and configured before installation.
-3) In alpha3, the 'Textimage Text' image effect will most likely be dropped
-and replaced by an equivalent effect in the Image Effects module - THIS WILL
-REQUIRE TO UNINISTALL/REINSTALL THE MODULE, AND IMAGE STYLES USING THE
-TEXTIMAGE TEXT EFFECT WILL BREAK.
-
-There is a number of core issues that need to be addressed before a stable
+There are a number of core issues that need to be addressed before a stable
 release:
 ==========================================================================
 Blockers:
@@ -43,10 +31,6 @@ Blockers:
 Nice to have:
 - #1826362 - ImageEffects of the same image style should be able to pass variables between them
 - #2359443 - Allow creating image derivatives from an Image object
-
-The following @todo items need to be addressed in the module:
-==========================================================================
-- add original image option for image field formatter
 
 @todo related to Drupal 8.1:
 ==========================================================================
@@ -216,18 +200,19 @@ Using Textimage image styles
     Example:
 
     try {
+      $bubbleable_metadata = new BubbleableMetadata();
       $textimage = \Drupal::service('textimage.factory')->get($bubbleable_metadata)
-        ->setStyle(ImageStyle::load($style_name)
+        ->setStyle(ImageStyle::load($style_name))
         ->process([$text_strings])
         ->buildImage();
-      $variables['textimage_image'] = array(
+      $variables['textimage_image'] = [
         '#theme' => 'textimage_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
         '#title' => t('textimage'),
         '#alt' => t('Textimage image.'),
-      );
+      ];
       $textimage->getBubbleableMetadata()->applyTo($variables['textimage_image']);
     }
     catch (TextimageException $e) {
@@ -315,7 +300,7 @@ Using Textimage image styles
     - 'image_container_attributes' - (optional) if specified, the <img> tag
       will be wrapped in a <div> container, whose attributes will be set to the
       array passed here.
-    - anchor_url - (optional) if specified, the entire output will be wrapped
+    - 'anchor_url' - (optional) if specified, the entire output will be wrapped
       in a <a> anchor, whose 'href' attribute will be set to the value passed
       here.
 

@@ -924,15 +924,15 @@ class Textimage implements ContainerInjectionInterface {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
         $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme'));
-        $this->set('uri', $this->factory->getStorePath('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
+        $this->set('uri', $this->factory->getStoreUri('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
       }
       else {
-        $this->set('uri', $this->factory->getStorePath('/cache/api/') . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
+        $this->set('uri', $this->factory->getStoreUri('/cache/api/') . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
       }
     }
     else {
       $base_name = hash('sha256', session_id() . microtime()) . '.' . $this->extension;
-      $this->set('uri', $this->factory->getStorePath('/temp/') . $base_name);
+      $this->set('uri', $this->factory->getStoreUri('/temp/') . $base_name);
     }
     return $this;
   }

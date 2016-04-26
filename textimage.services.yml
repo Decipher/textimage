@@ -4,7 +4,7 @@ services:
     tags:
       - { name: cache.bin }
     factory: cache_factory:get
-    arguments: [textimage]
+    arguments: ['textimage']
   path_processor.textimage:
     class: Drupal\textimage\PathProcessor\TextimagePathProcessor
     arguments: ['@stream_wrapper_manager']

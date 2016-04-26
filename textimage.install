@@ -5,8 +5,6 @@
  * Textimage - Installation scripts.
  */
 
-use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-
 /**
  * Implements hook_uninstall().
  */

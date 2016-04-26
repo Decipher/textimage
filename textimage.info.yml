@@ -6,4 +6,4 @@ package: Media
 configure: textimage.settings
 dependencies:
  - image
- - image_effects
+ - image_effects (>=8.x-1.0-alpha2)

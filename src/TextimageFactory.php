@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Provides a factory for Textimage.
  */
-class TextimageFactory {
+class TextimageFactory implements TextimageFactoryInterface {
 
   /**
    * The token resolution service.
@@ -99,13 +99,7 @@ class TextimageFactory {
   }
 
   /**
-   * Gets a Textimage object.
-   *
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *   A BubbleableMetadata object.
-   *
-   * @return \Drupal\textimage\Textimage
-   *   A new Textimage object.
+   * {@inheritdoc}
    */
   public function get(BubbleableMetadata $bubbleable_metadata = NULL) {
     $textimage = Textimage::create(\Drupal::getContainer());
@@ -114,13 +108,7 @@ class TextimageFactory {
   }
 
   /**
-   * Loads a cached Textimage object.
-   *
-   * @param string $tiid
-   *   The Textimage ID.
-   *
-   * @return \Drupal\textimage\Textimage
-   *   A Textimage object with properties loaded from cache.
+   * {@inheritdoc}
    */
   public function load($tiid) {
     $textimage = $this->get();
@@ -129,7 +117,7 @@ class TextimageFactory {
   }
 
   /**
-   * Process text string, detokenise and apply case conversion.
+   * {@inheritdoc}
    */
   public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata) {
     // Replace any tokens in text with run-time values.
@@ -208,13 +196,7 @@ class TextimageFactory {
   }
 
   /**
-   * Check if an image style is Textimage relevant.
-   *
-   * @param \Drupal\image\ImageStyleInterface $image_style
-   *   The image style to check.
-   *
-   * @return bool
-   *   TRUE if style is Textimage relevant, otherwise FALSE
+   * {@inheritdoc}
    */
   public function isTextimage(ImageStyleInterface $image_style) {
     foreach ($image_style->getEffects() as $effect) {
@@ -229,13 +211,7 @@ class TextimageFactory {
   }
 
   /**
-   * Gets an array of Textimage image styles suitable for select list options.
-   *
-   * @param bool $limit_to_textimage
-   *   (optional) TRUE to limit styles to only those with Textimage effects.
-   *
-   * @return
-   *   Array of image styles both key and value are set to style name.
+   * {@inheritdoc}
    */
   public function getTextimageStyleOptions($limit_to_textimage = FALSE) {
     $image_styles = ImageStyle::loadMultiple();
@@ -254,18 +230,13 @@ class TextimageFactory {
   }
 
   /**
-   * Flushes Textimage style data.
-   *
-   * Clears immediate cache and all the image files associated.
-   *
-   * @param array $style
-   *   The style being flushed.
+   * {@inheritdoc}
    */
-  public function flushStyle($style) {
+  public function flushStyle(ImageStyleInterface $style) {
     // Clear hashed filename images.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
-      if (file_exists($directory = $this->getStorePath('/cache/styles/', $wrapper) . $style->id())) {
+      if (file_exists($directory = $this->getStoreUri('/cache/styles/', $wrapper) . $style->id())) {
         file_unmanaged_delete_recursive($directory);
       }
     }
@@ -276,10 +247,7 @@ class TextimageFactory {
   }
 
   /**
-   * Cleanup Textimage.
-   *
-   * This will remove all image files generated via Textimage, flush all
-   * the image styles, clear all cache and all store entries on the db.
+   * {@inheritdoc}
    */
   public function flushAll() {
     // Flush Textimage relevant styles so to invalidate the image styles cache
@@ -292,7 +260,7 @@ class TextimageFactory {
     // schemes.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
-      if (file_exists($directory = $this->getStorePath(NULL, $wrapper))) {
+      if (file_exists($directory = $this->getStoreUri(NULL, $wrapper))) {
         file_unmanaged_delete_recursive($directory);
       }
     }
@@ -306,9 +274,9 @@ class TextimageFactory {
   }
 
   /**
-   * Return a path within the textimage_store structure.
+   * {@inheritdoc}
    */
-  public function getStorePath($path, $scheme = NULL) {
+  public function getStoreUri($path, $scheme = NULL) {
     if (!$scheme) {
       $scheme = $this->configFactory->get('system.file')->get('default_scheme');
     }
@@ -316,20 +284,7 @@ class TextimageFactory {
   }
 
   /**
-   * Textimage tokens replacement.
-   *
-   * @param string $key
-   *   The Textimage token key within the main token [textimage:key:...].
-   *   Key can take 'uri' or 'url' values.
-   * @param array $tokens
-   *   The tokens to resolve.
-   * @param array $data
-   *   Token data array.
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *   The bubbleable metadata.
-   *
-   * @return array
-   *   An array of token replacements.
+   * {@inheritdoc}
    */
   public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata) {
 
@@ -570,16 +525,7 @@ class TextimageFactory {
   }
 
   /**
-   * Retrieves text from a Text field.
-   *
-   * Text gets sanitized for use within Textimage: HTML tags are
-   * stripped.
-   *
-   * @param Drupal\Core\Field\FieldItemListInterface $items
-   *   Field items.
-   *
-   * @return array
-   *   An array of sanitized text items.
+   * {@inheritdoc}
    */
   public function getTextFieldText(FieldItemListInterface $items) {
     $text = [];
