@@ -100,7 +100,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
     }
 
-    // Check if the style exists, is relevant, and set to 'public' scheme in TPS.
+    // Check if the style exists, is relevant, and set to 'public' scheme in
+    // TPS.
     if (!$this->textimageFactory->isTextimage($image_style)) {
       $this->logger->error("URL generation - The image style '%style_name' is not relevant for Textimage.", ['%style_name' => $image_style->getName()]);
       throw new NotFoundHttpException("The image style requested is not relevant for Textimage");
@@ -137,7 +138,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return $this->returnBinary($request, $image_uri);
     }
     catch (TextimageException $e) {
-      $this->logger->error("URL generation - Failed to build an image at '%file_uri'.",  ['%file_uri' => $file_uri]);
+      $this->logger->error("URL generation - Failed to build an image at '%file_uri'.", ['%file_uri' => $file_uri]);
       throw new NotFoundHttpException('Image not found');
     }
   }
@@ -170,7 +171,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return $this->returnBinary($request, $image_uri);
     }
     catch (TextimageException $e) {
-      $this->logger->error("Failed to build an image at '%file_uri'.",  ['%file_uri' => $file]);
+      $this->logger->error("Failed to build an image at '%file_uri'.", ['%file_uri' => $file]);
       throw new NotFoundHttpException('Image not found');
     }
   }
@@ -186,10 +187,10 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  protected function returnBinary($request, $uri) {
+  protected function returnBinary(Request $request, $uri) {
     // Don't try to send file if it is missing.
     if (!file_exists($uri)) {
-      $this->logger->notice("Textimage image at '%source_image_path' not found.",  ['%source_image_path' => $uri]);
+      $this->logger->notice("Textimage image at '%source_image_path' not found.", ['%source_image_path' => $uri]);
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 

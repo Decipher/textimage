@@ -113,10 +113,10 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Create a multi-value text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
-    $this->createTextimageField('text', $field_name, 'article', array('cardinality' => 4));
+    $this->createTextimageField('text', $field_name, 'article', ['cardinality' => 4]);
 
     // Create a new node, with 4 text values for the field.
-    $field_value = array();
+    $field_value = [];
     for ($i = 0; $i < 4; $i++) {
       $field_value[] = $this->randomMachineName(20);
     }
@@ -177,15 +177,15 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $field_name = strtolower($this->randomMachineName());
     $min_resolution = 50;
     $max_resolution = 100;
-    $field_settings = array(
+    $field_settings = [
       'max_resolution' => $max_resolution . 'x' . $max_resolution,
       'min_resolution' => $min_resolution . 'x' . $min_resolution,
       'alt_field' => 1,
-    );
+    ];
     $this->createTextimageField('image', $field_name, 'article', [], $field_settings);
 
     // Create a new node.
-    // Get image 'image-1.png'
+    // Get image 'image-1.png'.
     $field_value = $this->drupalGetTestFiles('image', 39325)[0];
     $nid = $this->createTextimageNode('image', $field_name, $field_value, 'article');
     $node = Node::load($nid);

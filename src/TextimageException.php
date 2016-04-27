@@ -11,7 +11,7 @@ class TextimageException extends \Exception {
    * Constructs a TextimageImagerTokenException object.
    */
   public function __construct($message, \Exception $previous = NULL) {
-      parent::__construct("Textimage error: {$message}", 0, $previous);
+    parent::__construct("Textimage error: {$message}", 0, $previous);
   }
 
 }

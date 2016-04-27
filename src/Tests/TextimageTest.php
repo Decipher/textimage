@@ -2,9 +2,7 @@
 
 namespace Drupal\textimage\Tests;
 
-use Drupal\Core\Cache\Cache;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\node\Entity\Node;
 
 /**
  * Basic functionality of the Textimage module.
@@ -51,12 +49,12 @@ class TextimageTest extends TextimageTestBase {
       $textimage = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
-      $element = array(
+      $element = [
         '#theme' => 'textimage_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
-      );
+      ];
       $textimage->getBubbleableMetadata()->applyTo($element);
       $output = $this->renderer->renderRoot($element);
       $this->assertFalse(file_exists($textimage->getUri()));
@@ -78,7 +76,8 @@ class TextimageTest extends TextimageTestBase {
       $this->assertEqual($textimage->getUri(), $cached->data['uri']);
     }
 
-    // Delete cache, files are still there upon re-processing, before buildImage.
+    // Delete cache, files are still there upon re-processing, before
+    // ::buildImage.
     $this->container->get('cache.textimage')->deleteAll();
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
@@ -88,9 +87,9 @@ class TextimageTest extends TextimageTestBase {
     }
 
     // Set image storage to 'private' wrapper.
-    $edit = array(
+    $edit = [
       'textimage_options[uri_scheme]' => 'private',
-    );
+    ];
     $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
 
     // Generate files on private.
@@ -98,12 +97,12 @@ class TextimageTest extends TextimageTestBase {
       $textimage = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
-      $element = array(
+      $element = [
         '#theme' => 'textimage_formatter',
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),
         '#height' => $textimage->getHeight(),
-      );
+      ];
       $textimage->getBubbleableMetadata()->applyTo($element);
       $output = $this->renderer->renderRoot($element);
       $this->assertFalse(file_exists($textimage->getUri()));
@@ -126,9 +125,9 @@ class TextimageTest extends TextimageTestBase {
     $this->assertResponse(403);
 
     // Set image storage to 'public' wrapper.
-    $edit = array(
+    $edit = [
       'textimage_options[uri_scheme]' => 'public',
-    );
+    ];
     $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
 
     // Test build of a Textimage derivative via URL, on image style set to

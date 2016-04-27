@@ -119,7 +119,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata) {
+  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata = NULL) {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
     $text = $this->token->replace($text, $token_data, [], $bubbleable_metadata);
@@ -203,8 +203,6 @@ class TextimageFactory implements TextimageFactoryInterface {
       $definition = $effect->getPluginDefinition();
       if ($definition['id'] == 'image_effects_text_overlay') {
         return TRUE;
-        break;
-
       }
     }
     return FALSE;
@@ -280,7 +278,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     if (!$scheme) {
       $scheme = $this->configFactory->get('system.file')->get('default_scheme');
     }
-    return  $scheme . '://textimage_store' . $path;
+    return $scheme . '://textimage_store' . $path;
   }
 
   /**
@@ -288,7 +286,8 @@ class TextimageFactory implements TextimageFactoryInterface {
    */
   public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata) {
 
-    $node = isset($data['node']) ?  $data['node'] : NULL; // @todo not only node
+    // @todo Not only node?
+    $node = isset($data['node']) ? $data['node'] : NULL;
 
     // Need to avoid endless loops, that would occur if there are
     // circular references in the tokens. Set static variables for
@@ -413,7 +412,8 @@ class TextimageFactory implements TextimageFactoryInterface {
               // Callback ended up in circular loop, mark the failing token.
               $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
               if ($nesting_level > 0) {
-                // Returns up in the nesting of iteration with the failing token.
+                // Returns up in the nesting of iteration with the failing
+                // token.
                 $this->rollbackStack($nesting_level, $field_stack);
                 throw new TextimageTokenException($e->getToken());
               }
@@ -442,7 +442,8 @@ class TextimageFactory implements TextimageFactoryInterface {
               // Callback ended up in circular loop, mark the failing token.
               $replacements[$original] = str_replace('textimage', 'void-textimage', $original);
               if ($nesting_level > 0) {
-                // Returns up in the nesting of iteration with the failing token.
+                // Returns up in the nesting of iteration with the failing
+                // token.
                 $this->rollbackStack($nesting_level, $field_stack);
                 throw new TextimageTokenException($e->getToken());
               }

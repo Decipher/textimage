@@ -20,44 +20,44 @@ class TextimageApiTest extends TextimageTestBase {
 
     // Add more effects to the style.
     $style_path = 'admin/config/media/image-styles/manage/textimage_test';
-    $effect_edits = array();
-    $effect_edits[] = array(
+    $effect_edits = [];
+    $effect_edits[] = [
       'effect' => 'image_effects_text_overlay',
-      'data' => array(
+      'data' => [
         'data[font][angle]' => '90',
         'data[font][color][container][hex]' => '#FF0000',
         'data[text_default][text_string]' => 'Eff 1',
-      ),
-    );
-    $effect_edits[] = array(
+      ],
+    ];
+    $effect_edits[] = [
       'effect' => 'image_effects_text_overlay',
-      'data' => array(
+      'data' => [
         'data[font][angle]' => '-90',
         'data[font][color][container][hex]' => '#00FF00',
         'data[text_default][text_string]' => 'Eff 2',
-      ),
-    );
-    $effect_edits[] = array(
+      ],
+    ];
+    $effect_edits[] = [
       'effect' => 'image_effects_text_overlay',
-      'data' => array(
+      'data' => [
         'data[font][angle]' => '45',
         'data[font][color][container][hex]' => '#0000FF',
         'data[text_default][text_string]' => 'Eff 3',
-      ),
-    );
-    $effect_edits[] = array(
+      ],
+    ];
+    $effect_edits[] = [
       'effect' => 'image_desaturate',
-      'data' => array(),
-    );
-    $effect_edits[] = array(
+      'data' => [],
+    ];
+    $effect_edits[] = [
       'effect' => 'image_scale_and_crop',
-      'data' => array(
+      'data' => [
         'data[width]' => 120,
         'data[height]' => 121,
-      ),
-    );
+      ],
+    ];
     foreach ($effect_edits as $effect) {
-      $this->drupalPostForm($style_path, array('new' => $effect['effect']), t('Add'));
+      $this->drupalPostForm($style_path, ['new' => $effect['effect']], t('Add'));
       if (!empty($effect['data'])) {
         $this->drupalPostForm(NULL, $effect['data'], t('Add effect'));
       }
@@ -80,8 +80,8 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
 
     // Process Textimage.
-    $text_array = array('bingo', 'bongo', 'tengo', 'tango');
-    $expected_text_array = array('bingo', 'bongo', 'tengo', 'tango');
+    $text_array = ['bingo', 'bongo', 'tengo', 'tango'];
+    $expected_text_array = ['bingo', 'bongo', 'tengo', 'tango'];
     $textimage->process($text_array);
 
     // Check API is providing output after processing.
@@ -121,13 +121,13 @@ class TextimageApiTest extends TextimageTestBase {
       }
     }
 
-    $text_array = array('bingox', 'bongox', 'tengox', 'tangox');
-    $expected_text_array = array('bingox', 'bongox', 'tengox', 'tangox');
+    $text_array = ['bingox', 'bongox', 'tengox', 'tangox'];
+    $expected_text_array = ['bingox', 'bongox', 'tengox', 'tangox'];
 
     $files = $this->drupalGetTestFiles('image');
 
     // Test forcing an extension different from source image file.
-    // Get image-test.png
+    // Get 'image-test.png'.
     $file = File::create((array) array_shift($files));
     $file->save();
     $textimage = $this->textimageFactory->get();
@@ -141,7 +141,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertEqual('image/gif', $image->getMimeType());
 
     // Ensure output image file extension is consistent with source image.
-    // Get image-test.gif
+    // Get 'image-test.gif'.
     $file = File::create((array) array_shift($files));
     $file->save();
     $textimage = $this->textimageFactory->get();
@@ -174,28 +174,29 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertTrue(file_exists($uri), 'Load - file exists');
 
     // Test output of theme textimage_formatter.
-    $output = array(
+    $output = [
       '#theme' => 'textimage_formatter',
       '#uri' => $textimage->getUri(),
       '#width' => $textimage->getWidth(),
       '#height' => $textimage->getHeight(),
       '#alt' => 'Alternate text',
       '#title' => 'Textimage title',
-      '#attributes' => array('class' => 'textimage-test'),
-      '#image_container_attributes' => array('class' => ['textimage-container-test']),
+      '#attributes' => ['class' => 'textimage-test'],
+      '#image_container_attributes' => ['class' => ['textimage-container-test']],
       '#anchor_url' => $textimage->getUrl(),
-    );
+    ];
     $this->setRawContent($this->renderer->renderRoot($output));
     $this->verbose($this->getRawContent());
     $abs_url = $textimage->getUrl()->toString();
     $rel_url = file_url_transform_relative($abs_url);
-    $elements = $this->cssSelect("a[href='$abs_url'] div.textimage-container-test img[src='$rel_url']"); // @todo changing behaviour in D8.1, need to watch #2646744
+    // @todo changing behaviour in D8.1, need to watch #2646744
+    $elements = $this->cssSelect("a[href='$abs_url'] div.textimage-container-test img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');
 
     // Test targeting invalid URIs.
     $textimage = $this->textimageFactory->get();
-    $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('bingo://textimage-testing/bingo-bongo.png'));
-    $this->assertTextimageException(TRUE, array($textimage, 'setTargetUri'), array('public://textimage-testing/bingo' . chr(1) . '.png'));
+    $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['bingo://textimage-testing/bingo-bongo.png']);
+    $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['public://textimage-testing/bingo' . chr(1) . '.png']);
   }
 
   /**
@@ -222,7 +223,7 @@ class TextimageApiTest extends TextimageTestBase {
       ],
     ];
     foreach ($effect_edits as $effect) {
-      $this->drupalPostForm($style_path, array('new' => $effect['effect']), t('Add'));
+      $this->drupalPostForm($style_path, ['new' => $effect['effect']], t('Add'));
       if (!empty($effect['data'])) {
         $this->drupalPostForm(NULL, $effect['data'], t('Add effect'));
       }

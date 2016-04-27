@@ -2,19 +2,9 @@
 
 namespace Drupal\textimage;
 
-use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use Drupal\Core\StreamWrapper\StreamWrapperManager;
-use Drupal\Core\Utility\Token;
-use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageStyleInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Provides an interface for TextimageFactory.
@@ -51,15 +41,15 @@ interface TextimageFactoryInterface {
    * @param string $case_format
    *   A text conversion option.
    * @param array $token_data
-   *   Token data to be passed to Token::replace.
+   *   (optional) Token data to be passed to Token::replace.
    * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *   A BubbleableMetadata object to collect cacheability metadata from the
-   *   token replacement process.
+   *   (optional) A BubbleableMetadata object to collect cacheability metadata
+   *   from the token replacement process.
    *
    * @return string
    *   The processed text string.
    */
-  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata);
+  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata = NULL);
 
   /**
    * Checks if an image style is Textimage relevant.

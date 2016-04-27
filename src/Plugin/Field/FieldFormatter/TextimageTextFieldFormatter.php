@@ -150,7 +150,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       '#options' => $image_styles,
       '#required' => TRUE,
       '#description' => $description_link->toRenderable() + [
-        '#access' => $this->currentUser->hasPermission('administer image styles')
+        '#access' => $this->currentUser->hasPermission('administer image styles'),
       ],
     ];
 
@@ -237,7 +237,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
         'merge' => $this->t("Build one image"),
         'itemize' => $this->t("Build multiple images"),
       ];
-      $summary[] = $this->t('Multiple text values:') . ' ' . $options[$this->getSetting('image_text_values')];
+      $summary[] = $this->t('Multiple text values: @option', ['@option' => $options[$this->getSetting('image_text_values')]]);
     }
 
     // Display link setting only if image is linked.

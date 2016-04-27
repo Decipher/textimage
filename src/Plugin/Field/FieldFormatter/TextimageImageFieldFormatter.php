@@ -112,7 +112,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       '#options' => $image_styles,
       '#required' => TRUE,
       '#description' => $description_link->toRenderable() + [
-        '#access' => $this->currentUser->hasPermission('administer image styles')
+        '#access' => $this->currentUser->hasPermission('administer image styles'),
       ],
     ];
 

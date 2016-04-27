@@ -30,7 +30,7 @@ class TextimageLogger extends LoggerChannel {
   protected $loggerChannel;
 
   /**
-   * Constructs a TextimageLogger object
+   * Constructs a TextimageLogger object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
@@ -50,20 +50,20 @@ class TextimageLogger extends LoggerChannel {
    */
   public function log($level, $message, array $context = array()) {
     // Convert to integer equivalent for consistency with RFC 5424.
-    $levelCode = is_string($level) ? $this->levelTranslation[$level] : $level;
+    $level_code = is_string($level) ? $this->levelTranslation[$level] : $level;
 
     // Process debug entries only if required.
-    if ($levelCode == RfcLogLevel::DEBUG && !$this->configFactory->get('textimage.settings')->get('debug')) {
+    if ($level_code == RfcLogLevel::DEBUG && !$this->configFactory->get('textimage.settings')->get('debug')) {
       return NULL;
     }
 
     // Logs through the logger channel.
-    $this->loggerChannel->log($levelCode, $message, $context);
+    $this->loggerChannel->log($level_code, $message, $context);
 
     // Display the message to qualified users.
     if ($this->currentUser->hasPermission('administer site configuration') ||
         $this->currentUser->hasPermission('administer image styles')) {
-      switch ($levelCode) {
+      switch ($level_code) {
         case RfcLogLevel::DEBUG:
         case RfcLogLevel::INFO:
         case RfcLogLevel::NOTICE:
