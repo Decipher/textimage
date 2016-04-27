@@ -68,8 +68,8 @@ interface TextimageFactoryInterface {
    * @param bool $limit_to_textimage
    *   (optional) TRUE to limit styles to only those with Textimage effects.
    *
-   * @return
-   *   Array of image styles both key and value are set to style name.
+   * @return string[]
+   *   Array of image styles, where both key and value are set to style name.
    */
   public function getTextimageStyleOptions($limit_to_textimage = FALSE);
 

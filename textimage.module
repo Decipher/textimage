@@ -20,7 +20,7 @@ function textimage_help($route_name, RouteMatchInterface $route_match) {
     case 'textimage.settings':
       $output = '<p>';
       $output .= t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', ['@image_effects_url' => 'https://www.drupal.org/project/image_effects']);
-      $output .= ' ' . t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specifiy the text appeareance on the generated image.', ['@image' => \Drupal::url('entity.image_style.collection')]);
+      $output .= ' ' . t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specifiy the text appearance on the generated image.', ['@image' => \Drupal::url('entity.image_style.collection')]);
       $output .= ' ' . t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
       $output .= '</p>';
       return $output;
@@ -137,7 +137,8 @@ function textimage_tokens($type, $tokens, array $data, array $options, Bubbleabl
   if ($type != 'textimage') {
     return [];
   }
-  // Jumps out with a warning if node is not available. @todo another entity may be tokenised...
+  // Jumps out with a warning if node is not available.
+  // @todo Another entity may be tokenised.
   if (!isset($data['node'])) {
     \Drupal::service('textimage.logger')->warning('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', ['@tokens_list' => implode(', ', $tokens)]);
     return [];

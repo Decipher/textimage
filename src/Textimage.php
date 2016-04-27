@@ -23,6 +23,9 @@ use Drupal\image\Entity\ImageStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Provides a Textimage.
+ */
 class Textimage implements ContainerInjectionInterface {
 
   use StringTranslationTrait;
@@ -259,9 +262,9 @@ class Textimage implements ContainerInjectionInterface {
    * A Textimage already processed will not allow changes.
    *
    * @param string $property
-   *   the property to set
+   *   The property to set.
    * @param mixed $value
-   *   the value to set
+   *   The value to set.
    *
    * @return $this
    */
@@ -437,7 +440,7 @@ class Textimage implements ContainerInjectionInterface {
       throw new TextimageException("Bubbleable metadata already set");
     }
     $bubbleable_metadata = $bubbleable_metadata ?: new BubbleableMetadata();
-    return $this->set('bubbleableMetadata', $bubbleable_metadata );
+    return $this->set('bubbleableMetadata', $bubbleable_metadata);
   }
 
   /**
@@ -563,7 +566,7 @@ class Textimage implements ContainerInjectionInterface {
     }
 
     // Effects must be loaded.
-    if(empty($this->effects)) {
+    if (empty($this->effects)) {
       $this->logger->error('Textimage had no image effects to process.');
       return $this;
     }
@@ -742,7 +745,7 @@ class Textimage implements ContainerInjectionInterface {
     // Try a lock to the file generation process. If cannot get the lock,
     // return success if the file exists already. Otherwise return failure.
     $lock_name = 'textimage_process:' . Crypt::hashBase64($this->getUri());
-    if(!$lock_acquired = $this->lock->acquire($lock_name)) {
+    if (!$lock_acquired = $this->lock->acquire($lock_name)) {
       return file_exists($this->getUri()) ? TRUE : FALSE;
     }
 
@@ -811,10 +814,10 @@ class Textimage implements ContainerInjectionInterface {
    * passed to ImageStyle::createDerivative() to build an image derivative.
    *
    * @param array $effects
-   *   an array of image effects
+   *   An array of image effects.
    *
    * @return \Drupal\image\ImageStyleInterface
-   *   an image style object
+   *   An image style object.
    */
   protected function buildStyleFromEffects($effects) {
     $style = ImageStyle::create(array());
@@ -834,7 +837,7 @@ class Textimage implements ContainerInjectionInterface {
    * Copied parts of file_create_filename() to avoid file existence check.
    *
    * @param string $basename
-   *   String filename
+   *   String filename.
    * @param string $directory
    *   String containing the directory or parent URI.
    *
@@ -847,7 +850,7 @@ class Textimage implements ContainerInjectionInterface {
     // some filesystems, not many applications handle them well.
     $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
     if (substr(PHP_OS, 0, 3) == 'WIN') {
-      // These characters are not allowed in Windows filenames
+      // These characters are not allowed in Windows filenames.
       $basename = str_replace(array(':', '*', '?', '"', '<', '>', '|'), '_', $basename);
     }
 

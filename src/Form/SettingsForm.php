@@ -70,7 +70,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getFormID() {
+  public function getFormId() {
     return 'textimage_settings';
   }
 
@@ -129,7 +129,7 @@ class SettingsForm extends ConfigFormBase {
     $form['settings']['url_generation']['enabled'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enabled'),
-      '#description' => $this->t('When selected, direct generation of Textimage images is enabled for users having the \'Generate Textimage URL derivatives\' permission.'),
+      '#description' => $this->t("When selected, direct generation of Textimage images is enabled for users having the 'Generate Textimage URL derivatives' permission."),
       '#default_value' => $config->get('url_generation.enabled'),
     ];
     $form['settings']['url_generation']['text_separator'] = [
@@ -137,7 +137,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Text separator'),
       '#maxlength' => 5,
       '#required' => TRUE,
-      '#description' => $this->t('Indicate the sequence of characters to be used to split the URL text string in separate strings. Each string will be consumed by a \'Text overlay\' effect in the sequence specified within the image style. Note that slashes \'/\' and plus \'+\' characters are not allowed.'),
+      '#description' => $this->t("Indicate the sequence of characters to be used to split the URL text string in separate strings. Each string will be consumed by a 'Text overlay' effect in the sequence specified within the image style. Note that slashes '/' and plus '+' characters are not allowed."),
       '#default_value' => $config->get('url_generation.text_separator'),
     ];
 
@@ -150,7 +150,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Display debugging information'),
       '#default_value' => $config->get('debug'),
-      '#description' => $this->t('Logs Textimage debug messages and shows them to users with the \'%permission\' permissions.', [
+      '#description' => $this->t("Logs Textimage debug messages and shows them to users with the '%permission' permissions.", [
         '%permission' => implode(', ', [
           $this->t('Administer site configuration'),
           $this->t('Administer image styles'),

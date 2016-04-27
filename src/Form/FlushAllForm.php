@@ -42,7 +42,7 @@ class FlushAllForm extends ConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getFormID() {
+  public function getFormId() {
     return 'textimage_flush_all_form';
   }
 

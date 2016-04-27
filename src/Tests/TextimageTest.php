@@ -56,7 +56,7 @@ class TextimageTest extends TextimageTestBase {
         '#height' => $textimage->getHeight(),
       ];
       $textimage->getBubbleableMetadata()->applyTo($element);
-      $output = $this->renderer->renderRoot($element);
+      $this->renderer->renderRoot($element);
       $this->assertFalse(file_exists($textimage->getUri()));
       $this->drupalGet($textimage->getUrl());
       $this->assertTrue(file_exists($textimage->getUri()));
@@ -139,23 +139,21 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 217, 24);
 
     // Test build a textimage at target URI via API.
-    $uri = $this->textimageFactory->get()
+    $this->textimageFactory->get()
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
-      ->buildImage()
-      ->getUri();
+      ->buildImage();
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage generation at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 33, 24);
 
     // Test build another textimage at same target URI.
-    $uri = $this->textimageFactory->get()
+    $this->textimageFactory->get()
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('another test')
-      ->buildImage()
-      ->getUri();
+      ->buildImage();
     // Check file was replaced.
     $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
     $this->assertTrue($files_count == 1, 'Textimage replaced at target URI via API.');
