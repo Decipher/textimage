@@ -2,29 +2,15 @@
 
 namespace Drupal\textimage;
 
-use Drupal\Component\Utility\Crypt;
-use Drupal\Component\Utility\NestedArray;
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Url;
-use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
-use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
-use Drupal\image\Entity\ImageStyle;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Provides an interface for Textimage objects.
  */
-class Textimage extends ContainerInjectionInterface {
+interface Textimage extends ContainerInjectionInterface {
 
   /**
    * Set the image style.
