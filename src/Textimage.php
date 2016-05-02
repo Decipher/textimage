@@ -4,9 +4,9 @@ namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
@@ -24,7 +24,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Provides a Textimage.
  */
-class Textimage implements ContainerInjectionInterface {
+class Textimage implements TextimageInterface {
 
   use StringTranslationTrait;
 
@@ -280,12 +280,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Set the image style.
-   *
-   * @param \Drupal\image\ImageStyleInterface $image_style
-   *   The image style to be used to derive the Textimage.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setStyle(ImageStyleInterface $image_style) {
     if ($this->style) {
@@ -298,13 +293,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Set the image effects.
-   *
-   * @param array $effects
-   *   An array of image effects. Since Textimage manipulates effects before
-   *   rendering the image, the style effects are copied here to allow that.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setEffects(array $effects) {
     if ($this->effects) {
@@ -314,12 +303,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Sets the image file extension.
-   *
-   * @param string $extension
-   *   The file extension to be used (e.g. jpeg/png/gif).
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setTargetExtension($extension) {
     if ($this->extension) {
@@ -333,24 +317,14 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Set the RGB hex color to be used for GIF images.
-   *
-   * @param string $color
-   *   The color to be used for transparent.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setGifTransparentColor($color) {
     return $this->set('gifTransparentColor', $color);
   }
 
   /**
-   * Sets the image source file.
-   *
-   * @param \Drupal\file\FileInterface $source_image_file
-   *   A file entity.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setSourceImageFile(FileInterface $source_image_file, $width = NULL, $height = NULL) {
     if ($source_image_file) {
@@ -364,12 +338,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Sets the token data to resolve tokens.
-   *
-   * @param array $token_data
-   *   An array of objects to resolve tokens.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setTokenData(array $token_data) {
     if ($this->tokenData) {
@@ -379,12 +348,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Set Textimage to be temporary.
-   *
-   * @param bool $is_temp
-   *   FALSE if caching is required for this Textimage.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setTemporary($is_temp) {
     if ($this->uri) {
@@ -395,12 +359,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Set image destination URI.
-   *
-   * @param string $uri
-   *   A valid URI.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setTargetUri($uri) {
     if ($this->uri) {
@@ -424,14 +383,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Sets the bubbleable metadata.
-   *
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *   A BubbleableMetadata object.
-   *
-   * @return $this
-   *
-   * @internal
+   * {@inheritdoc}
    */
   public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL) {
     if ($this->bubbleableMetadata) {
@@ -442,83 +394,56 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Return the Textimage id.
-   *
-   * @return string
-   *   A SHA256 hash.
+   * {@inheritdoc}
    */
   public function id() {
     return $this->processed ? $this->id : NULL;
   }
 
   /**
-   * Return the processed text.
-   *
-   * @return array
-   *   An array of fully processed text elements.
+   * {@inheritdoc}
    */
   public function getText() {
     return $this->processed ? array_values($this->text) : [];
   }
 
   /**
-   * Returns the URI of the Textimage.
-   *
-   * @return string
-   *   An URI.
+   * {@inheritdoc}
    */
   public function getUri() {
     return $this->processed ? $this->uri : NULL;
   }
 
   /**
-   * Returns the URL of the Textimage.
-   *
-   * @return \Drupal\Core\Url
-   *   The Url object for the textimage.
+   * {@inheritdoc}
    */
   public function getUrl() {
     return $this->processed ? Url::fromUri(file_create_url($this->getUri())) : NULL;
   }
 
   /**
-   * Returns the height of the Textimage.
-   *
-   * @return int|null
-   *   The height of the Textimage, or NULL if not available.
+   * {@inheritdoc}
    */
   public function getHeight() {
     return $this->processed ? $this->height : NULL;
   }
 
   /**
-   * Returns the width of the Textimage.
-   *
-   * @return int|null
-   *   The width of the Textimage, or NULL if not available.
+   * {@inheritdoc}
    */
   public function getWidth() {
     return $this->processed ? $this->width : NULL;
   }
 
   /**
-   * Gets the bubbleable metadata of the Textimage.
-   *
-   * @return \Drupal\Core\Render\BubbleableMetadata
-   *   A BubbleableMetadata object.
+   * {@inheritdoc}
    */
   public function getBubbleableMetadata() {
     return $this->processed ? $this->bubbleableMetadata : NULL;
   }
 
   /**
-   * Load Textimage metadata from cache.
-   *
-   * @param string $id
-   *   The id of the Textimage to load.
-   *
-   * @return bool
-   *   TRUE if cache entry exists, FALSE otherwise.
+   * {@inheritdoc}
    */
   public function load($id) {
     // Do not re-process.
@@ -550,12 +475,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Process the Textimage, with the required raw text.
-   *
-   * @param array $text
-   *   An array of text strings, with tokens not resolved.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function process($text) {
     // Do not re-process.
@@ -706,9 +626,7 @@ class Textimage implements ContainerInjectionInterface {
   }
 
   /**
-   * Build the image via core ImageStyle::createDerivative() method.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function buildImage() {
     // Do not proceed if not processed.
