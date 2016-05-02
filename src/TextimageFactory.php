@@ -465,7 +465,7 @@ class TextimageFactory implements TextimageFactoryInterface {
           // in the field.
           try {
             $ret = array();
-            foreach ($items as $delta => $item) {
+            foreach ($items as $item) {
               // Get source image from the image field item.
               $item_value = $item->getValue();
               $textimage = $this->get($bubbleable_metadata)
@@ -530,7 +530,7 @@ class TextimageFactory implements TextimageFactoryInterface {
    */
   public function getTextFieldText(FieldItemListInterface $items) {
     $text = [];
-    foreach ($items as $delta => $item) {
+    foreach ($items as $item) {
       $value = $item->getValue();
       $text[] = !empty($value['value']) ? strip_tags($value['value']) : '';
     }

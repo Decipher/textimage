@@ -205,6 +205,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
+    $elements = [];
     $files = $this->getEntitiesToView($items, $langcode);
 
     // Early opt-out if the field is empty.
@@ -220,7 +221,6 @@ class TextimageImageFieldFormatter extends ImageFormatter {
 
     // Provide token data for the displayed entity.
     $instance = $items->getFieldDefinition();
-    $field = $instance->getFieldStorageDefinition();
     $token_data = [$instance->getTargetEntityTypeId() => $items->getEntity()];
 
     // Get alt and title text from the formatter settings, and resolve tokens.
@@ -234,7 +234,6 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     // Check if the formatter involves a link to the parent entity.
     $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->urlInfo() : NULL;
 
-    $elements = [];
     foreach ($files as $delta => $file) {
       $textimage = $this->textimageFactory->get($bubbleable_metadata)
         ->setStyle($image_style)

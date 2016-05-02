@@ -104,7 +104,7 @@ class TextimageTest extends TextimageTestBase {
         '#height' => $textimage->getHeight(),
       ];
       $textimage->getBubbleableMetadata()->applyTo($element);
-      $output = $this->renderer->renderRoot($element);
+      $this->renderer->renderRoot($element);
       $this->assertFalse(file_exists($textimage->getUri()));
       $this->drupalGet($textimage->getUrl());
       $this->assertTrue(file_exists($textimage->getUri()));

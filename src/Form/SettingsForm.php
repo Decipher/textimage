@@ -154,7 +154,7 @@ class SettingsForm extends ConfigFormBase {
         '%permission' => implode(', ', [
           $this->t('Administer site configuration'),
           $this->t('Administer image styles'),
-        ])
+        ]),
       ]),
     ];
     $form['settings']['maintenance']['flush_all_label'] = [
