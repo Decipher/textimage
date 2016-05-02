@@ -10,7 +10,7 @@ use Drupal\file\FileInterface;
 /**
  * Provides an interface for Textimage objects.
  */
-interface Textimage extends ContainerInjectionInterface {
+interface TextimageInterface extends ContainerInjectionInterface {
 
   /**
    * Set the image style.
