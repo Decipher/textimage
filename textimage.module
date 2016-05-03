@@ -91,7 +91,7 @@ function textimage_cron() {
   // Remove temporary, uncached, image files in all available schemes.
   $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
-    if (file_exists($directory = \Drupal::service('textimage.factory')->getStorePath('/temp', $wrapper))) {
+    if (file_exists($directory = \Drupal::service('textimage.factory')->getStoreUri('/temp', $wrapper))) {
       if (file_unmanaged_delete_recursive($directory)) {
         \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
       }
