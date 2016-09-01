@@ -16,7 +16,7 @@ abstract class TextimageTestBase extends WebTestBase {
   protected $textimageFactory;
   protected $renderer;
 
-  public static $modules = ['textimage', 'node', 'image_effects'];
+  public static $modules = ['textimage', 'node', 'image_effects', 'imagemagick'];
 
   /**
    * {@inheritdoc}
