@@ -7,5 +7,3 @@ configure: textimage.settings
 dependencies:
   - image
   - image_effects
-test_dependencies:
-  - imagemagick
