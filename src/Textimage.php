@@ -309,6 +309,7 @@ class Textimage implements TextimageInterface {
     if ($this->extension) {
       throw new TextimageException("Extension already set");
     }
+    $extension = strtolower($extension);
     if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
       $this->logger->error("Unsupported image file extension (%extension) requested.", ['%extension' => $extension]);
       throw new TextimageException("Attempted to set an unsupported file image extension ({$extension})");

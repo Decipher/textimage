@@ -197,6 +197,25 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage = $this->textimageFactory->get();
     $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['bingo://textimage-testing/bingo-bongo.png']);
     $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['public://textimage-testing/bingo' . chr(1) . '.png']);
+
+    // Ensure upper-casing in target image file extension is not a reason for
+    // exceptions, and upper-cased extensions are lowered.
+    // Get 'image-test.png' and rename to 'image-test.PNG'.
+    $files = $this->drupalGetTestFiles('image');
+    $file = File::create((array) array_shift($files));
+    $file->save();
+    file_move($file, 'image-test.PNG');
+    $textimage = $this->textimageFactory->get();
+    $textimage
+      ->setStyle(ImageStyle::load('textimage_test'))
+      ->setSourceImageFile($file)
+      ->setTargetExtension('PNG')
+      ->process($text_array)
+      ->buildImage();
+    $image = $this->container->get('image.factory')->get($textimage->getUri());
+    $this->assertEqual('image/png', $image->getMimeType());
+    $image_file_extension = pathinfo($textimage->getUri(), PATHINFO_EXTENSION);
+    $this->assertEqual('png', $image_file_extension);
   }
 
   /**
