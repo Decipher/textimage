@@ -160,4 +160,27 @@ class TextimageTest extends TextimageTestBase {
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 107, 24);
   }
 
+  /**
+   * Test execution of Textimage cron hook.
+   */
+  public function testTextimageCronRun() {
+    // Build a temporary textimage via API.
+    $textimage = $this->textimageFactory->get();
+    $textimage
+      ->setStyle(ImageStyle::load('textimage_test'))
+      ->setTemporary(TRUE)
+      ->process(['text image for cron run'])
+      ->buildImage();
+
+    // Temp file should be created at location.
+    $files_count = count(file_scan_directory('public://textimage_store/temp', '/.*/'));
+    $this->assertTrue($files_count === 1);
+
+    // Run cron.
+    $this->cronRun();
+
+    // Temp directory should be removed.
+    $this->assertFalse(is_dir('public://textimage_store/temp'));
+  }
+
 }
