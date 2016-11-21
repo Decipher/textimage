@@ -520,14 +520,18 @@ class Textimage implements TextimageInterface {
     $this->tokenData['file'] = isset($this->tokenData['file']) ? $this->tokenData['file'] : $this->sourceImageFile;
     foreach ($default_text as $uuid => $default_text_item) {
       $text_item = array_shift($text);
+      $effect_instance = $this->imageEffectManager->createInstance($this->effects[$uuid]['id']);
+      $effect_instance->setConfiguration($this->effects[$uuid]);
       if ($text_item) {
         // Replace any tokens in text with run-time values.
         $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-        $processed_text[$uuid] = $this->factory->processTextString($text_item, $this->effects[$uuid]['data']['text']['case_format'], $this->tokenData, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, NULL, $this->tokenData, $this->bubbleableMetadata);
       }
       else {
-        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $this->effects[$uuid]['data']['text']['case_format'], $this->tokenData, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, NULL, $this->tokenData, $this->bubbleableMetadata);
       }
+      // Let text be altered by the effect's alter hook.
+      $processed_text[$uuid] = $effect_instance->getAlteredText($processed_text[$uuid]);
     }
     $this->text = $processed_text;
 

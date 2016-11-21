@@ -35,17 +35,20 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->createTextField($field_name, 'article');
 
     // Create a new node.
-    $field_value = $this->randomMachineName(20);
-    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article');
+    $field_value = '<p>Para1</p><!-- Comment --> Para2  &quot;Title&quot; One &hellip;';
+    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article', 'Overly test');
     $node = Node::load($nid);
 
     // Get Textimage URL.
-    $textimage_url = $this->textimageFactory->get()
+    $textimage = $this->textimageFactory->get()
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTokenData(['node' => $node])
-      ->process($field_value)
-      ->getUrl()->toString();
+      ->process($field_value);
+    $textimage_url = $textimage->getUrl()->toString();
     $rel_url = file_url_transform_relative($textimage_url);
+
+    // Assert HTML tags are stripped and entities are decoded.
+    $this->assertEqual(['Para1 Para2  "Title" One …'], $textimage->getText());
 
     // Test the textimage formatter - no link.
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -59,8 +62,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
-    $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $field_value);
-    $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $field_value);
+    $this->assertEqual('Alternate text: Overly test', $elements[0]['alt']->__toString());
+    $this->assertEqual('Title: Overly test', $elements[0]['title']->__toString());
 
     // Test the textimage formatter - linked to content.
     $display_options['settings']['image_link'] = 'content';
@@ -70,8 +73,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet($node->urlInfo());
     $elements = $this->cssSelect("a[href*='$href'] img[src='$rel_url']");
     $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
-    $this->assertEqual($elements[0]['alt']->__toString(), 'Alternate text: ' . $field_value);
-    $this->assertEqual($elements[0]['title']->__toString(), 'Title: ' . $field_value);
+    $this->assertEqual('Alternate text: Overly test', $elements[0]['alt']->__toString());
+    $this->assertEqual('Title: Overly test', $elements[0]['title']->__toString());
 
     // Test the textimage formatter - linked to Textimage file.
     $display_options['settings']['image_link'] = 'file';
@@ -125,7 +128,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     for ($i = 0; $i < 4; $i++) {
       $field_value[] = $this->randomMachineName(20);
     }
-    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article');
+    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article', 'Test Title');
     $node = Node::load($nid);
 
     // Test the textimage formatter - one image.
@@ -148,8 +151,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
     $this->assertEqual(1, count($elements));
     $this->assertEqual($rel_url, $elements[0]['src']->__toString());
-    $this->assertEqual('Alternate text: ' . $field_value[0], $elements[0]['alt']->__toString());
-    $this->assertEqual('Title: ' . $field_value[0], $elements[0]['title']->__toString());
+    $this->assertEqual('Alternate text: Test Title', $elements[0]['alt']->__toString());
+    $this->assertEqual('Title: Test Title', $elements[0]['title']->__toString());
 
     // Test the textimage formatter - multiple images.
     $display = entity_get_display('node', $node->getType(), 'default');
@@ -168,8 +171,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       $rel_url = file_url_transform_relative($textimage_url);
 
       $this->assertEqual($rel_url, $elements[$i]['src']->__toString());
-      $this->assertEqual('Alternate text: ' . $field_value[0], $elements[$i]['alt']->__toString());
-      $this->assertEqual('Title: ' . $field_value[0], $elements[$i]['title']->__toString());
+      $this->assertEqual('Alternate text: Test Title', $elements[$i]['alt']->__toString());
+      $this->assertEqual('Title: Test Title', $elements[$i]['title']->__toString());
     }
   }
 
@@ -192,7 +195,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Create a new node.
     // Get image 'image-1.png'.
     $field_value = $this->drupalGetTestFiles('image', 39325)[0];
-    $nid = $this->createTextimageNode('image', $field_name, $field_value, 'article');
+    $nid = $this->createTextimageNode('image', $field_name, $field_value, 'article', $this->randomMachineName());
     $node = Node::load($nid);
     $node_title = $node->get('title')[0]->get('value')->getValue();
 
@@ -302,7 +305,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Create a new node.
     $field_value = 'test for caching';
-    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article');
+    $nid = $this->createTextimageNode('text', $field_name, $field_value, 'article', 'test');
     $node = Node::load($nid);
 
     // Set textimage formatter - no link.
@@ -397,15 +400,17 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
    *   Value of the field formatted by Textimage.
    * @param string $bundle
    *   The type of node to create.
+   * @param string $node_title
+   *   The title of node to create.
    */
-  protected function createTextimageNode($field_type, $field_name, $field_value, $bundle) {
+  protected function createTextimageNode($field_type, $field_name, $field_value, $bundle, $node_title) {
     switch ($field_type) {
       case 'text':
         if (!is_array($field_value)) {
           $field_value = [$field_value];
         }
         $edit = [
-          'title[0][value]' => $field_value[0],
+          'title[0][value]' => $node_title,
           'body[0][value]' => $field_value[0],
         ];
         for ($i = 0; $i < count($field_value); $i++) {
@@ -417,7 +422,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
       case 'image':
         $edit = [
-          'title[0][value]' => $this->randomMachineName(),
+          'title[0][value]' => $node_title,
         ];
         $edit['files[' . $field_name . '_0]'] = drupal_realpath($field_value->uri);
         $this->drupalPostForm('node/add/' . $bundle, $edit, t('Save'));

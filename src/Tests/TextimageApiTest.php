@@ -216,6 +216,50 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertEqual('image/png', $image->getMimeType());
     $image_file_extension = pathinfo($textimage->getUri(), PATHINFO_EXTENSION);
     $this->assertEqual('png', $image_file_extension);
+
+    // Check text altering via the effect's alter hook.
+    $effects = [];
+    $effects[] = [
+      'id' => 'image_effects_text_overlay',
+      'data' => [
+        'text' => [
+          'strip_tags' => TRUE,
+          'decode_entities' => TRUE,
+          'maximum_chars' => 12,
+          'excess_chars_text' => ' [more]',
+          'case_format' => 'upper',
+        ],
+        'text_string' => 'Test preview',
+      ],
+    ];
+    $textimage = $this->textimageFactory->get();
+    $textimage
+      ->setEffects($effects)
+      ->process('the quick brown fox jumps over the lazy dog');
+    $this->assertEqual(['THE QUICK BR [more]'], $textimage->getText());
+    $effects = [];
+    $effects[] = [
+      'id' => 'image_effects_text_overlay',
+      'data' => [
+        'text' => [
+          'strip_tags' => TRUE,
+          'decode_entities' => TRUE,
+          'case_format' => '',
+          'maximum_chars' => NULL,
+        ],
+        'text_string' => 'Test preview',
+      ],
+    ];
+    $textimage = $this->textimageFactory->get();
+    $textimage
+      ->setEffects($effects)
+      ->process('<p>Para1</p><!-- Comment --> Para2');
+    $this->assertEqual(['Para1 Para2'], $textimage->getText());
+    $textimage = $this->textimageFactory->get();
+    $textimage
+      ->setEffects($effects)
+      ->process('&quot;Title&quot; One &hellip;');
+    $this->assertEqual(['"Title" One …'], $textimage->getText());
   }
 
   /**

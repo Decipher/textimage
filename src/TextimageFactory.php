@@ -122,26 +122,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata = NULL) {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
-    $text = $this->token->replace($text, $token_data, [], $bubbleable_metadata);
-
-    // Convert case, if requested.
-    switch ($case_format) {
-      case 'upper':
-        return Unicode::strtoupper($text);
-
-      case 'lower':
-        return Unicode::strtolower($text);
-
-      case 'ucfirst':
-        return Unicode::ucfirst($text);
-
-      case 'ucwords':
-        return Unicode::ucwords($text);
-
-      default:
-        return $text;
-
-    }
+    return $this->token->replace($text, $token_data, [], $bubbleable_metadata);
   }
 
   /**
@@ -532,7 +513,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     $text = [];
     foreach ($items as $item) {
       $value = $item->getValue();
-      $text[] = !empty($value['value']) ? strip_tags($value['value']) : '';
+      $text[] = !empty($value['value']) ? $value['value'] : '';
     }
     return $text;
   }

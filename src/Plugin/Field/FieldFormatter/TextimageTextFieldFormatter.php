@@ -277,7 +277,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     $field = $instance->getFieldStorageDefinition();
     $token_data = [$instance->getTargetEntityTypeId() => $items->getEntity()];
 
-    // Get sanitized text strings from the text field.
+    // Get text strings from the text field.
     $text = $this->textimageFactory->getTextFieldText($items);
 
     // Get alt and title text from the formatter settings, and resolve tokens.

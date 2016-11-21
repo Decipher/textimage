@@ -48,6 +48,8 @@ interface TextimageFactoryInterface {
    *
    * @return string
    *   The processed text string.
+   *
+   * @todo The $case_format parameter is deprecated, remove in a future major.
    */
   public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata = NULL);
 
@@ -125,9 +127,6 @@ interface TextimageFactoryInterface {
 
   /**
    * Retrieves text from a Text field.
-   *
-   * Text gets sanitized for use within Textimage: HTML tags are
-   * stripped.
    *
    * @param Drupal\Core\Field\FieldItemListInterface $items
    *   Field items.
