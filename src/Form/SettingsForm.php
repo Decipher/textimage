@@ -173,7 +173,12 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
+    // @todo the array syntax for $form_state->getValue([...]) fails code
+    // style checking, but this is quite inconvenient. See if sniff gets
+    // adjusted or a different way to access nested keys will be available.
+    // @codingStandardsIgnoreStart
     if (preg_match('/[+\/]/', $form_state->getValue(['settings', 'url_generation', 'text_separator']))) {
+    // @codingStandardsIgnoreEnd
       $form_state->setErrorByName('settings][url_generation][text_separator', $this->t('Invalid characters specified for the text separator.'));
     };
   }
@@ -190,6 +195,10 @@ class SettingsForm extends ConfigFormBase {
       return;
     }
 
+    // @todo the array syntax for $form_state->getValue([...]) fails code
+    // style checking, but this is quite inconvenient. See if sniff gets
+    // adjusted or a different way to access nested keys will be available.
+    // @codingStandardsIgnoreStart
     // Main settings.
     $font_plugin = $this->fontManager->getPlugin($this->config('image_effects.settings')->get('font_selector.plugin_id'));
     $config
@@ -205,6 +214,7 @@ class SettingsForm extends ConfigFormBase {
     // Maintenance.
     $config
       ->set('debug', $form_state->getValue(['settings', 'maintenance', 'debug']));
+    // @codingStandardsIgnoreEnd
 
     $config->save();
     parent::submitForm($form, $form_state);

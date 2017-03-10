@@ -22,6 +22,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
   /**
    * Set headers to be displayed.
+   *
+   * @var bool
    */
   protected $dumpHeaders = TRUE;
 
@@ -355,7 +357,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
    * @param array $widget_settings
    *   A list of widget settings that will be added to the widget defaults.
    */
-  protected function createTextField($name, $bundle, $storage_settings = [], $field_settings = [], $widget_settings = []) {
+  protected function createTextField($name, $bundle, array $storage_settings = [], array $field_settings = [], array $widget_settings = []) {
     FieldStorageConfig::create([
       'field_name' => $name,
       'entity_type' => 'node',

@@ -46,7 +46,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   /**
    * The Textimage logger.
    *
-   * @var \Psr\Log\LoggerInterface.
+   * @var \Psr\Log\LoggerInterface
    */
   protected $logger;
 

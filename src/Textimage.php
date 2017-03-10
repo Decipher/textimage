@@ -66,7 +66,7 @@ class Textimage implements TextimageInterface {
   /**
    * The Textimage logger.
    *
-   * @var \Psr\Log\LoggerInterface.
+   * @var \Psr\Log\LoggerInterface
    */
   protected $logger;
 
@@ -740,7 +740,7 @@ class Textimage implements TextimageInterface {
    * @return \Drupal\image\ImageStyleInterface
    *   An image style object.
    */
-  protected function buildStyleFromEffects($effects) {
+  protected function buildStyleFromEffects(array $effects) {
     $style = ImageStyle::create(array());
     foreach ($effects as $effect) {
       $effect_instance = $this->imageEffectManager->createInstance($effect['id']);

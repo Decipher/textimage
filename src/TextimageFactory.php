@@ -2,7 +2,6 @@
 
 namespace Drupal\textimage;
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -31,7 +30,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * The Textimage logger.
    *
-   * @var \Psr\Log\LoggerInterface.
+   * @var \Psr\Log\LoggerInterface
    */
   protected $logger;
 
