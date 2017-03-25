@@ -48,7 +48,7 @@ class TextimageLogger extends LoggerChannel {
   /**
    * {@inheritdoc}
    */
-  public function log($level, $message, array $context = array()) {
+  public function log($level, $message, array $context = []) {
     // Convert to integer equivalent for consistency with RFC 5424.
     $level_code = is_string($level) ? $this->levelTranslation[$level] : $level;
 

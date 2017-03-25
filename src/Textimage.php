@@ -114,7 +114,7 @@ class Textimage implements TextimageInterface {
    *
    * @var array
    */
-  protected $imageData = array();
+  protected $imageData = [];
 
   /**
    * Textimage URI.
@@ -149,14 +149,14 @@ class Textimage implements TextimageInterface {
    *
    * @var array
    */
-  protected $effects = array();
+  protected $effects = [];
 
   /**
    * The array of text elements for this Textimage.
    *
    * @var array
    */
-  protected $text = array();
+  protected $text = [];
 
   /**
    * The file extension for this Textimage.
@@ -500,10 +500,10 @@ class Textimage implements TextimageInterface {
 
     // Normalise $text to an array.
     if (!$text) {
-      $text = array();
+      $text = [];
     }
     if (!is_array($text)) {
-      $text = array($text);
+      $text = [$text];
     }
 
     // Find the default text from effects.
@@ -582,13 +582,13 @@ class Textimage implements TextimageInterface {
     }
 
     // Data for this textimage.
-    $this->imageData = array(
+    $this->imageData = [
       'text'                => $this->text,
       'extension'           => $this->extension,
       'sourceImageFileId'   => $this->sourceImageFile ? $this->sourceImageFile->id() : NULL,
       'sourceImageFileUri'  => $this->sourceImageFile ? $this->sourceImageFile->getFileUri() : NULL,
       'gifTransparentColor' => $this->gifTransparentColor,
-    );
+    ];
 
     // Remove text from effects outline, as actual runtime text goes
     // separately to the hash.
@@ -599,10 +599,10 @@ class Textimage implements TextimageInterface {
     }
 
     // Get SHA256 hash, being the Textimage id, for cache checking.
-    $hash_input = array(
+    $hash_input = [
       'effects_outline'     => $this->effects,
       'image_data'          => $this->imageData,
-    );
+    ];
     $this->id = hash('sha256', serialize($hash_input));
 
     // Check cache and return if hit.
@@ -741,7 +741,7 @@ class Textimage implements TextimageInterface {
    *   An image style object.
    */
   protected function buildStyleFromEffects(array $effects) {
-    $style = ImageStyle::create(array());
+    $style = ImageStyle::create([]);
     foreach ($effects as $effect) {
       $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
       $default_config = $effect_instance->defaultConfiguration();
@@ -772,7 +772,7 @@ class Textimage implements TextimageInterface {
     $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
     if (substr(PHP_OS, 0, 3) == 'WIN') {
       // These characters are not allowed in Windows filenames.
-      $basename = str_replace(array(':', '*', '?', '"', '<', '>', '|'), '_', $basename);
+      $basename = str_replace([':', '*', '?', '"', '<', '>', '|'], '_', $basename);
     }
 
     // A URI or path may already have a trailing slash or look like "public://".
@@ -797,7 +797,7 @@ class Textimage implements TextimageInterface {
 
     // Build the destination folder tree if it doesn't already exist.
     if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-      $this->logger->error('Failed to create Textimage directory: %directory', array('%directory' => $directory));
+      $this->logger->error('Failed to create Textimage directory: %directory', ['%directory' => $directory]);
       return FALSE;
     }
 
@@ -817,7 +817,7 @@ class Textimage implements TextimageInterface {
 
     if (!$image->save($derivative_uri)) {
       if (file_exists($derivative_uri)) {
-        $this->logger->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', array('%destination' => $derivative_uri));
+        $this->logger->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', ['%destination' => $derivative_uri]);
       }
       return FALSE;
     }

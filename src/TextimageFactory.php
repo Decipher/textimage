@@ -161,7 +161,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     static $keys;
 
     if (!isset($keys) or !$variable) {
-      $keys = array();
+      $keys = [];
     }
 
     if ($variable) {
@@ -276,7 +276,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     static $field_stack;
     if (!isset($nesting_level)) {
       $nesting_level = 0;
-      $field_stack = array();
+      $field_stack = [];
     }
     else {
       $nesting_level++;
@@ -288,7 +288,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     // Return immediately if none, or no node.
     if (empty($sub_tokens) || !$node) {
       $this->rollbackStack($nesting_level, $field_stack);
-      return array();
+      return [];
     }
 
     // Determine the callback function.
@@ -304,7 +304,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     }
 
     // Loops through the tokens to resolve.
-    $replacements = array();
+    $replacements = [];
     foreach ($sub_tokens as $sub_token => $original) {
 
       // Clear current nesting level field stack.
@@ -444,7 +444,7 @@ class TextimageFactory implements TextimageFactoryInterface {
           // Image field. Get a separate Textimage from each of the images
           // in the field.
           try {
-            $ret = array();
+            $ret = [];
             foreach ($items as $item) {
               // Get source image from the image field item.
               $item_value = $item->getValue();
