@@ -843,8 +843,8 @@ class Textimage implements TextimageInterface {
    *
    * @return $this
    */
-  // @codingStandardsIgnoreEnd
   protected function buildUri() {
+  // @codingStandardsIgnoreEnd
     // The file name will be the Textimage hash.
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;

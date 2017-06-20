@@ -101,6 +101,8 @@ class TextimageFactory implements TextimageFactoryInterface {
    * {@inheritdoc}
    */
   public function get(BubbleableMetadata $bubbleable_metadata = NULL) {
+    // @todo remove the \Drupal::getContainer() call in a future new major
+    // @codingStandardsIgnoreLine
     $textimage = Textimage::create(\Drupal::getContainer());
     $textimage->setBubbleableMetadata($bubbleable_metadata);
     return $textimage;
