@@ -110,7 +110,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       $configuration['third_party_settings'],
       $container->get('current_user'),
       $container->get('textimage.factory'),
-      $container->get('entity.manager')->getStorage('image_style'),
+      $container->get('entity_type.manager')->getStorage('image_style'),
       $container->get('textimage.logger')
     );
   }

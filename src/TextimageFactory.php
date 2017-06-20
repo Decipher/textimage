@@ -4,7 +4,7 @@ namespace Drupal\textimage;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
@@ -84,17 +84,17 @@ class TextimageFactory implements TextimageFactoryInterface {
    *   The current user.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
    *   The stream wrapper manager service.
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The image style entity storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityManagerInterface $entity_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityTypeManagerInterface $entity_type_manager) {
     $this->configFactory = $config_factory;
     $this->token = $token_service;
     $this->logger = $logger;
     $this->cache = $cache_service;
     $this->currentUser = $current_user;
     $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->userStorage = $entity_manager->getStorage('user');
+    $this->userStorage = $entity_type_manager->getStorage('user');
   }
 
   /**
