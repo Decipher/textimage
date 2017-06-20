@@ -173,12 +173,9 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    // @todo the array syntax for $form_state->getValue([...]) fails code
-    // style checking, but this is quite inconvenient. See if sniff gets
-    // adjusted or a different way to access nested keys will be available.
-    // @codingStandardsIgnoreStart
-    if (preg_match('/[+\/]/', $form_state->getValue(['settings', 'url_generation', 'text_separator']))) {
-    // @codingStandardsIgnoreEnd
+    if (preg_match('/[+\/]/', $form_state->getValue([
+      'settings', 'url_generation', 'text_separator',
+    ]))) {
       $form_state->setErrorByName('settings][url_generation][text_separator', $this->t('Invalid characters specified for the text separator.'));
     };
   }
@@ -195,26 +192,33 @@ class SettingsForm extends ConfigFormBase {
       return;
     }
 
-    // @todo the array syntax for $form_state->getValue([...]) fails code
-    // style checking, but this is quite inconvenient. See if sniff gets
-    // adjusted or a different way to access nested keys will be available.
-    // @codingStandardsIgnoreStart
     // Main settings.
     $font_plugin = $this->fontManager->getPlugin($this->config('image_effects.settings')->get('font_selector.plugin_id'));
     $config
-      ->set('default_extension', $form_state->getValue(['settings', 'main', 'default_extension']))
-      ->set('default_font.name', $font_plugin->getDescription($form_state->getValue(['settings', 'main', 'default_font_uri'])))
-      ->set('default_font.uri', $form_state->getValue(['settings', 'main', 'default_font_uri']));
+      ->set('default_extension', $form_state->getValue([
+        'settings', 'main', 'default_extension',
+      ]))
+      ->set('default_font.name', $font_plugin->getDescription($form_state->getValue([
+        'settings', 'main', 'default_font_uri',
+      ])))
+      ->set('default_font.uri', $form_state->getValue([
+        'settings', 'main', 'default_font_uri',
+      ]));
 
     // URL generation.
     $config
-      ->set('url_generation.enabled', $form_state->getValue(['settings', 'url_generation', 'enabled']))
-      ->set('url_generation.text_separator', $form_state->getValue(['settings', 'url_generation', 'text_separator']));
+      ->set('url_generation.enabled', $form_state->getValue([
+        'settings', 'url_generation', 'enabled',
+      ]))
+      ->set('url_generation.text_separator', $form_state->getValue([
+        'settings', 'url_generation', 'text_separator',
+      ]));
 
     // Maintenance.
     $config
-      ->set('debug', $form_state->getValue(['settings', 'maintenance', 'debug']));
-    // @codingStandardsIgnoreEnd
+      ->set('debug', $form_state->getValue([
+        'settings', 'maintenance', 'debug',
+      ]));
 
     $config->save();
     parent::submitForm($form, $form_state);

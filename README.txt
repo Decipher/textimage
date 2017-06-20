@@ -20,29 +20,6 @@ Ported to Drupal 8 by:
 -------------------------------------------------------------------------------
 
 
-Drupal 8 version
-================
-
-There are a number of core issues that need to be addressed before a stable
-release:
-==========================================================================
-Blockers:
-- #2546212 - Entity view/form mode formatter/widget settings have no translation UI
-Nice to have:
-- #1826362 - ImageEffects of the same image style should be able to pass variables between them
-- #2359443 - Allow creating image derivatives from an Image object
-
-@todo related to Drupal 8.1:
-==========================================================================
-- align to #2571521 Make the logger available on the controllerBase,
-  remove logger from constructor of download controller ?
-- align to #1494670 References to CSS, JS, and similar files should be
-  root-relative URLs: avoids mixed content warnings & fewer bytes to send
-
-
--------------------------------------------------------------------------------
-
-
 Quick start instructions
 ------------------------
 - Check requirements (below) and install / configure the modules needed.

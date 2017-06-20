@@ -149,8 +149,6 @@ function textimage_tokens($type, $tokens, array $data, array $options, Bubbleabl
   return $replacements;
 }
 
-// @todo (metatag) reintroduce hook_metatag_token_types_alter() once module is available.
-
 /**
  * Implements hook_image_style_flush().
  */

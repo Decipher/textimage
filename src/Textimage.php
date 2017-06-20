@@ -825,6 +825,7 @@ class Textimage implements TextimageInterface {
     return TRUE;
   }
 
+  // @codingStandardsIgnoreStart
   /**
    * Set URI to image file.
    *
@@ -842,6 +843,7 @@ class Textimage implements TextimageInterface {
    *
    * @return $this
    */
+  // @codingStandardsIgnoreEnd
   protected function buildUri() {
     // The file name will be the Textimage hash.
     if ($this->caching) {

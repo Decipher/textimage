@@ -53,8 +53,14 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   /**
    * Constructs a TextimageDownloadController object.
    *
+   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   *   The Textimage factory.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The image factory.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
+   * @param \Psr\Log\LoggerInterface $logger
+   *   The Textimage logger.
    */
   public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger) {
     $this->textimageFactory = $textimage_factory;

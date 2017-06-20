@@ -4,9 +4,17 @@
  * Default theme implementation to display a Textimage formatter theme.
  *
  * Available variables:
- * - textimage_output: A Textimage formatter array. @TODO
+ * - image: A collection of image data.
+ * - anchor_url: (Optional) if specified, the entire output will be wrapped
+ *   in a <a> anchor.
+ * - anchor_attributes: (Optional) the 'href' attributes of the anchor.
+ * - image_container_attributes : (Optional) if specified, the <img> tag will
+ *   be wrapped in a <div> container, whose attributes will be set to the
+ *   array passed here.
  *
- * @ingroup theme
+ * @see template_preprocess_textimage_formatter()
+ *
+ * @ingroup themeable
  */
 #}
 {% spaceless %}

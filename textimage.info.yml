@@ -5,5 +5,5 @@ description: 'Provides Text and Image field formatters, and an API, to allow bui
 package: Media
 configure: textimage.settings
 dependencies:
-  - image
-  - image_effects
+  - drupal:image
+  - image_effects:image_effects

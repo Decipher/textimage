@@ -77,6 +77,8 @@ class TextimageLogger extends LoggerChannel {
         default:
           $type = 'error';
       }
+      // @todo replace call to $this->t
+      // @codingStandardsIgnoreLine
       drupal_set_message($this->t($message, $context), $type, FALSE);
     }
   }
