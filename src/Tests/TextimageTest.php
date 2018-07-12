@@ -90,7 +90,7 @@ class TextimageTest extends TextimageTestBase {
     $edit = [
       'textimage_options[uri_scheme]' => 'private',
     ];
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
+    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Save'));
 
     // Generate files on private.
     foreach ($input as $item) {
@@ -128,7 +128,7 @@ class TextimageTest extends TextimageTestBase {
     $edit = [
       'textimage_options[uri_scheme]' => 'public',
     ];
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Update style'));
+    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Save'));
 
     // Test build of a Textimage derivative via URL, on image style set to
     // public.
