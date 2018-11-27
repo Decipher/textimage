@@ -1,8 +1,9 @@
 <?php
 
-namespace Drupal\textimage\Tests;
+namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\image\Entity\ImageStyle;
+use Drupal\Tests\Traits\Core\CronRunTrait;
 
 /**
  * Basic functionality of the Textimage module.
@@ -10,6 +11,8 @@ use Drupal\image\Entity\ImageStyle;
  * @group Textimage
  */
 class TextimageTest extends TextimageTestBase {
+
+  use CronRunTrait;
 
   /**
    * Test functionality of the module.

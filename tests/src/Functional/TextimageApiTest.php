@@ -1,10 +1,11 @@
 <?php
 
-namespace Drupal\textimage\Tests;
+namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\file\Entity\File;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\textimage\TextimageException;
+use Drupal\Tests\TestFileCreationTrait;
 
 /**
  * Functional tests for Textimage API.
@@ -12,6 +13,8 @@ use Drupal\textimage\TextimageException;
  * @group Textimage
  */
 class TextimageApiTest extends TextimageTestBase {
+
+  use TestFileCreationTrait;
 
   /**
    * Test functionality of the API.
@@ -124,7 +127,7 @@ class TextimageApiTest extends TextimageTestBase {
     $text_array = ['bingox', 'bongox', 'tengox', 'tangox'];
     $expected_text_array = ['bingox', 'bongox', 'tengox', 'tangox'];
 
-    $files = $this->drupalGetTestFiles('image');
+    $files = $this->getTestFiles('image');
 
     // Test forcing an extension different from source image file.
     // Get 'image-test.png'.
@@ -173,26 +176,6 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage->buildImage();
     $this->assertTrue(file_exists($uri), 'Load - file exists');
 
-    // Test output of theme textimage_formatter.
-    $output = [
-      '#theme' => 'textimage_formatter',
-      '#uri' => $textimage->getUri(),
-      '#width' => $textimage->getWidth(),
-      '#height' => $textimage->getHeight(),
-      '#alt' => 'Alternate text',
-      '#title' => 'Textimage title',
-      '#attributes' => ['class' => 'textimage-test'],
-      '#image_container_attributes' => ['class' => ['textimage-container-test']],
-      '#anchor_url' => $textimage->getUrl(),
-    ];
-    $this->setRawContent($this->renderer->renderRoot($output));
-    $this->verbose($this->getRawContent());
-    $abs_url = $textimage->getUrl()->toString();
-    $rel_url = file_url_transform_relative($abs_url);
-    // @todo changing behaviour in D8.1, need to watch #2646744
-    $elements = $this->cssSelect("a[href='$abs_url'] div.textimage-container-test img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Textimage formatted correctly.');
-
     // Test targeting invalid URIs.
     $textimage = $this->textimageFactory->get();
     $this->assertTextimageException(TRUE, [$textimage, 'setTargetUri'], ['bingo://textimage-testing/bingo-bongo.png']);
@@ -201,7 +184,7 @@ class TextimageApiTest extends TextimageTestBase {
     // Ensure upper-casing in target image file extension is not a reason for
     // exceptions, and upper-cased extensions are lowered.
     // Get 'image-test.png' and rename to 'image-test.PNG'.
-    $files = $this->drupalGetTestFiles('image');
+    $files = $this->getTestFiles('image');
     $file = File::create((array) array_shift($files));
     $file->save();
     file_move($file, 'image-test.PNG');

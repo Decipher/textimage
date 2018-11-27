@@ -1,20 +1,23 @@
 <?php
 
-namespace Drupal\textimage\Tests;
+namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\image\Entity\ImageStyle;
-use Drupal\simpletest\WebTestBase;
+use Drupal\Tests\BrowserTestBase;
 
 /**
  * Base test class for Textimage tests.
  */
-abstract class TextimageTestBase extends WebTestBase {
+abstract class TextimageTestBase extends BrowserTestBase {
 
   protected $textimageAdmin = 'admin/config/media/textimage';
   protected $textimageFactory;
   protected $renderer;
 
-  public static $modules = ['textimage', 'node', 'image_effects'];
+  /**
+   * {@inheritdoc}
+   */
+  protected static $modules = ['textimage', 'node', 'image_effects'];
 
   /**
    * {@inheritdoc}
