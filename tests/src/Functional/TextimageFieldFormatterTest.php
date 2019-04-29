@@ -106,7 +106,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertCacheTag('config:image.style.textimage_test');
     $this->assertCacheTag('config:system.site');
 
-    // Check token.
+    // Check URI token.
     $bubbleable_metadata = new BubbleableMetadata();
     $token_resolved = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . '] [site:name]', ['node' => $node], [], $bubbleable_metadata);
     $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value) . ' ' . $site_name, $token_resolved);
@@ -116,6 +116,11 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       'node:' . $node->id(),
     ];
     $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
+
+    // Check URL token.
+    $bubbleable_metadata = new BubbleableMetadata();
+    $token_resolved = \Drupal::service('token')->replace('[textimage:url:' . $field_name . ']', ['node' => $node], [], $bubbleable_metadata);
+    $this->assertSame($this->getTextimageUrlFromStyleAndText('textimage_test', $field_value)->toString(), $token_resolved);
   }
 
   /**
@@ -281,7 +286,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->assertCacheTag('file:' . $source_image_file->id());
     $this->assertCacheTag('user:' . $this->adminUser->id());
 
-    // Check token.
+    // Check URI token.
     $bubbleable_metadata = new BubbleableMetadata();
     $token_resolved = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . '] [site:name]', ['node' => $node], [], $bubbleable_metadata);
     $textimage = $this->textimageFactory->get()
@@ -297,6 +302,11 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       'file:' . $source_image_file->id(),
     ];
     $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
+
+    // Check URL token.
+    $bubbleable_metadata = new BubbleableMetadata();
+    $token_resolved = \Drupal::service('token')->replace('[textimage:url:' . $field_name . ']', ['node' => $node], [], $bubbleable_metadata);
+    $this->assertSame($textimage->getUrl()->toString(), $token_resolved);
   }
 
   /**

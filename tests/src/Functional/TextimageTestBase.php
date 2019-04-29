@@ -116,4 +116,14 @@ abstract class TextimageTestBase extends BrowserTestBase {
       ->getUri();
   }
 
+  /**
+   * Returns the Url object of a Textimage based on style name and text.
+   */
+  protected function getTextimageUrlFromStyleAndText($style_name, $text) {
+    return $this->textimageFactory->get()
+      ->setStyle(ImageStyle::load($style_name))
+      ->process($text)
+      ->getUrl();
+  }
+
 }

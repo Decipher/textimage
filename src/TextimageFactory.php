@@ -293,18 +293,6 @@ class TextimageFactory implements TextimageFactoryInterface {
       return [];
     }
 
-    // Determine the callback function.
-    switch ($key) {
-      case 'uri':
-        $callback_method = 'getUri';
-        break;
-
-      case 'url':
-        $callback_method = 'getUrl';
-        break;
-
-    }
-
     // Loops through the tokens to resolve.
     $replacements = [];
     foreach ($sub_tokens as $sub_token => $original) {
@@ -379,7 +367,7 @@ class TextimageFactory implements TextimageFactoryInterface {
                   ->setStyle($image_style)
                   ->setTokenData($data)
                   ->process($text_value);
-                $ret[] = $textimage->$callback_method();
+                $ret[] = $this->getTokenReplacement($textimage, $key);
               }
               // Return a single URI/URL if requested, or a comma separated
               // list of all the URIs/URLs generated.
@@ -418,7 +406,7 @@ class TextimageFactory implements TextimageFactoryInterface {
                 ->setStyle($image_style)
                 ->setTokenData($data)
                 ->process($text);
-              $replacements[$original] = $textimage->$callback_method();
+              $replacements[$original] = $this->getTokenReplacement($textimage, $key);
             }
             catch (TextimageTokenException $e) {
               // Callback ended up in circular loop, mark the failing token.
@@ -455,7 +443,7 @@ class TextimageFactory implements TextimageFactoryInterface {
                 ->setTokenData($data)
                 ->setSourceImageFile($item->entity, $item_value['width'], $item_value['height'])
                 ->process(NULL);
-              $ret[] = $textimage->$callback_method();
+              $ret[] = $this->getTokenReplacement($textimage, $key);
             }
             // Return a single URI/URL if requested, or a comma separated
             // list of all the URIs/URLs generated.
@@ -492,6 +480,20 @@ class TextimageFactory implements TextimageFactoryInterface {
     // Return to previous iteration.
     $this->rollbackStack($nesting_level, $field_stack);
     return $replacements;
+  }
+
+  /**
+   * Helper method to determine the token value in processTokens.
+   */
+  protected function getTokenReplacement(TextimageInterface $textimage, $key) {
+    switch ($key) {
+      case 'uri':
+        return $textimage->getUri();
+
+      case 'url':
+        return $textimage->getUrl()->toString();
+
+    }
   }
 
   /**
