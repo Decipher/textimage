@@ -58,7 +58,10 @@ class TextimageRoutes implements ContainerInjectionInterface {
       // deliver it directly.
       $routes['textimage.public'] = new Route(
         '/' . $stream_wrapper->getDirectoryPath() . '/textimage/{image_style}',
-        ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::urlDeliver'],
+        [
+          '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::urlDeliver',
+          '_disable_route_normalizer' => TRUE,
+        ],
         ['_permission' => 'generate textimage url derivatives']
       );
 
@@ -69,7 +72,10 @@ class TextimageRoutes implements ContainerInjectionInterface {
       // deliver it directly.
       $routes['textimage_store.public'] = new Route(
         '/' . $stream_wrapper->getDirectoryPath() . '/textimage_store',
-        ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery'],
+        [
+          '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery',
+          '_disable_route_normalizer' => TRUE,
+        ],
         ['_access' => 'TRUE']
       );
     }
@@ -82,7 +88,10 @@ class TextimageRoutes implements ContainerInjectionInterface {
       // deliver it via file_download.
       $routes['textimage_store.private'] = new Route(
         '/system/files/textimage_store',
-        ['_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery'],
+        [
+          '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery',
+          '_disable_route_normalizer' => TRUE,
+        ],
         ['_access' => 'TRUE']
       );
     }
