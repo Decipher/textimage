@@ -65,7 +65,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
     $this->assertFileNotExists($textimage->getUri());
 
     // Test the textimage formatter - no link.
-    $display = entity_get_display('node', $node->getType(), 'default');
+    $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_image_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_link'] = '';

@@ -79,7 +79,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertNull($textimage->getUrl(), 'URL is not available');
     $this->assertNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is not available');
     $returned_text = $textimage->getText();
-    $this->assertTrue(empty($returned_text), 'Processed text is not available');
+    $this->assertEmpty($returned_text, 'Processed text is not available');
     $this->assertTextimageException(TRUE, [$textimage, 'buildImage'], []);
 
     // Process Textimage.
@@ -92,7 +92,7 @@ class TextimageApiTest extends TextimageTestBase {
     $this->assertNotNull($textimage->getUri(), 'URI is available');
     $this->assertNotNull($textimage->getUrl(), 'URL is available');
     $this->assertNotNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is available');
-    $this->assertTrue($textimage->getText() == $expected_text_array, 'Processed text is available');
+    $this->assertSame($expected_text_array, $textimage->getText(), 'Processed text is available');
 
     // Build Textimage.
     $this->assertTextimageException(FALSE, [$textimage, 'buildImage'], []);
@@ -112,10 +112,10 @@ class TextimageApiTest extends TextimageTestBase {
     $effects_outline = $stored_image->data['effects'];
 
     // Check processed text is stored in image data.
-    $this->assertTrue($expected_text_array == array_values($image_data['text']), 'Processed text stored in image data');
+    $this->assertSame($expected_text_array, array_values($image_data['text']), 'Processed text stored in image data');
 
     // Check count of effects is as expected.
-    $this->assertTrue(count($effects_outline) == 6, 'Expected number of effects in the outline');
+    $this->assertCount(6, $effects_outline,'Expected number of effects in the outline');
 
     // Check processed text is not stored in the effects outline.
     foreach ($effects_outline as $effect) {
@@ -141,7 +141,7 @@ class TextimageApiTest extends TextimageTestBase {
       ->process($text_array)
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
-    $this->assertEqual('image/gif', $image->getMimeType());
+    $this->assertSame('image/gif', $image->getMimeType());
 
     // Ensure output image file extension is consistent with source image.
     // Get 'image-test.gif'.
@@ -154,7 +154,7 @@ class TextimageApiTest extends TextimageTestBase {
       ->process($text_array)
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
-    $this->assertEqual('image/gif', $image->getMimeType());
+    $this->assertSame('image/gif', $image->getMimeType());
 
     // Test loading the Textimage metadata.
     $id = $textimage->id();
@@ -163,18 +163,18 @@ class TextimageApiTest extends TextimageTestBase {
     $style = ImageStyle::load('textimage_test');
 
     // Check loaded data.
-    $this->assertEqual($textimage->id(), $id, 'Load - ID correct');
-    $this->assertEqual($textimage->getUri(), $uri, 'Load - URI correct');
-    $this->assertEqual($textimage->getText(), $expected_text_array, 'Load - Text correct');
+    $this->assertSame($id, $textimage->id(), 'Load - ID correct');
+    $this->assertSame($uri, $textimage->getUri(), 'Load - URI correct');
+    $this->assertSame($expected_text_array, $textimage->getText(), 'Load - Text correct');
     $this->assertTextimageException(TRUE, [$textimage, 'setStyle'], [$style]);
     // File exists.
-    $this->assertTrue(file_exists($uri), 'Load - file exists');
+    $this->assertFileExists($uri, 'Load - file exists');
     // File deletion.
-    $this->assertTrue(file_unmanaged_delete($uri), 'Load - file was deleted');
+    $this->assertTrue($this->fileSystem->delete($uri), 'Load - file was deleted');
     // Reload and rebuild.
     $textimage = $this->textimageFactory->load($id);
     $textimage->buildImage();
-    $this->assertTrue(file_exists($uri), 'Load - file exists');
+    $this->assertFileExists($uri, 'Load - file exists');
 
     // Test targeting invalid URIs.
     $textimage = $this->textimageFactory->get();
@@ -196,9 +196,9 @@ class TextimageApiTest extends TextimageTestBase {
       ->process($text_array)
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
-    $this->assertEqual('image/png', $image->getMimeType());
+    $this->assertSame('image/png', $image->getMimeType());
     $image_file_extension = pathinfo($textimage->getUri(), PATHINFO_EXTENSION);
-    $this->assertEqual('png', $image_file_extension);
+    $this->assertSame('png', $image_file_extension);
 
     // Check text altering via the effect's alter hook.
     $effects = [];
@@ -219,7 +219,7 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->setEffects($effects)
       ->process('the quick brown fox jumps over the lazy dog');
-    $this->assertEqual(['THE QUICK BR [more]'], $textimage->getText());
+    $this->assertSame(['THE QUICK BR [more]'], $textimage->getText());
     $effects = [];
     $effects[] = [
       'id' => 'image_effects_text_overlay',
@@ -237,12 +237,12 @@ class TextimageApiTest extends TextimageTestBase {
     $textimage
       ->setEffects($effects)
       ->process('<p>Para1</p><!-- Comment --> Para2');
-    $this->assertEqual(['Para1 Para2'], $textimage->getText());
+    $this->assertSame(['Para1 Para2'], $textimage->getText());
     $textimage = $this->textimageFactory->get();
     $textimage
       ->setEffects($effects)
       ->process('&quot;Title&quot; One &hellip;');
-    $this->assertEqual(['"Title" One …'], $textimage->getText());
+    $this->assertSame(['"Title" One …'], $textimage->getText());
   }
 
   /**
@@ -257,7 +257,7 @@ class TextimageApiTest extends TextimageTestBase {
       ->process('bingo')
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
-    $this->assertEqual('image/png', $image->getMimeType());
+    $this->assertSame('image/png', $image->getMimeType());
 
     // Add an extension change effect to the style.
     $style_path = 'admin/config/media/image-styles/manage/textimage_test';
@@ -282,7 +282,7 @@ class TextimageApiTest extends TextimageTestBase {
       ->process('bingo')
       ->buildImage();
     $image = $this->container->get('image.factory')->get($textimage->getUri());
-    $this->assertEqual('image/jpeg', $image->getMimeType());
+    $this->assertSame('image/jpeg', $image->getMimeType());
 
   }
 

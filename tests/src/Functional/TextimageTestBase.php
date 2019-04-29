@@ -17,6 +17,15 @@ abstract class TextimageTestBase extends BrowserTestBase {
   protected $renderer;
 
   /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  protected $entityDisplayRepository;
+
+  /**
    * {@inheritdoc}
    */
   protected static $modules = ['textimage', 'node', 'image_effects'];
@@ -27,8 +36,10 @@ abstract class TextimageTestBase extends BrowserTestBase {
   public function setUp() {
     parent::setUp();
 
-    $this->textimageFactory = $this->container->get('textimage.factory');
-    $this->renderer = $this->container->get('renderer');
+    $this->textimageFactory = \Drupal::service('textimage.factory');
+    $this->renderer = \Drupal::service('renderer');
+    $this->fileSystem = \Drupal::service('file_system');
+    $this->entityDisplayRepository = \Drupal::service('entity_display.repository');
 
     // Create Basic page and Article node types.
     if ($this->profile != 'standard') {
@@ -161,14 +172,14 @@ abstract class TextimageTestBase extends BrowserTestBase {
       'settings' => $field_settings,
     ])->save();
 
-    entity_get_form_display('node', $bundle, 'default')
+    $this->entityDisplayRepository->getFormDisplay('node', $bundle, 'default')
       ->setComponent($name, [
         'type' => 'text_textfield',
         'settings' => $widget_settings,
       ])
       ->save();
 
-    entity_get_display('node', $bundle, 'default')
+    $this->entityDisplayRepository->getViewDisplay('node', $bundle, 'default')
       ->setComponent($name)
       ->save();
 

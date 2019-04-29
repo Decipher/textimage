@@ -60,15 +60,14 @@ class TextimageTest extends TextimageTestBase {
       ];
       $textimage->getBubbleableMetadata()->applyTo($element);
       $this->renderer->renderRoot($element);
-      $this->assertFalse(file_exists($textimage->getUri()));
+      $this->assertFileNotExists($textimage->getUri());
       $this->drupalGet($textimage->getUrl());
-      $this->assertTrue(file_exists($textimage->getUri()));
+      $this->assertFileExists($textimage->getUri());
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
     }
 
     // Check that files were generated on public.
-    $files_count = count(file_scan_directory($public_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
-    $this->assertEqual(4, $files_count);
+    $this->assertCount(4, file_scan_directory($public_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
 
     // Check that cache entries were generated.
     foreach ($input as $item) {
@@ -76,7 +75,7 @@ class TextimageTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $cached = $this->container->get('cache.textimage')->get('tiid:' . $textimage->id());
-      $this->assertEqual($textimage->getUri(), $cached->data['uri']);
+      $this->assertSame($textimage->getUri(), $cached->data['uri']);
     }
 
     // Delete cache, files are still there upon re-processing, before
@@ -86,7 +85,7 @@ class TextimageTest extends TextimageTestBase {
       $textimage = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
-      $this->assertTrue(file_exists($textimage->getUri()));
+      $this->assertFileExists($textimage->getUri());
     }
 
     // Set image storage to 'private' wrapper.
@@ -108,15 +107,14 @@ class TextimageTest extends TextimageTestBase {
       ];
       $textimage->getBubbleableMetadata()->applyTo($element);
       $this->renderer->renderRoot($element);
-      $this->assertFalse(file_exists($textimage->getUri()));
+      $this->assertFileNotExists($textimage->getUri());
       $this->drupalGet($textimage->getUrl());
-      $this->assertTrue(file_exists($textimage->getUri()));
+      $this->assertFileExists($textimage->getUri());
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
     }
 
     // Check that files were generated on private.
-    $files_count = count(file_scan_directory($private_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
-    $this->assertEqual(4, $files_count);
+    $this->assertCount(4, file_scan_directory($private_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
 
     // Try loading a missing Textimage ID, should fail with not found.
     $this->drupalGet($public_directory_path . '/textimage_store/cache/styles/textimage_test/8/8f/8f3f0c1a0d01c0487f97d068b2a77c792964eedfbe7e2f24eb1207429118aaff.png');
@@ -137,8 +135,7 @@ class TextimageTest extends TextimageTestBase {
     // public.
     $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
     $this->assertResponse(200);
-    $files_count = count(file_scan_directory($public_directory_path . '/textimage/textimage_test', '/.*/'));
-    $this->assertTrue($files_count == 1, 'Textimage generation via request URL.');
+    $this->assertCount(1, file_scan_directory($public_directory_path . '/textimage/textimage_test', '/.*/'), 'Textimage generation via request URL.');
     $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 217, 24);
 
     // Test build a textimage at target URI via API.
@@ -147,8 +144,7 @@ class TextimageTest extends TextimageTestBase {
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
       ->buildImage();
-    $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
-    $this->assertTrue($files_count == 1, 'Textimage generation at target URI via API.');
+    $this->assertCount(1, file_scan_directory('public://textimage-testing', '/.*/'), 'Textimage generation at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 33, 24);
 
     // Test build another textimage at same target URI.
@@ -158,8 +154,7 @@ class TextimageTest extends TextimageTestBase {
       ->process('another test')
       ->buildImage();
     // Check file was replaced.
-    $files_count = count(file_scan_directory('public://textimage-testing', '/.*/'));
-    $this->assertTrue($files_count == 1, 'Textimage replaced at target URI via API.');
+    $this->assertCount(1, file_scan_directory('public://textimage-testing', '/.*/'), 'Textimage replaced at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 107, 24);
   }
 
@@ -176,14 +171,13 @@ class TextimageTest extends TextimageTestBase {
       ->buildImage();
 
     // Temp file should be created at location.
-    $files_count = count(file_scan_directory('public://textimage_store/temp', '/.*/'));
-    $this->assertTrue($files_count === 1);
+    $this->assertCount(1, file_scan_directory('public://textimage_store/temp', '/.*/'));
 
     // Run cron.
     $this->cronRun();
 
     // Temp directory should be removed.
-    $this->assertFalse(is_dir('public://textimage_store/temp'));
+    $this->assertDirectoryNotExists('public://textimage_store/temp');
   }
 
 }

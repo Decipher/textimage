@@ -50,10 +50,10 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $rel_url = file_url_transform_relative($textimage_url);
 
     // Assert HTML tags are stripped and entities are decoded.
-    $this->assertEqual(['Para1 Para2  "Title" One …'], $textimage->getText());
+    $this->assertSame(['Para1 Para2  "Title" One …'], $textimage->getText());
 
     // Test the textimage formatter - no link.
-    $display = entity_get_display('node', $node->getType(), 'default');
+    $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_link'] = '';
@@ -63,20 +63,20 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->save();
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
-    $this->assertEqual('Alternate text: Overly test', $elements[0]->getAttribute('alt'));
-    $this->assertEqual('Title: Overly test', $elements[0]->getAttribute('title'));
+    $this->assertNotEmpty($elements, 'Unlinked Textimage displaying on full node view.');
+    $this->assertSame('Alternate text: Overly test', $elements[0]->getAttribute('alt'));
+    $this->assertSame('Title: Overly test', $elements[0]->getAttribute('title'));
 
     // Test the textimage formatter - linked to content.
     $display_options['settings']['image_link'] = 'content';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $href = $node->urlInfo()->toString();
-    $this->drupalGet($node->urlInfo());
+    $href = $node->toUrl()->toString();
+    $this->drupalGet($node->toUrl());
     $elements = $this->cssSelect("a[href*='$href'] img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
-    $this->assertEqual('Alternate text: Overly test', $elements[0]->getAttribute('alt'));
-    $this->assertEqual('Title: Overly test', $elements[0]->getAttribute('title'));
+    $this->assertNotEmpty($elements, 'Textimage linked to content displaying on full node view.');
+    $this->assertSame('Alternate text: Overly test', $elements[0]->getAttribute('alt'));
+    $this->assertSame('Title: Overly test', $elements[0]->getAttribute('title'));
 
     // Test the textimage formatter - linked to Textimage file.
     $display_options['settings']['image_link'] = 'file';
@@ -84,11 +84,11 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_title'] = 'Title: [node:author]';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet($node->urlInfo());
+    $this->drupalGet($node->toUrl());
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Textimage linked to image file displaying on full node view.');
-    $this->assertEqual($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getUsername());
-    $this->assertEqual($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getUsername());
+    $this->assertNotEmpty($elements, 'Textimage linked to image file displaying on full node view.');
+    $this->assertSame($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getAccountName());
+    $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getAccountName());
 
     // Check that alternate text and title tokens are resolved and their
     // cacheability metadata added.
@@ -97,23 +97,23 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_title'] = 'Title: [node:author] [site:name]';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet($node->urlInfo());
+    $this->drupalGet($node->toUrl());
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
-    $this->assertEqual($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getUsername() . ' ' . $site_name);
-    $this->assertEqual($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getUsername() . ' ' . $site_name);
+    $this->assertSame($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getAccountName() . ' ' . $site_name);
+    $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getAccountName() . ' ' . $site_name);
     $this->assertCacheTag('config:image.style.textimage_test');
     $this->assertCacheTag('config:system.site');
 
     // Check URI token.
     $bubbleable_metadata = new BubbleableMetadata();
     $token_resolved = \Drupal::service('token')->replace('[textimage:uri:' . $field_name . '] [site:name]', ['node' => $node], [], $bubbleable_metadata);
-    $this->assertEqual($this->getTextimageUriFromStyleAndText('textimage_test', $field_value) . ' ' . $site_name, $token_resolved);
+    $this->assertSame($this->getTextimageUriFromStyleAndText('textimage_test', $field_value) . ' ' . $site_name, $token_resolved);
     $expected_tags = [
       'config:image.style.textimage_test',
       'config:system.site',
       'node:' . $node->id(),
     ];
-    $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
+    $this->assertSame($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
 
     // Check URL token.
     $bubbleable_metadata = new BubbleableMetadata();
@@ -146,7 +146,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->getUrl()->toString();
     $rel_url = file_url_transform_relative($textimage_url);
 
-    $display = entity_get_display('node', $node->getType(), 'default');
+    $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_text_values'] = 'merge';
@@ -156,19 +156,19 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->save();
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
-    $this->assertEqual(1, count($elements));
-    $this->assertEqual($rel_url, $elements[0]->getAttribute('src'));
-    $this->assertEqual('Alternate text: Test Title', $elements[0]->getAttribute('alt'));
-    $this->assertEqual('Title: Test Title', $elements[0]->getAttribute('title'));
+    $this->assertCount(1, $elements);
+    $this->assertSame($rel_url, $elements[0]->getAttribute('src'));
+    $this->assertSame('Alternate text: Test Title', $elements[0]->getAttribute('alt'));
+    $this->assertSame('Title: Test Title', $elements[0]->getAttribute('title'));
 
     // Test the textimage formatter - multiple images.
-    $display = entity_get_display('node', $node->getType(), 'default');
+    $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['settings']['image_text_values'] = 'itemize';
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
-    $this->assertEqual(4, count($elements));
+    $this->assertCount(4, $elements);
     for ($i = 0; $i < 4; $i++) {
       $textimage_url = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
@@ -177,9 +177,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
         ->getUrl()->toString();
       $rel_url = file_url_transform_relative($textimage_url);
 
-      $this->assertEqual($rel_url, $elements[$i]->getAttribute('src'));
-      $this->assertEqual('Alternate text: Test Title', $elements[$i]->getAttribute('alt'));
-      $this->assertEqual('Title: Test Title', $elements[$i]->getAttribute('title'));
+      $this->assertSame($rel_url, $elements[$i]->getAttribute('src'));
+      $this->assertSame('Alternate text: Test Title', $elements[$i]->getAttribute('alt'));
+      $this->assertSame('Title: Test Title', $elements[$i]->getAttribute('title'));
     }
   }
 
@@ -221,7 +221,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $rel_url = file_url_transform_relative($textimage_url);
 
     // Test the textimage formatter - no link.
-    $display = entity_get_display('node', $node->getType(), 'default');
+    $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_image_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_link'] = '';
@@ -231,9 +231,9 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->save();
     $this->drupalGet('node/' . $nid);
     $elements = $this->cssSelect("img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Unlinked Textimage displaying on full node view.');
-    $this->assertEqual($elements[0]->getAttribute('alt'), 'Alternate text: ' . $node_title);
-    $this->assertEqual($elements[0]->getAttribute('title'), 'Title: ' . $node_title);
+    $this->assertNotEmpty($elements, 'Unlinked Textimage displaying on full node view.');
+    $this->assertSame($elements[0]->getAttribute('alt'), 'Alternate text: ' . $node_title);
+    $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $node_title);
 
     // Test the textimage formatter - linked to content. Also not providing
     // alt text on formatter leads to rendering the ImageItem alt text.
@@ -241,12 +241,12 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_alt'] = '';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $href = $node->urlInfo()->toString();
-    $this->drupalGet($node->urlInfo());
+    $href = $node->toUrl()->toString();
+    $this->drupalGet($node->toUrl());
     $elements = $this->cssSelect("a[href*='$href'] img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Textimage linked to content displaying on full node view.');
-    $this->assertEqual($elements[0]->getAttribute('alt'), 'test alt text');
-    $this->assertEqual($elements[0]->getAttribute('title'), 'Title: ' . $node_title);
+    $this->assertNotEmpty($elements, 'Textimage linked to content displaying on full node view.');
+    $this->assertSame($elements[0]->getAttribute('alt'), 'test alt text');
+    $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $node_title);
 
     // Test the textimage formatter - linked to original image.
     $display_options['settings']['image_link'] = 'file';
@@ -254,21 +254,21 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_title'] = 'Title: [node:author]';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet($node->urlInfo());
+    $this->drupalGet($node->toUrl());
     $elements = $this->cssSelect("a[href='$source_image_file_url'] img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Textimage linked to original image file.');
-    $this->assertEqual($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getUsername());
-    $this->assertEqual($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getUsername());
+    $this->assertNotEmpty($elements, 'Textimage linked to original image file.');
+    $this->assertSame($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getAccountName());
+    $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getAccountName());
 
     // Test the textimage formatter - linked to derivative image.
     $display_options['settings']['image_link'] = 'derivative';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet($node->urlInfo());
+    $this->drupalGet($node->toUrl());
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
-    $this->assertTrue(!empty($elements), 'Textimage linked to derivative image file.');
-    $this->assertEqual($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getUsername());
-    $this->assertEqual($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getUsername());
+    $this->assertNotEmpty($elements, 'Textimage linked to derivative image file.');
+    $this->assertSame($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getAccountName());
+    $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getAccountName());
 
     // Check that alternate text and title tokens are resolved and their
     // cacheability metadata added.
@@ -277,7 +277,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display_options['settings']['image_title'] = 'Title: [node:author] [site:name]';
     $display->setComponent($field_name, $display_options)
       ->save();
-    $this->drupalGet($node->urlInfo());
+    $this->drupalGet($node->toUrl());
     $this->assertCacheTag('config:image.style.textimage_test');
     $this->assertCacheTag('config:system.site');
     $this->assertCacheTag('node:' . $node->id());
@@ -292,14 +292,14 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL);
-    $this->assertEqual($textimage->getUri() . ' ' . $site_name, $token_resolved);
+    $this->assertSame($textimage->getUri() . ' ' . $site_name, $token_resolved);
     $expected_tags = [
       'config:image.style.textimage_test',
       'config:system.site',
       'node:' . $node->id(),
       'file:' . $source_image_file->id(),
     ];
-    $this->assertEqual($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
+    $this->assertEquals($expected_tags, array_intersect($expected_tags, $bubbleable_metadata->getCacheTags()), 'Token replace produced expected cache tags.');
 
     // Check URL token.
     $bubbleable_metadata = new BubbleableMetadata();
@@ -321,7 +321,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $node = Node::load($nid);
 
     // Set textimage formatter - no link.
-    $display = entity_get_display('node', $node->getType(), 'default');
+    $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_text_field_formatter';
     $display_options['settings']['image_style'] = 'textimage_test';
     $display_options['settings']['image_link'] = '';
