@@ -342,7 +342,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Invalidate the rendered objects cache, and delete the Textimage cache.
     // Textimage should still find a built image in the store.
     Cache::invalidateTags(['rendered']);
-    $this->container->get('cache.textimage')->deleteAll();
+    \Drupal::cache('textimage')->deleteAll();
     $this->drupalGet('node/' . $nid);
     $this->assertText('Stored Textimage');
 

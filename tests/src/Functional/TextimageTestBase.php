@@ -4,26 +4,17 @@ namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\image\Entity\ImageStyle;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\textimage\Kernel\TextimageTestTrait;
 
 /**
  * Base test class for Textimage tests.
  */
 abstract class TextimageTestBase extends BrowserTestBase {
 
+  use TextimageTestTrait;
+
   protected $textimageAdmin = 'admin/config/media/textimage';
-  protected $textimageFactory;
-  protected $renderer;
-
-  /**
-   * The file system service.
-   *
-   * @var \Drupal\Core\File\FileSystemInterface
-   */
-  protected $fileSystem;
-
-  protected $entityDisplayRepository;
 
   /**
    * {@inheritdoc}
@@ -35,11 +26,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
    */
   public function setUp() {
     parent::setUp();
-
-    $this->textimageFactory = \Drupal::service('textimage.factory');
-    $this->renderer = \Drupal::service('renderer');
-    $this->fileSystem = \Drupal::service('file_system');
-    $this->entityDisplayRepository = \Drupal::service('entity_display.repository');
+    $this->initTextimageTest();
 
     // Create Basic page and Article node types.
     if ($this->profile != 'standard') {
@@ -58,85 +45,6 @@ abstract class TextimageTestBase extends BrowserTestBase {
       'generate textimage url derivatives',
     ]);
     $this->drupalLogin($this->adminUser);
-
-    // Change Image Effects settings.
-    $config = \Drupal::configFactory()->getEditable('image_effects.settings');
-    $config
-      ->set('image_selector.plugin_id', 'dropdown')
-      ->set('image_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/images')
-      ->set('font_selector.plugin_id', 'dropdown')
-      ->set('font_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02')
-      ->save();
-
-    // Change Textimage settings.
-    $config = \Drupal::configFactory()->getEditable('textimage.settings');
-    $config
-      ->set('url_generation.enabled', TRUE)
-      ->set('debug', TRUE)
-      ->save();
-
-    // Set default font.
-    $this->drupalGet($this->textimageAdmin);
-    $edit = [
-      'settings[main][default_font_uri]' => 'LinLibertine_Rah.ttf',
-    ];
-    $this->drupalPostForm(NULL, $edit, t('Save configuration'));
-
-    // Create a test image style.
-    $style_name = 'textimage_test';
-    $style_label = 'Textimage Test';
-    $style_path = 'admin/config/media/image-styles/manage/' . $style_name;
-    $edit = [
-      'name' => $style_name,
-      'label' => $style_label,
-    ];
-    $this->drupalPostForm('admin/config/media/image-styles/add', $edit, t('Create new style'));
-    $this->assertRaw(t('Style %name was created.', ['%name' => $style_label]));
-
-    // Create a test image_effects_text_overlay effect.
-    $effect_edits = [
-      'image_effects_text_overlay' => [
-        'data[text_default][text_string]' => 'Test preview',
-      ],
-    ];
-    foreach ($effect_edits as $effect => $edit) {
-      // Add the effect.
-      $this->drupalPostForm($style_path, ['new' => $effect], t('Add'));
-      if (!empty($edit)) {
-        $this->drupalPostForm(NULL, $edit, t('Add effect'));
-      }
-    }
-  }
-
-  /**
-   * Asserts a Textimage.
-   */
-  protected function assertTextimage($path, $width, $height) {
-    $image = \Drupal::service('image.factory')->get($path);
-    $w_error = abs($image->getWidth() - $width);
-    $h_error = abs($image->getHeight() - $height);
-    $tolerance = 0.1;
-    $this->assertTrue($w_error < $width * $tolerance && $h_error < $height * $tolerance, "Textimage {$path} width and height ({$image->getWidth()}x{$image->getHeight()}) approximate expected results ({$width}x{$height})");
-  }
-
-  /**
-   * Returns the URI of a Textimage based on style name and text.
-   */
-  protected function getTextimageUriFromStyleAndText($style_name, $text) {
-    return $this->textimageFactory->get()
-      ->setStyle(ImageStyle::load($style_name))
-      ->process($text)
-      ->getUri();
-  }
-
-  /**
-   * Returns the Url object of a Textimage based on style name and text.
-   */
-  protected function getTextimageUrlFromStyleAndText($style_name, $text) {
-    return $this->textimageFactory->get()
-      ->setStyle(ImageStyle::load($style_name))
-      ->process($text)
-      ->getUrl();
   }
 
   /**
@@ -221,7 +129,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
         $edit = [
           'title[0][value]' => $node_title,
         ];
-        $edit['files[' . $field_name . '_0]'] = drupal_realpath($field_value->uri);
+        $edit['files[' . $field_name . '_0]'] = $this->fileSystem->realpath($field_value->uri);
         $this->drupalPostForm('node/add/' . $bundle, $edit, t('Save'));
         // Add alt text.
         $this->drupalPostForm(NULL, [$field_name . '[0][alt]' => 'test alt text'], t('Save'));

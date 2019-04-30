@@ -74,13 +74,13 @@ class TextimageTest extends TextimageTestBase {
       $textimage = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
-      $cached = $this->container->get('cache.textimage')->get('tiid:' . $textimage->id());
+      $cached = \Drupal::cache('textimage')->get('tiid:' . $textimage->id());
       $this->assertSame($textimage->getUri(), $cached->data['uri']);
     }
 
     // Delete cache, files are still there upon re-processing, before
     // ::buildImage.
-    $this->container->get('cache.textimage')->deleteAll();
+    \Drupal::cache('textimage')->deleteAll();
     foreach ($input as $item) {
       $textimage = $this->textimageFactory->get()
         ->setStyle(ImageStyle::load('textimage_test'))
