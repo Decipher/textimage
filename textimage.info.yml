@@ -6,4 +6,5 @@ package: Media
 configure: textimage.settings
 dependencies:
   - drupal:image
+  - drupal:system (>=8.2.0)
   - image_effects:image_effects

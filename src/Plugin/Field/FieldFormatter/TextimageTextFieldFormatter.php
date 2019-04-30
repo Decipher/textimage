@@ -289,7 +289,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     }
 
     // Check if the formatter involves a link to the parent entity.
-    $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->urlInfo() : NULL;
+    $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->toUrl() : NULL;
 
     $elements = [];
     if ($field->getCardinality() != 1 && $this->getSetting('image_text_values') == 'itemize') {

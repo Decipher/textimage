@@ -232,7 +232,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     }
 
     // Check if the formatter involves a link to the parent entity.
-    $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->urlInfo() : NULL;
+    $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->toUrl() : NULL;
 
     foreach ($files as $delta => $file) {
       $textimage = $this->textimageFactory->get($bubbleable_metadata)

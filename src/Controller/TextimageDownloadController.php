@@ -4,6 +4,7 @@ namespace Drupal\textimage\Controller;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\image\ImageStyleInterface;
 use Drupal\system\FileDownloadController;
@@ -51,6 +52,13 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   protected $logger;
 
   /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
    * Constructs a TextimageDownloadController object.
    *
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
@@ -61,12 +69,15 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    *   The config factory.
    * @param \Psr\Log\LoggerInterface $logger
    *   The Textimage logger.
+   * @param \Drupal\Core\File\FileSystemInterface|null $file_system
+   *   The file system service.
    */
-  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger) {
+  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, FileSystemInterface $file_system = NULL) {
     $this->textimageFactory = $textimage_factory;
     $this->imageFactory = $image_factory;
     $this->configFactory = $config_factory;
     $this->logger = $logger;
+    $this->fileSystem = $file_system ?: \Drupal::service('file_system');
   }
 
   /**
@@ -77,7 +88,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       $container->get('textimage.factory'),
       $container->get('image.factory'),
       $container->get('config.factory'),
-      $container->get('logger.channel.textimage')
+      $container->get('logger.channel.textimage'),
+      $container->get('file_system')
     );
   }
 
@@ -200,7 +212,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
-    if (($scheme = file_uri_scheme($uri)) == 'private') {
+    if (($scheme = $this->fileSystem->uriScheme($uri)) == 'private') {
       // If using the private scheme, defer control to FileDownloadController.
       $request->query->set('file', file_uri_target($uri));
       return parent::download($request, $scheme);

@@ -18,3 +18,10 @@ function textimage_uninstall() {
 function textimage_update_8001() {
   // Empty update to cause a cache rebuild.
 }
+
+/**
+ * Clear caches due to changes of the Textimage route definitions.
+ */
+function textimage_update_8002() {
+  // Empty update to cause a cache rebuild.
+}
