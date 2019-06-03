@@ -73,6 +73,9 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    *   The file system service.
    */
   public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, FileSystemInterface $file_system = NULL) {
+    // @todo in next major, add the 'stream_wrapper_manager' service to the
+    // constructor to ensure D8.8+ compatibility.
+    parent::__construct();
     $this->textimageFactory = $textimage_factory;
     $this->imageFactory = $image_factory;
     $this->configFactory = $config_factory;
