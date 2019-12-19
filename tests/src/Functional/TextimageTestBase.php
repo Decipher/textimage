@@ -24,7 +24,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'stark';
+  protected $defaultTheme = 'classy';
 
   /**
    * The file system service.
