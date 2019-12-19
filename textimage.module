@@ -58,7 +58,7 @@ function textimage_theme() {
  * Control the access to files underneath the textimage directories.
  */
 function textimage_file_download($uri) {
-  $path = file_uri_target($uri);
+  $path = \Drupal::service('stream_wrapper_manager')->getTarget($uri);
   // Private file access for image style derivatives.
   if (strpos($path, 'textimage') === 0) {
     // Check that the file exists and is an image.

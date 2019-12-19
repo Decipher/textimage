@@ -67,7 +67,7 @@ class TextimageTest extends TextimageTestBase {
     }
 
     // Check that files were generated on public.
-    $this->assertCount(4, file_scan_directory($public_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
+    $this->assertCount(4, $this->fileSystem->scanDirectory($public_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
 
     // Check that cache entries were generated.
     foreach ($input as $item) {
@@ -114,7 +114,7 @@ class TextimageTest extends TextimageTestBase {
     }
 
     // Check that files were generated on private.
-    $this->assertCount(4, file_scan_directory($private_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
+    $this->assertCount(4, $this->fileSystem->scanDirectory($private_directory_path . '/textimage_store/cache/styles/textimage_test', '/.*/'));
 
     // Try loading a missing Textimage ID, should fail with not found.
     $this->drupalGet($public_directory_path . '/textimage_store/cache/styles/textimage_test/8/8f/8f3f0c1a0d01c0487f97d068b2a77c792964eedfbe7e2f24eb1207429118aaff.png');
@@ -135,7 +135,7 @@ class TextimageTest extends TextimageTestBase {
     // public.
     $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
     $this->assertResponse(200);
-    $this->assertCount(1, file_scan_directory($public_directory_path . '/textimage/textimage_test', '/.*/'), 'Textimage generation via request URL.');
+    $this->assertCount(1, $this->fileSystem->scanDirectory($public_directory_path . '/textimage/textimage_test', '/.*/'), 'Textimage generation via request URL.');
     $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 217, 24);
 
     // Test build a textimage at target URI via API.
@@ -144,7 +144,7 @@ class TextimageTest extends TextimageTestBase {
       ->setTargetUri('public://textimage-testing/bingo-bongo.png')
       ->process('test')
       ->buildImage();
-    $this->assertCount(1, file_scan_directory('public://textimage-testing', '/.*/'), 'Textimage generation at target URI via API.');
+    $this->assertCount(1, $this->fileSystem->scanDirectory('public://textimage-testing', '/.*/'), 'Textimage generation at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 33, 24);
 
     // Test build another textimage at same target URI.
@@ -154,7 +154,7 @@ class TextimageTest extends TextimageTestBase {
       ->process('another test')
       ->buildImage();
     // Check file was replaced.
-    $this->assertCount(1, file_scan_directory('public://textimage-testing', '/.*/'), 'Textimage replaced at target URI via API.');
+    $this->assertCount(1, $this->fileSystem->scanDirectory('public://textimage-testing', '/.*/'), 'Textimage replaced at target URI via API.');
     $this->assertTextimage('public://textimage-testing/bingo-bongo.png', 107, 24);
   }
 
@@ -171,7 +171,7 @@ class TextimageTest extends TextimageTestBase {
       ->buildImage();
 
     // Temp file should be created at location.
-    $this->assertCount(1, file_scan_directory('public://textimage_store/temp', '/.*/'));
+    $this->assertCount(1, $this->fileSystem->scanDirectory('public://textimage_store/temp', '/.*/'));
 
     // Run cron.
     $this->cronRun();

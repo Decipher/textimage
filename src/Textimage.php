@@ -11,6 +11,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\image\ImageEffectManager;
@@ -83,6 +84,13 @@ class Textimage implements TextimageInterface {
    * @var \Drupal\image\ImageEffectManager
    */
   protected $imageEffectManager;
+
+  /**
+   * The stream wrapper manager service.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
+   */
+  protected $streamWrapperManager;
 
   /**
    * Textimage id.
@@ -226,8 +234,10 @@ class Textimage implements TextimageInterface {
    *   The file system service.
    * @param \Drupal\image\ImageEffectManager $image_effect_manager
    *   The image effect manager service.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
+   *   The stream wrapper manager service.
    */
-  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager) {
+  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager, StreamWrapperManagerInterface $stream_wrapper_manager) {
     $this->factory = $textimage_factory;
     $this->lock = $lock_service;
     $this->imageFactory = $image_factory;
@@ -236,6 +246,7 @@ class Textimage implements TextimageInterface {
     $this->cache = $cache_service;
     $this->fileSystem = $file_system;
     $this->imageEffectManager = $image_effect_manager;
+    $this->streamWrapperManager = $stream_wrapper_manager;
   }
 
   /**
@@ -250,7 +261,8 @@ class Textimage implements TextimageInterface {
       $container->get('textimage.logger'),
       $container->get('cache.textimage'),
       $container->get('file_system'),
-      $container->get('plugin.manager.image.effect')
+      $container->get('plugin.manager.image.effect'),
+      $container->get('stream_wrapper_manager')
     );
   }
 
@@ -367,7 +379,7 @@ class Textimage implements TextimageInterface {
       throw new TextimageException("URI already set");
     }
     if ($uri) {
-      if (!file_valid_uri($uri)) {
+      if (!$this->streamWrapperManager->isValidUri($uri)) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
       $dir_name = $this->fileSystem->dirname($uri);

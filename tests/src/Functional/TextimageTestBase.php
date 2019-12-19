@@ -24,8 +24,21 @@ abstract class TextimageTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     parent::setUp();
+    $this->fileSystem = \Drupal::service('file_system');
     $this->initTextimageTest();
 
     // Create Basic page and Article node types.

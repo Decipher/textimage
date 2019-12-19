@@ -7,6 +7,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\image\ImageStyleInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\system\FileDownloadController;
 use Drupal\textimage\TextimageFactory;
 use Drupal\textimage\TextimageException;
@@ -69,18 +70,18 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    *   The config factory.
    * @param \Psr\Log\LoggerInterface $logger
    *   The Textimage logger.
-   * @param \Drupal\Core\File\FileSystemInterface|null $file_system
+   * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   The file system service.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
+   *   The stream wrapper manager service.
    */
-  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, FileSystemInterface $file_system = NULL) {
-    // @todo in next major, add the 'stream_wrapper_manager' service to the
-    // constructor to ensure D8.8+ compatibility.
-    parent::__construct();
+  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, FileSystemInterface $file_system, StreamWrapperManagerInterface $stream_wrapper_manager) {
+    parent::__construct($stream_wrapper_manager);
     $this->textimageFactory = $textimage_factory;
     $this->imageFactory = $image_factory;
     $this->configFactory = $config_factory;
     $this->logger = $logger;
-    $this->fileSystem = $file_system ?: \Drupal::service('file_system');
+    $this->fileSystem = $file_system;
   }
 
   /**
@@ -92,7 +93,8 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       $container->get('image.factory'),
       $container->get('config.factory'),
       $container->get('logger.channel.textimage'),
-      $container->get('file_system')
+      $container->get('file_system'),
+      $container->get('stream_wrapper_manager')
     );
   }
 
@@ -215,9 +217,9 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return new Response($this->t('Error downloading a textimage.'), 404);
     }
 
-    if (($scheme = $this->fileSystem->uriScheme($uri)) == 'private') {
+    if (($scheme = $this->streamWrapperManager->getScheme($uri)) == 'private') {
       // If using the private scheme, defer control to FileDownloadController.
-      $request->query->set('file', file_uri_target($uri));
+      $request->query->set('file', $this->streamWrapperManager->getTarget($uri));
       return parent::download($request, $scheme);
     }
     else {

@@ -123,7 +123,7 @@ class TextimageApiTest extends KernelTestBase {
     $this->assertNull($textimage->getUrl(), 'URL is not available');
     $this->assertNull($textimage->getBubbleableMetadata(), 'Bubbleable metadata is not available');
     $this->assertEmpty($textimage->getText(), 'Processed text is not available');
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Attempted to build Textimage before processing data');
+    $this->expectException(TextimageException::class, 'Textimage error: Attempted to build Textimage before processing data');
     $textimage->buildImage();
 
     // Process Textimage.
@@ -142,19 +142,19 @@ class TextimageApiTest extends KernelTestBase {
     $textimage->buildImage();
 
     // Check API is not allowing changes after processing.
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Image style already set');
+    $this->expectException(TextimageException::class, 'Textimage error: Image style already set');
     $textimage->setStyle($style);
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Image effects already set');
+    $this->expectException(TextimageException::class, 'Textimage error: Image effects already set');
     $textimage->setEffects([]);
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Extension already set');
+    $this->expectException(TextimageException::class, 'Textimage error: Extension already set');
     $textimage->setTargetExtension('png');
-    $this->setExpectedException(TextimageException::class, 'Textimage error: URI already set');
+    $this->expectException(TextimageException::class, 'Textimage error: URI already set');
     $textimage->setTemporary(TRUE);
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Token data already set');
+    $this->expectException(TextimageException::class, 'Textimage error: Token data already set');
     $textimage->setTokenData(['user' => $this->adminUser]);
-    $this->setExpectedException(TextimageException::class, 'Textimage error: URI already set');
+    $this->expectException(TextimageException::class, 'Textimage error: URI already set');
     $textimage->setTargetUri('public://textimage-testing/bingo-bongo.png');
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Attempted to re-process an already processed Textimage');
+    $this->expectException(TextimageException::class, 'Textimage error: Attempted to re-process an already processed Textimage');
     $textimage->process($text_array);
 
     // Get textimage cache entry.
@@ -226,7 +226,7 @@ class TextimageApiTest extends KernelTestBase {
     $this->assertSame($id, $textimage->id());
     $this->assertSame($uri, $textimage->getUri());
     $this->assertSame(['bingox'], $textimage->getText());
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Attempted to set property \'style\' when image was processed already');
+    $this->expectException(TextimageException::class, 'Textimage error: Attempted to set property \'style\' when image was processed already');
     $textimage->setStyle($style);
     // File exists.
     $this->assertFileExists($uri);
@@ -349,9 +349,9 @@ class TextimageApiTest extends KernelTestBase {
    */
   public function testSetInvalidTargetUri() {
     $textimage = $this->textimageFactory->get();
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Invalid target URI \'bingo://textimage-testing/bingo-bongo.png\' specified');
+    $this->expectException(TextimageException::class, 'Textimage error: Invalid target URI \'bingo://textimage-testing/bingo-bongo.png\' specified');
     $textimage->setTargetUri('bingo://textimage-testing/bingo-bongo.png');
-    $this->setExpectedException(TextimageException::class, 'Textimage error: Invalid target URI \'public://textimage-testing/bingo' . chr(1) . '.png\' specified');
+    $this->expectException(TextimageException::class, 'Textimage error: Invalid target URI \'public://textimage-testing/bingo' . chr(1) . '.png\' specified');
     $textimage->setTargetUri('public://textimage-testing/bingo' . chr(1) . '.png');
   }
 
