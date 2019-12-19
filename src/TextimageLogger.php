@@ -8,12 +8,14 @@ use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Psr\Log\LoggerInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 
 /**
  * Defines a Textimage logger.
  */
 class TextimageLogger extends LoggerChannel {
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * The configuration factory.
@@ -79,7 +81,7 @@ class TextimageLogger extends LoggerChannel {
       }
       // @todo replace call to $this->t
       // @codingStandardsIgnoreLine
-      drupal_set_message($this->t($message, $context), $type, FALSE);
+      $this->messenger()->addMessage($this->t($message, $context), $type);
     }
   }
 

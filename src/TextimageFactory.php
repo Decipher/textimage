@@ -6,6 +6,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
@@ -14,6 +15,7 @@ use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageStyleInterface;
 use Psr\Log\LoggerInterface;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 
 /**
  * Provides a factory for Textimage.
@@ -70,6 +72,13 @@ class TextimageFactory implements TextimageFactoryInterface {
   protected $userStorage;
 
   /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
    * Constructs a new TextimageFactory object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -86,8 +95,10 @@ class TextimageFactory implements TextimageFactoryInterface {
    *   The stream wrapper manager service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The image style entity storage.
+   * @param \Drupal\Core\File\FileSystemInterface $file_system
+   *   The file system service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system) {
     $this->configFactory = $config_factory;
     $this->token = $token_service;
     $this->logger = $logger;
@@ -95,6 +106,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     $this->currentUser = $current_user;
     $this->streamWrapperManager = $stream_wrapper_manager;
     $this->userStorage = $entity_type_manager->getStorage('user');
+    $this->fileSystem = $file_system;
   }
 
   /**
@@ -217,12 +229,12 @@ class TextimageFactory implements TextimageFactoryInterface {
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
       if (file_exists($directory = $this->getStoreUri('/cache/styles/', $wrapper) . $style->id())) {
-        file_unmanaged_delete_recursive($directory);
+        $this->fileSystem->deleteRecursive($directory);
       }
     }
     // Clear public textimage directory.
     if (file_exists($directory = 'public://textimage/' . $style->id())) {
-      file_unmanaged_delete_recursive($directory);
+      $this->fileSystem->deleteRecursive($directory);
     }
   }
 
@@ -241,12 +253,12 @@ class TextimageFactory implements TextimageFactoryInterface {
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
       if (file_exists($directory = $this->getStoreUri(NULL, $wrapper))) {
-        file_unmanaged_delete_recursive($directory);
+        $this->fileSystem->deleteRecursive($directory);
       }
     }
     // Remove the URL generation directory.
     if (file_exists($directory = 'public://textimage')) {
-      file_unmanaged_delete_recursive($directory);
+      $this->fileSystem->deleteRecursive($directory);
     }
     // Wipe Textimage cache.
     $this->cache->deleteAll();
@@ -331,7 +343,7 @@ class TextimageFactory implements TextimageFactoryInterface {
       }
 
       // Get info on component providing formatting, continue if missing.
-      $entity_display = entity_get_display('node', $node->getType(), $display_mode);
+      $entity_display = EntityViewDisplay::load('node.' . $node->getType() . '.' . $display_mode);
       if (!$entity_display) {
         continue;
       }

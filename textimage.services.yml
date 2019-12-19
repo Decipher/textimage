@@ -15,7 +15,7 @@ services:
     arguments: ['textimage']
   textimage.factory:
     class: Drupal\textimage\TextimageFactory
-    arguments: ['@config.factory', '@token', '@textimage.logger', '@cache.textimage', '@current_user', '@stream_wrapper_manager', '@entity_type.manager']
+    arguments: ['@config.factory', '@token', '@textimage.logger', '@cache.textimage', '@current_user', '@stream_wrapper_manager', '@entity_type.manager', '@file_system']
   textimage.logger:
     class: Drupal\textimage\TextimageLogger
     arguments: ['@config.factory', '@logger.channel.textimage', '@current_user']

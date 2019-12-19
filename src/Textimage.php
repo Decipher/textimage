@@ -796,7 +796,7 @@ class Textimage implements TextimageInterface {
     $directory = $this->fileSystem->dirname($derivative_uri);
 
     // Build the destination folder tree if it doesn't already exist.
-    if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+    if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
       $this->logger->error('Failed to create Textimage directory: %directory', ['%directory' => $directory]);
       return FALSE;
     }

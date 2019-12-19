@@ -93,7 +93,7 @@ function textimage_cron() {
   $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
     if (file_exists($directory = \Drupal::service('textimage.factory')->getStoreUri('/temp', $wrapper))) {
-      if (file_unmanaged_delete_recursive($directory)) {
+      if (\Drupal::service('file_system')->deleteRecursive($directory)) {
         \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
       }
       else {
