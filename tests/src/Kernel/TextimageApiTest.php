@@ -4,9 +4,10 @@ namespace Drupal\Tests\textimage\Kernel;
 
 use Drupal\file\Entity\File;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\textimage\TextimageException;
-use Drupal\Tests\TestFileCreationTrait;
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\Tests\TestFileCreationTrait;
+use Drupal\Tests\user\Traits\UserCreationTrait;
+use Drupal\textimage\TextimageException;
 
 /**
  * Kernel tests for Textimage API.
@@ -17,6 +18,7 @@ class TextimageApiTest extends KernelTestBase {
 
   use TextimageTestTrait;
   use TestFileCreationTrait;
+  use UserCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -33,6 +35,13 @@ class TextimageApiTest extends KernelTestBase {
   ];
 
   /**
+   * An user account, to be used for token replacement.
+   *
+   * @var \Drupal\user\Entity\User
+   */
+  protected $testUser;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
@@ -47,9 +56,13 @@ class TextimageApiTest extends KernelTestBase {
       'file_mdm',
       'file_mdm_font',
     ]);
+    $this->installSchema('system', ['sequences']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('file');
     $this->initTextimageTest();
+
+    // Create an user.
+    $this->testUser = $this->createUser();
   }
 
   /**
@@ -117,7 +130,7 @@ class TextimageApiTest extends KernelTestBase {
     // Check API is accepting input, but not providing output, before process.
     $textimage->setStyle($style);
     $textimage->setTemporary(FALSE);
-    $textimage->setTokenData(['user' => $this->adminUser]);
+    $textimage->setTokenData(['user' => $this->testUser]);
     $this->assertNull($textimage->id(), 'ID is not available');
     $this->assertNull($textimage->getUri(), 'URI is not available');
     $this->assertNull($textimage->getUrl(), 'URL is not available');
@@ -151,7 +164,7 @@ class TextimageApiTest extends KernelTestBase {
     $this->expectException(TextimageException::class, 'Textimage error: URI already set');
     $textimage->setTemporary(TRUE);
     $this->expectException(TextimageException::class, 'Textimage error: Token data already set');
-    $textimage->setTokenData(['user' => $this->adminUser]);
+    $textimage->setTokenData(['user' => $this->testUser]);
     $this->expectException(TextimageException::class, 'Textimage error: URI already set');
     $textimage->setTargetUri('public://textimage-testing/bingo-bongo.png');
     $this->expectException(TextimageException::class, 'Textimage error: Attempted to re-process an already processed Textimage');
