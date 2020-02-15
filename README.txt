@@ -1,5 +1,5 @@
 -----------------
-Textimage 8.x-3.x
+Textimage 8.x-4.x
 -----------------
 
 Textimage adds text to image functionality using GD2 and Freetype, enabling
@@ -54,15 +54,16 @@ Features
 
 Requirements
 ------------
-- Drupal 8
+- Drupal 8.8 or 9.x
 - GD2 and FreeType libraries
 - Image Effects module
 
 
 Installation instructions (long version)
 ----------------------------------------
-- Install required modules.
-- Install and enable Textimage.
+- The module requires [using Composer to manage Drupal site dependencies](https://www.drupal.org/node/2718229).
+- Require the module via ```composer require drupal/textimage:^4```.
+- Enable Textimage.
 - Check Textimage configuration page (Manage > Configuration > Media >
   Textimage):
   - Default image file extension - Select the default extension of the image

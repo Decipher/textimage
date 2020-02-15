@@ -17,7 +17,7 @@
  * @ingroup themeable
  */
 #}
-{% spaceless %}
+{% apply spaceless %}
 {% if image %}
   {% if anchor_url %}
     <a {{ anchor_attributes }}>
@@ -35,4 +35,4 @@
 {% else %}
   {{ 'Image not available.'|t }}
 {% endif %}
-{% endspaceless %}
+{% endapply %}
