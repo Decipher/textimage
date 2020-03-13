@@ -25,20 +25,13 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
     'textimage',
     'node',
     'image_effects',
-    // 'redirect', @todo renable
+    'redirect',
   ];
-
-  /**
-   * Fake test, @todo remove once test below is re-enabled.
-   */
-  public function testFake() {
-    $this->assertTrue(TRUE);
-  }
 
   /**
    * Test integration of Textimage with the Redirect module.
    */
-  public function __testTextimageWithRedirectInstalled() {
+  public function testTextimageWithRedirectInstalled() {
     // Create an image field for testing.
     $field_name = strtolower($this->randomMachineName());
     $min_resolution = 50;

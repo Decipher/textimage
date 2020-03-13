@@ -8,6 +8,6 @@
         "drupal/image_effects": "^3"
     },
     "require-dev": {
-        "drupal/redirect": "^1"
+        "drupal/redirect": "1.x-dev"
     }
 }
