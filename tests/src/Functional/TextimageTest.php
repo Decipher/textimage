@@ -118,12 +118,12 @@ class TextimageTest extends TextimageTestBase {
 
     // Try loading a missing Textimage ID, should fail with not found.
     $this->drupalGet($public_directory_path . '/textimage_store/cache/styles/textimage_test/8/8f/8f3f0c1a0d01c0487f97d068b2a77c792964eedfbe7e2f24eb1207429118aaff.png');
-    $this->assertResponse(404);
+    $this->assertSession()->statusCodeEquals(404);
 
     // Test failure of a Textimage derivative via URL, on image style set to
     // private.
     $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
-    $this->assertResponse(403);
+    $this->assertSession()->statusCodeEquals(403);
 
     // Set image storage to 'public' wrapper.
     $edit = [
@@ -134,7 +134,7 @@ class TextimageTest extends TextimageTestBase {
     // Test build of a Textimage derivative via URL, on image style set to
     // public.
     $this->drupalGet($public_directory_path . '/textimage/textimage_test/url_preview_text_image---additional text.png');
-    $this->assertResponse(200);
+    $this->assertSession()->statusCodeEquals(200);
     $this->assertCount(1, $this->fileSystem->scanDirectory($public_directory_path . '/textimage/textimage_test', '/.*/'), 'Textimage generation via request URL.');
     $this->assertTextimage('public://textimage/textimage_test/url_preview_text_image---additional text.png', 217, 24);
 
