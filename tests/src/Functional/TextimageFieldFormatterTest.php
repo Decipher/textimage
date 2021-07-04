@@ -101,8 +101,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $elements = $this->cssSelect("a[href='$textimage_url'] img[src='$rel_url']");
     $this->assertSame($elements[0]->getAttribute('alt'), 'Alternate text: ' . $this->adminUser->getAccountName() . ' ' . $site_name);
     $this->assertSame($elements[0]->getAttribute('title'), 'Title: ' . $this->adminUser->getAccountName() . ' ' . $site_name);
-    $this->assertCacheTag('config:image.style.textimage_test');
-    $this->assertCacheTag('config:system.site');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:image.style.textimage_test');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:system.site');
 
     // Check URI token.
     $bubbleable_metadata = new BubbleableMetadata();
@@ -278,11 +278,11 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet($node->toUrl());
-    $this->assertCacheTag('config:image.style.textimage_test');
-    $this->assertCacheTag('config:system.site');
-    $this->assertCacheTag('node:' . $node->id());
-    $this->assertCacheTag('file:' . $source_image_file->id());
-    $this->assertCacheTag('user:' . $this->adminUser->id());
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:image.style.textimage_test');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'config:system.site');
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'node:' . $node->id());
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'file:' . $source_image_file->id());
+    $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', 'user:' . $this->adminUser->id());
 
     // Check URI token.
     $bubbleable_metadata = new BubbleableMetadata();
@@ -331,26 +331,26 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $this->drupalGet('node/' . $nid);
 
     // From previous get, Textimage was built.
-    $this->assertText('Built Textimage');
+    $this->assertSession()->pageTextContains('Built Textimage');
 
     // Invalidate the rendered objects cache. Textimage should find the image
     // in its cache.
     Cache::invalidateTags(['rendered']);
     $this->drupalGet('node/' . $nid);
-    $this->assertText('Cached Textimage');
+    $this->assertSession()->pageTextContains('Cached Textimage');
 
     // Invalidate the rendered objects cache, and delete the Textimage cache.
     // Textimage should still find a built image in the store.
     Cache::invalidateTags(['rendered']);
     \Drupal::cache('textimage')->deleteAll();
     $this->drupalGet('node/' . $nid);
-    $this->assertText('Stored Textimage');
+    $this->assertSession()->pageTextContains('Stored Textimage');
 
     // Invalidate 'rendered' again, Textimage should find the image in its
     // cache.
     Cache::invalidateTags(['rendered']);
     $this->drupalGet('node/' . $nid);
-    $this->assertText('Cached Textimage');
+    $this->assertSession()->pageTextContains('Cached Textimage');
   }
 
 }

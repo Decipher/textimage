@@ -54,7 +54,8 @@ Features
 
 Requirements
 ------------
-- Drupal 8.8 or 9.x
+- PHP 7.1 or higher
+- Drupal 8.9.x or 9.1.x and higher
 - GD2 and FreeType libraries
 - Image Effects module
 

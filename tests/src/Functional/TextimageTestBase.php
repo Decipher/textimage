@@ -14,6 +14,9 @@ abstract class TextimageTestBase extends BrowserTestBase {
 
   use TextimageTestTrait;
 
+  /**
+   * Route path to Textimage settings page.
+   */
   protected $textimageAdmin = 'admin/config/media/textimage';
 
   /**
@@ -135,7 +138,8 @@ abstract class TextimageTestBase extends BrowserTestBase {
           $index = $field_name . '[' . $i . '][value]';
           $edit[$index] = $field_value[$i];
         }
-        $this->drupalPostForm('node/add/' . $bundle, $edit, t('Save'));
+        $this->drupalGet('node/add/' . $bundle);
+        $this->submitForm($edit, 'Save');
         break;
 
       case 'image':
@@ -143,9 +147,10 @@ abstract class TextimageTestBase extends BrowserTestBase {
           'title[0][value]' => $node_title,
         ];
         $edit['files[' . $field_name . '_0]'] = $this->fileSystem->realpath($field_value->uri);
-        $this->drupalPostForm('node/add/' . $bundle, $edit, t('Save'));
+        $this->drupalGet('node/add/' . $bundle);
+        $this->submitForm($edit, 'Save');
         // Add alt text.
-        $this->drupalPostForm(NULL, [$field_name . '[0][alt]' => 'test alt text'], t('Save'));
+        $this->submitForm([$field_name . '[0][alt]' => 'test alt text'], 'Save');
         break;
 
     }

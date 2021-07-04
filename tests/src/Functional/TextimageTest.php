@@ -89,10 +89,8 @@ class TextimageTest extends TextimageTestBase {
     }
 
     // Set image storage to 'private' wrapper.
-    $edit = [
-      'textimage_options[uri_scheme]' => 'private',
-    ];
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Save'));
+    $this->drupalGet('admin/config/media/image-styles/manage/textimage_test');
+    $this->submitForm(['textimage_options[uri_scheme]' => 'private'], 'Save');
 
     // Generate files on private.
     foreach ($input as $item) {
@@ -126,10 +124,8 @@ class TextimageTest extends TextimageTestBase {
     $this->assertSession()->statusCodeEquals(403);
 
     // Set image storage to 'public' wrapper.
-    $edit = [
-      'textimage_options[uri_scheme]' => 'public',
-    ];
-    $this->drupalPostForm('admin/config/media/image-styles/manage/textimage_test', $edit, t('Save'));
+    $this->drupalGet('admin/config/media/image-styles/manage/textimage_test');
+    $this->submitForm(['textimage_options[uri_scheme]' => 'public'], 'Save');
 
     // Test build of a Textimage derivative via URL, on image style set to
     // public.
