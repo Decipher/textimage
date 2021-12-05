@@ -60,7 +60,7 @@ class TextimageTest extends TextimageTestBase {
       ];
       $textimage->getBubbleableMetadata()->applyTo($element);
       $this->renderer->renderRoot($element);
-      $this->assertFileNotExists($textimage->getUri());
+      $this->assertFileDoesNotExist($textimage->getUri());
       $this->drupalGet($textimage->getUrl());
       $this->assertFileExists($textimage->getUri());
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
@@ -105,7 +105,7 @@ class TextimageTest extends TextimageTestBase {
       ];
       $textimage->getBubbleableMetadata()->applyTo($element);
       $this->renderer->renderRoot($element);
-      $this->assertFileNotExists($textimage->getUri());
+      $this->assertFileDoesNotExist($textimage->getUri());
       $this->drupalGet($textimage->getUrl());
       $this->assertFileExists($textimage->getUri());
       $this->assertTextimage($textimage->getUri(), $item['width'], $item['height']);
@@ -173,7 +173,7 @@ class TextimageTest extends TextimageTestBase {
     $this->cronRun();
 
     // Temp directory should be removed.
-    $this->assertDirectoryNotExists('public://textimage_store/temp');
+    $this->assertDirectoryDoesNotExist('public://textimage_store/temp');
   }
 
 }

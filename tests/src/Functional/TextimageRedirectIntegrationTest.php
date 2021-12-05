@@ -62,7 +62,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL);
     $rel_url = file_url_transform_relative($textimage->getUrl()->toString());
-    $this->assertFileNotExists($textimage->getUri());
+    $this->assertFileDoesNotExist($textimage->getUri());
 
     // Test the textimage formatter - no link.
     $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
