@@ -7,9 +7,9 @@
         "drupal/image_effects": "^3"
     },
     "conflict": {
-        "drupal/redirect": "<1.6"
+        "drupal/redirect": "<1.7"
     },
     "require-dev": {
-        "drupal/redirect": "^1.6"
+        "drupal/redirect": "^1.7"
     }
 }
