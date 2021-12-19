@@ -499,9 +499,13 @@ class TextimageFactory implements TextimageFactoryInterface {
    */
   protected function getTokenReplacement(TextimageInterface $textimage, $key) {
     switch ($key) {
+      case 'textimage-uri':
+      // @todo remove 'uri' in 5.0.0.
       case 'uri':
         return $textimage->getUri();
 
+      case 'textimage-url':
+      // @todo remove 'url' in 5.0.0.
       case 'url':
         return $textimage->getUrl()->toString();
 

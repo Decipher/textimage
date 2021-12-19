@@ -109,24 +109,36 @@ function textimage_cron() {
 function textimage_token_info() {
   $type = [
     'name' => t('Textimage'),
-    'description' => t('Tokens related to Textimage'),
+    'description' => t('Deprecated - Tokens related to Textimage'),
     'needs-data' => 'node',
   ];
   $tokens = [
     'uri' => [
       'name' => t("URI"),
-      'description' => t("The URI(s) of a Textimage generated for a node's field. Use like <strong>[textimage:uri:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URI to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URIs generated will be returned."),
+      'description' => t("Deprecated. Use [node:textimage-uri:field{:display}{:sequence}] instead."),
       'dynamic' => TRUE,
     ],
     'url' => [
       'name' => t("URL"),
-      'description' => t("The URL(s) of a Textimage generated for a node's field. Use like <strong>[textimage:url:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URL to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URLs generated will be returned."),
+      'description' => t("Deprecated. Use [node:textimage-url:field{:display}{:sequence}] instead."),
+      'dynamic' => TRUE,
+    ],
+  ];
+  $node_tokens = [
+    'textimage-uri' => [
+      'name' => t("Textimage URI"),
+      'description' => t("The URI(s) of a Textimage generated for a node's field. Use like <strong>[node:textimage-uri:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URI to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URIs generated will be returned."),
+      'dynamic' => TRUE,
+    ],
+    'textimage-url' => [
+      'name' => t("Textimage URL"),
+      'description' => t("The URL(s) of a Textimage generated for a node's field. Use like <strong>[node:textimage-url:field{:display}{:sequence}]</strong>, where:<br/><strong>field</strong> is the machine name of the field for which the Textimage is generated (e.g. body or field_xxxx);<br/><strong>display</strong> is an optional indication of the display view mode (e.g. default, full, teaser, etc.); 'default' is used if not specified; <br/><strong>sequence</strong> is an optional indication of the URL to return if Textimage produces more images for the same field (like e.g. in a multi-value Image field); if not specified, a comma-delimited string of all the URLs generated will be returned."),
       'dynamic' => TRUE,
     ],
   ];
   return [
     'types'  => ['textimage' => $type],
-    'tokens' => ['textimage' => $tokens],
+    'tokens' => ['textimage' => $tokens, 'node' => $node_tokens],
   ];
 }
 
@@ -134,20 +146,23 @@ function textimage_token_info() {
  * Implements hook_tokens().
  */
 function textimage_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
-  // Jumps out if not processing textimage tokens.
-  if ($type != 'textimage') {
-    return [];
+  if ($type === 'textimage') {
+    @trigger_error(implode(', ', $tokens) . ' tokens are deprecated in textimage:8.x-4.2 and are removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405', E_USER_DEPRECATED);
+    \Drupal::service('textimage.logger')->error(implode(', ', $tokens) . ' tokens are deprecated. Use [node:textimage-url:?] or [node:textimage-uri:?]. In Textimage 5, deprecated tokens will no longer be replaced with the corresponding values.');
+    // Process tokens.
+    $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data, $bubbleable_metadata);
+    $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data, $bubbleable_metadata);
+    return $replacements;
   }
-  // Jumps out with a warning if node is not available.
-  // @todo Another entity may be tokenised.
-  if (!isset($data['node'])) {
-    \Drupal::service('textimage.logger')->warning('Textimage token(s) @tokens_list could not be resolved as no information about the context was available.', ['@tokens_list' => implode(', ', $tokens)]);
-    return [];
+
+  if ($type === 'node') {
+    // Process tokens.
+    $replacements = \Drupal::service('textimage.factory')->processTokens('textimage-url', $tokens, $data, $bubbleable_metadata);
+    $replacements += \Drupal::service('textimage.factory')->processTokens('textimage-uri', $tokens, $data, $bubbleable_metadata);
+    return $replacements;
   }
-  // Process tokens.
-  $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data, $bubbleable_metadata);
-  $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data, $bubbleable_metadata);
-  return $replacements;
+
+  return [];
 }
 
 /**

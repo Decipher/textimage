@@ -328,11 +328,11 @@ a Textimage image has been stored:
 
 A token to retrieve the URL of a Textimage image
 
-[textimage:url:field{:display}{:sequence}]
+[node:textimage-url:field{:display}{:sequence}]
 
 and the URI equivalent
 
-[textimage:uri:field{:display}{:sequence}]
+[node:textimage-uri:field{:display}{:sequence}]
 
 where:
 - 'field' is the machine name of the field for which the Textimage is
