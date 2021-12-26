@@ -23,7 +23,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'image_effects'
+    'image_effects',
     'node',
     'textimage',
     'vendor_stream_wrapper',
