@@ -4,12 +4,14 @@
     "description": "Provides Text and Image field formatters, and an API, to allow building image styles with variable text.",
     "require": {
         "drupal/core": "^9.2",
-        "drupal/image_effects": "^3"
+        "drupal/image_effects": "^3.2"
     },
     "conflict": {
         "drupal/redirect": "<1.7"
     },
     "require-dev": {
-        "drupal/redirect": "^1.7"
+        "drupal/redirect": "^1.7",
+        "drupal/vendor_stream_wrapper": "^1 | ^2",
+        "fileeye/linuxlibertine-fonts": "^5.3"
     }
 }

@@ -18,13 +18,14 @@ class TextimageThemeTest extends KernelTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'system',
-    'textimage',
-    'image',
-    'image_effects',
-    'user',
     'file_mdm',
     'file_mdm_font',
+    'image',
+    'image_effects',
+    'system',
+    'textimage',
+    'user',
+    'vendor_stream_wrapper',
   ];
 
   /**

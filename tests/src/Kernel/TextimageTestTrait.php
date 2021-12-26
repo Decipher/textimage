@@ -53,7 +53,7 @@ trait TextimageTestTrait {
       ->set('image_selector.plugin_id', 'dropdown')
       ->set('image_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/images')
       ->set('font_selector.plugin_id', 'dropdown')
-      ->set('font_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02')
+      ->set('font_selector.plugin_settings.dropdown.path', 'vendor://fileeye/linuxlibertine-fonts')
       ->save();
 
     // Change Textimage settings.
@@ -62,7 +62,7 @@ trait TextimageTestTrait {
       ->set('url_generation.enabled', TRUE)
       ->set('debug', TRUE)
       ->set('default_font.name', 'Linux Libertine')
-      ->set('default_font.uri', drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02/LinLibertine_Rah.ttf')
+      ->set('default_font.uri', 'vendor://fileeye/linuxlibertine-fonts/LinLibertine_Rah.ttf')
       ->save();
 
     // Create a test image style, with a image_effects_text_overlay effect.
@@ -75,7 +75,7 @@ trait TextimageTestTrait {
       'data' => [
         'font' => [
           'name' => 'Linux Libertine',
-          'uri' => drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02/LinLibertine_Rah.ttf',
+          'uri' => 'vendor://fileeye/linuxlibertine-fonts/LinLibertine_Rah.ttf',
           'size' => 16,
           'angle' => 0,
           'color' => '#000000FF',

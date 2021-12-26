@@ -24,14 +24,15 @@ class TextimageApiTest extends KernelTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'system',
-    'textimage',
-    'image',
-    'image_effects',
-    'user',
     'file',
     'file_mdm',
     'file_mdm_font',
+    'image',
+    'image_effects',
+    'system',
+    'textimage',
+    'user',
+    'vendor_stream_wrapper',
   ];
 
   /**
@@ -77,7 +78,7 @@ class TextimageApiTest extends KernelTestBase {
       'data' => [
         'font' => [
           'name' => 'Linux Libertine',
-          'uri' => drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02/LinLibertine_Rah.ttf',
+          'uri' => 'vendor://fileeye/linuxlibertine-fonts/LinLibertine_Rah.ttf',
           'size' => 16,
           'angle' => '90',
           'color' => '#FF0000',
@@ -90,7 +91,7 @@ class TextimageApiTest extends KernelTestBase {
       'data' => [
         'font' => [
           'name' => 'Linux Libertine',
-          'uri' => drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02/LinLibertine_Rah.ttf',
+          'uri' => 'vendor://fileeye/linuxlibertine-fonts/LinLibertine_Rah.ttf',
           'size' => 16,
           'angle' => '-90',
           'color' => '#00FF00',
@@ -103,7 +104,7 @@ class TextimageApiTest extends KernelTestBase {
       'data' => [
         'font' => [
           'name' => 'Linux Libertine',
-          'uri' => drupal_get_path('module', 'image_effects') . '/tests/fonts/LinLibertineTTF_5.3.0_2012_07_02/LinLibertine_Rah.ttf',
+          'uri' => 'vendor://fileeye/linuxlibertine-fonts/LinLibertine_Rah.ttf',
           'size' => 16,
           'angle' => '45',
           'color' => '#0000FF',

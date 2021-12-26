@@ -22,10 +22,11 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'textimage',
-    'node',
     'image_effects',
+    'node',
     'redirect',
+    'textimage',
+    'vendor_stream_wrapper',
   ];
 
   /**
