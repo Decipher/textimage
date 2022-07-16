@@ -305,10 +305,10 @@ class TextimageApiTest extends KernelTestBase {
     // Ensure upper-casing in target image file extension is not a reason for
     // exceptions, and upper-cased extensions are lowered.
     // Get 'image-test.png' and rename to 'image-test.PNG'.
-    $files = $this->getTestFiles('image');
-    $file = File::create((array) array_shift($files));
+    $this->getTestFiles('image');
+    $this->fileSystem->move('public://image-test.png', 'public://image-test.PNG');
+    $file = File::create(['uri' => 'public://image-test.PNG']);
     $file->save();
-    file_move($file, 'image-test.PNG');
     $textimage = $this->textimageFactory->get();
     $textimage
       ->setStyle(ImageStyle::load('textimage_test'))

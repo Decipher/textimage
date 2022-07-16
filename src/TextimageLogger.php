@@ -50,13 +50,13 @@ class TextimageLogger extends LoggerChannel {
   /**
    * {@inheritdoc}
    */
-  public function log($level, $message, array $context = []) {
+  public function log($level, $message, array $context = []): void {
     // Convert to integer equivalent for consistency with RFC 5424.
     $level_code = is_string($level) ? $this->levelTranslation[$level] : $level;
 
     // Process debug entries only if required.
     if ($level_code == RfcLogLevel::DEBUG && !$this->configFactory->get('textimage.settings')->get('debug')) {
-      return NULL;
+      return;
     }
 
     // Logs through the logger channel.

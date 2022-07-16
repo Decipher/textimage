@@ -38,6 +38,16 @@ trait TextimageTestTrait {
   protected $entityDisplayRepository;
 
   /**
+   * @var \Drupal\Core\Extension\ModuleExtensionList
+   */
+  protected $moduleList;
+
+  /**
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * Common test initialization tasks.
    */
   public function initTextimageTest() {
@@ -46,12 +56,14 @@ trait TextimageTestTrait {
     $this->renderer = \Drupal::service('renderer');
     $this->fileSystem = \Drupal::service('file_system');
     $this->entityDisplayRepository = \Drupal::service('entity_display.repository');
+    $this->moduleList = \Drupal::service('extension.list.module');
+    $this->fileUrlGenerator = \Drupal::service('file_url_generator');
 
     // Change Image Effects settings.
     $config = \Drupal::configFactory()->getEditable('image_effects.settings');
     $config
       ->set('image_selector.plugin_id', 'dropdown')
-      ->set('image_selector.plugin_settings.dropdown.path', drupal_get_path('module', 'image_effects') . '/tests/images')
+      ->set('image_selector.plugin_settings.dropdown.path', $this->moduleList->getPath('image_effects') . '/tests/images')
       ->set('font_selector.plugin_id', 'dropdown')
       ->set('font_selector.plugin_settings.dropdown.path', 'vendor://fileeye/linuxlibertine-fonts')
       ->save();

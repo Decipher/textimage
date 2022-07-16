@@ -47,7 +47,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node])
       ->process($field_value);
     $textimage_url = $textimage->getUrl()->toString();
-    $rel_url = file_url_transform_relative($textimage_url);
+    $rel_url = $this->fileUrlGenerator->generateString($textimage_url);
 
     // Assert HTML tags are stripped and entities are decoded.
     $this->assertSame(['Para1 Para2  "Title" One …'], $textimage->getText());
@@ -145,7 +145,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node])
       ->process($field_value);
     $textimage_url = $textimage->getUrl()->toString();
-    $rel_url = file_url_transform_relative($textimage_url);
+    $rel_url = $this->fileUrlGenerator->generateString($textimage_url);
 
     // Assert HTML tags are stripped and entities are decoded.
     $this->assertSame(['Para1 Para2  "Title" One …'], $textimage->getText());
@@ -242,7 +242,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node])
       ->process($field_value)
       ->getUrl()->toString();
-    $rel_url = file_url_transform_relative($textimage_url);
+    $rel_url = $this->fileUrlGenerator->generateString($textimage_url);
 
     $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
     $display_options['type'] = 'textimage_text_field_formatter';
@@ -273,7 +273,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
         ->setTokenData(['node' => $node])
         ->process($field_value[$i])
         ->getUrl()->toString();
-      $rel_url = file_url_transform_relative($textimage_url);
+      $rel_url = $this->fileUrlGenerator->generateString($textimage_url);
 
       $this->assertSame($rel_url, $elements[$i]->getAttribute('src'));
       $this->assertSame('Alternate text: Test Title', $elements[$i]->getAttribute('alt'));
@@ -307,7 +307,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Get the stored image.
     $fid = $node->{$field_name}[0]->get('target_id')->getValue();
     $source_image_file = File::load($fid);
-    $source_image_file_url = file_create_url($source_image_file->getFileUri());
+    $source_image_file_url = $this->fileUrlGenerator->generateAbsoluteString($source_image_file->getFileUri());
 
     // Get Textimage URL.
     $textimage_url = $this->textimageFactory->get()
@@ -316,7 +316,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL)
       ->getUrl()->toString();
-    $rel_url = file_url_transform_relative($textimage_url);
+    $rel_url = $this->fileUrlGenerator->generateString($textimage_url);
 
     // Test the textimage formatter - no link.
     $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');
@@ -435,7 +435,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     // Get the stored image.
     $fid = $node->{$field_name}[0]->get('target_id')->getValue();
     $source_image_file = File::load($fid);
-    $source_image_file_url = file_create_url($source_image_file->getFileUri());
+    $source_image_file_url = $this->fileUrlGenerator->generateAbsoluteString($source_image_file->getFileUri());
 
     // Get Textimage URL.
     $textimage_url = $this->textimageFactory->get()
@@ -444,7 +444,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL)
       ->getUrl()->toString();
-    $rel_url = file_url_transform_relative($textimage_url);
+    $rel_url = $this->fileUrlGenerator->generateString($textimage_url);
 
     // Test the textimage formatter - no link.
     $display = $this->entityDisplayRepository->getViewDisplay('node', $node->getType(), 'default');

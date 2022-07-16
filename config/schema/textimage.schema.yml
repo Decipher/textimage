@@ -81,3 +81,10 @@ field.formatter.settings.textimage_image_field_formatter:
     image_title:
       type: text
       label: 'Image title'
+    image_loading:
+      type: mapping
+      label: 'Image loading settings'
+      mapping:
+        attribute:
+          type: string
+          label: 'Loading attribute'

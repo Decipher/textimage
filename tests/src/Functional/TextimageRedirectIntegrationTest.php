@@ -54,7 +54,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
     // Get the stored image.
     $fid = $node->{$field_name}[0]->get('target_id')->getValue();
     $source_image_file = File::load($fid);
-    $source_image_file_url = file_create_url($source_image_file->getFileUri());
+    $source_image_file_url = $this->fileUrlGenerator->generateAbsoluteString($source_image_file->getFileUri());
 
     // Get Textimage URL.
     $textimage = $this->textimageFactory->get()
@@ -62,7 +62,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
       ->setStyle(ImageStyle::load('textimage_test'))
       ->setTokenData(['node' => $node, 'file' => $source_image_file])
       ->process(NULL);
-    $rel_url = file_url_transform_relative($textimage->getUrl()->toString());
+    $rel_url = $this->fileUrlGenerator->generateString($textimage->getUrl()->toString());
     $this->assertFileDoesNotExist($textimage->getUri());
 
     // Test the textimage formatter - no link.

@@ -8,6 +8,7 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -91,6 +92,11 @@ class Textimage implements TextimageInterface {
    * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
    */
   protected $streamWrapperManager;
+
+  /**
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
 
   /**
    * Textimage id.
@@ -236,8 +242,10 @@ class Textimage implements TextimageInterface {
    *   The image effect manager service.
    * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
    *   The stream wrapper manager service.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   *   The file URL generator service.
    */
-  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager, StreamWrapperManagerInterface $stream_wrapper_manager) {
+  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager, StreamWrapperManagerInterface $stream_wrapper_manager, FileUrlGeneratorInterface $file_url_generator) {
     $this->factory = $textimage_factory;
     $this->lock = $lock_service;
     $this->imageFactory = $image_factory;
@@ -247,6 +255,7 @@ class Textimage implements TextimageInterface {
     $this->fileSystem = $file_system;
     $this->imageEffectManager = $image_effect_manager;
     $this->streamWrapperManager = $stream_wrapper_manager;
+    $this->fileUrlGenerator = $file_url_generator;
   }
 
   /**
@@ -262,7 +271,8 @@ class Textimage implements TextimageInterface {
       $container->get('cache.textimage'),
       $container->get('file_system'),
       $container->get('plugin.manager.image.effect'),
-      $container->get('stream_wrapper_manager')
+      $container->get('stream_wrapper_manager'),
+      $container->get('file_url_generator')
     );
   }
 
@@ -431,7 +441,7 @@ class Textimage implements TextimageInterface {
    * {@inheritdoc}
    */
   public function getUrl() {
-    return $this->processed ? Url::fromUri(file_create_url($this->getUri())) : NULL;
+    return $this->processed ? Url::fromUri($this->fileUrlGenerator->generateAbsoluteString($this->getUri())) : NULL;
   }
 
   /**

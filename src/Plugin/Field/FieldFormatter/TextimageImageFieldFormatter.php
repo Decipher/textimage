@@ -5,6 +5,7 @@ namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -35,6 +36,11 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   protected $textimageFactory;
 
   /**
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * Constructs a TextimageImageFieldFormatter object.
    *
    * @param string $plugin_id
@@ -57,10 +63,13 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   The image style entity storage.
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
    *   The Textimage factory service.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   *   The file URL generator service.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, EntityStorageInterface $image_style_storage, TextimageFactory $textimage_factory) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage);
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, EntityStorageInterface $image_style_storage, TextimageFactory $textimage_factory, FileUrlGeneratorInterface $file_url_generator) {
+    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage, $file_url_generator);
     $this->textimageFactory = $textimage_factory;
+    $this->fileUrlGenerator = $file_url_generator;
   }
 
   /**
@@ -77,7 +86,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       $configuration['third_party_settings'],
       $container->get('current_user'),
       $container->get('entity_type.manager')->getStorage('image_style'),
-      $container->get('textimage.factory')
+      $container->get('textimage.factory'),
+      $container->get('file_url_generator')
     );
   }
 
@@ -246,7 +256,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       if (!$entity_url) {
         switch ($this->getSetting('image_link')) {
           case 'file':
-            $url = Url::fromUri(file_create_url($file->getFileUri()));
+            $url = Url::fromUri($this->fileUrlGenerator->generateAbsoluteString($file->getFileUri()));
             break;
 
           case 'derivative':
