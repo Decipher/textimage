@@ -253,7 +253,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
-    $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
+    $elements = $this->cssSelect("article div div div div img");
     $this->assertCount(1, $elements);
     $this->assertSame($rel_url, $elements[0]->getAttribute('src'));
     $this->assertSame('Alternate text: Test Title', $elements[0]->getAttribute('alt'));
@@ -265,7 +265,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
     $display->setComponent($field_name, $display_options)
       ->save();
     $this->drupalGet('node/' . $nid);
-    $elements = $this->cssSelect("div.field--name-{$field_name} div.field__items img");
+    $elements = $this->cssSelect("article div div div div img");
     $this->assertCount(4, $elements);
     for ($i = 0; $i < 4; $i++) {
       $textimage_url = $this->textimageFactory->get()
