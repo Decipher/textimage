@@ -42,6 +42,13 @@ abstract class TextimageTestBase extends BrowserTestBase {
   protected $fileSystem;
 
   /**
+   * An admin user with administrative permissions for Blocks.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $adminUser;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp(): void {
