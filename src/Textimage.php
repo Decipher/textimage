@@ -15,13 +15,13 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\image\ImageEffectManager;
-use Drupal\image\ImageStyleInterface;
 use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\image\ImageEffectManager;
+use Drupal\image\ImageStyleInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a Textimage.
@@ -94,6 +94,8 @@ class Textimage implements TextimageInterface {
   protected $streamWrapperManager;
 
   /**
+   * The file URL generator service.
+   *
    * @var \Drupal\Core\File\FileUrlGeneratorInterface
    */
   protected $fileUrlGenerator;
@@ -532,14 +534,14 @@ class Textimage implements TextimageInterface {
     $default_text = [];
     foreach ($this->effects as $uuid => $effect_configuration) {
       if ($effect_configuration['id'] == 'image_effects_text_overlay') {
-        $uuid = isset($effect_configuration['uuid']) ? $effect_configuration['uuid'] : $uuid;
+        $uuid = $effect_configuration['uuid'] ?? $uuid;
         $default_text[$uuid] = $effect_configuration['data']['text_string'];
       }
     }
 
     // Process text to resolve tokens and required case conversions.
     $processed_text = [];
-    $this->tokenData['file'] = isset($this->tokenData['file']) ? $this->tokenData['file'] : $this->sourceImageFile;
+    $this->tokenData['file'] ??= $this->sourceImageFile;
     foreach ($default_text as $uuid => $default_text_item) {
       $text_item = array_shift($text);
       $effect_instance = $this->imageEffectManager->createInstance($this->effects[$uuid]['id']);

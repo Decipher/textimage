@@ -4,6 +4,7 @@ namespace Drupal\textimage;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileSystemInterface;
@@ -15,7 +16,6 @@ use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageStyleInterface;
 use Psr\Log\LoggerInterface;
-use Drupal\Core\Entity\Entity\EntityViewDisplay;
 
 /**
  * Provides a factory for Textimage.
@@ -184,7 +184,7 @@ class TextimageFactory implements TextimageFactoryInterface {
         return $value;
       }
       else {
-        return isset($keys[$variable]) ? $keys[$variable] : NULL;
+        return $keys[$variable] ?? NULL;
       }
     }
   }
@@ -281,7 +281,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata) {
 
     // @todo Not only node?
-    $node = isset($data['node']) ? $data['node'] : NULL;
+    $node = $data['node'] ?? NULL;
 
     // Need to avoid endless loops, that would occur if there are
     // circular references in the tokens. Set static variables for
@@ -316,7 +316,7 @@ class TextimageFactory implements TextimageFactoryInterface {
       $sub_token_array = explode(':', $sub_token);
 
       // Get requested field name, continue if missing.
-      $field_name = isset($sub_token_array[0]) ? $sub_token_array[0] : NULL;
+      $field_name = $sub_token_array[0] ?? NULL;
       if (!$field_name) {
         continue;
       }
@@ -335,7 +335,7 @@ class TextimageFactory implements TextimageFactoryInterface {
       $display_mode = isset($sub_token_array[1]) ? ($sub_token_array[1] ?: 'default') : 'default';
 
       // Get requested sequence, default to NULL.
-      $index = isset($sub_token_array[2]) ? $sub_token_array[2] : NULL;
+      $index = $sub_token_array[2] ?? NULL;
 
       // Get field info, continue if missing.
       if (!$field_info = $node->getFieldDefinition($field_name)) {
@@ -355,10 +355,13 @@ class TextimageFactory implements TextimageFactoryInterface {
       // At this point, if Textimage is providing field formatting for the
       // current field, we can proceed accessing the data needed to resolve
       // the token.
-      if (in_array($entity_display_component['type'], ['textimage_text_field_formatter', 'textimage_image_field_formatter'])) {
+      if (in_array($entity_display_component['type'], [
+        'textimage_text_field_formatter',
+        'textimage_image_field_formatter',
+      ])) {
 
         // Get the image style used for the field formatting.
-        $image_style_name = isset($entity_display_component['settings']['image_style']) ? $entity_display_component['settings']['image_style'] : NULL;
+        $image_style_name = $entity_display_component['settings']['image_style'] ?? NULL;
         if (!$image_style_name) {
           continue;
         }
@@ -499,13 +502,13 @@ class TextimageFactory implements TextimageFactoryInterface {
    */
   protected function getTokenReplacement(TextimageInterface $textimage, $key) {
     switch ($key) {
-      case 'textimage-uri':
       // @todo remove 'uri' in 5.0.0.
+      case 'textimage-uri':
       case 'uri':
         return $textimage->getUri();
 
-      case 'textimage-url':
       // @todo remove 'url' in 5.0.0.
+      case 'textimage-url':
       case 'url':
         return $textimage->getUrl()->toString();
 

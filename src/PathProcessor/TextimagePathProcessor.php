@@ -68,7 +68,7 @@ class TextimagePathProcessor implements InboundPathProcessorInterface {
 
       // Get the image style and text.
       if (substr_count($rest, '/') >= 1) {
-        list($image_style, $text) = explode('/', $rest, 2);
+        [$image_style, $text] = explode('/', $rest, 2);
         // Set the text as query parameter.
         $request->query->set('text', $text);
         return $path_prefix . '/' . $image_style;

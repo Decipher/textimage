@@ -147,7 +147,7 @@ function textimage_token_info() {
  */
 function textimage_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
   if ($type === 'textimage') {
-    @trigger_error(implode(', ', $tokens) . ' tokens are deprecated in textimage:8.x-4.2 and are removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405', E_USER_DEPRECATED);
+    @trigger_error('Passing ' . implode(', ', $tokens) . ' tokens is deprecated in textimage:8.x-4.2 and is removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405', E_USER_DEPRECATED);
     \Drupal::service('textimage.logger')->error(implode(', ', $tokens) . ' tokens are deprecated. Use [node:textimage-url:?] or [node:textimage-uri:?]. In Textimage 5, deprecated tokens will no longer be replaced with the corresponding values.');
     // Process tokens.
     $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data, $bubbleable_metadata);
@@ -218,7 +218,9 @@ function textimage_form_image_style_form_alter(&$form, FormStateInterface $form_
  */
 function _textimage_form_image_style_form_validate($form, FormStateInterface $form_state) {
   $image_style = $form_state->getFormObject()->getEntity();
-  $image_style->setThirdPartySetting('textimage', 'uri_scheme', $form_state->getValue(['textimage_options', 'uri_scheme']));
+  $image_style->setThirdPartySetting('textimage', 'uri_scheme', $form_state->getValue(
+    ['textimage_options', 'uri_scheme']
+  ));
 }
 
 /**

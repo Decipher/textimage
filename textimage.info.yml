@@ -1,5 +1,5 @@
 type: module
-core_version_requirement: ^9.3 || ^10
+core_version_requirement: ^10.1
 name: Textimage
 description: 'Provides Text and Image field formatters, and an API, to allow building image styles with variable text.'
 package: Media

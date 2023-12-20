@@ -4,8 +4,8 @@ namespace Drupal\textimage;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\image\ImageStyleInterface;
 use Drupal\file\FileInterface;
+use Drupal\image\ImageStyleInterface;
 
 /**
  * Provides an interface for Textimage objects.

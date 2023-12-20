@@ -38,11 +38,15 @@ trait TextimageTestTrait {
   protected $entityDisplayRepository;
 
   /**
+   * The module exetnsion list service.
+   *
    * @var \Drupal\Core\Extension\ModuleExtensionList
    */
   protected $moduleList;
 
   /**
+   * The file URL generator service.
+   *
    * @var \Drupal\Core\File\FileUrlGeneratorInterface
    */
   protected $fileUrlGenerator;

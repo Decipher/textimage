@@ -130,8 +130,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Create a text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
-    $this->expectDeprecation("[textimage:uri:$field_name] tokens are deprecated in textimage:8.x-4.2 and are removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
-    $this->expectDeprecation("[textimage:url:$field_name] tokens are deprecated in textimage:8.x-4.2 and are removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
+    $this->expectDeprecation("Passing [textimage:uri:$field_name] tokens is deprecated in textimage:8.x-4.2 and is removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
+    $this->expectDeprecation("Passing [textimage:url:$field_name] tokens is deprecated in textimage:8.x-4.2 and is removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
     $this->createTextField($field_name, 'article');
 
     // Create a new node.
@@ -414,8 +414,8 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
 
     // Create an image field for testing.
     $field_name = strtolower($this->randomMachineName());
-    $this->expectDeprecation("[textimage:uri:$field_name] tokens are deprecated in textimage:8.x-4.2 and are removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
-    $this->expectDeprecation("[textimage:url:$field_name] tokens are deprecated in textimage:8.x-4.2 and are removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
+    $this->expectDeprecation("Passing [textimage:uri:$field_name] tokens is deprecated in textimage:8.x-4.2 and is removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
+    $this->expectDeprecation("Passing [textimage:url:$field_name] tokens is deprecated in textimage:8.x-4.2 and is removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405");
     $min_resolution = 50;
     $max_resolution = 100;
     $field_settings = [

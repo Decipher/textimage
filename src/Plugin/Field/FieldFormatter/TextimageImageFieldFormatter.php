@@ -36,6 +36,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   protected $textimageFactory;
 
   /**
+   * The file URL generator service.
+   *
    * @var \Drupal\Core\File\FileUrlGeneratorInterface
    */
   protected $fileUrlGenerator;
