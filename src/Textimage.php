@@ -568,8 +568,8 @@ class Textimage implements TextimageInterface {
     if ($this->sourceImageFile) {
       if ($this->width && $this->height) {
         $dimensions = [
-          'width' => $this->width,
-          'height' => $this->height,
+          'width' => (int) $this->width,
+          'height' => (int) $this->height,
         ];
       }
       else {
@@ -577,8 +577,8 @@ class Textimage implements TextimageInterface {
         // not available from the file entity, see #1448124.
         $source_image = $this->imageFactory->get($this->sourceImageFile->getFileUri());
         $dimensions = [
-          'width' => $source_image->getWidth(),
-          'height' => $source_image->getHeight(),
+          'width' => (int) $source_image->getWidth(),
+          'height' => (int) $source_image->getHeight(),
         ];
       }
       $uri = $this->sourceImageFile->getFileUri();
@@ -679,7 +679,7 @@ class Textimage implements TextimageInterface {
     // with a clean background.
     $source = isset($this->sourceImageFile) ? $this->sourceImageFile->getFileUri() : NULL;
     $image = $this->imageFactory->get($source);
-    if (!$source) {
+    if ($source === NULL) {
       $image->createNew(1, 1, $this->extension, $this->gifTransparentColor);
     }
 

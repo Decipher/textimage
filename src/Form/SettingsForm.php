@@ -3,9 +3,11 @@
 namespace Drupal\textimage\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
+use Drupal\image_effects\Plugin\FontSelectorPluginManager;
 use Drupal\image_effects\Plugin\ImageEffectsPluginManager;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -25,7 +27,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * The font selector plugin manager.
    *
-   * @var \Drupal\image_effects\Plugin\ImageEffectsPluginManager
+   * @var \Drupal\image_effects\Plugin\ImageEffectsPluginManager|\Drupal\image_effects\Plugin\FontSelectorPluginManager
    */
   protected $fontManager;
 
@@ -43,13 +45,21 @@ class SettingsForm extends ConfigFormBase {
    *   The Textimage factory.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
-   * @param \Drupal\image_effects\Plugin\ImageEffectsPluginManager $font_plugin_manager
+   * @param \Drupal\image_effects\Plugin\ImageEffectsPluginManager|\Drupal\image_effects\Plugin\FontSelectorPluginManager $font_plugin_manager
    *   The font selector plugin manager.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The Image factory.
+   * @param \Drupal\Core\Config\TypedConfigManagerInterface $typedConfigManager
+   *   The typed config manager.
    */
-  public function __construct(TextimageFactory $textimage_factory, ConfigFactoryInterface $config_factory, ImageEffectsPluginManager $font_plugin_manager, ImageFactory $image_factory) {
-    parent::__construct($config_factory);
+  public function __construct(
+    TextimageFactory $textimage_factory,
+    ConfigFactoryInterface $config_factory,
+    ImageEffectsPluginManager|FontSelectorPluginManager $font_plugin_manager,
+    ImageFactory $image_factory,
+    TypedConfigManagerInterface $typedConfigManager,
+  ) {
+    parent::__construct($config_factory, $typedConfigManager);
     $this->textimageFactory = $textimage_factory;
     $this->fontManager = $font_plugin_manager;
     $this->imageFactory = $image_factory;

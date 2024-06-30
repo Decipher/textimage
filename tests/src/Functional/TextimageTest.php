@@ -8,7 +8,7 @@ use Drupal\Tests\Traits\Core\CronRunTrait;
 /**
  * Basic functionality of the Textimage module.
  *
- * @group Textimage
+ * @group textimage
  */
 class TextimageTest extends TextimageTestBase {
 

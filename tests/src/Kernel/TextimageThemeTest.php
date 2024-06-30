@@ -8,7 +8,7 @@ use Drupal\KernelTests\KernelTestBase;
 /**
  * Tests Textimage theme functions.
  *
- * @group Textimage
+ * @group textimage
  */
 class TextimageThemeTest extends KernelTestBase {
 

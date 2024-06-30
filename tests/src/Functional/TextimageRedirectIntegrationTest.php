@@ -11,7 +11,7 @@ use Drupal\Tests\TestFileCreationTrait;
 /**
  * Test integration of Textimage with the Redirect module.
  *
- * @group Textimage
+ * @group textimage
  */
 class TextimageRedirectIntegrationTest extends TextimageTestBase {
 
@@ -38,11 +38,17 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
     $min_resolution = 50;
     $max_resolution = 100;
     $field_settings = [
+      'max_filesize' => '200 KB',
       'max_resolution' => $max_resolution . 'x' . $max_resolution,
       'min_resolution' => $min_resolution . 'x' . $min_resolution,
       'alt_field' => 1,
     ];
-    $this->createImageField($field_name, 'article', [], $field_settings);
+    if (version_compare(\Drupal::VERSION, '10.3', '>=')) {
+      $this->createImageField($field_name, 'node', 'article', [], $field_settings);
+    }
+    else {
+      $this->createImageField($field_name, 'article', [], $field_settings);
+    }
 
     // Create a new node.
     // Get image 'image-1.png'.

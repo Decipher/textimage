@@ -12,7 +12,7 @@ use Drupal\textimage\TextimageException;
 /**
  * Kernel tests for Textimage API.
  *
- * @group Textimage
+ * @group textimage
  */
 class TextimageApiTest extends KernelTestBase {
 
@@ -57,7 +57,6 @@ class TextimageApiTest extends KernelTestBase {
       'file_mdm',
       'file_mdm_font',
     ]);
-    $this->installSchema('system', ['sequences']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('file');
     $this->initTextimageTest();
@@ -142,7 +141,7 @@ class TextimageApiTest extends KernelTestBase {
       $this->fail('buildImage() should have failed.');
     }
     catch (TextimageException $e) {
-      // Countinue.
+      // Continue.
     }
 
     // Process Textimage.
