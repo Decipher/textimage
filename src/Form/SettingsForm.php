@@ -28,6 +28,8 @@ class SettingsForm extends ConfigFormBase {
    * The font selector plugin manager.
    *
    * @var \Drupal\image_effects\Plugin\ImageEffectsPluginManager|\Drupal\image_effects\Plugin\FontSelectorPluginManager
+   *
+   * @todo drop typing with ImageEffectsPluginManager in 5.0.0.
    */
   protected $fontManager;
 

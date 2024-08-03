@@ -24,7 +24,6 @@ abstract class TextimageTestBase extends BrowserTestBase {
    */
   protected static $modules = [
     'image_effects',
-    'imagemagick',
     'node',
     'textimage',
     'vendor_stream_wrapper',

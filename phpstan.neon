@@ -13,3 +13,9 @@ parameters:
   ignoreErrors:
     - "#^Unsafe usage of new static#"
     - "#Drupal calls should be avoided in classes, use dependency injection instead#"
+    -
+      message: "#^Parameter \\$font_plugin_manager of method Drupal\\\\textimage\\\\Form\\\\SettingsForm\\:\\:__construct\\(\\) has invalid type Drupal\\\\image_effects\\\\Plugin\\\\FontSelectorPluginManager\\.$#"
+      reportUnmatched: false
+    -
+      message: "#^Parameter \\$font_plugin_manager of method Drupal\\\\textimage\\\\Form\\\\SettingsForm\\:\\:__construct\\(\\) has invalid type Drupal\\\\image_effects\\\\Plugin\\\\ImageEffectsPluginManager\\.$#"
+      reportUnmatched: false
