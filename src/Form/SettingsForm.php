@@ -75,7 +75,8 @@ class SettingsForm extends ConfigFormBase {
       $container->get('textimage.factory'),
       $container->get('config.factory'),
       $container->get('plugin.manager.image_effects.font_selector'),
-      $container->get('image.factory')
+      $container->get('image.factory'),
+      $container->get('config.typed')
     );
   }
 

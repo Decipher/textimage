@@ -176,4 +176,12 @@ class TextimageTest extends TextimageTestBase {
     $this->assertDirectoryDoesNotExist('public://textimage_store/temp');
   }
 
+  /**
+   * Test execution of Textimage settings form.
+   */
+  public function testSettingsForm(): void {
+    $this->drupalGet($this->textimageAdmin);
+    $this->assertSession()->statusCodeEquals(200);
+  }
+
 }
