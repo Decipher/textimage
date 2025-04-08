@@ -138,8 +138,10 @@ class TextimageHooks {
    */
   #[Hook('image_style_flush')]
   public function imageStyleFlush(ImageStyleInterface $style, ?string $path = NULL): void {
-    // Manage the textimage part of image style flushing.
-    \Drupal::service(TextimageFactoryInterface::class)->flushStyle($style);
+    if (is_null($path)) {
+      // Manage the textimage part of image style flushing.
+      \Drupal::service(TextimageFactoryInterface::class)->flushStyle($style);
+    }
   }
 
   /**
