@@ -14,13 +14,13 @@ interface TextimageFactoryInterface {
   /**
    * Gets a Textimage object.
    *
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
    *   A BubbleableMetadata object.
    *
    * @return \Drupal\textimage\Textimage
    *   A new Textimage object.
    */
-  public function get(BubbleableMetadata $bubbleable_metadata = NULL);
+  public function get(?BubbleableMetadata $bubbleable_metadata = NULL);
 
   /**
    * Loads a cached Textimage object.
@@ -42,7 +42,7 @@ interface TextimageFactoryInterface {
    *   A text conversion option.
    * @param array $token_data
    *   (optional) Token data to be passed to Token::replace.
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
    *   (optional) A BubbleableMetadata object to collect cacheability metadata
    *   from the token replacement process.
    *
@@ -51,7 +51,7 @@ interface TextimageFactoryInterface {
    *
    * @todo The $case_format parameter is deprecated, remove in a future major.
    */
-  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata = NULL);
+  public function processTextString($text, $case_format, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL);
 
   /**
    * Checks if an image style is Textimage relevant.
@@ -128,7 +128,7 @@ interface TextimageFactoryInterface {
   /**
    * Retrieves text from a Text field.
    *
-   * @param Drupal\Core\Field\FieldItemListInterface $items
+   * @param \Drupal\Core\Field\FieldItemListInterface $items
    *   Field items.
    *
    * @return array

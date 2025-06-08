@@ -17,7 +17,7 @@ class TextimageTokenException extends \Exception {
   /**
    * Constructs a TextimageImagerTokenException object.
    */
-  public function __construct($token, \Exception $previous = NULL) {
+  public function __construct($token, ?\Exception $previous = NULL) {
     parent::__construct("Textimage token {$token} could not be resolved.", 0, $previous);
     $this->token = $token;
   }

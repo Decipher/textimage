@@ -3,6 +3,7 @@
 namespace Drupal\textimage\PathProcessor;
 
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
+use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -36,7 +37,9 @@ class TextimagePathProcessor implements InboundPathProcessorInterface {
    * {@inheritdoc}
    */
   public function processInbound($path, Request $request) {
-    $public_directory_path = $this->streamWrapperManager->getViaScheme('public')->getDirectoryPath();
+    $stream = $this->streamWrapperManager->getViaScheme('public');
+    assert($stream instanceof LocalStream);
+    $public_directory_path = $stream->getDirectoryPath();
     if (strpos($path, '/' . $public_directory_path . '/textimage_store/') === 0) {
       // Path is for deferred Textimage generation from public scheme.
       $path_prefix = '/' . $public_directory_path . '/textimage_store';

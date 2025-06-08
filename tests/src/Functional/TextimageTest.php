@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\textimage\Functional;
 
+use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\Tests\Traits\Core\CronRunTrait;
 
@@ -19,8 +20,13 @@ class TextimageTest extends TextimageTestBase {
    */
   public function testTextimage() {
 
-    $public_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('public')->getDirectoryPath();
-    $private_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('private')->getDirectoryPath();
+    $publicStream = \Drupal::service('stream_wrapper_manager')->getViaScheme('public');
+    assert($publicStream instanceof LocalStream);
+    $public_directory_path = $publicStream->getDirectoryPath();
+
+    $privateStream = \Drupal::service('stream_wrapper_manager')->getViaScheme('private');
+    assert($privateStream instanceof LocalStream);
+    $private_directory_path = $privateStream->getDirectoryPath();
 
     // Generate a few derivatives and render images via theme
     // 'textimage_formatter'.

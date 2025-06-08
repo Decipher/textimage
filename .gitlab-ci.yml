@@ -31,5 +31,7 @@ variables:
 phpunit:
   extends: .phpunit-base
   variables:
-    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt"
-#    SYMFONY_DEPRECATIONS_HELPER: "disabled"
+    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/textimage/.deprecation-ignore.txt"
+  before_script:
+    # Merge core's deprecation ignore file into module's.
+    - cat $CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt >> $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/textimage/.deprecation-ignore.txt

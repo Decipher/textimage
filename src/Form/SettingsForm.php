@@ -8,7 +8,6 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\image_effects\Plugin\FontSelectorPluginManager;
-use Drupal\image_effects\Plugin\ImageEffectsPluginManager;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,9 +26,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * The font selector plugin manager.
    *
-   * @var \Drupal\image_effects\Plugin\ImageEffectsPluginManager|\Drupal\image_effects\Plugin\FontSelectorPluginManager
-   *
-   * @todo drop typing with ImageEffectsPluginManager in 5.0.0.
+   * @var \Drupal\image_effects\Plugin\FontSelectorPluginManager
    */
   protected $fontManager;
 
@@ -47,7 +44,7 @@ class SettingsForm extends ConfigFormBase {
    *   The Textimage factory.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
-   * @param \Drupal\image_effects\Plugin\ImageEffectsPluginManager|\Drupal\image_effects\Plugin\FontSelectorPluginManager $font_plugin_manager
+   * @param \Drupal\image_effects\Plugin\FontSelectorPluginManager $font_plugin_manager
    *   The font selector plugin manager.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The Image factory.
@@ -57,7 +54,7 @@ class SettingsForm extends ConfigFormBase {
   public function __construct(
     TextimageFactory $textimage_factory,
     ConfigFactoryInterface $config_factory,
-    ImageEffectsPluginManager|FontSelectorPluginManager $font_plugin_manager,
+    FontSelectorPluginManager $font_plugin_manager,
     ImageFactory $image_factory,
     TypedConfigManagerInterface $typedConfigManager,
   ) {
@@ -74,7 +71,7 @@ class SettingsForm extends ConfigFormBase {
     return new static(
       $container->get('textimage.factory'),
       $container->get('config.factory'),
-      $container->get('plugin.manager.image_effects.font_selector'),
+      $container->get(FontSelectorPluginManager::class),
       $container->get('image.factory'),
       $container->get('config.typed')
     );
@@ -190,7 +187,7 @@ class SettingsForm extends ConfigFormBase {
       'settings', 'url_generation', 'text_separator',
     ]))) {
       $form_state->setErrorByName('settings][url_generation][text_separator', $this->t('Invalid characters specified for the text separator.'));
-    };
+    }
   }
 
   /**
@@ -206,6 +203,7 @@ class SettingsForm extends ConfigFormBase {
     }
 
     // Main settings.
+    /** @var \Drupal\image_effects\Plugin\ImageEffectsFontSelectorPluginInterface $font_plugin */
     $font_plugin = $this->fontManager->getPlugin($this->config('image_effects.settings')->get('font_selector.plugin_id'));
     $config
       ->set('default_extension', $form_state->getValue([

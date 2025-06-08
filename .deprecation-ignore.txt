@@ -1,0 +1,11 @@
+# This file contains patterns to be ignored while testing for use of
+# deprecated code.
+# See https://www.drupal.org/node/3285162 for more details.
+
+%Since twig\/twig 3\.12%
+%Using @FieldFormatter annotation for plugin with ID textimage_(text|image)_field_formatter is deprecated%
+
+# Deprecations related to the redirect module.
+%Using @.* annotation for plugin with ID (r|R)edirect.* is deprecated%
+%The update to add a default table CSS class for view "redirect" is deprecated%
+%Method "Symfony\\Component\\Validator\\ConstraintValidatorInterface::(validate|initialize)\(\)" might add "void" as a native return type%

@@ -112,7 +112,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function get(BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function get(?BubbleableMetadata $bubbleable_metadata = NULL) {
     // @todo remove the \Drupal::getContainer() call in a future new major
     // @codingStandardsIgnoreLine
     $textimage = Textimage::create(\Drupal::getContainer());
@@ -132,7 +132,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function processTextString($text, $case_format, array $token_data = [], BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processTextString($text, $case_format, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL) {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
     return $this->token->replace($text, $token_data, [], $bubbleable_metadata);

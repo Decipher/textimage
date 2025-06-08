@@ -100,14 +100,14 @@ interface TextimageInterface extends ContainerInjectionInterface {
   /**
    * Sets the bubbleable metadata.
    *
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
    *   A BubbleableMetadata object.
    *
    * @return $this
    *
    * @internal
    */
-  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL);
+  public function setBubbleableMetadata(? BubbleableMetadata $bubbleable_metadata = NULL);
 
   /**
    * Return the Textimage id.

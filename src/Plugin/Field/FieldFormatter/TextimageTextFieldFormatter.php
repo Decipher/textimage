@@ -2,7 +2,6 @@
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
@@ -13,6 +12,8 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\image\ImageStyleInterface;
+use Drupal\image\ImageStyleStorageInterface;
 use Drupal\textimage\TextimageFactory;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -51,7 +52,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * The image style entity storage.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\image\ImageStyleStorageInterface
    */
   protected $imageStyleStorage;
 
@@ -83,12 +84,24 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    *   The current user.
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
    *   The Textimage factory service.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $image_style_storage
+   * @param \Drupal\image\ImageStyleStorageInterface $image_style_storage
    *   The image style entity storage.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, TextimageFactory $textimage_factory, EntityStorageInterface $image_style_storage, LoggerInterface $logger) {
+  public function __construct(
+    $plugin_id,
+    $plugin_definition,
+    FieldDefinitionInterface $field_definition,
+    array $settings,
+    $label,
+    $view_mode,
+    array $third_party_settings,
+    AccountInterface $current_user,
+    TextimageFactory $textimage_factory,
+    ImageStyleStorageInterface $image_style_storage,
+    LoggerInterface $logger,
+  ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->currentUser = $current_user;
     $this->textimageFactory = $textimage_factory;
@@ -364,8 +377,8 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   public function calculateDependencies() {
     $dependencies = parent::calculateDependencies();
     $style_id = $this->getSetting('image_style');
-    /** @var \Drupal\image\ImageStyleInterface $style */
     if ($style_id && $style = ImageStyle::load($style_id)) {
+      assert($style instanceof ImageStyleInterface);
       // If this formatter uses a valid image style to display the image, add
       // the image style configuration entity as dependency of this formatter.
       $dependencies[$style->getConfigDependencyKey()][] = $style->getConfigDependencyName();
@@ -379,8 +392,8 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   public function onDependencyRemoval(array $dependencies) {
     $changed = parent::onDependencyRemoval($dependencies);
     $style_id = $this->getSetting('image_style');
-    /** @var \Drupal\image\ImageStyleInterface $style */
     if ($style_id && $style = ImageStyle::load($style_id)) {
+      assert($style instanceof ImageStyleInterface);
       if (!empty($dependencies[$style->getConfigDependencyKey()][$style->getConfigDependencyName()])) {
         $replacement_id = $this->imageStyleStorage->getReplacementId($style_id);
         // If a valid replacement has been provided in the storage, replace the

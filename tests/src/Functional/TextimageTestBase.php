@@ -27,6 +27,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
     'node',
     'textimage',
     'vendor_stream_wrapper',
+    'dblog',
   ];
 
   /**
@@ -65,6 +66,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
     // Create a user and log it in.
     $this->adminUser = $this->drupalCreateUser([
       'access content',
+      'access site reports',
       'create article content',
       'edit any article content',
       'delete any article content',
@@ -129,7 +131,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
    *   Type of the field formatted by Textimage.
    * @param string $field_name
    *   Name of the field formatted by Textimage.
-   * @param string $field_value
+   * @param mixed $field_value
    *   Value of the field formatted by Textimage.
    * @param string $bundle
    *   The type of node to create.

@@ -115,7 +115,7 @@ trait TextimageTestTrait {
           'y_pos' => 'center',
           'x_offset' => 0,
           'y_offset' => 0,
-          'background_color' => NULL,
+          'background_color' => '#FFFFFF',
           'overflow_action' => 'extend',
           'extended_color' => NULL,
         ],

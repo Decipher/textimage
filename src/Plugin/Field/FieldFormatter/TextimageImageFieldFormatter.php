@@ -2,7 +2,6 @@
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -11,6 +10,8 @@ use Drupal\Core\Link;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
+use Drupal\file\FileInterface;
+use Drupal\image\ImageStyleStorageInterface;
 use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
 use Drupal\textimage\TextimageFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -61,14 +62,26 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   Any third party settings settings.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
-   * @param \Drupal\Core\Entity\EntityStorageInterface $image_style_storage
+   * @param \Drupal\image\ImageStyleStorageInterface $image_style_storage
    *   The image style entity storage.
    * @param \Drupal\textimage\TextimageFactory $textimage_factory
    *   The Textimage factory service.
    * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
    *   The file URL generator service.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, AccountInterface $current_user, EntityStorageInterface $image_style_storage, TextimageFactory $textimage_factory, FileUrlGeneratorInterface $file_url_generator) {
+  public function __construct(
+    $plugin_id,
+    $plugin_definition,
+    FieldDefinitionInterface $field_definition,
+    array $settings,
+    $label,
+    $view_mode,
+    array $third_party_settings,
+    AccountInterface $current_user,
+    ImageStyleStorageInterface $image_style_storage,
+    TextimageFactory $textimage_factory,
+    FileUrlGeneratorInterface $file_url_generator,
+  ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage, $file_url_generator);
     $this->textimageFactory = $textimage_factory;
     $this->fileUrlGenerator = $file_url_generator;
@@ -247,6 +260,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     $entity_url = $this->getSetting('image_link') == 'content' ? $items->getEntity()->toUrl() : NULL;
 
     foreach ($files as $delta => $file) {
+      assert($file instanceof FileInterface);
+
       $textimage = $this->textimageFactory->get($bubbleable_metadata)
         ->setStyle($image_style)
         ->setSourceImageFile($file)
@@ -271,9 +286,13 @@ class TextimageImageFieldFormatter extends ImageFormatter {
 
         }
       }
+      else {
+        $url = NULL;
+      }
 
       $elements[$delta] = [
         '#theme' => 'textimage_formatter',
+        // @phpstan-ignore property.notFound
         '#item' => $file->_referringItem,
         '#uri' => $textimage->getUri(),
         '#width' => $textimage->getWidth(),

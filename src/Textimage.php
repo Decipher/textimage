@@ -410,7 +410,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setBubbleableMetadata(BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function setBubbleableMetadata(?BubbleableMetadata $bubbleable_metadata = NULL) {
     if ($this->bubbleableMetadata) {
       throw new TextimageException("Bubbleable metadata already set");
     }
@@ -690,7 +690,7 @@ class Textimage implements TextimageInterface {
     // Try a lock to the file generation process. If cannot get the lock,
     // return success if the file exists already. Otherwise return failure.
     $lock_name = 'textimage_process:' . Crypt::hashBase64($this->getUri());
-    if (!$lock_acquired = $this->lock->acquire($lock_name)) {
+    if (!$this->lock->acquire($lock_name)) {
       return file_exists($this->getUri()) ? TRUE : FALSE;
     }
 
@@ -741,9 +741,7 @@ class Textimage implements TextimageInterface {
     $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->getUri()]);
 
     // Release lock.
-    if (!empty($lock_acquired)) {
-      $this->lock->release($lock_name);
-    }
+    $this->lock->release($lock_name);
 
     // Reset state.
     $this->factory->setState();
