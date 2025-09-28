@@ -5,12 +5,16 @@ namespace Drupal\Tests\textimage\Functional;
 use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\Tests\Traits\Core\CronRunTrait;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Basic functionality of the Textimage module.
  *
  * @group textimage
  */
+#[Group('textimage')]
+#[RunTestsInSeparateProcesses]
 class TextimageTest extends TextimageTestBase {
 
   use CronRunTrait;

@@ -132,7 +132,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function processTextString($text, $case_format, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processTextString($text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL) {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
     return $this->token->replace($text, $token_data, [], $bubbleable_metadata);
@@ -502,14 +502,10 @@ class TextimageFactory implements TextimageFactoryInterface {
    */
   protected function getTokenReplacement(TextimageInterface $textimage, $key) {
     switch ($key) {
-      // @todo remove 'uri' in 5.0.0.
       case 'textimage-uri':
-      case 'uri':
         return $textimage->getUri();
 
-      // @todo remove 'url' in 5.0.0.
       case 'textimage-url':
-      case 'url':
         return $textimage->getUrl()->toString();
 
     }

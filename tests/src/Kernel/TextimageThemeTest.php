@@ -4,12 +4,16 @@ namespace Drupal\Tests\textimage\Kernel;
 
 use Drupal\image\Entity\ImageStyle;
 use Drupal\KernelTests\KernelTestBase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests Textimage theme functions.
  *
  * @group textimage
  */
+#[Group('textimage')]
+#[RunTestsInSeparateProcesses]
 class TextimageThemeTest extends KernelTestBase {
 
   use TextimageTestTrait;

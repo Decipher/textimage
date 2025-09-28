@@ -38,8 +38,6 @@ interface TextimageFactoryInterface {
    *
    * @param string $text
    *   The input string containing unresolved tokens.
-   * @param string $case_format
-   *   A text conversion option.
    * @param array $token_data
    *   (optional) Token data to be passed to Token::replace.
    * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
@@ -48,10 +46,8 @@ interface TextimageFactoryInterface {
    *
    * @return string
    *   The processed text string.
-   *
-   * @todo The $case_format parameter is deprecated, remove in a future major.
    */
-  public function processTextString($text, $case_format, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL);
+  public function processTextString($text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL);
 
   /**
    * Checks if an image style is Textimage relevant.

@@ -107,23 +107,6 @@ function textimage_cron() {
  * Implements hook_token_info().
  */
 function textimage_token_info() {
-  $type = [
-    'name' => t('Textimage'),
-    'description' => t('Deprecated - Tokens related to Textimage'),
-    'needs-data' => 'node',
-  ];
-  $tokens = [
-    'uri' => [
-      'name' => t("URI"),
-      'description' => t("Deprecated. Use [node:textimage-uri:field{:display}{:sequence}] instead."),
-      'dynamic' => TRUE,
-    ],
-    'url' => [
-      'name' => t("URL"),
-      'description' => t("Deprecated. Use [node:textimage-url:field{:display}{:sequence}] instead."),
-      'dynamic' => TRUE,
-    ],
-  ];
   $node_tokens = [
     'textimage-uri' => [
       'name' => t("Textimage URI"),
@@ -137,8 +120,7 @@ function textimage_token_info() {
     ],
   ];
   return [
-    'types'  => ['textimage' => $type],
-    'tokens' => ['textimage' => $tokens, 'node' => $node_tokens],
+    'tokens' => ['node' => $node_tokens],
   ];
 }
 
@@ -146,22 +128,12 @@ function textimage_token_info() {
  * Implements hook_tokens().
  */
 function textimage_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
-  if ($type === 'textimage') {
-    @trigger_error('Passing ' . implode(', ', $tokens) . ' tokens is deprecated in textimage:8.x-4.2 and is removed from textimage:5.0.0. Use alternative tokens instead. See https://www.drupal.org/project/textimage/issues/3241405', E_USER_DEPRECATED);
-    \Drupal::service('textimage.logger')->error(implode(', ', $tokens) . ' tokens are deprecated. Use [node:textimage-url:?] or [node:textimage-uri:?]. In Textimage 5, deprecated tokens will no longer be replaced with the corresponding values.');
-    // Process tokens.
-    $replacements = \Drupal::service('textimage.factory')->processTokens('url', $tokens, $data, $bubbleable_metadata);
-    $replacements += \Drupal::service('textimage.factory')->processTokens('uri', $tokens, $data, $bubbleable_metadata);
-    return $replacements;
-  }
-
   if ($type === 'node') {
     // Process tokens.
     $replacements = \Drupal::service('textimage.factory')->processTokens('textimage-url', $tokens, $data, $bubbleable_metadata);
     $replacements += \Drupal::service('textimage.factory')->processTokens('textimage-uri', $tokens, $data, $bubbleable_metadata);
     return $replacements;
   }
-
   return [];
 }
 

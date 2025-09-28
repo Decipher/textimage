@@ -7,12 +7,14 @@ use Drupal\image\Entity\ImageStyle;
 use Drupal\node\Entity\Node;
 use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
 use Drupal\Tests\TestFileCreationTrait;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Test integration of Textimage with the Redirect module.
- *
- * @group textimage
  */
+#[Group('textimage')]
+#[RunTestsInSeparateProcesses]
 class TextimageRedirectIntegrationTest extends TextimageTestBase {
 
   use ImageFieldCreationTrait;

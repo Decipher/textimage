@@ -2,6 +2,7 @@
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
@@ -10,6 +11,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageStyleInterface;
@@ -20,19 +22,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Plugin implementation of the Textimage text field formatter.
- *
- * @FieldFormatter(
- *   id = "textimage_text_field_formatter",
- *   label = @Translation("Textimage"),
- *   field_types = {
- *     "string",
- *     "string_long",
- *     "text",
- *     "text_with_summary",
- *     "text_long"
- *   }
- * )
  */
+#[FieldFormatter(
+  id: 'textimage_text_field_formatter',
+  label: new TranslatableMarkup('Textimage'),
+  field_types: [
+    'string',
+    'string_long',
+    'text',
+    'text_with_summary',
+    'text_long',
+  ],
+)]
 class TextimageTextFieldFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
 
   /**
@@ -295,10 +296,10 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
 
     // Get alt and title text from the formatter settings, and resolve tokens.
     if ($image_alt = $this->getSetting('image_alt')) {
-      $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, $token_data, $bubbleable_metadata);
+      $image_alt = $this->textimageFactory->processTextString($image_alt, $token_data, $bubbleable_metadata);
     }
     if ($image_title = $this->getSetting('image_title')) {
-      $image_title = $this->textimageFactory->processTextString($image_title, NULL, $token_data, $bubbleable_metadata);
+      $image_title = $this->textimageFactory->processTextString($image_title, $token_data, $bubbleable_metadata);
     }
 
     // Check if the formatter involves a link to the parent entity.

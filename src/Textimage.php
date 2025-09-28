@@ -395,7 +395,7 @@ class Textimage implements TextimageInterface {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
       $dir_name = $this->fileSystem->dirname($uri);
-      $base_name = $this->fileSystem->basename($uri);
+      $base_name = basename($uri);
       $valid_uri = $this->createFilename($base_name, $dir_name);
       if ($uri != $valid_uri) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
@@ -549,10 +549,10 @@ class Textimage implements TextimageInterface {
       if ($text_item) {
         // Replace any tokens in text with run-time values.
         $text_item = ($text_item == '[textimage:default]') ? $default_text_item : $text_item;
-        $processed_text[$uuid] = $this->factory->processTextString($text_item, NULL, $this->tokenData, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($text_item, $this->tokenData, $this->bubbleableMetadata);
       }
       else {
-        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, NULL, $this->tokenData, $this->bubbleableMetadata);
+        $processed_text[$uuid] = $this->factory->processTextString($default_text_item, $this->tokenData, $this->bubbleableMetadata);
       }
       // Let text be altered by the effect's alter hook.
       $processed_text[$uuid] = $effect_instance->getAlteredText($processed_text[$uuid]);

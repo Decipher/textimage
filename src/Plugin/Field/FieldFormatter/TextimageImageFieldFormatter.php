@@ -2,6 +2,7 @@
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -9,6 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\image\ImageStyleStorageInterface;
@@ -18,15 +20,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Plugin implementation of the Textimage image field formatter.
- *
- * @FieldFormatter(
- *   id = "textimage_image_field_formatter",
- *   label = @Translation("Textimage"),
- *   field_types = {
- *     "image"
- *   }
- * )
  */
+#[FieldFormatter(
+  id: 'textimage_image_field_formatter',
+  label: new TranslatableMarkup('Textimage'),
+  field_types: [
+    'image',
+  ],
+)]
 class TextimageImageFieldFormatter extends ImageFormatter {
 
   /**
@@ -250,10 +251,10 @@ class TextimageImageFieldFormatter extends ImageFormatter {
 
     // Get alt and title text from the formatter settings, and resolve tokens.
     if ($image_alt = $this->getSetting('image_alt')) {
-      $image_alt = $this->textimageFactory->processTextString($image_alt, NULL, $token_data, $bubbleable_metadata);
+      $image_alt = $this->textimageFactory->processTextString($image_alt, $token_data, $bubbleable_metadata);
     }
     if ($image_title = $this->getSetting('image_title')) {
-      $image_title = $this->textimageFactory->processTextString($image_title, NULL, $token_data, $bubbleable_metadata);
+      $image_title = $this->textimageFactory->processTextString($image_title, $token_data, $bubbleable_metadata);
     }
 
     // Check if the formatter involves a link to the parent entity.
