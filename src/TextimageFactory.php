@@ -11,12 +11,16 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\Image\ImageFactory;
+use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 use Psr\Log\LoggerInterface;
 
@@ -31,14 +35,18 @@ class TextimageFactory implements TextimageFactoryInterface {
   protected readonly EntityStorageInterface $userStorage;
 
   public function __construct(
-    protected readonly ConfigFactoryInterface $configFactory,
+    public readonly ConfigFactoryInterface $configFactory,
     protected readonly Token $token,
-    protected readonly LoggerInterface $logger,
-    protected readonly CacheBackendInterface $cache,
+    public readonly LoggerInterface $logger,
+    public readonly CacheBackendInterface $cache,
     protected readonly AccountInterface $currentUser,
-    protected readonly StreamWrapperManager $streamWrapperManager,
+    public readonly StreamWrapperManager $streamWrapperManager,
     EntityTypeManagerInterface $entityTypeManager,
-    protected readonly FileSystemInterface $fileSystem,
+    public readonly FileSystemInterface $fileSystem,
+    public readonly LockBackendInterface $lock,
+    public readonly ImageFactory $imageFactory,
+    public readonly ImageEffectManager $imageEffectManager,
+    public readonly FileUrlGeneratorInterface $fileUrlGenerator,
   ) {
     $this->userStorage = $entityTypeManager->getStorage('user');
   }
@@ -47,9 +55,7 @@ class TextimageFactory implements TextimageFactoryInterface {
    * {@inheritdoc}
    */
   public function get(?BubbleableMetadata $bubbleable_metadata = NULL): TextimageInterface {
-    // @todo remove the \Drupal::getContainer() call in a future new major
-    // @codingStandardsIgnoreLine
-    $textimage = Textimage::create(\Drupal::getContainer());
+    $textimage = new Textimage($this);
     $textimage->setBubbleableMetadata($bubbleable_metadata);
     return $textimage;
   }
@@ -392,7 +398,7 @@ class TextimageFactory implements TextimageFactoryInterface {
               $textimage = $this->get($bubbleable_metadata)
                 ->setStyle($image_style)
                 ->setTokenData($data)
-                ->setSourceImageFile($item->entity, $item_value['width'], $item_value['height'])
+                ->setSourceImageFile($item->entity, (int) $item_value['width'], (int) $item_value['height'])
                 ->process(NULL);
               $ret[] = $this->getTokenReplacement($textimage, $key);
             }

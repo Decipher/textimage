@@ -1,27 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage;
 
 use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\Cache;
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\File\FileUrlGeneratorInterface;
-use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\Lock\LockBackendInterface;
+use Drupal\Core\Image\ImageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a Textimage.
@@ -31,172 +25,80 @@ class Textimage implements TextimageInterface {
   use StringTranslationTrait;
 
   /**
-   * The Textimage factory service.
-   *
-   * @var \Drupal\textimage\TextimageFactory
-   */
-  protected $factory;
-
-  /**
-   * The lock service.
-   *
-   * @var \Drupal\Core\Lock\LockBackendInterface
-   */
-  protected $lock;
-
-  /**
-   * The image factory service.
-   *
-   * @var \Drupal\Core\Image\ImageFactory
-   */
-  protected $imageFactory;
-
-  /**
-   * The configuration factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
-   * The textimage cache service.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
-   */
-  protected $cache;
-
-  /**
-   * The Textimage logger.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $logger;
-
-  /**
-   * The file system service.
-   *
-   * @var \Drupal\Core\File\FileSystemInterface
-   */
-  protected $fileSystem;
-
-  /**
-   * The image effect manager service.
-   *
-   * @var \Drupal\image\ImageEffectManager
-   */
-  protected $imageEffectManager;
-
-  /**
-   * The stream wrapper manager service.
-   *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
-   */
-  protected $streamWrapperManager;
-
-  /**
-   * The file URL generator service.
-   *
-   * @var \Drupal\Core\File\FileUrlGeneratorInterface
-   */
-  protected $fileUrlGenerator;
-
-  /**
    * Textimage id.
    *
    * It is a SHA256 hash of the textimage effects and data.
    *
-   * @var string
-   *
    * @see \Drupal\textimage\Textimage::process()
    */
-  protected $id = NULL;
+  protected ?string $id = NULL;
 
   /**
    * If data for this Textimage has been processed.
-   *
-   * @var bool
    */
-  protected $processed = FALSE;
+  protected bool $processed = FALSE;
 
   /**
    * If this Textimage has been built.
-   *
-   * @var bool
    */
-  protected $built = FALSE;
+  protected bool $built = FALSE;
 
   /**
    * Textimage metadata.
    *
    * @var array
    */
-  protected $imageData = [];
+  protected array $imageData = [];
 
   /**
    * Textimage URI.
-   *
-   * @var string
    */
-  protected $uri = NULL;
+  protected ?string $uri = NULL;
 
   /**
    * Textimage width.
-   *
-   * @var int
    */
-  protected $width = NULL;
+  protected ?int $width = NULL;
 
   /**
    * Textimage height.
-   *
-   * @var int
    */
-  protected $height = NULL;
+  protected ?int $height = NULL;
 
   /**
    * Image style used for this Textimage.
-   *
-   * @var \Drupal\image\ImageStyleInterface
    */
-  protected $style = NULL;
+  protected ?ImageStyleInterface $style = NULL;
 
   /**
    * The array of image effects for this Textimage.
    *
    * @var array
    */
-  protected $effects = [];
+  protected array $effects = [];
 
   /**
    * The array of text elements for this Textimage.
-   *
-   * @var array
    */
-  protected $text = [];
+  protected array $text = [];
 
   /**
    * The file extension for this Textimage.
-   *
-   * @var string
    */
-  protected $extension = NULL;
+  protected ?string $extension = NULL;
 
   /**
    * RGB hex color to be used for GIF images.
    *
    * Image effects may override this setting, this is here in case we build
    * a Textimage from scratch.
-   *
-   * @var string
    */
-  protected $gifTransparentColor = '#FFFFFF';
+  protected string $gifTransparentColor = '#FFFFFF';
 
   /**
    * If this Textimage has to be cached.
-   *
-   * @var bool
    */
-  protected $caching = TRUE;
+  protected bool $caching = TRUE;
 
   /**
    * An image file entity.
@@ -204,78 +106,22 @@ class Textimage implements TextimageInterface {
    * The source file used to build the image derivative in standard image
    * system context. Also used to track Textimages from image fields formatted
    * through Textimage field display formatter and to resolve file tokens.
-   *
-   * @var \Drupal\file\FileInterface
    */
-  protected $sourceImageFile = NULL;
+  protected ?FileInterface $sourceImageFile = NULL;
 
   /**
    * An array of objects to resolve tokens.
-   *
-   * @var array
    */
-  protected $tokenData = [];
+  protected array $tokenData = [];
 
   /**
    * Bubbleable metadata of the Textimage.
-   *
-   * @var \Drupal\Core\Render\BubbleableMetadata
    */
-  protected $bubbleableMetadata = NULL;
+  protected ?BubbleableMetadata $bubbleableMetadata = NULL;
 
-  /**
-   * Constructs a Textimage object.
-   *
-   * @param \Drupal\textimage\TextimageFactory $textimage_factory
-   *   The Textimage factory.
-   * @param \Drupal\Core\Lock\LockBackendInterface $lock_service
-   *   The lock service.
-   * @param \Drupal\Core\Image\ImageFactory $image_factory
-   *   The image factory.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The Textimage logger.
-   * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
-   *   The Textimage cache service.
-   * @param \Drupal\Core\File\FileSystemInterface $file_system
-   *   The file system service.
-   * @param \Drupal\image\ImageEffectManager $image_effect_manager
-   *   The image effect manager service.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
-   *   The stream wrapper manager service.
-   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
-   *   The file URL generator service.
-   */
-  public function __construct(TextimageFactory $textimage_factory, LockBackendInterface $lock_service, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, CacheBackendInterface $cache_service, FileSystemInterface $file_system, ImageEffectManager $image_effect_manager, StreamWrapperManagerInterface $stream_wrapper_manager, FileUrlGeneratorInterface $file_url_generator) {
-    $this->factory = $textimage_factory;
-    $this->lock = $lock_service;
-    $this->imageFactory = $image_factory;
-    $this->configFactory = $config_factory;
-    $this->logger = $logger;
-    $this->cache = $cache_service;
-    $this->fileSystem = $file_system;
-    $this->imageEffectManager = $image_effect_manager;
-    $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->fileUrlGenerator = $file_url_generator;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('textimage.factory'),
-      $container->get('lock'),
-      $container->get('image.factory'),
-      $container->get('config.factory'),
-      $container->get('textimage.logger'),
-      $container->get('cache.textimage'),
-      $container->get('file_system'),
-      $container->get('plugin.manager.image.effect'),
-      $container->get('stream_wrapper_manager'),
-      $container->get('file_url_generator')
-    );
+  public function __construct(
+    protected readonly TextimageFactory $factory,
+  ) {
   }
 
   /**
@@ -290,7 +136,7 @@ class Textimage implements TextimageInterface {
    *
    * @return $this
    */
-  protected function set($property, $value) {
+  protected function set(string $property, mixed $value): static {
     if (!property_exists($this, $property)) {
       throw new TextimageException("Attempted to set non existing property '{$property}'");
     }
@@ -306,7 +152,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setStyle(ImageStyleInterface $image_style) {
+  public function setStyle(ImageStyleInterface $image_style): static {
     if ($this->style) {
       throw new TextimageException("Image style already set");
     }
@@ -319,7 +165,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setEffects(array $effects) {
+  public function setEffects(array $effects): static {
     if ($this->effects) {
       throw new TextimageException("Image effects already set");
     }
@@ -329,13 +175,13 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setTargetExtension($extension) {
+  public function setTargetExtension(string $extension): static {
     if ($this->extension) {
       throw new TextimageException("Extension already set");
     }
     $extension = strtolower($extension);
-    if (!in_array($extension, $this->imageFactory->getSupportedExtensions())) {
-      $this->logger->error("Unsupported image file extension (%extension) requested.", ['%extension' => $extension]);
+    if (!in_array($extension, $this->factory->imageFactory->getSupportedExtensions())) {
+      $this->factory->logger->error("Unsupported image file extension (%extension) requested.", ['%extension' => $extension]);
       throw new TextimageException("Attempted to set an unsupported file image extension ({$extension})");
     }
     return $this->set('extension', $extension);
@@ -344,14 +190,14 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setGifTransparentColor($color) {
+  public function setGifTransparentColor(string $color): static {
     return $this->set('gifTransparentColor', $color);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setSourceImageFile(FileInterface $source_image_file, $width = NULL, $height = NULL) {
+  public function setSourceImageFile(FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static {
     if ($source_image_file) {
       $this->set('sourceImageFile', $source_image_file);
     }
@@ -365,7 +211,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setTokenData(array $token_data) {
+  public function setTokenData(array $token_data): static {
     if ($this->tokenData) {
       throw new TextimageException("Token data already set");
     }
@@ -375,7 +221,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setTemporary($is_temp) {
+  public function setTemporary(bool $is_temp): static {
     if ($this->uri) {
       throw new TextimageException("URI already set");
     }
@@ -386,15 +232,15 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setTargetUri($uri) {
+  public function setTargetUri(string $uri): static {
     if ($this->uri) {
       throw new TextimageException("URI already set");
     }
     if ($uri) {
-      if (!$this->streamWrapperManager->isValidUri($uri)) {
+      if (!$this->factory->streamWrapperManager->isValidUri($uri)) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
-      $dir_name = $this->fileSystem->dirname($uri);
+      $dir_name = $this->factory->fileSystem->dirname($uri);
       $base_name = basename($uri);
       $valid_uri = $this->createFilename($base_name, $dir_name);
       if ($uri != $valid_uri) {
@@ -410,7 +256,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setBubbleableMetadata(?BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function setBubbleableMetadata(?BubbleableMetadata $bubbleable_metadata = NULL): static {
     if ($this->bubbleableMetadata) {
       throw new TextimageException("Bubbleable metadata already set");
     }
@@ -421,56 +267,56 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function id() {
+  public function id(): ?string {
     return $this->processed ? $this->id : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getText() {
+  public function getText(): array {
     return $this->processed ? array_values($this->text) : [];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getUri() {
+  public function getUri(): ?string {
     return $this->processed ? $this->uri : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getUrl() {
-    return $this->processed ? Url::fromUri($this->fileUrlGenerator->generateAbsoluteString($this->getUri())) : NULL;
+  public function getUrl(): ?Url {
+    return $this->processed ? Url::fromUri($this->factory->fileUrlGenerator->generateAbsoluteString($this->getUri())) : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getHeight() {
+  public function getHeight(): ?int {
     return $this->processed ? $this->height : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getWidth() {
+  public function getWidth(): ?int {
     return $this->processed ? $this->width : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getBubbleableMetadata() {
+  public function getBubbleableMetadata(): ?BubbleableMetadata {
     return $this->processed ? $this->bubbleableMetadata : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function load($id) {
+  public function load(string $id): static {
     // Do not re-process.
     if ($this->processed) {
       return $this;
@@ -502,7 +348,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function process($text) {
+  public function process(array|string|null $text): static {
     // Do not re-process.
     if ($this->processed) {
       throw new TextimageException("Attempted to re-process an already processed Textimage");
@@ -510,7 +356,7 @@ class Textimage implements TextimageInterface {
 
     // Effects must be loaded.
     if (empty($this->effects)) {
-      $this->logger->error('Textimage had no image effects to process.');
+      $this->factory->logger->error('Textimage had no image effects to process.');
       return $this;
     }
 
@@ -544,7 +390,7 @@ class Textimage implements TextimageInterface {
     $this->tokenData['file'] ??= $this->sourceImageFile;
     foreach ($default_text as $uuid => $default_text_item) {
       $text_item = array_shift($text);
-      $effect_instance = $this->imageEffectManager->createInstance($this->effects[$uuid]['id']);
+      $effect_instance = $this->factory->imageEffectManager->createInstance($this->effects[$uuid]['id']);
       $effect_instance->setConfiguration($this->effects[$uuid]);
       if ($text_item) {
         // Replace any tokens in text with run-time values.
@@ -575,7 +421,7 @@ class Textimage implements TextimageInterface {
       else {
         // @todo (core) we need to take dimensions via image system as they are
         // not available from the file entity, see #1448124.
-        $source_image = $this->imageFactory->get($this->sourceImageFile->getFileUri());
+        $source_image = $this->factory->imageFactory->get($this->sourceImageFile->getFileUri());
         $dimensions = [
           'width' => (int) $source_image->getWidth(),
           'height' => (int) $source_image->getHeight(),
@@ -600,7 +446,7 @@ class Textimage implements TextimageInterface {
         $extension = pathinfo($this->sourceImageFile->getFileUri(), PATHINFO_EXTENSION);
       }
       else {
-        $extension = $this->configFactory->get('textimage.settings')->get('default_extension');
+        $extension = $this->factory->configFactory->get('textimage.settings')->get('default_extension');
       }
       $this->setTargetExtension($runtime_style->getDerivativeExtension($extension));
     }
@@ -633,7 +479,7 @@ class Textimage implements TextimageInterface {
     if ($this->caching && ($cached_data = $this->getCachedData())) {
       $this->set('uri', $cached_data['uri']);
       $this->processed = TRUE;
-      $this->logger->debug('Cached Textimage, @uri', ['@uri' => $this->getUri()]);
+      $this->factory->logger->debug('Cached Textimage, @uri', ['@uri' => $this->getUri()]);
       if (is_file($this->getUri())) {
         $this->built = TRUE;
       }
@@ -657,7 +503,7 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function buildImage() {
+  public function buildImage(): static {
     // Do not proceed if not processed.
     if (!$this->processed) {
       throw new TextimageException("Attempted to build Textimage before processing data");
@@ -670,7 +516,7 @@ class Textimage implements TextimageInterface {
 
     // Check file store and return if hit.
     if ($this->caching && is_file($this->getUri())) {
-      $this->logger->debug('Stored Textimage, @uri', ['@uri' => $this->getUri()]);
+      $this->factory->logger->debug('Stored Textimage, @uri', ['@uri' => $this->getUri()]);
       return $this;
     }
 
@@ -678,7 +524,7 @@ class Textimage implements TextimageInterface {
     // request. In that case we create a new 1x1 image to ensure we start
     // with a clean background.
     $source = isset($this->sourceImageFile) ? $this->sourceImageFile->getFileUri() : NULL;
-    $image = $this->imageFactory->get($source);
+    $image = $this->factory->imageFactory->get($source);
     if ($source === NULL) {
       $image->createNew(1, 1, $this->extension, $this->gifTransparentColor);
     }
@@ -690,7 +536,7 @@ class Textimage implements TextimageInterface {
     // Try a lock to the file generation process. If cannot get the lock,
     // return success if the file exists already. Otherwise return failure.
     $lock_name = 'textimage_process:' . Crypt::hashBase64($this->getUri());
-    if (!$this->lock->acquire($lock_name)) {
+    if (!$this->factory->lock->acquire($lock_name)) {
       return file_exists($this->getUri()) ? TRUE : FALSE;
     }
 
@@ -738,10 +584,10 @@ class Textimage implements TextimageInterface {
         throw new TextimageException("Textimage failed to build an image");
       }
     }
-    $this->logger->debug('Built Textimage, @uri', ['@uri' => $this->getUri()]);
+    $this->factory->logger->debug('Built Textimage, @uri', ['@uri' => $this->getUri()]);
 
     // Release lock.
-    $this->lock->release($lock_name);
+    $this->factory->lock->release($lock_name);
 
     // Reset state.
     $this->factory->setState();
@@ -762,10 +608,10 @@ class Textimage implements TextimageInterface {
    * @return \Drupal\image\ImageStyleInterface
    *   An image style object.
    */
-  protected function buildStyleFromEffects(array $effects) {
+  protected function buildStyleFromEffects(array $effects): ImageStyleInterface {
     $style = ImageStyle::create([]);
     foreach ($effects as $effect) {
-      $effect_instance = $this->imageEffectManager->createInstance($effect['id']);
+      $effect_instance = $this->factory->imageEffectManager->createInstance($effect['id']);
       $default_config = $effect_instance->defaultConfiguration();
       $effect['data'] = NestedArray::mergeDeep($default_config, $effect['data']);
       $style->addImageEffect($effect);
@@ -788,7 +634,7 @@ class Textimage implements TextimageInterface {
    *   File path consisting of $directory and a unique filename based off
    *   of $basename.
    */
-  protected function createFilename($basename, $directory) {
+  protected function createFilename(string $basename, string $directory): string {
     // Strip control characters (ASCII value < 32). Though these are allowed in
     // some filesystems, not many applications handle them well.
     $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
@@ -813,22 +659,22 @@ class Textimage implements TextimageInterface {
    *
    * @todo (core) remove if #2359443 gets in
    */
-  protected function createDerivativeFromImage($style, $image, $derivative_uri) {
+  protected function createDerivativeFromImage(ImageStyle $style, ImageInterface $image, string $derivative_uri): bool {
     // Get the folder for the final location of this style.
-    $directory = $this->fileSystem->dirname($derivative_uri);
+    $directory = $this->factory->fileSystem->dirname($derivative_uri);
 
     // Build the destination folder tree if it doesn't already exist.
-    if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
-      $this->logger->error('Failed to create Textimage directory: %directory', ['%directory' => $directory]);
+    if (!$this->factory->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
+      $this->factory->logger->error('Failed to create Textimage directory: %directory', ['%directory' => $directory]);
       return FALSE;
     }
 
     if (!$image->isValid()) {
       if ($image->getSource()) {
-        $this->logger->error("Invalid image at '%image'.", ['%image' => $image->getSource()]);
+        $this->factory->logger->error("Invalid image at '%image'.", ['%image' => $image->getSource()]);
       }
       else {
-        $this->logger->error("Invalid source image.");
+        $this->factory->logger->error("Invalid source image.");
       }
       return FALSE;
     }
@@ -839,7 +685,7 @@ class Textimage implements TextimageInterface {
 
     if (!$image->save($derivative_uri)) {
       if (file_exists($derivative_uri)) {
-        $this->logger->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', ['%destination' => $derivative_uri]);
+        $this->factory->logger->error('Cached image file %destination already exists. There may be an issue with your rewrite configuration.', ['%destination' => $derivative_uri]);
       }
       return FALSE;
     }
@@ -865,13 +711,13 @@ class Textimage implements TextimageInterface {
    *
    * @return $this
    */
-  protected function buildUri() {
+  protected function buildUri(): static {
   // @codingStandardsIgnoreEnd
     // The file name will be the Textimage hash.
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;
       if ($this->style) {
-        $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme'));
+        $scheme = $this->style->getThirdPartySetting('textimage', 'uri_scheme', $this->factory->configFactory->get('system.file')->get('default_scheme'));
         $this->set('uri', $this->factory->getStoreUri('/cache/styles/', $scheme) . $this->style->id() . '/' . substr($base_name, 0, 1) . '/' . substr($base_name, 0, 2) . '/' . $base_name);
       }
       else {
@@ -888,11 +734,11 @@ class Textimage implements TextimageInterface {
   /**
    * Get cached Textimage data.
    *
-   * @return bool
-   *   TRUE if an existing image file can be used, FALSE if no hit
+   * @return array|false
+   *   The cached data, or FALSE if no hit
    */
-  protected function getCachedData() {
-    if ($cached = $this->cache->get('tiid:' . $this->id)) {
+  protected function getCachedData(): array|false {
+    if ($cached = $this->factory->cache->get('tiid:' . $this->id)) {
       return $cached->data;
     }
     return FALSE;
@@ -903,7 +749,7 @@ class Textimage implements TextimageInterface {
    *
    * @return $this
    */
-  protected function setCached() {
+  protected function setCached(): static {
     $data = [
       'imageData' => $this->imageData,
       'uri' => $this->getUri(),
@@ -912,7 +758,7 @@ class Textimage implements TextimageInterface {
       'effects' => $this->effects,
       'bubbleableMetadata' => $this->getBubbleableMetadata(),
     ];
-    $this->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $this->getBubbleableMetadata()->getCacheTags());
+    $this->factory->cache->set('tiid:' . $this->id, $data, Cache::PERMANENT, $this->getBubbleableMetadata()->getCacheTags());
     return $this;
   }
 

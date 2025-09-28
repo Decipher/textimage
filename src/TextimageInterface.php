@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage;
 
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\image\ImageStyleInterface;
 
 /**
  * Provides an interface for Textimage objects.
  */
-interface TextimageInterface extends ContainerInjectionInterface {
+interface TextimageInterface {
 
   /**
    * Set the image style.
@@ -20,7 +22,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setStyle(ImageStyleInterface $image_style);
+  public function setStyle(ImageStyleInterface $image_style): static;
 
   /**
    * Set the image effects.
@@ -31,7 +33,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setEffects(array $effects);
+  public function setEffects(array $effects): static;
 
   /**
    * Sets the image file extension.
@@ -41,7 +43,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setTargetExtension($extension);
+  public function setTargetExtension(string $extension): static;
 
   /**
    * Set the RGB hex color to be used for GIF images.
@@ -51,7 +53,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setGifTransparentColor($color);
+  public function setGifTransparentColor(string $color): static;
 
   /**
    * Sets the image source file.
@@ -65,7 +67,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setSourceImageFile(FileInterface $source_image_file, $width = NULL, $height = NULL);
+  public function setSourceImageFile(FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static;
 
   /**
    * Sets the token data to resolve tokens.
@@ -75,7 +77,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setTokenData(array $token_data);
+  public function setTokenData(array $token_data): static;
 
   /**
    * Set Textimage to be temporary.
@@ -85,7 +87,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setTemporary($is_temp);
+  public function setTemporary(bool $is_temp): static;
 
   /**
    * Set image destination URI.
@@ -95,7 +97,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function setTargetUri($uri);
+  public function setTargetUri(string $uri): static;
 
   /**
    * Sets the bubbleable metadata.
@@ -107,15 +109,15 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @internal
    */
-  public function setBubbleableMetadata(? BubbleableMetadata $bubbleable_metadata = NULL);
+  public function setBubbleableMetadata(?BubbleableMetadata $bubbleable_metadata = NULL): static;
 
   /**
    * Return the Textimage id.
    *
-   * @return string
+   * @return string|null
    *   A SHA256 hash.
    */
-  public function id();
+  public function id(): ?string;
 
   /**
    * Return the processed text.
@@ -123,23 +125,23 @@ interface TextimageInterface extends ContainerInjectionInterface {
    * @return array
    *   An array of fully processed text elements.
    */
-  public function getText();
+  public function getText(): array;
 
   /**
    * Returns the URI of the Textimage.
    *
-   * @return string
+   * @return string|null
    *   An URI.
    */
-  public function getUri();
+  public function getUri(): ?string;
 
   /**
    * Returns the URL of the Textimage.
    *
-   * @return \Drupal\Core\Url
+   * @return \Drupal\Core\Url|null
    *   The Url object for the textimage.
    */
-  public function getUrl();
+  public function getUrl(): ?Url;
 
   /**
    * Returns the height of the Textimage.
@@ -147,7 +149,7 @@ interface TextimageInterface extends ContainerInjectionInterface {
    * @return int|null
    *   The height of the Textimage, or NULL if not available.
    */
-  public function getHeight();
+  public function getHeight(): ?int;
 
   /**
    * Returns the width of the Textimage.
@@ -155,15 +157,15 @@ interface TextimageInterface extends ContainerInjectionInterface {
    * @return int|null
    *   The width of the Textimage, or NULL if not available.
    */
-  public function getWidth();
+  public function getWidth(): ?int;
 
   /**
    * Gets the bubbleable metadata of the Textimage.
    *
-   * @return \Drupal\Core\Render\BubbleableMetadata
+   * @return \Drupal\Core\Render\BubbleableMetadata|null
    *   A BubbleableMetadata object.
    */
-  public function getBubbleableMetadata();
+  public function getBubbleableMetadata(): ?BubbleableMetadata;
 
   /**
    * Load Textimage metadata from cache.
@@ -171,10 +173,9 @@ interface TextimageInterface extends ContainerInjectionInterface {
    * @param string $id
    *   The id of the Textimage to load.
    *
-   * @return bool
-   *   TRUE if cache entry exists, FALSE otherwise.
+   * @return $this
    */
-  public function load($id);
+  public function load(string $id): static;
 
   /**
    * Process the Textimage, with the required raw text.
@@ -184,13 +185,13 @@ interface TextimageInterface extends ContainerInjectionInterface {
    *
    * @return $this
    */
-  public function process($text);
+  public function process(array|string|null $text): static;
 
   /**
    * Build the image via core ImageStyle::createDerivative() method.
    *
    * @return $this
    */
-  public function buildImage();
+  public function buildImage(): static;
 
 }

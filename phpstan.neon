@@ -1,8 +1,5 @@
 # Configuration file for PHPStan static code checking, see https://phpstan.org.
 
-includes:
-  - phar://phpstan.phar/conf/bleedingEdge.neon
-
 parameters:
 
   level: 2
@@ -12,4 +9,3 @@ parameters:
 
   ignoreErrors:
     - "#^Unsafe usage of new static#"
-    - "#Drupal calls should be avoided in classes, use dependency injection instead#"
