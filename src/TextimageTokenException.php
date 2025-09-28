@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage;
 
 /**
@@ -7,25 +9,17 @@ namespace Drupal\textimage;
  */
 class TextimageTokenException extends \Exception {
 
-  /**
-   * The failing token.
-   *
-   * @var string
-   */
-  protected $token;
-
-  /**
-   * Constructs a TextimageImagerTokenException object.
-   */
-  public function __construct($token, ?\Exception $previous = NULL) {
+  public function __construct(
+    protected readonly string $token,
+    ?\Exception $previous = NULL,
+  ) {
     parent::__construct("Textimage token {$token} could not be resolved.", 0, $previous);
-    $this->token = $token;
   }
 
   /**
    * Gets failing token.
    */
-  public function getToken() {
+  public function getToken(): string {
     return $this->token;
   }
 

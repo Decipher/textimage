@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -16,58 +18,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class SettingsForm extends ConfigFormBase {
 
-  /**
-   * The Textimage factory.
-   *
-   * @var \Drupal\textimage\TextimageFactory
-   */
-  protected $textimageFactory;
-
-  /**
-   * The font selector plugin manager.
-   *
-   * @var \Drupal\image_effects\Plugin\FontSelectorPluginManager
-   */
-  protected $fontManager;
-
-  /**
-   * The Image factory.
-   *
-   * @var \Drupal\Core\Image\ImageFactory
-   */
-  protected $imageFactory;
-
-  /**
-   * Constructs the class for Textimage settings form.
-   *
-   * @param \Drupal\textimage\TextimageFactory $textimage_factory
-   *   The Textimage factory.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The factory for configuration objects.
-   * @param \Drupal\image_effects\Plugin\FontSelectorPluginManager $font_plugin_manager
-   *   The font selector plugin manager.
-   * @param \Drupal\Core\Image\ImageFactory $image_factory
-   *   The Image factory.
-   * @param \Drupal\Core\Config\TypedConfigManagerInterface $typedConfigManager
-   *   The typed config manager.
-   */
   public function __construct(
-    TextimageFactory $textimage_factory,
-    ConfigFactoryInterface $config_factory,
-    FontSelectorPluginManager $font_plugin_manager,
-    ImageFactory $image_factory,
+    protected readonly TextimageFactory $textimageFactory,
+    ConfigFactoryInterface $configFactory,
+    protected readonly FontSelectorPluginManager $fontManager,
+    protected readonly ImageFactory $imageFactory,
     TypedConfigManagerInterface $typedConfigManager,
   ) {
-    parent::__construct($config_factory, $typedConfigManager);
-    $this->textimageFactory = $textimage_factory;
-    $this->fontManager = $font_plugin_manager;
-    $this->imageFactory = $image_factory;
+    parent::__construct($configFactory, $typedConfigManager);
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('textimage.factory'),
       $container->get('config.factory'),
@@ -80,21 +44,21 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
+  public function getFormId(): string {
     return 'textimage_settings';
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getEditableConfigNames() {
+  protected function getEditableConfigNames(): array {
     return ['textimage.settings'];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state): array {
     $config = $this->config('textimage.settings');
 
     $form['settings'] = [
@@ -182,7 +146,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
     if (preg_match('/[+\/]/', $form_state->getValue([
       'settings', 'url_generation', 'text_separator',
     ]))) {
@@ -193,7 +157,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
     $config = $this->config('textimage.settings');
 
     // Redirect to cleanup if required.

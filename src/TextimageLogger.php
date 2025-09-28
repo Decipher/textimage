@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannel;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Messenger\MessengerTrait;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Psr\Log\LoggerInterface;
 
@@ -17,40 +18,19 @@ class TextimageLogger extends LoggerChannel {
   use StringTranslationTrait;
   use MessengerTrait;
 
-  /**
-   * The configuration factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
-   * The Textimage logger channel.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $loggerChannel;
-
-  /**
-   * Constructs a TextimageLogger object.
-   *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Psr\Log\LoggerInterface $logger_channel
-   *   The Textimage logger channel.
-   * @param \Drupal\Core\Session\AccountInterface $current_user
-   *   The current user.
-   */
-  public function __construct(ConfigFactoryInterface $config_factory, LoggerInterface $logger_channel, AccountInterface $current_user) {
-    $this->configFactory = $config_factory;
-    $this->loggerChannel = $logger_channel;
-    $this->currentUser = $current_user;
+  public function __construct(
+    protected readonly ConfigFactoryInterface $configFactory,
+    protected readonly LoggerInterface $loggerChannel,
+    // @todo fix $currentUser signature to
+    //   Drupal\Core\Session\AccountInterface when core fixes it.
+    protected $currentUser,
+  ) {
   }
 
   /**
    * {@inheritdoc}
    */
-  public function log($level, $message, array $context = []): void {
+  public function log(/* mixed */ $level, /* string */ $message, array $context = []): void {
     // Convert to integer equivalent for consistency with RFC 5424.
     $level_code = is_string($level) ? $this->levelTranslation[$level] : $level;
 

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileSystemInterface;
@@ -23,96 +26,27 @@ use Psr\Log\LoggerInterface;
 class TextimageFactory implements TextimageFactoryInterface {
 
   /**
-   * The token resolution service.
-   *
-   * @var \Drupal\Core\Utility\Token
-   */
-  protected $token;
-
-  /**
-   * The Textimage logger.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $logger;
-
-  /**
-   * The stream wrapper manager service.
-   *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManager
-   */
-  protected $streamWrapperManager;
-
-  /**
-   * The Textimage cache service.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
-   */
-  protected $cache;
-
-  /**
-   * The configuration factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
-   * The current user.
-   *
-   * @var \Drupal\Core\Session\AccountInterface
-   */
-  protected $currentUser;
-
-  /**
    * The User entity storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $userStorage;
+  protected readonly EntityStorageInterface $userStorage;
 
-  /**
-   * The file system service.
-   *
-   * @var \Drupal\Core\File\FileSystemInterface
-   */
-  protected $fileSystem;
-
-  /**
-   * Constructs a new TextimageFactory object.
-   *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Drupal\Core\Utility\Token $token_service
-   *   The token resolution service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The Textimage logger.
-   * @param \Drupal\Core\Cache\CacheBackendInterface $cache_service
-   *   The Textimage cache service.
-   * @param \Drupal\Core\Session\AccountInterface $current_user
-   *   The current user.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper_manager
-   *   The stream wrapper manager service.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The image style entity storage.
-   * @param \Drupal\Core\File\FileSystemInterface $file_system
-   *   The file system service.
-   */
-  public function __construct(ConfigFactoryInterface $config_factory, Token $token_service, LoggerInterface $logger, CacheBackendInterface $cache_service, AccountInterface $current_user, StreamWrapperManager $stream_wrapper_manager, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system) {
-    $this->configFactory = $config_factory;
-    $this->token = $token_service;
-    $this->logger = $logger;
-    $this->cache = $cache_service;
-    $this->currentUser = $current_user;
-    $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->userStorage = $entity_type_manager->getStorage('user');
-    $this->fileSystem = $file_system;
+  public function __construct(
+    protected readonly ConfigFactoryInterface $configFactory,
+    protected readonly Token $token,
+    protected readonly LoggerInterface $logger,
+    protected readonly CacheBackendInterface $cache,
+    protected readonly AccountInterface $currentUser,
+    protected readonly StreamWrapperManager $streamWrapperManager,
+    EntityTypeManagerInterface $entityTypeManager,
+    protected readonly FileSystemInterface $fileSystem,
+  ) {
+    $this->userStorage = $entityTypeManager->getStorage('user');
   }
 
   /**
    * {@inheritdoc}
    */
-  public function get(?BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function get(?BubbleableMetadata $bubbleable_metadata = NULL): TextimageInterface {
     // @todo remove the \Drupal::getContainer() call in a future new major
     // @codingStandardsIgnoreLine
     $textimage = Textimage::create(\Drupal::getContainer());
@@ -123,7 +57,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function load($tiid) {
+  public function load(string $tiid): TextimageInterface {
     $textimage = $this->get();
     $textimage->load($tiid);
     return $textimage;
@@ -132,7 +66,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function processTextString($text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processTextString(string $text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL): string {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
     return $this->token->replace($text, $token_data, [], $bubbleable_metadata);
@@ -144,13 +78,13 @@ class TextimageFactory implements TextimageFactoryInterface {
    * @todo (core) remove when #1826362 (ImageStyle to be accessible from
    * ImageEffect plugins) is committed.
    *
-   * @param string $variable
+   * @param string|null $variable
    *   State variable.
    *
    * @return mixed
    *   Returned variable, NULL if undefined.
    */
-  public function getState($variable = NULL) {
+  public function getState(?string $variable = NULL): mixed {
     if ($variable) {
       return $this->setState($variable);
     }
@@ -163,7 +97,7 @@ class TextimageFactory implements TextimageFactoryInterface {
    * @todo (core) remove when #1826362 (ImageStyle to be accessible from
    * ImageEffect plugins) is committed.
    *
-   * @param string $variable
+   * @param string|null $variable
    *   State variable.
    * @param mixed $value
    *   Value to set, or NULL to return current value.
@@ -171,7 +105,7 @@ class TextimageFactory implements TextimageFactoryInterface {
    * @return mixed
    *   Property value.
    */
-  public function setState($variable = NULL, $value = NULL) {
+  public function setState(?string $variable = NULL, mixed $value = NULL): mixed {
     static $keys;
 
     if (!isset($keys) or !$variable) {
@@ -187,12 +121,14 @@ class TextimageFactory implements TextimageFactoryInterface {
         return $keys[$variable] ?? NULL;
       }
     }
+
+    return NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function isTextimage(ImageStyleInterface $image_style) {
+  public function isTextimage(ImageStyleInterface $image_style): bool {
     foreach ($image_style->getEffects() as $effect) {
       $definition = $effect->getPluginDefinition();
       if ($definition['id'] == 'image_effects_text_overlay') {
@@ -205,7 +141,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTextimageStyleOptions($limit_to_textimage = FALSE) {
+  public function getTextimageStyleOptions(bool $limit_to_textimage = FALSE): array {
     $image_styles = ImageStyle::loadMultiple();
     $options = [];
     foreach ($image_styles as $name => $image_style) {
@@ -224,7 +160,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function flushStyle(ImageStyleInterface $style) {
+  public function flushStyle(ImageStyleInterface $style): void {
     // Clear hashed filename images.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
@@ -241,7 +177,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function flushAll() {
+  public function flushAll(): void {
     // Flush Textimage relevant styles so to invalidate the image styles cache
     // tags.
     $styles = ImageStyle::loadMultiple();
@@ -268,7 +204,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function getStoreUri($path, $scheme = NULL) {
+  public function getStoreUri(string $path, ?string $scheme = NULL): string {
     if (!$scheme) {
       $scheme = $this->configFactory->get('system.file')->get('default_scheme');
     }
@@ -278,7 +214,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata) {
+  public function processTokens(string $key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata): array {
 
     // @todo Not only node?
     $node = $data['node'] ?? NULL;
@@ -500,21 +436,18 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * Helper method to determine the token value in processTokens.
    */
-  protected function getTokenReplacement(TextimageInterface $textimage, $key) {
-    switch ($key) {
-      case 'textimage-uri':
-        return $textimage->getUri();
-
-      case 'textimage-url':
-        return $textimage->getUrl()->toString();
-
-    }
+  protected function getTokenReplacement(TextimageInterface $textimage, string $key): string {
+    return match ($key) {
+      'textimage-uri' => $textimage->getUri(),
+      'textimage-url' => $textimage->getUrl()->toString(),
+      default => throw new \InvalidArgumentException("Invalid token key '$key"),
+    };
   }
 
   /**
    * Helper method to rollback nesting static variables in processTokens.
    */
-  protected function rollbackStack(&$nesting_level, &$field_stack) {
+  protected function rollbackStack(?int &$nesting_level, array &$field_stack): void {
     if ($nesting_level) {
       unset($field_stack[$nesting_level]);
       $nesting_level--;
@@ -527,7 +460,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTextFieldText(FieldItemListInterface $items) {
+  public function getTextFieldText(FieldItemListInterface $items): array {
     $text = [];
     foreach ($items as $item) {
       $value = $item->getValue();

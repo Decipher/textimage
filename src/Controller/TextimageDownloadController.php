@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage\Controller;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
@@ -24,70 +25,23 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class TextimageDownloadController extends FileDownloadController implements ContainerInjectionInterface {
 
-  /**
-   * The Textimage factory.
-   *
-   * @var \Drupal\textimage\TextimageFactory
-   */
-  protected $textimageFactory;
-
-  /**
-   * The image factory.
-   *
-   * @var \Drupal\Core\Image\ImageFactory
-   */
-  protected $imageFactory;
-
-  /**
-   * The configuration factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
-   * The Textimage logger.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $logger;
-
-  /**
-   * The file system service.
-   *
-   * @var \Drupal\Core\File\FileSystemInterface
-   */
-  protected $fileSystem;
-
-  /**
-   * Constructs a TextimageDownloadController object.
-   *
-   * @param \Drupal\textimage\TextimageFactory $textimage_factory
-   *   The Textimage factory.
-   * @param \Drupal\Core\Image\ImageFactory $image_factory
-   *   The image factory.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   The Textimage logger.
-   * @param \Drupal\Core\File\FileSystemInterface $file_system
-   *   The file system service.
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
-   *   The stream wrapper manager service.
-   */
-  public function __construct(TextimageFactory $textimage_factory, ImageFactory $image_factory, ConfigFactoryInterface $config_factory, LoggerInterface $logger, FileSystemInterface $file_system, StreamWrapperManagerInterface $stream_wrapper_manager) {
-    parent::__construct($stream_wrapper_manager);
-    $this->textimageFactory = $textimage_factory;
-    $this->imageFactory = $image_factory;
-    $this->configFactory = $config_factory;
-    $this->logger = $logger;
-    $this->fileSystem = $file_system;
+  public function __construct(
+    protected readonly TextimageFactory $textimageFactory,
+    protected readonly ImageFactory $imageFactory,
+    // @todo fix $configFactory signature to
+    //   Drupal\Core\Config\ConfigFactoryInterface when core fixes it.
+    protected $configFactory,
+    protected readonly LoggerInterface $logger,
+    protected readonly FileSystemInterface $fileSystem,
+    StreamWrapperManagerInterface $streamWrapperManager,
+  ) {
+    parent::__construct($streamWrapperManager);
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('textimage.factory'),
       $container->get('image.factory'),
@@ -117,7 +71,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  public function urlDeliver(Request $request, ImageStyleInterface $image_style) {
+  public function urlDeliver(Request $request, ImageStyleInterface $image_style): BinaryFileResponse|Response {
     // Check if the URL generation is enabled.
     if (!$this->configFactory->get('textimage.settings')->get('url_generation.enabled')) {
       throw new AccessDeniedHttpException('Textimage URL generation is not enabled on this site');
@@ -180,7 +134,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  public function deferredDelivery(Request $request) {
+  public function deferredDelivery(Request $request): BinaryFileResponse|Response {
     // Identify Textimage id.
     $file = $request->query->get('file');
     $tiid = str_replace('.' . pathinfo($file, PATHINFO_EXTENSION), '', pathinfo($file, PATHINFO_BASENAME));
@@ -210,7 +164,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
    *   The transferred file as response or some error response.
    */
-  protected function returnBinary(Request $request, $uri) {
+  protected function returnBinary(Request $request, $uri): BinaryFileResponse|Response {
     // Don't try to send file if it is missing.
     if (!file_exists($uri)) {
       $this->logger->notice("Textimage image at '%source_image_path' not found.", ['%source_image_path' => $uri]);

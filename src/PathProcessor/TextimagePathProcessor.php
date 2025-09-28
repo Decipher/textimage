@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage\PathProcessor;
 
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
@@ -16,27 +18,15 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class TextimagePathProcessor implements InboundPathProcessorInterface {
 
-  /**
-   * The stream wrapper manager service.
-   *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
-   */
-  protected $streamWrapperManager;
-
-  /**
-   * Constructs a new TextimagePathProcessor object.
-   *
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
-   *   The stream wrapper manager service.
-   */
-  public function __construct(StreamWrapperManagerInterface $stream_wrapper_manager) {
-    $this->streamWrapperManager = $stream_wrapper_manager;
+  public function __construct(
+    protected readonly StreamWrapperManagerInterface $streamWrapperManager,
+  ) {
   }
 
   /**
    * {@inheritdoc}
    */
-  public function processInbound($path, Request $request) {
+  public function processInbound(/* string */ $path, Request $request): string {
     $stream = $this->streamWrapperManager->getViaScheme('public');
     assert($stream instanceof LocalStream);
     $public_directory_path = $stream->getDirectoryPath();

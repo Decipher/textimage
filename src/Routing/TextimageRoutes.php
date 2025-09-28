@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage\Routing;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -12,27 +14,15 @@ use Symfony\Component\Routing\Route;
  */
 class TextimageRoutes implements ContainerInjectionInterface {
 
-  /**
-   * The stream wrapper manager service.
-   *
-   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
-   */
-  protected $streamWrapperManager;
-
-  /**
-   * Constructs a new TextimageRoutes object.
-   *
-   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
-   *   The stream wrapper manager service.
-   */
-  public function __construct(StreamWrapperManagerInterface $stream_wrapper_manager) {
-    $this->streamWrapperManager = $stream_wrapper_manager;
+  public function __construct(
+    protected readonly StreamWrapperManagerInterface $streamWrapperManager,
+  ) {
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('stream_wrapper_manager')
     );
@@ -44,7 +34,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
    * @return \Symfony\Component\Routing\Route[]
    *   An array of route objects.
    */
-  public function routes() {
+  public function routes(): array {
 
     $routes = [];
 

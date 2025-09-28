@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\Attribute\FieldFormatter;
@@ -31,20 +33,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class TextimageImageFieldFormatter extends ImageFormatter {
 
   /**
-   * The Textimage factory service.
-   *
-   * @var \Drupal\textimage\TextimageFactory
-   */
-  protected $textimageFactory;
-
-  /**
-   * The file URL generator service.
-   *
-   * @var \Drupal\Core\File\FileUrlGeneratorInterface
-   */
-  protected $fileUrlGenerator;
-
-  /**
    * Constructs a TextimageImageFieldFormatter object.
    *
    * @param string $plugin_id
@@ -65,33 +53,31 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   The current user.
    * @param \Drupal\image\ImageStyleStorageInterface $image_style_storage
    *   The image style entity storage.
-   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   * @param \Drupal\textimage\TextimageFactory $textimageFactory
    *   The Textimage factory service.
-   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $fileUrlGenerator
    *   The file URL generator service.
    */
   public function __construct(
-    $plugin_id,
-    $plugin_definition,
+    string $plugin_id,
+    mixed $plugin_definition,
     FieldDefinitionInterface $field_definition,
     array $settings,
-    $label,
-    $view_mode,
+    string $label,
+    string $view_mode,
     array $third_party_settings,
     AccountInterface $current_user,
     ImageStyleStorageInterface $image_style_storage,
-    TextimageFactory $textimage_factory,
-    FileUrlGeneratorInterface $file_url_generator,
+    protected readonly TextimageFactory $textimageFactory,
+    FileUrlGeneratorInterface $fileUrlGenerator,
   ) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage, $file_url_generator);
-    $this->textimageFactory = $textimage_factory;
-    $this->fileUrlGenerator = $file_url_generator;
+    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage, $fileUrlGenerator);
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, /* string */ $plugin_id, /* mixed */ $plugin_definition): static {
     return new static(
       $plugin_id,
       $plugin_definition,
@@ -110,7 +96,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   /**
    * {@inheritdoc}
    */
-  public static function defaultSettings() {
+  public static function defaultSettings(): array {
     return [
       'image_alt' => '',
       'image_title' => '',
@@ -120,7 +106,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   /**
    * {@inheritdoc}
    */
-  public function settingsForm(array $form, FormStateInterface $form_state) {
+  public function settingsForm(array $form, FormStateInterface $form_state): array {
 
     // Image style setting.
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
@@ -188,7 +174,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   /**
    * {@inheritdoc}
    */
-  public function settingsSummary() {
+  public function settingsSummary(): array {
     $summary = [];
 
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
@@ -230,7 +216,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
   /**
    * {@inheritdoc}
    */
-  public function viewElements(FieldItemListInterface $items, $langcode) {
+  public function viewElements(FieldItemListInterface $items, /* string */ $langcode): array {
     $elements = [];
     $files = $this->getEntitiesToView($items, $langcode);
 

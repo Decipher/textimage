@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -17,10 +19,10 @@ interface TextimageFactoryInterface {
    * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
    *   A BubbleableMetadata object.
    *
-   * @return \Drupal\textimage\Textimage
+   * @return \Drupal\textimage\TextimageInterface
    *   A new Textimage object.
    */
-  public function get(?BubbleableMetadata $bubbleable_metadata = NULL);
+  public function get(?BubbleableMetadata $bubbleable_metadata = NULL): TextimageInterface;
 
   /**
    * Loads a cached Textimage object.
@@ -28,10 +30,10 @@ interface TextimageFactoryInterface {
    * @param string $tiid
    *   The Textimage ID.
    *
-   * @return \Drupal\textimage\Textimage
+   * @return \Drupal\textimage\TextimageInterface
    *   A Textimage object with properties loaded from cache.
    */
-  public function load($tiid);
+  public function load(string $tiid): TextimageInterface;
 
   /**
    * Processes text string, detokenises and applies case conversion.
@@ -47,7 +49,7 @@ interface TextimageFactoryInterface {
    * @return string
    *   The processed text string.
    */
-  public function processTextString($text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL);
+  public function processTextString(string $text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL): string;
 
   /**
    * Checks if an image style is Textimage relevant.
@@ -58,7 +60,7 @@ interface TextimageFactoryInterface {
    * @return bool
    *   TRUE if style is Textimage relevant, otherwise FALSE
    */
-  public function isTextimage(ImageStyleInterface $image_style);
+  public function isTextimage(ImageStyleInterface $image_style): bool;
 
   /**
    * Gets an array of Textimage image styles suitable for select list options.
@@ -69,7 +71,7 @@ interface TextimageFactoryInterface {
    * @return string[]
    *   Array of image styles, where both key and value are set to style name.
    */
-  public function getTextimageStyleOptions($limit_to_textimage = FALSE);
+  public function getTextimageStyleOptions(bool $limit_to_textimage = FALSE): array;
 
   /**
    * Flushes Textimage style data.
@@ -79,7 +81,7 @@ interface TextimageFactoryInterface {
    * @param \Drupal\image\ImageStyleInterface $style
    *   The style being flushed.
    */
-  public function flushStyle(ImageStyleInterface $style);
+  public function flushStyle(ImageStyleInterface $style): void;
 
   /**
    * Cleans up Textimage.
@@ -87,21 +89,21 @@ interface TextimageFactoryInterface {
    * This will remove all image files generated via Textimage, flush all
    * the image styles, clear all cache and all store entries on the db.
    */
-  public function flushAll();
+  public function flushAll(): void;
 
   /**
    * Returns a URI within the textimage_store structure.
    *
    * @param string $path
    *   The relative path.
-   * @param string $scheme
+   * @param string|null $scheme
    *   (optional) The URI scheme of the textimage_store. If NULL, the scheme
    *   set as site default will be used.
    *
    * @return string
    *   The full URI for the specified scheme and relative path.
    */
-  public function getStoreUri($path, $scheme = NULL);
+  public function getStoreUri(string $path, ?string $scheme = NULL): string;
 
   /**
    * Textimage tokens replacement.
@@ -119,7 +121,7 @@ interface TextimageFactoryInterface {
    * @return array
    *   An array of token replacements.
    */
-  public function processTokens($key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata);
+  public function processTokens(string $key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata): array;
 
   /**
    * Retrieves text from a Text field.
@@ -130,6 +132,6 @@ interface TextimageFactoryInterface {
    * @return array
    *   An array of sanitized text items.
    */
-  public function getTextFieldText(FieldItemListInterface $items);
+  public function getTextFieldText(FieldItemListInterface $items): array;
 
 }

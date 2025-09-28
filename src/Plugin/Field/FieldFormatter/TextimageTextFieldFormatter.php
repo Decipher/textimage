@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\Attribute\FieldFormatter;
@@ -37,34 +39,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class TextimageTextFieldFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
 
   /**
-   * The current user.
-   *
-   * @var \Drupal\Core\Session\AccountInterface
-   */
-  protected $currentUser;
-
-  /**
-   * The Textimage factory service.
-   *
-   * @var \Drupal\textimage\TextimageFactory
-   */
-  protected $textimageFactory;
-
-  /**
-   * The image style entity storage.
-   *
-   * @var \Drupal\image\ImageStyleStorageInterface
-   */
-  protected $imageStyleStorage;
-
-  /**
-   * A logger instance.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $logger;
-
-  /**
    * Constructs a TextimageTextFieldFormatter object.
    *
    * @param string $plugin_id
@@ -81,39 +55,35 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    *   The view mode.
    * @param array $third_party_settings
    *   Any third party settings settings.
-   * @param \Drupal\Core\Session\AccountInterface $current_user
+   * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
-   * @param \Drupal\textimage\TextimageFactory $textimage_factory
+   * @param \Drupal\textimage\TextimageFactory $textimageFactory
    *   The Textimage factory service.
-   * @param \Drupal\image\ImageStyleStorageInterface $image_style_storage
+   * @param \Drupal\image\ImageStyleStorageInterface $imageStyleStorage
    *   The image style entity storage.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
    */
   public function __construct(
-    $plugin_id,
-    $plugin_definition,
+    string $plugin_id,
+    mixed $plugin_definition,
     FieldDefinitionInterface $field_definition,
     array $settings,
-    $label,
-    $view_mode,
+    string $label,
+    string $view_mode,
     array $third_party_settings,
-    AccountInterface $current_user,
-    TextimageFactory $textimage_factory,
-    ImageStyleStorageInterface $image_style_storage,
-    LoggerInterface $logger,
+    protected readonly AccountInterface $currentUser,
+    protected readonly TextimageFactory $textimageFactory,
+    protected readonly ImageStyleStorageInterface $imageStyleStorage,
+    protected readonly LoggerInterface $logger,
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
-    $this->currentUser = $current_user;
-    $this->textimageFactory = $textimage_factory;
-    $this->imageStyleStorage = $image_style_storage;
-    $this->logger = $logger;
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, /* string */ $plugin_id, /* mixed */ $plugin_definition) {
     return new static(
       $plugin_id,
       $plugin_definition,
@@ -132,7 +102,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public static function defaultSettings() {
+  public static function defaultSettings(): array {
     return [
       'image_style' => '',
       'image_text_values' => 'merge',
@@ -146,7 +116,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public function settingsForm(array $form, FormStateInterface $form_state) {
+  public function settingsForm(array $form, FormStateInterface $form_state): array {
 
     // Image style setting.
     $image_styles = $this->textimageFactory->getTextimageStyleOptions(TRUE);
@@ -229,7 +199,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public function settingsSummary() {
+  public function settingsSummary(): array {
     $summary = [];
 
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
@@ -279,7 +249,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public function viewElements(FieldItemListInterface $items, $langcode) {
+  public function viewElements(FieldItemListInterface $items, /* string */ $langcode): array {
     // Get image style.
     $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
 
@@ -375,7 +345,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public function calculateDependencies() {
+  public function calculateDependencies(): array {
     $dependencies = parent::calculateDependencies();
     $style_id = $this->getSetting('image_style');
     if ($style_id && $style = ImageStyle::load($style_id)) {
@@ -390,7 +360,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public function onDependencyRemoval(array $dependencies) {
+  public function onDependencyRemoval(array $dependencies): bool {
     $changed = parent::onDependencyRemoval($dependencies);
     $style_id = $this->getSetting('image_style');
     if ($style_id && $style = ImageStyle::load($style_id)) {
