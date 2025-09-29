@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Kernel;
 
 use Drupal\image\Entity\ImageStyle;
@@ -52,7 +54,7 @@ class TextimageThemeTest extends KernelTestBase {
   /**
    * Test the Textimage formatter theme.
    */
-  public function testTextimageFormatterTheme() {
+  public function testTextimageFormatterTheme(): void {
 
     $textimage = $this->textimageFactory->get();
     $textimage

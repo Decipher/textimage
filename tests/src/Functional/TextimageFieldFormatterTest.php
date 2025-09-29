@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\Core\Cache\Cache;
@@ -32,7 +34,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   /**
    * Test Textimage formatter on node display and text field.
    */
-  public function testTextimageTextFieldFormatter() {
+  public function testTextimageTextFieldFormatter(): void {
 
     // Create a text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
@@ -126,7 +128,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   /**
    * Test Textimage formatter on multi-value text fields.
    */
-  public function testTextimageMultiValueTextFieldFormatter() {
+  public function testTextimageMultiValueTextFieldFormatter(): void {
 
     // Create a multi-value text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
@@ -188,7 +190,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   /**
    * Test Textimage formatter on image fields.
    */
-  public function testTextimageImageFieldFormatter() {
+  public function testTextimageImageFieldFormatter(): void {
 
     // Create an image field for testing.
     $field_name = strtolower($this->randomMachineName());
@@ -318,7 +320,7 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   /**
    * Test Textimage caching.
    */
-  public function testTextimageCaching() {
+  public function testTextimageCaching(): void {
     // Create a text field for Textimage test.
     $field_name = 'test_caching';
     $this->createTextField($field_name, 'article');

@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\textimage\Kernel\TextimageTestTrait;
+use Drupal\user\UserInterface;
 
 /**
  * Base test class for Textimage tests.
@@ -36,18 +39,9 @@ abstract class TextimageTestBase extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * The file system service.
-   *
-   * @var \Drupal\Core\File\FileSystemInterface
-   */
-  protected $fileSystem;
-
-  /**
    * An admin user with administrative permissions for Blocks.
-   *
-   * @var \Drupal\user\UserInterface
    */
-  protected $adminUser;
+  protected UserInterface $adminUser;
 
   /**
    * {@inheritdoc}
@@ -90,8 +84,11 @@ abstract class TextimageTestBase extends BrowserTestBase {
    *   A list of field settings that will be added to the field defaults.
    * @param array $widget_settings
    *   A list of widget settings that will be added to the widget defaults.
+   *
+   * @return int
+   *   Either SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
    */
-  protected function createTextField($name, $bundle, array $storage_settings = [], array $field_settings = [], array $widget_settings = []) {
+  protected function createTextField($name, $bundle, array $storage_settings = [], array $field_settings = [], array $widget_settings = []): int {
     FieldStorageConfig::create([
       'field_name' => $name,
       'entity_type' => 'node',
@@ -138,7 +135,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
    * @param string $node_title
    *   The title of node to create.
    */
-  protected function createTextimageNode($field_type, $field_name, $field_value, $bundle, $node_title) {
+  protected function createTextimageNode(string $field_type, string $field_name, mixed $field_value, string $bundle, string $node_title): string|false {
     switch ($field_type) {
       case 'text':
         if (!is_array($field_value)) {

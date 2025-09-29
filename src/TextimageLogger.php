@@ -8,6 +8,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannel;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Psr\Log\LoggerInterface;
 
@@ -15,16 +16,16 @@ use Psr\Log\LoggerInterface;
  * Defines a Textimage logger.
  */
 class TextimageLogger extends LoggerChannel {
+
   use StringTranslationTrait;
   use MessengerTrait;
 
   public function __construct(
     protected readonly ConfigFactoryInterface $configFactory,
     protected readonly LoggerInterface $loggerChannel,
-    // @todo fix $currentUser signature to
-    //   Drupal\Core\Session\AccountInterface when core fixes it.
-    protected $currentUser,
+    AccountInterface $currentUser,
   ) {
+    $this->currentUser = $currentUser;
   }
 
   /**

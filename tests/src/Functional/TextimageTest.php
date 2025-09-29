@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\Core\StreamWrapper\LocalStream;
@@ -10,8 +12,6 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Basic functionality of the Textimage module.
- *
- * @group textimage
  */
 #[Group('textimage')]
 #[RunTestsInSeparateProcesses]
@@ -22,7 +22,7 @@ class TextimageTest extends TextimageTestBase {
   /**
    * Test functionality of the module.
    */
-  public function testTextimage() {
+  public function testTextimage(): void {
 
     $publicStream = \Drupal::service('stream_wrapper_manager')->getViaScheme('public');
     assert($publicStream instanceof LocalStream);
@@ -167,7 +167,7 @@ class TextimageTest extends TextimageTestBase {
   /**
    * Test execution of Textimage cron hook.
    */
-  public function testTextimageCronRun() {
+  public function testTextimageCronRun(): void {
     // Build a temporary textimage via API.
     $textimage = $this->textimageFactory->get();
     $textimage

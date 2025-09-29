@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Controller;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
@@ -28,13 +29,12 @@ class TextimageDownloadController extends FileDownloadController implements Cont
   public function __construct(
     protected readonly TextimageFactory $textimageFactory,
     protected readonly ImageFactory $imageFactory,
-    // @todo fix $configFactory signature to
-    //   Drupal\Core\Config\ConfigFactoryInterface when core fixes it.
-    protected $configFactory,
+    ConfigFactoryInterface $configFactory,
     protected readonly LoggerInterface $logger,
     protected readonly FileSystemInterface $fileSystem,
     StreamWrapperManagerInterface $streamWrapperManager,
   ) {
+    $this->configFactory = $configFactory;
     parent::__construct($streamWrapperManager);
   }
 

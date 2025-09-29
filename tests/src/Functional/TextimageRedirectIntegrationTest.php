@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Functional;
 
 use Drupal\file\Entity\File;
@@ -34,7 +36,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
   /**
    * Test integration of Textimage with the Redirect module.
    */
-  public function testTextimageWithRedirectInstalled() {
+  public function testTextimageWithRedirectInstalled(): void {
     // Create an image field for testing.
     $field_name = strtolower($this->randomMachineName());
     $min_resolution = 50;

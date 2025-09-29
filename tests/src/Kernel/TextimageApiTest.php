@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Kernel;
 
 use Drupal\file\Entity\File;
@@ -8,6 +10,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\TestFileCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\textimage\TextimageException;
+use Drupal\user\Entity\User;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
@@ -39,10 +42,8 @@ class TextimageApiTest extends KernelTestBase {
 
   /**
    * An user account, to be used for token replacement.
-   *
-   * @var \Drupal\user\Entity\User
    */
-  protected $testUser;
+  protected User $testUser;
 
   /**
    * {@inheritdoc}
@@ -70,7 +71,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test basic functionality of the API.
    */
-  public function testTextimageApi() {
+  public function testTextimageApi(): void {
 
     // Add more effects to the test style.
     $style = ImageStyle::load('textimage_test');
@@ -234,7 +235,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test forcing an extension different from source image file.
    */
-  public function testForceTargetExtension() {
+  public function testForceTargetExtension(): void {
     $files = $this->getTestFiles('image');
 
     // Get 'image-test.png'.
@@ -256,7 +257,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test output image file extension is consistent with source image.
    */
-  public function testTargetExtension() {
+  public function testTargetExtension(): void {
     $files = $this->getTestFiles('image');
 
     // Get 'image-test.gif'.
@@ -302,7 +303,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test file extension casing.
    */
-  public function testFileExtensionCasing() {
+  public function testFileExtensionCasing(): void {
     // Ensure upper-casing in target image file extension is not a reason for
     // exceptions, and upper-cased extensions are lowered.
     // Get 'image-test.png' and rename to 'image-test.PNG'.
@@ -325,7 +326,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test changing image file extension via image effect.
    */
-  public function testFileExtensionChange() {
+  public function testFileExtensionChange(): void {
     // Process, should generate a PNG image file.
     $textimage = $this->textimageFactory->get();
     $textimage
@@ -358,7 +359,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test text altering via the effect's alter hook.
    */
-  public function testTextAlteration() {
+  public function testTextAlteration(): void {
     $effects = [];
     $effects[] = [
       'id' => 'image_effects_text_overlay',
@@ -408,7 +409,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test targeting invalid URIs.
    */
-  public function testSetInvalidTargetUriScheme() {
+  public function testSetInvalidTargetUriScheme(): void {
     $textimage = $this->textimageFactory->get();
     $this->expectException(TextimageException::class);
     $this->expectExceptionMessage('Textimage error: Invalid target URI \'bingo://textimage-testing/bingo-bongo.png\' specified');
@@ -418,7 +419,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * Test targeting invalid URIs.
    */
-  public function testSetInvalidTargetUriFilename() {
+  public function testSetInvalidTargetUriFilename(): void {
     $textimage = $this->textimageFactory->get();
     $this->expectException(TextimageException::class);
     $this->expectExceptionMessage('Textimage error: Invalid target URI \'public://textimage-testing/bingo' . chr(1) . '.png\' specified');

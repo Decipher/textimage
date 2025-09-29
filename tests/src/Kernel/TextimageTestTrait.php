@@ -1,8 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\textimage\Kernel;
 
+use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
+use Drupal\Core\Extension\ModuleExtensionList;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\Render\RendererInterface;
+use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\textimage\TextimageFactoryInterface;
 
 /**
  * Trait to manage Textimage setup tasks common across tests.
@@ -11,50 +20,38 @@ trait TextimageTestTrait {
 
   /**
    * The Textimage factory service.
-   *
-   * @var \Drupal\textimage\TextimageFactoryInterface
    */
-  protected $textimageFactory;
+  protected TextimageFactoryInterface $textimageFactory;
 
   /**
    * The renderer service.
-   *
-   * @var \Drupal\Core\Render\RendererInterface
    */
-  protected $renderer;
+  protected RendererInterface $renderer;
 
   /**
    * The file system service.
-   *
-   * @var \Drupal\Core\File\FileSystemInterface
    */
-  protected $fileSystem;
+  protected FileSystemInterface $fileSystem;
 
   /**
    * The entity display repository service.
-   *
-   * @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface
    */
-  protected $entityDisplayRepository;
+  protected EntityDisplayRepositoryInterface $entityDisplayRepository;
 
   /**
    * The module exetnsion list service.
-   *
-   * @var \Drupal\Core\Extension\ModuleExtensionList
    */
-  protected $moduleList;
+  protected ModuleExtensionList $moduleList;
 
   /**
    * The file URL generator service.
-   *
-   * @var \Drupal\Core\File\FileUrlGeneratorInterface
    */
-  protected $fileUrlGenerator;
+  protected FileUrlGeneratorInterface $fileUrlGenerator;
 
   /**
    * Common test initialization tasks.
    */
-  public function initTextimageTest() {
+  public function initTextimageTest(): void {
     // Load services.
     $this->textimageFactory = \Drupal::service('textimage.factory');
     $this->renderer = \Drupal::service('renderer');
@@ -139,7 +136,7 @@ trait TextimageTestTrait {
   /**
    * Asserts a Textimage.
    */
-  protected function assertTextimage($path, $width, $height) {
+  protected function assertTextimage(string $path, int $width, int $height): void {
     $image = \Drupal::service('image.factory')->get($path);
     $w_error = abs($image->getWidth() - $width);
     $h_error = abs($image->getHeight() - $height);
@@ -150,7 +147,7 @@ trait TextimageTestTrait {
   /**
    * Returns the URI of a Textimage based on style name and text.
    */
-  protected function getTextimageUriFromStyleAndText($style_name, $text) {
+  protected function getTextimageUriFromStyleAndText(string $style_name, array|string|null $text): string {
     return $this->textimageFactory->get()
       ->setStyle(ImageStyle::load($style_name))
       ->process($text)
@@ -160,7 +157,7 @@ trait TextimageTestTrait {
   /**
    * Returns the Url object of a Textimage based on style name and text.
    */
-  protected function getTextimageUrlFromStyleAndText($style_name, $text) {
+  protected function getTextimageUrlFromStyleAndText(string $style_name, array|string|null $text): Url {
     return $this->textimageFactory->get()
       ->setStyle(ImageStyle::load($style_name))
       ->process($text)
