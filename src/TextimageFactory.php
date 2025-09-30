@@ -210,7 +210,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function getStoreUri(string $path, ?string $scheme = NULL): string {
+  public function getStoreUri(?string $path, ?string $scheme = NULL): string {
     if (!$scheme) {
       $scheme = $this->configFactory->get('system.file')->get('default_scheme');
     }
@@ -258,7 +258,7 @@ class TextimageFactory implements TextimageFactoryInterface {
       $sub_token_array = explode(':', $sub_token);
 
       // Get requested field name, continue if missing.
-      $field_name = $sub_token_array[0] ?? NULL;
+      $field_name = $sub_token_array[0];
       if (!$field_name) {
         continue;
       }
@@ -277,7 +277,7 @@ class TextimageFactory implements TextimageFactoryInterface {
       $display_mode = isset($sub_token_array[1]) ? ($sub_token_array[1] ?: 'default') : 'default';
 
       // Get requested sequence, default to NULL.
-      $index = $sub_token_array[2] ?? NULL;
+      $index = isset($sub_token_array[2]) ? (int) $sub_token_array[2] : NULL;
 
       // Get field info, continue if missing.
       if (!$field_info = $node->getFieldDefinition($field_name)) {

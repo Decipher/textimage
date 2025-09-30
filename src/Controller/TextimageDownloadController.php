@@ -168,7 +168,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     // Don't try to send file if it is missing.
     if (!file_exists($uri)) {
       $this->logger->notice("Textimage image at '%source_image_path' not found.", ['%source_image_path' => $uri]);
-      return new Response($this->t('Error downloading a textimage.'), 404);
+      return new Response((string) $this->t('Error downloading a textimage.'), 404);
     }
 
     if (($scheme = $this->streamWrapperManager->getScheme($uri)) == 'private') {

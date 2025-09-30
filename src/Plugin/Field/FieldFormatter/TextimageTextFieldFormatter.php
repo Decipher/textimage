@@ -16,7 +16,6 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\image\ImageStyleInterface;
 use Drupal\image\ImageStyleStorageInterface;
 use Drupal\textimage\TextimageFactory;
 use Psr\Log\LoggerInterface;
@@ -349,7 +348,6 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     $dependencies = parent::calculateDependencies();
     $style_id = $this->getSetting('image_style');
     if ($style_id && $style = ImageStyle::load($style_id)) {
-      assert($style instanceof ImageStyleInterface);
       // If this formatter uses a valid image style to display the image, add
       // the image style configuration entity as dependency of this formatter.
       $dependencies[$style->getConfigDependencyKey()][] = $style->getConfigDependencyName();
@@ -364,7 +362,6 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     $changed = parent::onDependencyRemoval($dependencies);
     $style_id = $this->getSetting('image_style');
     if ($style_id && $style = ImageStyle::load($style_id)) {
-      assert($style instanceof ImageStyleInterface);
       if (!empty($dependencies[$style->getConfigDependencyKey()][$style->getConfigDependencyName()])) {
         $replacement_id = $this->imageStyleStorage->getReplacementId($style_id);
         // If a valid replacement has been provided in the storage, replace the

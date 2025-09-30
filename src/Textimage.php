@@ -198,9 +198,7 @@ class Textimage implements TextimageInterface {
    * {@inheritdoc}
    */
   public function setSourceImageFile(FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static {
-    if ($source_image_file) {
-      $this->set('sourceImageFile', $source_image_file);
-    }
+    $this->set('sourceImageFile', $source_image_file);
     if ($width && $height) {
       $this->set('width', $width);
       $this->set('height', $height);
@@ -537,7 +535,10 @@ class Textimage implements TextimageInterface {
     // return success if the file exists already. Otherwise return failure.
     $lock_name = 'textimage_process:' . Crypt::hashBase64($this->getUri());
     if (!$this->factory->lock->acquire($lock_name)) {
-      return file_exists($this->getUri()) ? TRUE : FALSE;
+      if (file_exists($this->getUri())) {
+        return $this;
+      }
+      throw new TextimageException("Textimage failed to acquire a lock to build an image");
     }
 
     // Inject processed text in the image_effects_text_overlay effects data,
@@ -659,7 +660,7 @@ class Textimage implements TextimageInterface {
    *
    * @todo (core) remove if #2359443 gets in
    */
-  protected function createDerivativeFromImage(ImageStyle $style, ImageInterface $image, string $derivative_uri): bool {
+  protected function createDerivativeFromImage(ImageStyleInterface $style, ImageInterface $image, string $derivative_uri): bool {
     // Get the folder for the final location of this style.
     $directory = $this->factory->fileSystem->dirname($derivative_uri);
 

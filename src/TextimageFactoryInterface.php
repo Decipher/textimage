@@ -103,7 +103,7 @@ interface TextimageFactoryInterface {
    * @return string
    *   The full URI for the specified scheme and relative path.
    */
-  public function getStoreUri(string $path, ?string $scheme = NULL): string;
+  public function getStoreUri(?string $path, ?string $scheme = NULL): string;
 
   /**
    * Textimage tokens replacement.

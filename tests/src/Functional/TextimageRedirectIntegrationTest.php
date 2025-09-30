@@ -47,12 +47,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
       'min_resolution' => $min_resolution . 'x' . $min_resolution,
       'alt_field' => 1,
     ];
-    if (version_compare(\Drupal::VERSION, '10.3', '>=')) {
-      $this->createImageField($field_name, 'node', 'article', [], $field_settings);
-    }
-    else {
-      $this->createImageField($field_name, 'article', [], $field_settings);
-    }
+    $this->createImageField($field_name, 'node', 'article', [], $field_settings);
 
     // Create a new node.
     // Get image 'image-1.png'.
