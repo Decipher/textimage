@@ -10,7 +10,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\image_effects\Plugin\FontSelectorPluginManager;
-use Drupal\textimage\TextimageFactory;
+use Drupal\textimage\TextimageFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class SettingsForm extends ConfigFormBase {
 
   public function __construct(
-    protected readonly TextimageFactory $textimageFactory,
+    protected readonly TextimageFactoryInterface $textimageFactory,
     ConfigFactoryInterface $configFactory,
     protected readonly FontSelectorPluginManager $fontManager,
     protected readonly ImageFactory $imageFactory,
@@ -33,11 +33,11 @@ class SettingsForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('textimage.factory'),
-      $container->get('config.factory'),
+      $container->get(TextimageFactoryInterface::class),
+      $container->get(ConfigFactoryInterface::class),
       $container->get(FontSelectorPluginManager::class),
-      $container->get('image.factory'),
-      $container->get('config.typed')
+      $container->get(ImageFactory::class),
+      $container->get(TypedConfigManagerInterface::class),
     );
   }
 

@@ -11,6 +11,7 @@ use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Defines a Textimage logger.
@@ -22,6 +23,7 @@ class TextimageLogger extends LoggerChannel {
 
   public function __construct(
     protected readonly ConfigFactoryInterface $configFactory,
+    #[Autowire(service: 'logger.channel.textimage')]
     protected readonly LoggerInterface $loggerChannel,
     AccountInterface $currentUser,
   ) {

@@ -8,7 +8,7 @@ use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
-use Drupal\textimage\TextimageFactory;
+use Drupal\textimage\TextimageFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class FlushAllForm extends ConfirmFormBase {
 
   public function __construct(
-    protected readonly TextimageFactory $textimageFactory,
+    protected readonly TextimageFactoryInterface $textimageFactory,
   ) {
   }
 
@@ -26,7 +26,7 @@ class FlushAllForm extends ConfirmFormBase {
    */
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('textimage.factory')
+      $container->get(TextimageFactoryInterface::class),
     );
   }
 

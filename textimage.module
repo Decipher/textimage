@@ -12,6 +12,8 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Url;
 use Drupal\image\ImageStyleInterface;
+use Drupal\textimage\TextimageFactoryInterface;
+use Drupal\textimage\TextimageLogger;
 
 /**
  * Implements hook_help().
@@ -92,12 +94,12 @@ function textimage_cron() {
   // Remove temporary, uncached, image files in all available schemes.
   $wrappers = \Drupal::service('stream_wrapper_manager')->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {
-    if (file_exists($directory = \Drupal::service('textimage.factory')->getStoreUri('/temp', $wrapper))) {
+    if (file_exists($directory = \Drupal::service(TextimageFactoryInterface::class)->getStoreUri('/temp', $wrapper))) {
       if (\Drupal::service('file_system')->deleteRecursive($directory)) {
-        \Drupal::service('textimage.logger')->notice('Textimage temporary image files removed.');
+        \Drupal::service(TextimageLogger::class)->notice('Textimage temporary image files removed.');
       }
       else {
-        \Drupal::service('textimage.logger')->error('Textimage could not remove temporary image files.');
+        \Drupal::service(TextimageLogger::class)->error('Textimage could not remove temporary image files.');
       }
     }
   }
@@ -130,8 +132,8 @@ function textimage_token_info() {
 function textimage_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
   if ($type === 'node') {
     // Process tokens.
-    $replacements = \Drupal::service('textimage.factory')->processTokens('textimage-url', $tokens, $data, $bubbleable_metadata);
-    $replacements += \Drupal::service('textimage.factory')->processTokens('textimage-uri', $tokens, $data, $bubbleable_metadata);
+    $replacements = \Drupal::service(TextimageFactoryInterface::class)->processTokens('textimage-url', $tokens, $data, $bubbleable_metadata);
+    $replacements += \Drupal::service(TextimageFactoryInterface::class)->processTokens('textimage-uri', $tokens, $data, $bubbleable_metadata);
     return $replacements;
   }
   return [];
@@ -142,7 +144,7 @@ function textimage_tokens($type, $tokens, array $data, array $options, Bubbleabl
  */
 function textimage_image_style_flush($style) {
   // Manage the textimage part of image style flushing.
-  \Drupal::service('textimage.factory')->flushStyle($style);
+  \Drupal::service(TextimageFactoryInterface::class)->flushStyle($style);
 }
 
 /**

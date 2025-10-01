@@ -12,7 +12,7 @@ use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\image\ImageStyleInterface;
 use Drupal\system\FileDownloadController;
 use Drupal\textimage\TextimageException;
-use Drupal\textimage\TextimageFactory;
+use Drupal\textimage\TextimageFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -27,7 +27,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class TextimageDownloadController extends FileDownloadController implements ContainerInjectionInterface {
 
   public function __construct(
-    protected readonly TextimageFactory $textimageFactory,
+    protected readonly TextimageFactoryInterface $textimageFactory,
     protected readonly ImageFactory $imageFactory,
     ConfigFactoryInterface $configFactory,
     protected readonly LoggerInterface $logger,
@@ -43,12 +43,12 @@ class TextimageDownloadController extends FileDownloadController implements Cont
    */
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('textimage.factory'),
-      $container->get('image.factory'),
-      $container->get('config.factory'),
+      $container->get(TextimageFactoryInterface::class),
+      $container->get(ImageFactory::class),
+      $container->get(ConfigFactoryInterface::class),
       $container->get('logger.channel.textimage'),
-      $container->get('file_system'),
-      $container->get('stream_wrapper_manager')
+      $container->get(FileSystemInterface::class),
+      $container->get(StreamWrapperManagerInterface::class),
     );
   }
 

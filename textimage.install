@@ -5,9 +5,11 @@
  * Textimage - Installation scripts.
  */
 
+use Drupal\textimage\TextimageFactoryInterface;
+
 /**
  * Implements hook_uninstall().
  */
 function textimage_uninstall() {
-  \Drupal::service('textimage.factory')->flushAll();
+  \Drupal::service(TextimageFactoryInterface::class)->flushAll();
 }

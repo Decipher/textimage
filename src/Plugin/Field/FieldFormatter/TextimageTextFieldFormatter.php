@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -17,8 +18,8 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageStyleStorageInterface;
-use Drupal\textimage\TextimageFactory;
-use Psr\Log\LoggerInterface;
+use Drupal\textimage\TextimageFactoryInterface;
+use Drupal\textimage\TextimageLogger;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -56,11 +57,11 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    *   Any third party settings settings.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
-   * @param \Drupal\textimage\TextimageFactory $textimageFactory
+   * @param \Drupal\textimage\TextimageFactoryInterface $textimageFactory
    *   The Textimage factory service.
    * @param \Drupal\image\ImageStyleStorageInterface $imageStyleStorage
    *   The image style entity storage.
-   * @param \Psr\Log\LoggerInterface $logger
+   * @param \Drupal\textimage\TextimageLogger $logger
    *   A logger instance.
    */
   public function __construct(
@@ -72,9 +73,9 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     string $view_mode,
     array $third_party_settings,
     protected readonly AccountInterface $currentUser,
-    protected readonly TextimageFactory $textimageFactory,
+    protected readonly TextimageFactoryInterface $textimageFactory,
     protected readonly ImageStyleStorageInterface $imageStyleStorage,
-    protected readonly LoggerInterface $logger,
+    protected readonly TextimageLogger $logger,
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
   }
@@ -91,10 +92,10 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       $configuration['label'],
       $configuration['view_mode'],
       $configuration['third_party_settings'],
-      $container->get('current_user'),
-      $container->get('textimage.factory'),
-      $container->get('entity_type.manager')->getStorage('image_style'),
-      $container->get('textimage.logger')
+      $container->get(AccountInterface::class),
+      $container->get(TextimageFactoryInterface::class),
+      $container->get(EntityTypeManagerInterface::class)->getStorage('image_style'),
+      $container->get(TextimageLogger::class),
     );
   }
 

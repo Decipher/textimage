@@ -17,12 +17,12 @@ use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use Drupal\Core\StreamWrapper\StreamWrapperManager;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Provides a factory for Textimage.
@@ -37,14 +37,17 @@ class TextimageFactory implements TextimageFactoryInterface {
   public function __construct(
     public readonly ConfigFactoryInterface $configFactory,
     protected readonly Token $token,
-    public readonly LoggerInterface $logger,
+    public readonly TextimageLogger $logger,
+    #[Autowire(service: 'cache.textimage')]
     public readonly CacheBackendInterface $cache,
     protected readonly AccountInterface $currentUser,
-    public readonly StreamWrapperManager $streamWrapperManager,
+    public readonly StreamWrapperManagerInterface $streamWrapperManager,
     EntityTypeManagerInterface $entityTypeManager,
     public readonly FileSystemInterface $fileSystem,
+    #[Autowire(service: 'lock')]
     public readonly LockBackendInterface $lock,
     public readonly ImageFactory $imageFactory,
+    #[Autowire(service: 'plugin.manager.image.effect')]
     public readonly ImageEffectManager $imageEffectManager,
     public readonly FileUrlGeneratorInterface $fileUrlGenerator,
   ) {

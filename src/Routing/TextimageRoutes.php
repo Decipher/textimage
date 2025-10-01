@@ -24,7 +24,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('stream_wrapper_manager')
+      $container->get(StreamWrapperManagerInterface::class),
     );
   }
 

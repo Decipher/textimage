@@ -8,4 +8,5 @@
 # Deprecations related to the redirect module.
 %Using @.* annotation for plugin with ID (r|R)edirect.* is deprecated%
 %The update to add a default table CSS class for view "redirect" is deprecated%
+%Drupal\\path_alias\\AliasManager::setCacheKey is deprecated in drupal:11\.3\.0%
 %Method "Symfony\\Component\\Validator\\ConstraintValidatorInterface::(validate|initialize)\(\)" might add "void" as a native return type declaration in the future\. Do the same in implementation "Drupal\\redirect\\%

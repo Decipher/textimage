@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -17,7 +18,7 @@ use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\image\ImageStyleStorageInterface;
 use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
-use Drupal\textimage\TextimageFactory;
+use Drupal\textimage\TextimageFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -53,7 +54,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   The current user.
    * @param \Drupal\image\ImageStyleStorageInterface $image_style_storage
    *   The image style entity storage.
-   * @param \Drupal\textimage\TextimageFactory $textimageFactory
+   * @param \Drupal\textimage\TextimageFactoryInterface $textimageFactory
    *   The Textimage factory service.
    * @param \Drupal\Core\File\FileUrlGeneratorInterface $fileUrlGenerator
    *   The file URL generator service.
@@ -68,7 +69,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     array $third_party_settings,
     AccountInterface $current_user,
     ImageStyleStorageInterface $image_style_storage,
-    protected readonly TextimageFactory $textimageFactory,
+    protected readonly TextimageFactoryInterface $textimageFactory,
     FileUrlGeneratorInterface $fileUrlGenerator,
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage, $fileUrlGenerator);
@@ -86,10 +87,10 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       $configuration['label'],
       $configuration['view_mode'],
       $configuration['third_party_settings'],
-      $container->get('current_user'),
-      $container->get('entity_type.manager')->getStorage('image_style'),
-      $container->get('textimage.factory'),
-      $container->get('file_url_generator')
+      $container->get(AccountInterface::class),
+      $container->get(EntityTypeManagerInterface::class)->getStorage('image_style'),
+      $container->get(TextimageFactoryInterface::class),
+      $container->get(FileUrlGeneratorInterface::class),
     );
   }
 

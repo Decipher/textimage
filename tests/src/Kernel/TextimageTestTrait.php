@@ -53,12 +53,12 @@ trait TextimageTestTrait {
    */
   public function initTextimageTest(): void {
     // Load services.
-    $this->textimageFactory = \Drupal::service('textimage.factory');
-    $this->renderer = \Drupal::service('renderer');
-    $this->fileSystem = \Drupal::service('file_system');
-    $this->entityDisplayRepository = \Drupal::service('entity_display.repository');
-    $this->moduleList = \Drupal::service('extension.list.module');
-    $this->fileUrlGenerator = \Drupal::service('file_url_generator');
+    $this->textimageFactory = \Drupal::service(TextimageFactoryInterface::class);
+    $this->renderer = \Drupal::service(RendererInterface::class);
+    $this->fileSystem = \Drupal::service(FileSystemInterface::class);
+    $this->entityDisplayRepository = \Drupal::service(EntityDisplayRepositoryInterface::class);
+    $this->moduleList = \Drupal::service(ModuleExtensionList::class);
+    $this->fileUrlGenerator = \Drupal::service(FileUrlGeneratorInterface::class);
 
     // Change Image Effects settings.
     $config = \Drupal::configFactory()->getEditable('image_effects.settings');

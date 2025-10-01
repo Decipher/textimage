@@ -1,21 +1,28 @@
 services:
+  _defaults:
+    autowire: true
   cache.textimage:
     class: Drupal\Core\Cache\CacheBackendInterface
     tags:
       - { name: cache.bin }
     factory: cache_factory:get
     arguments: ['textimage']
-  path_processor.textimage:
-    class: Drupal\textimage\PathProcessor\TextimagePathProcessor
-    arguments: ['@stream_wrapper_manager']
-    tags:
-      - { name: path_processor_inbound, priority: 300 }
   logger.channel.textimage:
     parent: logger.channel_base
     arguments: ['textimage']
-  textimage.factory:
+  Drupal\textimage\PathProcessor\TextimagePathProcessor:
+    tags:
+      - { name: path_processor_inbound, priority: 300 }
+  Drupal\textimage\TextimageFactoryInterface:
     class: Drupal\textimage\TextimageFactory
-    arguments: ['@config.factory', '@token', '@textimage.logger', '@cache.textimage', '@current_user', '@stream_wrapper_manager', '@entity_type.manager', '@file_system', '@lock', '@image.factory', '@plugin.manager.image.effect', '@file_url_generator']
+  Drupal\textimage\TextimageLogger: ~
+
+  path_processor.textimage:
+    alias: Drupal\textimage\PathProcessor\TextimagePathProcessor
+    deprecated: 'The "%alias_id%" service alias is deprecated. Use "Drupal\textimage\PathProcessor\TextimagePathProcessor" service id instead.'
+  textimage.factory:
+    alias: Drupal\textimage\TextimageFactoryInterface
+    deprecated: 'The "%alias_id%" service alias is deprecated. Use "Drupal\textimage\TextimageFactoryInterface" service id instead.'
   textimage.logger:
-    class: Drupal\textimage\TextimageLogger
-    arguments: ['@config.factory', '@logger.channel.textimage', '@current_user']
+    alias: Drupal\textimage\TextimageLogger
+    deprecated: 'The "%alias_id%" service alias is deprecated. Use "Drupal\textimage\TextimageLogger" service id instead.'
