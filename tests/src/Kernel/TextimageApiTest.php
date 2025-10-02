@@ -143,7 +143,7 @@ class TextimageApiTest extends KernelTestBase {
       $textimage->buildImage();
       $this->fail('buildImage() should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Continue.
     }
 
@@ -167,49 +167,49 @@ class TextimageApiTest extends KernelTestBase {
       $textimage->setStyle($style);
       $this->fail('setStyle should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
     try {
       $textimage->setEffects([]);
       $this->fail('setEffects should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
     try {
       $textimage->setTargetExtension('png');
       $this->fail('setTargetExtension should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
     try {
       $textimage->setTemporary(TRUE);
       $this->fail('setTemporary should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
     try {
       $textimage->setTokenData(['user' => $this->testUser]);
       $this->fail('setTokenData should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
     try {
       $textimage->setTargetUri('public://textimage-testing/bingo-bongo.png');
       $this->fail('setTargetUri should have failed.');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
     try {
       $textimage->process($text_array);
       $this->fail('Re-processed an already processed Textimage');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
 
@@ -286,7 +286,7 @@ class TextimageApiTest extends KernelTestBase {
       $textimage->setStyle($style);
       $this->fail('Property \'style\' set when image was processed already');
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       // Countinue.
     }
 

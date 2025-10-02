@@ -114,7 +114,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
         ->getUri();
       return $this->returnBinary($request, $image_uri);
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       $this->logger->error("URL generation - Failed to build an image at '%file_uri'.", ['%file_uri' => $file_uri]);
       throw new NotFoundHttpException('Image not found');
     }
@@ -147,7 +147,7 @@ class TextimageDownloadController extends FileDownloadController implements Cont
         ->getUri();
       return $this->returnBinary($request, $image_uri);
     }
-    catch (TextimageException $e) {
+    catch (TextimageException) {
       $this->logger->error("Failed to build an image at '%file_uri'.", ['%file_uri' => $file]);
       throw new NotFoundHttpException('Image not found');
     }
