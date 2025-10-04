@@ -16,7 +16,7 @@ class TextimageThemeHooks {
    * Implements hook_theme().
    */
   #[Hook('theme')]
-  public function textimage_theme(): array {
+  public function theme(): array {
     return [
       // Format a textimage.
       'textimage_formatter' => [
