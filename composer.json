@@ -10,7 +10,7 @@
         "drupal/redirect": "<1.8"
     },
     "require-dev": {
-        "drupal/redirect": "^1.11",
+        "drupal/redirect": "^1.12",
         "drupal/vendor_stream_wrapper": "^2.0.5",
         "fileeye/linuxlibertine-fonts": "^5.3"
     }

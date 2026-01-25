@@ -41,7 +41,7 @@ class TextimageThemeHooks {
    *
    * Default template: textimage-formatter.html.twig.
    */
-  function preprocessTextimageFormatter(array &$variables): void {
+  public function preprocessTextimageFormatter(array &$variables): void {
     // Render only if the image URI is passed in.
     if ($image_uri = $variables['uri']) {
       // Get alt and title from field item if missing from variables.

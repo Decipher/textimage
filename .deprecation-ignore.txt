@@ -2,8 +2,7 @@
 # deprecated code.
 # See https://www.drupal.org/node/3285162 for more details.
 
-# Deprecations related to the image_effects module.
-%Since twig\/twig 3\.12: Twig Filter "spaceless" is deprecated in .*image_effects\/templates\/image-effects-text-overlay-summary%
+%vendor_stream_wrapper_requirements without a #\[LegacyRequirementsHook\] attribute is deprecated%
 
 # Deprecations related to the redirect module.
 %Using @.* annotation for plugin with ID (r|R)edirect.* is deprecated%

@@ -14,7 +14,7 @@ use Drupal\system\FileDownloadController;
 use Drupal\textimage\TextimageException;
 use Drupal\textimage\TextimageFactoryInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,26 +30,13 @@ class TextimageDownloadController extends FileDownloadController implements Cont
     protected readonly TextimageFactoryInterface $textimageFactory,
     protected readonly ImageFactory $imageFactory,
     ConfigFactoryInterface $configFactory,
+    #[Autowire(service: 'logger.channel.textimage')]
     protected readonly LoggerInterface $logger,
     protected readonly FileSystemInterface $fileSystem,
     StreamWrapperManagerInterface $streamWrapperManager,
   ) {
     $this->configFactory = $configFactory;
     parent::__construct($streamWrapperManager);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get(TextimageFactoryInterface::class),
-      $container->get(ImageFactory::class),
-      $container->get(ConfigFactoryInterface::class),
-      $container->get('logger.channel.textimage'),
-      $container->get(FileSystemInterface::class),
-      $container->get(StreamWrapperManagerInterface::class),
-    );
   }
 
   /**

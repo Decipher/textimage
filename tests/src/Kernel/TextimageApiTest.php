@@ -10,7 +10,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\Tests\TestFileCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\textimage\TextimageException;
-use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
@@ -43,7 +43,7 @@ class TextimageApiTest extends KernelTestBase {
   /**
    * An user account, to be used for token replacement.
    */
-  protected User $testUser;
+  protected UserInterface $testUser;
 
   /**
    * {@inheritdoc}

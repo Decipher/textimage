@@ -21,10 +21,13 @@ variables:
   _PHPUNIT_CONCURRENT: '0'
   _PHPUNIT_EXTRA: '-c $CI_PROJECT_DIR/$_WEB_ROOT/core --testdox --colors=always --fail-on-phpunit-deprecation --fail-on-deprecation'
   BROWSERTEST_OUTPUT_VERBOSE: "false"
+  # OPT_IN_TEST_CURRENT: '0'
   OPT_IN_TEST_PREVIOUS_MAJOR: '0'
   OPT_IN_TEST_PREVIOUS_MINOR: '0'
   OPT_IN_TEST_NEXT_MINOR: '1'
   OPT_IN_TEST_NEXT_MAJOR: '0'
+  OPT_IN_TEST_MAX_PHP: '1'
+  # PHP_VERSION: '8.5'
 
 phpunit:
   extends: .phpunit-base
