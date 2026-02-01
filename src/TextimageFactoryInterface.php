@@ -52,6 +52,36 @@ interface TextimageFactoryInterface {
   public function processTextString(string $text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL): string;
 
   /**
+   * Gets a Textimage state variable.
+   *
+   * @todo (core) remove when #1826362 (ImageStyle to be accessible from
+   * ImageEffect plugins) is committed.
+   *
+   * @param string|null $variable
+   *   State variable.
+   *
+   * @return mixed
+   *   Returned variable, NULL if undefined.
+   */
+  public function getState(?string $variable = NULL): mixed;
+
+  /**
+   * Sets a Textimage state variable.
+   *
+   * @todo (core) remove when #1826362 (ImageStyle to be accessible from
+   * ImageEffect plugins) is committed.
+   *
+   * @param string|null $variable
+   *   State variable.
+   * @param mixed $value
+   *   Value to set, or NULL to return current value.
+   *
+   * @return mixed
+   *   Property value.
+   */
+  public function setState(?string $variable = NULL, mixed $value = NULL): mixed;
+
+    /**
    * Checks if an image style is Textimage relevant.
    *
    * @param \Drupal\image\ImageStyleInterface $image_style

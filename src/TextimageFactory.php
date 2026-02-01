@@ -54,45 +54,24 @@ class TextimageFactory implements TextimageFactoryInterface {
     $this->userStorage = $entityTypeManager->getStorage('user');
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function get(?BubbleableMetadata $bubbleable_metadata = NULL): TextimageInterface {
     $textimage = new Textimage($this);
     $textimage->setBubbleableMetadata($bubbleable_metadata);
     return $textimage;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function load(string $tiid): TextimageInterface {
     $textimage = $this->get();
     $textimage->load($tiid);
     return $textimage;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function processTextString(string $text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL): string {
     // Replace any tokens in text with run-time values.
     $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
     return $this->token->replace($text, $token_data, [], $bubbleable_metadata);
   }
 
-  /**
-   * Gets a Textimage state variable.
-   *
-   * @todo (core) remove when #1826362 (ImageStyle to be accessible from
-   * ImageEffect plugins) is committed.
-   *
-   * @param string|null $variable
-   *   State variable.
-   *
-   * @return mixed
-   *   Returned variable, NULL if undefined.
-   */
   public function getState(?string $variable = NULL): mixed {
     if ($variable) {
       return $this->setState($variable);
@@ -100,20 +79,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     return NULL;
   }
 
-  /**
-   * Sets a Textimage state variable.
-   *
-   * @todo (core) remove when #1826362 (ImageStyle to be accessible from
-   * ImageEffect plugins) is committed.
-   *
-   * @param string|null $variable
-   *   State variable.
-   * @param mixed $value
-   *   Value to set, or NULL to return current value.
-   *
-   * @return mixed
-   *   Property value.
-   */
   public function setState(?string $variable = NULL, mixed $value = NULL): mixed {
     static $keys;
 
@@ -134,9 +99,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     return NULL;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function isTextimage(ImageStyleInterface $image_style): bool {
     foreach ($image_style->getEffects() as $effect) {
       $definition = $effect->getPluginDefinition();
@@ -147,9 +109,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     return FALSE;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function getTextimageStyleOptions(bool $limit_to_textimage = FALSE): array {
     $image_styles = ImageStyle::loadMultiple();
     $options = [];
@@ -166,9 +125,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     return $options;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function flushStyle(ImageStyleInterface $style): void {
     // Clear hashed filename images.
     $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
@@ -183,9 +139,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     }
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function flushAll(): void {
     // Flush Textimage relevant styles so to invalidate the image styles cache
     // tags.
@@ -210,9 +163,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     $this->logger->notice('All Textimage images were removed.');
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function getStoreUri(?string $path, ?string $scheme = NULL): string {
     if (!$scheme) {
       $scheme = $this->configFactory->get('system.file')->get('default_scheme');
@@ -220,9 +170,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     return $scheme . '://textimage_store' . $path;
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function processTokens(string $key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata): array {
 
     // @todo Not only node?
@@ -466,9 +413,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     }
   }
 
-  /**
-   * {@inheritdoc}
-   */
   public function getTextFieldText(FieldItemListInterface $items): array {
     $text = [];
     foreach ($items as $item) {
