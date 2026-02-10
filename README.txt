@@ -1,5 +1,5 @@
 -----------------
-Textimage 8.x-4.x
+Textimage 
 -----------------
 
 Textimage adds text to image functionality using GD2 and Freetype, enabling
