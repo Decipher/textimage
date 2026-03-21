@@ -81,7 +81,7 @@ interface TextimageFactoryInterface {
    */
   public function setState(?string $variable = NULL, mixed $value = NULL): mixed;
 
-    /**
+  /**
    * Checks if an image style is Textimage relevant.
    *
    * @param \Drupal\image\ImageStyleInterface $image_style
