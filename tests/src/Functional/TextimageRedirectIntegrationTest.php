@@ -59,7 +59,7 @@ class TextimageRedirectIntegrationTest extends TextimageTestBase {
     // Get the stored image.
     $fid = $node->{$field_name}[0]->get('target_id')->getValue();
     $source_image_file = File::load($fid);
-    $source_image_file_url = $this->fileUrlGenerator->generateAbsoluteString($source_image_file->getFileUri());
+    $this->fileUrlGenerator->generateAbsoluteString($source_image_file->getFileUri());
 
     // Get Textimage URL.
     $textimage = $this->textimageFactory->get()

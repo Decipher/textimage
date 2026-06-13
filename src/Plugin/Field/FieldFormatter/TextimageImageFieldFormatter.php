@@ -16,6 +16,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\file\FileInterface;
+use Drupal\image\ImageDerivativeUtilities;
 use Drupal\image\ImageStyleStorageInterface;
 use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
 use Drupal\textimage\TextimageFactoryInterface;
@@ -58,6 +59,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   The Textimage factory service.
    * @param \Drupal\Core\File\FileUrlGeneratorInterface $fileUrlGenerator
    *   The file URL generator service.
+   * @param \Drupal\image\ImageDerivativeUtilities|null $imageDerivativeUtilities
+   *   The ImageDerivativeUtilities service.
    */
   public function __construct(
     string $plugin_id,
@@ -71,8 +74,22 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     ImageStyleStorageInterface $image_style_storage,
     protected readonly TextimageFactoryInterface $textimageFactory,
     FileUrlGeneratorInterface $fileUrlGenerator,
+    // @todo remove nullability once drupal:11.4.0 is minimum.
+    ?ImageDerivativeUtilities $imageDerivativeUtilities,
   ) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings, $current_user, $image_style_storage, $fileUrlGenerator);
+    parent::__construct(
+      $plugin_id,
+      $plugin_definition,
+      $field_definition,
+      $settings,
+      $label,
+      $view_mode,
+      $third_party_settings,
+      $current_user,
+      $image_style_storage,
+      $fileUrlGenerator,
+      $imageDerivativeUtilities,
+    );
   }
 
   /**
@@ -91,6 +108,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       $container->get(EntityTypeManagerInterface::class)->getStorage('image_style'),
       $container->get(TextimageFactoryInterface::class),
       $container->get(FileUrlGeneratorInterface::class),
+      // @todo remove the class existence check once drupal:11.4.0 is minimum.
+      class_exists(ImageDerivativeUtilities::class) ? $container->get(ImageDerivativeUtilities::class) : NULL,
     );
   }
 
@@ -227,6 +246,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     }
 
     // Get image style.
+    /** @var \Drupal\image\ImageStyleInterface $image_style */
     $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
 
     // Collect bubbleable metadata.
