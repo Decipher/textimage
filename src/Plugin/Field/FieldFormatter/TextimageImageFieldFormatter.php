@@ -20,6 +20,7 @@ use Drupal\image\ImageDerivativeUtilities;
 use Drupal\image\ImageStyleStorageInterface;
 use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
 use Drupal\textimage\TextimageFactoryInterface;
+use Drupal\textimage\TextimageLogger;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -61,6 +62,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   The file URL generator service.
    * @param \Drupal\image\ImageDerivativeUtilities|null $imageDerivativeUtilities
    *   The ImageDerivativeUtilities service.
+   * @param \Drupal\textimage\TextimageLogger $logger
+   *   A logger instance.
    */
   public function __construct(
     string $plugin_id,
@@ -76,6 +79,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     FileUrlGeneratorInterface $fileUrlGenerator,
     // @todo remove nullability once drupal:11.4.0 is minimum.
     ?ImageDerivativeUtilities $imageDerivativeUtilities,
+    protected readonly TextimageLogger $logger,
   ) {
     parent::__construct(
       $plugin_id,
@@ -110,6 +114,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       $container->get(FileUrlGeneratorInterface::class),
       // @todo remove the class existence check once drupal:11.4.0 is minimum.
       class_exists(ImageDerivativeUtilities::class) ? $container->get(ImageDerivativeUtilities::class) : NULL,
+      $container->get(TextimageLogger::class),
     );
   }
 
@@ -245,8 +250,16 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     }
 
     // Get image style.
-    /** @var \Drupal\image\ImageStyleInterface $image_style */
     $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
+
+    // Do not render when the image style is missing. This happens when the
+    // formatter is saved without a style, or the style was deleted.
+    if ($image_style === NULL) {
+      $this->logger->warning('Textimage cannot render %field. The image style is missing. Select a valid image style in the display settings.', [
+        '%field' => $items->getFieldDefinition()->getLabel(),
+      ]);
+      return [];
+    }
 
     // Collect bubbleable metadata.
     $bubbleable_metadata = new BubbleableMetadata();

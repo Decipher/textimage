@@ -252,6 +252,15 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     // Get image style.
     $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
 
+    // Do not render when the image style is missing. This happens when the
+    // formatter is saved without a style, or the style was deleted.
+    if ($image_style === NULL) {
+      $this->logger->warning('Textimage cannot render %field. The image style is missing. Select a valid image style in the display settings.', [
+        '%field' => $items->getFieldDefinition()->getLabel(),
+      ]);
+      return [];
+    }
+
     // Collect bubbleable metadata.
     $bubbleable_metadata = new BubbleableMetadata();
 

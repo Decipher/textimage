@@ -125,6 +125,36 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
   }
 
   /**
+   * Test the formatter when no image style is selected.
+   *
+   * The node view must not crash when the formatter has no image style.
+   *
+   * @see https://www.drupal.org/i/3425393
+   */
+  public function testTextimageTextFieldFormatterMissingStyle(): void {
+    // Create a text field for Textimage test.
+    $field_name = strtolower($this->randomMachineName());
+    $this->createTextField($field_name, 'article');
+
+    // Create a new node.
+    $nid = $this->createTextimageNode('text', $field_name, 'Missing style test', 'article', 'Missing style test');
+
+    // Set the formatter without an image style.
+    $display = $this->entityDisplayRepository->getViewDisplay('node', 'article', 'default');
+    $display->setComponent($field_name, [
+      'type' => 'textimage_text_field_formatter',
+      'settings' => [
+        'image_style' => '',
+      ],
+    ])->save();
+
+    // The node page must render without an error.
+    $this->drupalGet('node/' . $nid);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->pageTextContains('Missing style test');
+  }
+
+  /**
    * Test Textimage formatter on multi-value text fields.
    */
   public function testTextimageMultiValueTextFieldFormatter(): void {
