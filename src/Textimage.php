@@ -197,13 +197,43 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setSourceImageFile(FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static {
-    $this->set('sourceImageFile', $source_image_file);
+  public function setSourceImageFile(?FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static {
+    if ($source_image_file) {
+      $this->set('sourceImageFile', $source_image_file);
+    }
+    elseif ($fallback_image = $this->createFallbackImageFile()) {
+      $this->set('sourceImageFile', $fallback_image);
+    }
     if ($width && $height) {
       $this->set('width', $width);
       $this->set('height', $height);
     }
     return $this;
+  }
+
+  /**
+   * Get the fallback image file.
+   *
+   * Loads the file set in the module settings. When not set, uses the
+   * image file bundled with the module.
+   *
+   * @return \Drupal\file\FileInterface|null
+   *   The fallback image file, or NULL when not available.
+   */
+  protected function createFallbackImageFile(): ?FileInterface {
+    $config = $this->factory->configFactory->get('textimage.settings')->get('fallback_image');
+    if ($config) {
+      $file = File::load($config);
+    }
+    else {
+      $module_path = \Drupal::service('extension.list.module')->getPath('textimage');
+      $file_path = $module_path . '/mock.jpg';
+      $file = File::create([
+        'uri' => $file_path,
+      ]);
+      $file->save();
+    }
+    return $file;
   }
 
   /**
