@@ -1,8 +1,22 @@
 {
     "name": "drupal/textimage",
-    "type": "drupal-module",
     "description": "Provides Text and Image field formatters, and an API, to allow building image styles with variable text.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Stuart Clark",
+            "homepage": "https://www.drupal.org/u/deciphered",
+            "role": "Creator & Maintainer"
+        }
+    ],
+    "homepage": "https://www.drupal.org/project/textimage",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/textimage",
+        "source": "https://git.drupalcode.org/project/textimage"
+    },
     "require": {
+        "php": ">=8.3",
         "drupal/core": "^11.3 || ^12",
         "drupal/image_effects": "^5"
     },
