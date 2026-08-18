@@ -425,4 +425,30 @@ class TextimageApiTest extends KernelTestBase {
     $textimage->setTargetUri('public://textimage-testing/bingo' . chr(1) . '.png');
   }
 
+  /**
+   * Test that a style flush for a single path keeps textimage files.
+   *
+   * @see https://www.drupal.org/i/3518018
+   */
+  public function testStyleFlushWithPath(): void {
+    $style = ImageStyle::load('textimage_test');
+
+    // Build a textimage so a cached image file exists in the store.
+    $this->textimageFactory->get()
+      ->setStyle($style)
+      ->process('bingo')
+      ->buildImage();
+    $directory = $this->textimageFactory->getStoreUri('/cache/styles/') . $style->id();
+    $this->assertDirectoryExists($directory);
+
+    // Flush the style for one source file. This happens when core deletes
+    // a file entity. The textimage store must be kept.
+    $style->flush('public://unrelated-file.png');
+    $this->assertDirectoryExists($directory);
+
+    // Flush the full style. The textimage store must be deleted.
+    $style->flush();
+    $this->assertDirectoryDoesNotExist($directory);
+  }
+
 }
