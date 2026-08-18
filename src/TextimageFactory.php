@@ -9,6 +9,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -42,7 +43,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     public readonly CacheBackendInterface $cache,
     protected readonly AccountInterface $currentUser,
     public readonly StreamWrapperManagerInterface $streamWrapperManager,
-    EntityTypeManagerInterface $entityTypeManager,
+    public readonly EntityTypeManagerInterface $entityTypeManager,
     public readonly FileSystemInterface $fileSystem,
     #[Autowire(service: 'lock')]
     public readonly LockBackendInterface $lock,
@@ -50,6 +51,8 @@ class TextimageFactory implements TextimageFactoryInterface {
     #[Autowire(service: 'plugin.manager.image.effect')]
     public readonly ImageEffectManager $imageEffectManager,
     public readonly FileUrlGeneratorInterface $fileUrlGenerator,
+    #[Autowire(service: 'extension.list.module')]
+    public readonly ModuleExtensionList $moduleList,
   ) {
     $this->userStorage = $entityTypeManager->getStorage('user');
   }

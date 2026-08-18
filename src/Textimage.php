@@ -7,6 +7,7 @@ namespace Drupal\textimage;
 use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\File\FileExists;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
@@ -215,24 +216,40 @@ class Textimage implements TextimageInterface {
    * Get the fallback image file.
    *
    * Loads the file set in the module settings. When not set, uses the
-   * image file bundled with the module.
+   * image file bundled with the module. The bundled image is copied to
+   * the public file system, so the file entity does not point into the
+   * module directory.
    *
    * @return \Drupal\file\FileInterface|null
    *   The fallback image file, or NULL when not available.
    */
   protected function createFallbackImageFile(): ?FileInterface {
-    $config = $this->factory->configFactory->get('textimage.settings')->get('fallback_image');
-    if ($config) {
-      $file = File::load($config);
+    $fid = $this->factory->configFactory->get('textimage.settings')->get('fallback_image');
+    if ($fid) {
+      return File::load($fid);
     }
-    else {
-      $module_path = \Drupal::service('extension.list.module')->getPath('textimage');
-      $file_path = $module_path . '/mock.jpg';
-      $file = File::create([
-        'uri' => $file_path,
-      ]);
-      $file->save();
+
+    // Copy the bundled fallback image to the public file system.
+    $directory = 'public://textimage_fallback';
+    $this->factory->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+    $uri = $directory . '/mock.jpg';
+    if (!file_exists($uri)) {
+      $source = $this->factory->moduleList->getPath('textimage') . '/mock.jpg';
+      $this->factory->fileSystem->copy($source, $uri, FileExists::Replace);
     }
+
+    // Reuse the file entity when it exists.
+    $files = $this->factory->entityTypeManager->getStorage('file')->loadByProperties(['uri' => $uri]);
+    if ($files) {
+      $file = reset($files);
+      assert($file instanceof FileInterface);
+      return $file;
+    }
+
+    // The file must be permanent. A temporary file is deleted by cron.
+    $file = File::create(['uri' => $uri]);
+    $file->setPermanent();
+    $file->save();
     return $file;
   }
 
