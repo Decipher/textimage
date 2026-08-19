@@ -702,11 +702,11 @@ class Textimage implements TextimageInterface {
    *
    * for images with a supporting image style (styled) -
    *   {style_wrapper}://textimage_store/cache/styles/{style}/
- *   {substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
+   *   {substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
    *
    * for images generated via direct theme (unstyled) -
    *   {default_wrapper}://textimage_store/cache/api/
- *   {substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
+   *   {substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
    *
    * for uncached, temporary -
    *   {default_wrapper}://textimage_store/temp/{file name}.{extension}

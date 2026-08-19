@@ -1,11 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * @file
  * Textimage - Installation scripts.
  */
+
+declare(strict_types=1);
 
 use Drupal\textimage\TextimageFactoryInterface;
 
