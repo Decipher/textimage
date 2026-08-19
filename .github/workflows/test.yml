@@ -5,10 +5,10 @@ on:
     tags:
       - '**'
     branches:
-      - 1.x
+      - 5.0.x
   pull_request:
     branches:
-      - 1.x
+      - 5.0.x
 
 permissions:
   contents: read
