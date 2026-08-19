@@ -168,49 +168,49 @@ class TextimageApiTest extends KernelTestBase {
       $this->fail('setStyle should have failed.');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
     try {
       $textimage->setEffects([]);
       $this->fail('setEffects should have failed.');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
     try {
       $textimage->setTargetExtension('png');
       $this->fail('setTargetExtension should have failed.');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
     try {
       $textimage->setTemporary(TRUE);
       $this->fail('setTemporary should have failed.');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
     try {
       $textimage->setTokenData(['user' => $this->testUser]);
       $this->fail('setTokenData should have failed.');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
     try {
       $textimage->setTargetUri('public://textimage-testing/bingo-bongo.png');
       $this->fail('setTargetUri should have failed.');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
     try {
       $textimage->process($text_array);
       $this->fail('Re-processed an already processed Textimage');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
 
     // Get textimage cache entry.
@@ -287,7 +287,7 @@ class TextimageApiTest extends KernelTestBase {
       $this->fail('Property \'style\' set when image was processed already');
     }
     catch (TextimageException) {
-      // Countinue.
+      // Continue.
     }
 
     // File exists.
