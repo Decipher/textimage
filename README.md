@@ -1,6 +1,8 @@
 # Textimage
 
 [![Pipeline](https://git.drupalcode.org/project/textimage/badges/5.0.x/pipeline.svg)](https://git.drupalcode.org/project/textimage/-/pipelines)
+[![Test](https://github.com/Decipher/Textimage/actions/workflows/test.yml/badge.svg?branch=5.0.x)](https://github.com/Decipher/Textimage/actions/workflows/test.yml?query=branch%3A5.0.x)
+[![Coverage](https://codecov.io/gh/Decipher/Textimage/branch/5.0.x/graph/badge.svg)](https://codecov.io/gh/Decipher/Textimage/branch/5.0.x)
 
 Adds text-to-image functionality using GD2 and FreeType, enabling users to
 create images on the fly for use as theme objects, headings, or countless
