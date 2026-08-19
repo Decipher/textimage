@@ -112,7 +112,7 @@ jobs:
 
           - name: test-php-min-d11-legacy
             php-version: 8.3
-            drupal-version: 11.1.0
+            drupal-version: 11.3.0
 
           - name: test-php-max-d11-canary
             php-version: 8.5
