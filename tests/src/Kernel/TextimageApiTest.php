@@ -425,4 +425,18 @@ class TextimageApiTest extends KernelTestBase {
     $textimage->setTargetUri('public://textimage-testing/bingo' . chr(1) . '.png');
   }
 
+  /**
+   * Test fallback image.
+   */
+  public function testFallbackImage(): void {
+    $textimage = $this->textimageFactory->get();
+    $textimage
+      ->setStyle(ImageStyle::load('textimage_test'))
+      ->setSourceImageFile(NULL)
+      ->process('bingo')
+      ->buildImage();
+    $image = \Drupal::service('image.factory')->get($textimage->getUri());
+    $this->assertSame('image/jpeg', $image->getMimeType());
+  }
+
 }

@@ -58,8 +58,8 @@ interface TextimageInterface {
   /**
    * Sets the image source file.
    *
-   * @param \Drupal\file\FileInterface $source_image_file
-   *   A file entity.
+   * @param \Drupal\file\FileInterface|null $source_image_file
+   *   A file entity, or NULL to use the fallback image.
    * @param int|null $width
    *   (optional) The source image width if known. Defaults to NULL.
    * @param int|null $height
@@ -67,7 +67,7 @@ interface TextimageInterface {
    *
    * @return $this
    */
-  public function setSourceImageFile(FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static;
+  public function setSourceImageFile(?FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static;
 
   /**
    * Sets the token data to resolve tokens.

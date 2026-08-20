@@ -93,6 +93,19 @@ class SettingsForm extends ConfigFormBase {
       '#description' => $this->t('Select the default font to be used by Textimage.'),
       '#default_value' => $config->get('default_font.uri'),
     ]);
+    // Fallback image.
+    $fallback_image = $config->get('fallback_image');
+    $form['settings']['main']['fallback_image'] = [
+      '#type' => 'managed_file',
+      '#title' => $this->t('Fallback image file'),
+      '#default_value' => isset($fallback_image) ? [$fallback_image] : [],
+      '#upload_location' => 'public://textimage_fallback/',
+      '#required' => FALSE,
+      '#description' => $this->t('This image will be used in case if a correct image is failed to load.'),
+      '#upload_validators' => [
+        'FileExtension' => ['extensions' => 'png jpg jpeg'],
+      ],
+    ];
 
     // URL generation.
     $form['settings']['url_generation'] = [
@@ -178,7 +191,10 @@ class SettingsForm extends ConfigFormBase {
       ])))
       ->set('default_font.uri', $form_state->getValue([
         'settings', 'main', 'default_font_uri',
-      ]));
+      ]))
+      ->set('fallback_image', $form_state->getValue([
+        'settings', 'main', 'fallback_image',
+      ])[0] ?? NULL);
 
     // URL generation.
     $config

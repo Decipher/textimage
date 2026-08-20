@@ -11,6 +11,10 @@ textimage.settings:
     default_extension:
       type: string
       label: 'Default image file extension'
+    fallback_image:
+      type: integer
+      label: 'Fallback image file ID'
+      nullable: true
     url_generation:
       type: mapping
       label: 'URL based generation'
