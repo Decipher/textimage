@@ -694,7 +694,6 @@ class Textimage implements TextimageInterface {
     return TRUE;
   }
 
-  // @codingStandardsIgnoreStart
   /**
    * Set URI to image file.
    *
@@ -702,10 +701,12 @@ class Textimage implements TextimageInterface {
    * unstyled and uncached (temporary) image files:
    *
    * for images with a supporting image style (styled) -
-   *   {style_wrapper}://textimage_store/cache/styles/{style}/{substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
+   *   {style_wrapper}://textimage_store/cache/styles/{style}/
+   *   {substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
    *
    * for images generated via direct theme (unstyled) -
-   *   {default_wrapper}://textimage_store/cache/api/{substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
+   *   {default_wrapper}://textimage_store/cache/api/
+   *   {substr(file name, 1)}/{substr(file name, 2)}/{file name}.{extension}
    *
    * for uncached, temporary -
    *   {default_wrapper}://textimage_store/temp/{file name}.{extension}
@@ -713,7 +714,6 @@ class Textimage implements TextimageInterface {
    * @return $this
    */
   protected function buildUri(): static {
-  // @codingStandardsIgnoreEnd
     // The file name will be the Textimage hash.
     if ($this->caching) {
       $base_name = $this->id . '.' . $this->extension;

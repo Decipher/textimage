@@ -35,7 +35,6 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
    * Test Textimage formatter on node display and text field.
    */
   public function testTextimageTextFieldFormatter(): void {
-
     // Create a text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
     $this->createTextField($field_name, 'article');
@@ -129,7 +128,6 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
    * Test Textimage formatter on multi-value text fields.
    */
   public function testTextimageMultiValueTextFieldFormatter(): void {
-
     // Create a multi-value text field for Textimage test.
     $field_name = strtolower($this->randomMachineName());
     $this->createTextField($field_name, 'article', ['cardinality' => 4]);
@@ -191,7 +189,6 @@ class TextimageFieldFormatterTest extends TextimageTestBase {
    * Test Textimage formatter on image fields.
    */
   public function testTextimageImageFieldFormatter(): void {
-
     // Create an image field for testing.
     $field_name = strtolower($this->randomMachineName());
     $min_resolution = 50;

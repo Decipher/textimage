@@ -39,7 +39,7 @@ trait TextimageTestTrait {
   protected EntityDisplayRepositoryInterface $entityDisplayRepository;
 
   /**
-   * The module exetnsion list service.
+   * The module extension list service.
    */
   protected ModuleExtensionList $moduleList;
 

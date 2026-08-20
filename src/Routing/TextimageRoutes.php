@@ -35,7 +35,6 @@ class TextimageRoutes implements ContainerInjectionInterface {
    *   An array of route objects.
    */
   public function routes(): array {
-
     $routes = [];
 
     // Route for generation of textimages from URL.

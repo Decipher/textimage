@@ -127,7 +127,6 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state): array {
-
     // Image style setting.
     $image_styles = $this->textimageFactory->getTextimageStyleOptions();
     if (empty($image_styles)) {
@@ -291,7 +290,6 @@ class TextimageImageFieldFormatter extends ImageFormatter {
           default:
             $url = NULL;
             break;
-
         }
       }
       else {

@@ -23,7 +23,6 @@ class TextimageTest extends TextimageTestBase {
    * Test functionality of the module.
    */
   public function testTextimage(): void {
-
     $publicStream = \Drupal::service('stream_wrapper_manager')->getViaScheme('public');
     assert($publicStream instanceof LocalStream);
     $public_directory_path = $publicStream->getDirectoryPath();

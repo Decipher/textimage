@@ -35,11 +35,10 @@ class TextimageHooks {
       case 'textimage.settings':
         $output = '<p>';
         $output .= $this->t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', ['@image_effects_url' => 'https://www.drupal.org/project/image_effects']);
-        $output .= ' ' . $this->t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specifiy the text appearance on the generated image.', ['@image' => Url::fromRoute('entity.image_style.collection')->toString()]);
+        $output .= ' ' . $this->t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specify the text appearance on the generated image.', ['@image' => Url::fromRoute('entity.image_style.collection')->toString()]);
         $output .= ' ' . $this->t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
         $output .= '</p>';
         return $output;
-
     }
     return NULL;
   }
