@@ -152,12 +152,15 @@ class Textimage implements TextimageInterface {
   /**
    * {@inheritdoc}
    */
-  public function setStyle(ImageStyleInterface $image_style): static {
+  public function setStyle(?ImageStyleInterface $image_style): static {
     if ($this->style) {
       throw new TextimageException("Image style already set");
     }
+    if (!$image_style instanceof ImageStyleInterface) {
+      throw new \InvalidArgumentException('Invalid image style provided.');
+    }
     $this->set('style', $image_style);
-    $effects = @$this->style->getEffects()->getConfiguration();
+    $effects = $this->style->getEffects()->getConfiguration();
     $this->setEffects($effects);
     return $this;
   }
