@@ -63,7 +63,7 @@ class TextimageLogger extends LoggerChannel {
           $type = 'error';
       }
       // @todo replace call to $this->t
-      // @codingStandardsIgnoreLine
+      // phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
       $this->messenger()->addMessage($this->t($message, $context), $type);
     }
   }
