@@ -55,7 +55,6 @@ class TextimageThemeTest extends KernelTestBase {
    * Test the Textimage formatter theme.
    */
   public function testTextimageFormatterTheme(): void {
-
     $textimage = $this->textimageFactory->get();
     $textimage
       ->setStyle(ImageStyle::load('medium'))

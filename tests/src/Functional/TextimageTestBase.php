@@ -163,7 +163,6 @@ abstract class TextimageTestBase extends BrowserTestBase {
         // Add alt text.
         $this->submitForm([$field_name . '[0][alt]' => 'test alt text'], 'Save');
         break;
-
     }
 
     // Retrieve ID of the newly created node from the current URL.

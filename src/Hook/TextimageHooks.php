@@ -39,7 +39,6 @@ class TextimageHooks {
         $output .= ' ' . $this->t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
         $output .= '</p>';
         return $output;
-
     }
     return NULL;
   }

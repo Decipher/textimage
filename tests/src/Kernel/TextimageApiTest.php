@@ -72,7 +72,6 @@ class TextimageApiTest extends KernelTestBase {
    * Test basic functionality of the API.
    */
   public function testTextimageApi(): void {
-
     // Add more effects to the test style.
     $style = ImageStyle::load('textimage_test');
     $style->addImageEffect([

@@ -117,7 +117,6 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state): array {
-
     // Image style setting.
     $image_styles = $this->textimageFactory->getTextimageStyleOptions(TRUE);
     if (empty($image_styles)) {

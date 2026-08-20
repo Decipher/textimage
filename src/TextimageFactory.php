@@ -204,7 +204,6 @@ class TextimageFactory implements TextimageFactoryInterface {
    * {@inheritdoc}
    */
   public function processTokens(string $key, array $tokens, array $data, BubbleableMetadata $bubbleable_metadata): array {
-
     // @todo Not only node?
     $node = $data['node'] ?? NULL;
 
