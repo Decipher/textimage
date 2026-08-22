@@ -46,7 +46,7 @@ abstract class TextimageTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp(): void {
+  protected function setUp(): void {
     parent::setUp();
     $this->fileSystem = \Drupal::service('file_system');
     $this->initTextimageTest();
@@ -145,7 +145,8 @@ abstract class TextimageTestBase extends BrowserTestBase {
           'title[0][value]' => $node_title,
           'body[0][value]' => $field_value[0],
         ];
-        for ($i = 0; $i < count($field_value); $i++) {
+        $counter = count($field_value);
+        for ($i = 0; $i < $counter; $i++) {
           $index = $field_name . '[' . $i . '][value]';
           $edit[$index] = $field_value[$i];
         }

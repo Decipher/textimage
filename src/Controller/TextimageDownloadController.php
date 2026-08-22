@@ -158,21 +158,24 @@ class TextimageDownloadController extends FileDownloadController implements Cont
       return new Response((string) $this->t('Error downloading a textimage.'), 404);
     }
 
-    if (($scheme = $this->streamWrapperManager->getScheme($uri)) == 'private') {
+    if (($scheme = $this->streamWrapperManager->getScheme($uri)) === 'private') {
+      $target = $this->streamWrapperManager->getTarget($uri);
+      if ($target === FALSE) {
+        $this->logger->notice("Textimage image at '%source_image_path' has no valid target.", ['%source_image_path' => $uri]);
+        return new Response((string) $this->t('Error downloading a textimage.'), 404);
+      }
       // If using the private scheme, defer control to FileDownloadController.
-      $request->query->set('file', $this->streamWrapperManager->getTarget($uri));
+      $request->query->set('file', $target);
       return parent::download($request, $scheme);
     }
-    else {
-      // Get the image and transfer to client.
-      $image = $this->imageFactory->get($uri);
-      $uri = $image->getSource();
-      $headers = [
-        'Content-Type' => $image->getMimeType(),
-        'Content-Length' => $image->getFileSize(),
-      ];
-      return new BinaryFileResponse($uri, 200, $headers);
-    }
+    // Get the image and transfer to client.
+    $image = $this->imageFactory->get($uri);
+    $uri = $image->getSource();
+    $headers = [
+      'Content-Type' => $image->getMimeType(),
+      'Content-Length' => $image->getFileSize(),
+    ];
+    return new BinaryFileResponse($uri, 200, $headers);
   }
 
 }

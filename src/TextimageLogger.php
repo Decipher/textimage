@@ -32,6 +32,13 @@ class TextimageLogger extends LoggerChannel {
 
   /**
    * {@inheritdoc}
+   *
+   * @param mixed $level
+   *   The log level.
+   * @param string|\Stringable $message
+   *   The log message.
+   * @param array $context
+   *   The log context.
    */
   public function log(/* mixed */ $level, /* string */ $message, array $context = []): void {
     // Convert to integer equivalent for consistency with RFC 5424.
@@ -64,7 +71,7 @@ class TextimageLogger extends LoggerChannel {
       }
       // @todo replace call to $this->t
       // phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
-      $this->messenger()->addMessage($this->t($message, $context), $type);
+      $this->messenger()->addMessage($this->t((string) $message, $context), $type);
     }
   }
 

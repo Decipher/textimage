@@ -6,11 +6,7 @@
     <file>web/themes/custom</file>
 
     <rule ref="Drupal"/>
-    <rule ref="DrupalPractice">
-        <!-- Static entity calls need dependency injection refactors.
-             Tracked in https://www.drupal.org/i/3569464 -->
-        <exclude name="DrupalPractice.Objects.GlobalClass"/>
-    </rule>
+    <rule ref="DrupalPractice"/>
     <rule ref="Generic.PHP.RequireStrictTypes"/>
 
     <arg name="extensions" value="inc,info,install,module,php,profile,test,theme"/>

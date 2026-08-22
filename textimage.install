@@ -12,6 +12,6 @@ use Drupal\textimage\TextimageFactoryInterface;
 /**
  * Implements hook_uninstall().
  */
-function textimage_uninstall() {
+function textimage_uninstall(): void {
   \Drupal::service(TextimageFactoryInterface::class)->flushAll();
 }

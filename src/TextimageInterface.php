@@ -19,8 +19,6 @@ interface TextimageInterface {
    *
    * @param \Drupal\image\ImageStyleInterface $image_style
    *   The image style to be used to derive the Textimage.
-   *
-   * @return $this
    */
   public function setStyle(ImageStyleInterface $image_style): static;
 
@@ -30,8 +28,6 @@ interface TextimageInterface {
    * @param array $effects
    *   An array of image effects. Since Textimage manipulates effects before
    *   rendering the image, the style effects are copied here to allow that.
-   *
-   * @return $this
    */
   public function setEffects(array $effects): static;
 
@@ -40,8 +36,6 @@ interface TextimageInterface {
    *
    * @param string $extension
    *   The file extension to be used (e.g. jpeg/png/gif).
-   *
-   * @return $this
    */
   public function setTargetExtension(string $extension): static;
 
@@ -50,8 +44,6 @@ interface TextimageInterface {
    *
    * @param string $color
    *   The color to be used for transparent.
-   *
-   * @return $this
    */
   public function setGifTransparentColor(string $color): static;
 
@@ -64,8 +56,6 @@ interface TextimageInterface {
    *   (optional) The source image width if known. Defaults to NULL.
    * @param int|null $height
    *   (optional) The source image height if known. Defaults to NULL.
-   *
-   * @return $this
    */
   public function setSourceImageFile(FileInterface $source_image_file, ?int $width = NULL, ?int $height = NULL): static;
 
@@ -74,8 +64,6 @@ interface TextimageInterface {
    *
    * @param array $token_data
    *   An array of objects to resolve tokens.
-   *
-   * @return $this
    */
   public function setTokenData(array $token_data): static;
 
@@ -84,8 +72,6 @@ interface TextimageInterface {
    *
    * @param bool $is_temp
    *   FALSE if caching is required for this Textimage.
-   *
-   * @return $this
    */
   public function setTemporary(bool $is_temp): static;
 
@@ -94,8 +80,6 @@ interface TextimageInterface {
    *
    * @param string $uri
    *   A valid URI.
-   *
-   * @return $this
    */
   public function setTargetUri(string $uri): static;
 
@@ -104,8 +88,6 @@ interface TextimageInterface {
    *
    * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
    *   A BubbleableMetadata object.
-   *
-   * @return $this
    *
    * @internal
    */
@@ -172,8 +154,6 @@ interface TextimageInterface {
    *
    * @param string $id
    *   The id of the Textimage to load.
-   *
-   * @return $this
    */
   public function load(string $id): static;
 
@@ -182,15 +162,11 @@ interface TextimageInterface {
    *
    * @param array|string $text
    *   An array of text strings, or a single string, with tokens not resolved.
-   *
-   * @return $this
    */
   public function process(array|string|null $text): static;
 
   /**
    * Build the image via core ImageStyle::createDerivative() method.
-   *
-   * @return $this
    */
   public function buildImage(): static;
 

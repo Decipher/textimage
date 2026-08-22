@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -16,14 +17,16 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
-use Drupal\image\Entity\ImageStyle;
-use Drupal\image\ImageStyleStorageInterface;
 use Drupal\textimage\TextimageFactoryInterface;
 use Drupal\textimage\TextimageLogger;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Plugin implementation of the Textimage text field formatter.
+ *
+ * @extends \Drupal\Core\Field\FormatterBase<\Drupal\Core\Field\FieldItemListInterface<\Drupal\Core\Field\FieldItemInterface>>
+ *
+ * @phpstan-consistent-constructor
  */
 #[FieldFormatter(
   id: 'textimage_text_field_formatter',
@@ -37,6 +40,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
   ],
 )]
 class TextimageTextFieldFormatter extends FormatterBase implements ContainerFactoryPluginInterface {
+
+  // The parent class uses DependencySerializationTrait. Using it here too
+  // lets __wakeup() reinitialise the readonly promoted properties declared
+  // in this class, which PHP only allows from the declaring class.
+  use DependencySerializationTrait;
 
   /**
    * Constructs a TextimageTextFieldFormatter object.
@@ -59,8 +67,8 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    *   The current user.
    * @param \Drupal\textimage\TextimageFactoryInterface $textimageFactory
    *   The Textimage factory service.
-   * @param \Drupal\image\ImageStyleStorageInterface $imageStyleStorage
-   *   The image style entity storage.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    * @param \Drupal\textimage\TextimageLogger $logger
    *   A logger instance.
    */
@@ -74,7 +82,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
     array $third_party_settings,
     protected readonly AccountInterface $currentUser,
     protected readonly TextimageFactoryInterface $textimageFactory,
-    protected readonly ImageStyleStorageInterface $imageStyleStorage,
+    protected readonly EntityTypeManagerInterface $entityTypeManager,
     protected readonly TextimageLogger $logger,
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
@@ -83,7 +91,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, /* string */ $plugin_id, /* mixed */ $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, /* string */ $plugin_id, /* mixed */ $plugin_definition): static {
     return new static(
       $plugin_id,
       $plugin_definition,
@@ -94,7 +102,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
       $configuration['third_party_settings'],
       $container->get(AccountInterface::class),
       $container->get(TextimageFactoryInterface::class),
-      $container->get(EntityTypeManagerInterface::class)->getStorage('image_style'),
+      $container->get(EntityTypeManagerInterface::class),
       $container->get(TextimageLogger::class),
     );
   }
@@ -247,10 +255,15 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
 
   /**
    * {@inheritdoc}
+   *
+   * @param \Drupal\Core\Field\FieldItemListInterface<\Drupal\Core\Field\FieldItemInterface> $items
+   *   The field items.
+   * @param string $langcode
+   *   The language code.
    */
   public function viewElements(FieldItemListInterface $items, /* string */ $langcode): array {
     // Get image style.
-    $image_style = $this->imageStyleStorage->load($this->getSetting('image_style'));
+    $image_style = $this->entityTypeManager->getStorage('image_style')->load($this->getSetting('image_style'));
 
     // Collect bubbleable metadata.
     $bubbleable_metadata = new BubbleableMetadata();
@@ -347,7 +360,7 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
   public function calculateDependencies(): array {
     $dependencies = parent::calculateDependencies();
     $style_id = $this->getSetting('image_style');
-    if ($style_id && $style = ImageStyle::load($style_id)) {
+    if ($style_id && $style = $this->entityTypeManager->getStorage('image_style')->load($style_id)) {
       // If this formatter uses a valid image style to display the image, add
       // the image style configuration entity as dependency of this formatter.
       $dependencies[$style->getConfigDependencyKey()][] = $style->getConfigDependencyName();
@@ -360,14 +373,15 @@ class TextimageTextFieldFormatter extends FormatterBase implements ContainerFact
    */
   public function onDependencyRemoval(array $dependencies): bool {
     $changed = parent::onDependencyRemoval($dependencies);
+    $storage = $this->entityTypeManager->getStorage('image_style');
     $style_id = $this->getSetting('image_style');
-    if ($style_id && $style = ImageStyle::load($style_id)) {
+    if ($style_id && $style = $storage->load($style_id)) {
       if (!empty($dependencies[$style->getConfigDependencyKey()][$style->getConfigDependencyName()])) {
-        $replacement_id = $this->imageStyleStorage->getReplacementId($style_id);
+        $replacement_id = $storage->getReplacementId($style_id);
         // If a valid replacement has been provided in the storage, replace the
         // image style with the replacement and signal that the formatter plugin
         // settings were updated.
-        if ($replacement_id && ($image_style = ImageStyle::load($replacement_id))) {
+        if ($replacement_id && ($image_style = $storage->load($replacement_id))) {
           if ($this->textimageFactory->isTextimage($image_style)) {
             $this->setSetting('image_style', $replacement_id);
             $changed = TRUE;

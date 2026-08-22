@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Form;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -13,8 +14,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Creates a form to confirm flushing of all Textimage images.
+ *
+ * @phpstan-consistent-constructor
  */
 class FlushAllForm extends ConfirmFormBase {
+
+  // The parent class uses DependencySerializationTrait. Using it here too
+  // lets __wakeup() reinitialise the readonly promoted properties declared
+  // in this class, which PHP only allows from the declaring class.
+  use DependencySerializationTrait;
 
   public function __construct(
     protected readonly TextimageFactoryInterface $textimageFactory,

@@ -26,6 +26,10 @@ parameters:
     - vendor/*
     - node_modules/*
     - ../*/node_modules/*
+    # Rector's own config. Its classes come from the dev dependencies, which
+    # are not installed by the Drupal.org CI pipeline, so analysing this file
+    # there reports every rule class as not found.
+    - rector.php
 
   ignoreErrors:
     -

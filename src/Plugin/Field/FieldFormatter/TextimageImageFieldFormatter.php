@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -17,13 +18,14 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\image\ImageDerivativeUtilities;
-use Drupal\image\ImageStyleStorageInterface;
 use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
 use Drupal\textimage\TextimageFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Plugin implementation of the Textimage image field formatter.
+ *
+ * @phpstan-consistent-constructor
  */
 #[FieldFormatter(
   id: 'textimage_image_field_formatter',
@@ -33,6 +35,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
   ],
 )]
 class TextimageImageFieldFormatter extends ImageFormatter {
+
+  // The parent class uses DependencySerializationTrait. Using it here too
+  // lets __wakeup() reinitialise the readonly promoted properties declared
+  // in this class, which PHP only allows from the declaring class.
+  use DependencySerializationTrait;
 
   /**
    * Constructs a TextimageImageFieldFormatter object.
@@ -53,8 +60,8 @@ class TextimageImageFieldFormatter extends ImageFormatter {
    *   Any third party settings settings.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
-   * @param \Drupal\image\ImageStyleStorageInterface $image_style_storage
-   *   The image style entity storage.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    * @param \Drupal\textimage\TextimageFactoryInterface $textimageFactory
    *   The Textimage factory service.
    * @param \Drupal\Core\File\FileUrlGeneratorInterface $fileUrlGenerator
@@ -71,7 +78,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
     string $view_mode,
     array $third_party_settings,
     AccountInterface $current_user,
-    ImageStyleStorageInterface $image_style_storage,
+    EntityTypeManagerInterface $entityTypeManager,
     protected readonly TextimageFactoryInterface $textimageFactory,
     FileUrlGeneratorInterface $fileUrlGenerator,
     // @todo remove nullability once drupal:11.4.0 is minimum.
@@ -86,7 +93,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       $view_mode,
       $third_party_settings,
       $current_user,
-      $image_style_storage,
+      $entityTypeManager->getStorage('image_style'),
       $fileUrlGenerator,
       $imageDerivativeUtilities,
     );
@@ -105,7 +112,7 @@ class TextimageImageFieldFormatter extends ImageFormatter {
       $configuration['view_mode'],
       $configuration['third_party_settings'],
       $container->get(AccountInterface::class),
-      $container->get(EntityTypeManagerInterface::class)->getStorage('image_style'),
+      $container->get(EntityTypeManagerInterface::class),
       $container->get(TextimageFactoryInterface::class),
       $container->get(FileUrlGeneratorInterface::class),
       // @todo remove the class existence check once drupal:11.4.0 is minimum.
