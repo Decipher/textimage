@@ -6,6 +6,7 @@ namespace Drupal\textimage\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\TypedConfigManagerInterface;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Image\ImageFactory;
@@ -15,8 +16,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Main Textimage settings admin form.
+ *
+ * @phpstan-consistent-constructor
  */
 class SettingsForm extends ConfigFormBase {
+
+  // The parent class uses DependencySerializationTrait. Using it here too
+  // lets __wakeup() reinitialise the readonly promoted properties declared
+  // in this class, which PHP only allows from the declaring class.
+  use DependencySerializationTrait;
 
   public function __construct(
     protected readonly TextimageFactoryInterface $textimageFactory,

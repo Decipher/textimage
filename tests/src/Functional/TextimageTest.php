@@ -84,6 +84,7 @@ class TextimageTest extends TextimageTestBase {
         ->setStyle(ImageStyle::load('textimage_test'))
         ->process($item['text']);
       $cached = \Drupal::cache('textimage')->get('tiid:' . $textimage->id());
+      $this->assertNotFalse($cached);
       $this->assertSame($textimage->getUri(), $cached->data['uri']);
     }
 

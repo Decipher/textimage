@@ -156,7 +156,7 @@ interface TextimageFactoryInterface {
   /**
    * Retrieves text from a Text field.
    *
-   * @param \Drupal\Core\Field\FieldItemListInterface $items
+   * @param \Drupal\Core\Field\FieldItemListInterface<\Drupal\Core\Field\FieldItemInterface> $items
    *   Field items.
    *
    * @return array

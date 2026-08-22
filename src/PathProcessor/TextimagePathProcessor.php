@@ -30,35 +30,29 @@ class TextimagePathProcessor implements InboundPathProcessorInterface {
     $stream = $this->streamWrapperManager->getViaScheme('public');
     assert($stream instanceof LocalStream);
     $public_directory_path = $stream->getDirectoryPath();
-    if (strpos($path, '/' . $public_directory_path . '/textimage_store/') === 0) {
+    if (str_starts_with($path, '/' . $public_directory_path . '/textimage_store/')) {
       // Path is for deferred Textimage generation from public scheme.
       $path_prefix = '/' . $public_directory_path . '/textimage_store';
-
       // Strip out path prefix.
       $rest = preg_replace('|^' . preg_quote($path_prefix . '/', '|') . '|', '', $path);
-
       // Set the file as query parameter.
       $request->query->set('file', $rest);
       return $path_prefix;
     }
-    elseif (strpos($path, '/system/files/textimage_store/') === 0) {
+    if (str_starts_with($path, '/system/files/textimage_store/')) {
       // Path is for deferred Textimage generation from private scheme.
       $path_prefix = '/system/files/textimage_store';
-
       // Strip out path prefix.
       $rest = preg_replace('|^' . preg_quote($path_prefix . '/', '|') . '|', '', $path);
-
       // Set the file as query parameter.
       $request->query->set('file', $rest);
       return $path_prefix;
     }
-    elseif (strpos($path, '/' . $public_directory_path . '/textimage/') === 0) {
+    if (str_starts_with($path, '/' . $public_directory_path . '/textimage/')) {
       // Path is for direct URL Textimage generation.
       $path_prefix = '/' . $public_directory_path . '/textimage';
-
       // Strip out path prefix.
       $rest = preg_replace('|^' . preg_quote($path_prefix . '/', '|') . '|', '', $path);
-
       // Get the image style and text.
       if (substr_count($rest, '/') >= 1) {
         [$image_style, $text] = explode('/', $rest, 2);
@@ -66,13 +60,9 @@ class TextimagePathProcessor implements InboundPathProcessorInterface {
         $request->query->set('text', $text);
         return $path_prefix . '/' . $image_style;
       }
-      else {
-        return $path;
-      }
-    }
-    else {
       return $path;
     }
+    return $path;
   }
 
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\textimage\Routing;
 
+use Drupal\textimage\Controller\TextimageDownloadController;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -11,6 +12,8 @@ use Symfony\Component\Routing\Route;
 
 /**
  * Defines a route for serving Textimages through the URL.
+ *
+ * @phpstan-consistent-constructor
  */
 class TextimageRoutes implements ContainerInjectionInterface {
 
@@ -39,7 +42,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
 
     // Route for generation of textimages from URL.
     $stream_wrapper = $this->streamWrapperManager->getViaScheme('public');
-    if (method_exists($stream_wrapper, 'getDirectoryPath')) {
+    if ($stream_wrapper !== FALSE && method_exists($stream_wrapper, 'getDirectoryPath')) {
       // Route for direct URL Textimage generation.
       // If the textimage derivative does not exist, Drupal will create it
       // via TextimageDownloadController::urlDeliver.
@@ -48,7 +51,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
       $routes['textimage.public'] = new Route(
         '/' . $stream_wrapper->getDirectoryPath() . '/textimage/{image_style}',
         [
-          '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::urlDeliver',
+          '_controller' => TextimageDownloadController::class . '::urlDeliver',
           '_disable_route_normalizer' => TRUE,
         ],
         ['_permission' => 'generate textimage url derivatives']
@@ -62,7 +65,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
       $routes['textimage_store.public'] = new Route(
         '/' . $stream_wrapper->getDirectoryPath() . '/textimage_store',
         [
-          '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery',
+          '_controller' => TextimageDownloadController::class . '::deferredDelivery',
           '_disable_route_normalizer' => TRUE,
         ],
         ['_access' => 'TRUE']
@@ -78,7 +81,7 @@ class TextimageRoutes implements ContainerInjectionInterface {
       $routes['textimage_store.private'] = new Route(
         '/system/files/textimage_store',
         [
-          '_controller' => 'Drupal\textimage\Controller\TextimageDownloadController::deferredDelivery',
+          '_controller' => TextimageDownloadController::class . '::deferredDelivery',
           '_disable_route_normalizer' => TRUE,
         ],
         ['_access' => 'TRUE']

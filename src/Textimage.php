@@ -15,7 +15,9 @@ use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\image\ImageEffectInterface;
 use Drupal\image\ImageStyleInterface;
+use Drupal\image_effects\Plugin\ImageEffect\TextOverlayImageEffect;
 
 /**
  * Provides a Textimage.
@@ -45,8 +47,6 @@ class Textimage implements TextimageInterface {
 
   /**
    * Textimage metadata.
-   *
-   * @var array
    */
   protected array $imageData = [];
 
@@ -72,8 +72,6 @@ class Textimage implements TextimageInterface {
 
   /**
    * The array of image effects for this Textimage.
-   *
-   * @var array
    */
   protected array $effects = [];
 
@@ -133,8 +131,6 @@ class Textimage implements TextimageInterface {
    *   The property to set.
    * @param mixed $value
    *   The value to set.
-   *
-   * @return $this
    */
   protected function set(string $property, mixed $value): static {
     if (!property_exists($this, $property)) {
@@ -157,7 +153,7 @@ class Textimage implements TextimageInterface {
       throw new TextimageException("Image style already set");
     }
     $this->set('style', $image_style);
-    $effects = @$this->style->getEffects()->getConfiguration();
+    $effects = $image_style->getEffects()->getConfiguration();
     $this->setEffects($effects);
     return $this;
   }
@@ -241,7 +237,7 @@ class Textimage implements TextimageInterface {
       $dir_name = $this->factory->fileSystem->dirname($uri);
       $base_name = basename($uri);
       $valid_uri = $this->createFilename($base_name, $dir_name);
-      if ($uri != $valid_uri) {
+      if ($uri !== $valid_uri) {
         throw new TextimageException("Invalid target URI '{$uri}' specified");
       }
       $this->setTargetExtension(pathinfo($uri, PATHINFO_EXTENSION));
@@ -389,6 +385,10 @@ class Textimage implements TextimageInterface {
     foreach ($default_text as $uuid => $default_text_item) {
       $text_item = array_shift($text);
       $effect_instance = $this->factory->imageEffectManager->createInstance($this->effects[$uuid]['id']);
+      // Only 'image_effects_text_overlay' effects are collected above. The
+      // plugin manager has no return type, so state the type for static
+      // analysis without changing what runs.
+      assert($effect_instance instanceof TextOverlayImageEffect);
       $effect_instance->setConfiguration($this->effects[$uuid]);
       if ($text_item) {
         // Replace any tokens in text with run-time values.
@@ -460,7 +460,7 @@ class Textimage implements TextimageInterface {
 
     // Remove text from effects outline, as actual runtime text goes
     // separately to the hash.
-    foreach ($this->effects as $uuid => &$effect_configuration) {
+    foreach ($this->effects as &$effect_configuration) {
       if ($effect_configuration['id'] == 'image_effects_text_overlay') {
         unset($effect_configuration['data']['text_string']);
       }
@@ -483,16 +483,14 @@ class Textimage implements TextimageInterface {
       }
       return $this;
     }
-    else {
-      // Not found, build the image.
-      // Get URI of the to-be image file.
-      if (!$this->uri) {
-        $this->buildUri();
-      }
-      $this->processed = TRUE;
-      if ($this->caching) {
-        $this->setCached();
-      }
+    // Not found, build the image.
+    // Get URI of the to-be image file.
+    if (!$this->uri) {
+      $this->buildUri();
+    }
+    $this->processed = TRUE;
+    if ($this->caching) {
+      $this->setCached();
     }
 
     return $this;
@@ -521,7 +519,7 @@ class Textimage implements TextimageInterface {
     // If no source image specified, we are processing a pure Textimage
     // request. In that case we create a new 1x1 image to ensure we start
     // with a clean background.
-    $source = isset($this->sourceImageFile) ? $this->sourceImageFile->getFileUri() : NULL;
+    $source = $this->sourceImageFile instanceof FileInterface ? $this->sourceImageFile->getFileUri() : NULL;
     $image = $this->factory->imageFactory->get($source);
     if ($source === NULL) {
       $image->createNew(1, 1, $this->extension, $this->gifTransparentColor);
@@ -578,12 +576,10 @@ class Textimage implements TextimageInterface {
 
     // Generate the image.
     if (!$this->processed = $this->createDerivativeFromImage($runtime_style, $image, $this->getUri())) {
-      if (isset($this->style)) {
+      if ($this->style instanceof ImageStyleInterface) {
         throw new TextimageException("Textimage failed to build an image for image style '{$this->style->id()}'");
       }
-      else {
-        throw new TextimageException("Textimage failed to build an image");
-      }
+      throw new TextimageException("Textimage failed to build an image");
     }
     $this->factory->logger->debug('Built Textimage, @uri', ['@uri' => $this->getUri()]);
 
@@ -613,6 +609,10 @@ class Textimage implements TextimageInterface {
     $style = ImageStyle::create([]);
     foreach ($effects as $effect) {
       $effect_instance = $this->factory->imageEffectManager->createInstance($effect['id']);
+      // Every image effect plugin implements this interface. The plugin
+      // manager has no return type, so state it for static analysis without
+      // changing what runs.
+      assert($effect_instance instanceof ImageEffectInterface);
       $default_config = $effect_instance->defaultConfiguration();
       $effect['data'] = NestedArray::mergeDeep($default_config, $effect['data']);
       $style->addImageEffect($effect);
@@ -639,13 +639,13 @@ class Textimage implements TextimageInterface {
     // Strip control characters (ASCII value < 32). Though these are allowed in
     // some filesystems, not many applications handle them well.
     $basename = preg_replace('/[\x00-\x1F]/u', '_', $basename);
-    if (substr(PHP_OS, 0, 3) == 'WIN') {
+    if (str_starts_with(PHP_OS, 'WIN')) {
       // These characters are not allowed in Windows filenames.
       $basename = str_replace([':', '*', '?', '"', '<', '>', '|'], '_', $basename);
     }
 
     // A URI or path may already have a trailing slash or look like "public://".
-    if (substr($directory, -1) == '/') {
+    if (str_ends_with($directory, '/')) {
       $separator = '';
     }
     else {
@@ -710,8 +710,6 @@ class Textimage implements TextimageInterface {
    *
    * for uncached, temporary -
    *   {default_wrapper}://textimage_store/temp/{file name}.{extension}
-   *
-   * @return $this
    */
   protected function buildUri(): static {
     // The file name will be the Textimage hash.
@@ -747,8 +745,6 @@ class Textimage implements TextimageInterface {
 
   /**
    * Cache Textimage data.
-   *
-   * @return $this
    */
   protected function setCached(): static {
     $data = [

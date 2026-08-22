@@ -4,6 +4,11 @@
 
 %vendor_stream_wrapper_requirements without a #\[LegacyRequirementsHook\] attribute is deprecated%
 
+# @todo Remove once DrupalCI runs core 11.4.5 or later, which declares the
+# fourth argument on TwigSandboxPolicy::checkSecurity().
+%Since twig\/twig 3\.28: The "Drupal\\Core\\Template\\TwigSandboxPolicy::checkSecurity\(\)" method%
+%TwigSandboxPolicy::checkSecurity\(\)" method will require a new "string\[\] \$tests" argument%
+
 # Deprecations related to the redirect module.
 %Using @.* annotation for plugin with ID (r|R)edirect.* is deprecated%
 %The update to add a default table CSS class for view "redirect" is deprecated%

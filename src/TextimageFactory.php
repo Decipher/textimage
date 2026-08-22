@@ -6,8 +6,6 @@ namespace Drupal\textimage;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\Entity\EntityViewDisplay;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileSystemInterface;
@@ -19,7 +17,6 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Utility\Token;
-use Drupal\image\Entity\ImageStyle;
 use Drupal\image\ImageEffectManager;
 use Drupal\image\ImageStyleInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -29,11 +26,6 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  */
 class TextimageFactory implements TextimageFactoryInterface {
 
-  /**
-   * The User entity storage.
-   */
-  protected readonly EntityStorageInterface $userStorage;
-
   public function __construct(
     public readonly ConfigFactoryInterface $configFactory,
     protected readonly Token $token,
@@ -42,7 +34,7 @@ class TextimageFactory implements TextimageFactoryInterface {
     public readonly CacheBackendInterface $cache,
     protected readonly AccountInterface $currentUser,
     public readonly StreamWrapperManagerInterface $streamWrapperManager,
-    EntityTypeManagerInterface $entityTypeManager,
+    public readonly EntityTypeManagerInterface $entityTypeManager,
     public readonly FileSystemInterface $fileSystem,
     #[Autowire(service: 'lock')]
     public readonly LockBackendInterface $lock,
@@ -51,7 +43,6 @@ class TextimageFactory implements TextimageFactoryInterface {
     public readonly ImageEffectManager $imageEffectManager,
     public readonly FileUrlGeneratorInterface $fileUrlGenerator,
   ) {
-    $this->userStorage = $entityTypeManager->getStorage('user');
   }
 
   /**
@@ -77,7 +68,7 @@ class TextimageFactory implements TextimageFactoryInterface {
    */
   public function processTextString(string $text, array $token_data = [], ?BubbleableMetadata $bubbleable_metadata = NULL): string {
     // Replace any tokens in text with run-time values.
-    $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->userStorage->load($this->currentUser->id());
+    $token_data['user'] = !empty($token_data['user']) ? $token_data['user'] : $this->entityTypeManager->getStorage('user')->load($this->currentUser->id());
     return $this->token->replace($text, $token_data, [], $bubbleable_metadata);
   }
 
@@ -97,7 +88,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   public function setState(?string $variable = NULL, mixed $value = NULL): mixed {
     static $keys;
 
-    if (!isset($keys) or !$variable) {
+    if (!isset($keys) || !$variable) {
       $keys = [];
     }
 
@@ -106,9 +97,7 @@ class TextimageFactory implements TextimageFactoryInterface {
         $keys[$variable] = $value;
         return $value;
       }
-      else {
-        return $keys[$variable] ?? NULL;
-      }
+      return $keys[$variable] ?? NULL;
     }
 
     return NULL;
@@ -120,7 +109,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   public function isTextimage(ImageStyleInterface $image_style): bool {
     foreach ($image_style->getEffects() as $effect) {
       $definition = $effect->getPluginDefinition();
-      if ($definition['id'] == 'image_effects_text_overlay') {
+      if (is_array($definition) && $definition['id'] == 'image_effects_text_overlay') {
         return TRUE;
       }
     }
@@ -131,16 +120,16 @@ class TextimageFactory implements TextimageFactoryInterface {
    * {@inheritdoc}
    */
   public function getTextimageStyleOptions(bool $limit_to_textimage = FALSE): array {
-    $image_styles = ImageStyle::loadMultiple();
+    $image_styles = $this->entityTypeManager->getStorage('image_style')->loadMultiple();
     $options = [];
     foreach ($image_styles as $name => $image_style) {
       if ($limit_to_textimage) {
         if ($this->isTextimage($image_style)) {
-          $options[$name] = $image_style->label();
+          $options[$name] = (string) $image_style->label();
         }
       }
       else {
-        $options[$name] = $image_style->label();
+        $options[$name] = (string) $image_style->label();
       }
     }
     return $options;
@@ -169,7 +158,7 @@ class TextimageFactory implements TextimageFactoryInterface {
   public function flushAll(): void {
     // Flush Textimage relevant styles so to invalidate the image styles cache
     // tags.
-    $styles = ImageStyle::loadMultiple();
+    $styles = $this->entityTypeManager->getStorage('image_style')->loadMultiple();
     foreach ($styles as $style) {
       $style->flush();
     }
@@ -267,7 +256,7 @@ class TextimageFactory implements TextimageFactoryInterface {
       }
 
       // Get info on component providing formatting, continue if missing.
-      $entity_display = EntityViewDisplay::load('node.' . $node->getType() . '.' . $display_mode);
+      $entity_display = $this->entityTypeManager->getStorage('entity_view_display')->load('node.' . $node->getType() . '.' . $display_mode);
       if (!$entity_display) {
         continue;
       }
@@ -289,7 +278,7 @@ class TextimageFactory implements TextimageFactoryInterface {
         if (!$image_style_name) {
           continue;
         }
-        $image_style = ImageStyle::load($image_style_name);
+        $image_style = $this->entityTypeManager->getStorage('image_style')->load($image_style_name);
 
         // Get the field items.
         $items = $node->get($field_name);
@@ -326,16 +315,14 @@ class TextimageFactory implements TextimageFactoryInterface {
                 $this->rollbackStack($nesting_level, $field_stack);
                 throw new TextimageTokenException($e->getToken());
               }
-              else {
-                // Inform about the token failure.
-                $this->logger->warning(
-                  'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
-                  [
-                    '@token' => $original,
-                    '@node_title' => $node->getTitle(),
-                  ]
-                );
-              }
+              // Inform about the token failure.
+              $this->logger->warning(
+                "Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
+                [
+                  '@token' => $original,
+                  '@node_title' => $node->getTitle(),
+                ]
+              );
             }
           }
           else {
@@ -356,16 +343,14 @@ class TextimageFactory implements TextimageFactoryInterface {
                 $this->rollbackStack($nesting_level, $field_stack);
                 throw new TextimageTokenException($e->getToken());
               }
-              else {
-                // Inform about the token failure.
-                $this->logger->warning(
-                  'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
-                  [
-                    '@token' => $original,
-                    '@node_title' => $node->getTitle(),
-                  ]
-                );
-              }
+              // Inform about the token failure.
+              $this->logger->warning(
+                "Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
+                [
+                  '@token' => $original,
+                  '@node_title' => $node->getTitle(),
+                ]
+              );
             }
           }
         }
@@ -401,16 +386,14 @@ class TextimageFactory implements TextimageFactoryInterface {
               $this->rollbackStack($nesting_level, $field_stack);
               throw new TextimageTokenException($e->getToken());
             }
-            else {
-              // Inform about the token failure.
-              $this->logger->warning(
-                'Textimage token @token in node \'@node_title\' can not be resolved (circular reference). Remove the token to avoid this message.',
-                [
-                  '@token' => $original,
-                  '@node_title' => $node->getTitle(),
-                ]
-              );
-            }
+            // Inform about the token failure.
+            $this->logger->warning(
+              "Textimage token @token in node '@node_title' can not be resolved (circular reference). Remove the token to avoid this message.",
+              [
+                '@token' => $original,
+                '@node_title' => $node->getTitle(),
+              ]
+            );
           }
         }
       }
@@ -447,6 +430,9 @@ class TextimageFactory implements TextimageFactoryInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @param \Drupal\Core\Field\FieldItemListInterface<\Drupal\Core\Field\FieldItemInterface> $items
+   *   Field items.
    */
   public function getTextFieldText(FieldItemListInterface $items): array {
     $text = [];

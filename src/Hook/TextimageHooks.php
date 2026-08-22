@@ -26,19 +26,27 @@ class TextimageHooks {
 
   use StringTranslationTrait;
 
+  public function __construct(
+    protected readonly StreamWrapperManagerInterface $streamWrapperManager,
+    protected readonly ImageFactory $imageFactory,
+    protected readonly TextimageFactoryInterface $textimageFactory,
+    protected readonly FileSystemInterface $fileSystem,
+    protected readonly TextimageLogger $logger,
+    protected readonly ConfigFactoryInterface $configFactory,
+  ) {
+  }
+
   /**
- * Implements hook_help().
- */
+   * Implements hook_help().
+   */
   #[Hook('help')]
   public function help(string $route_name, RouteMatchInterface $route_match): ?string {
-    switch ($route_name) {
-      case 'textimage.settings':
-        $output = '<p>';
-        $output .= $this->t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', ['@image_effects_url' => 'https://www.drupal.org/project/image_effects']);
-        $output .= ' ' . $this->t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specify the text appearance on the generated image.', ['@image' => Url::fromRoute('entity.image_style.collection')->toString()]);
-        $output .= ' ' . $this->t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
-        $output .= '</p>';
-        return $output;
+    if ($route_name === 'textimage.settings') {
+      $output = '<p>';
+      $output .= $this->t('Textimage provides integration with the <a href="@image_effects_url">Image effects</a> module to generate images with overlaid text.', ['@image_effects_url' => 'https://www.drupal.org/project/image_effects']);
+      $output .= ' ' . $this->t('Use <a href="@image">Image styles</a> features to create Image styles. The \'Text overlay\' image effect must be used to specify the text appearance on the generated image.', ['@image' => Url::fromRoute('entity.image_style.collection')->toString()]);
+      $output .= ' ' . $this->t('On the edit image style form, a "Textimage options" section allows selecting Textimage-specific options for the style.');
+      return $output . '</p>';
     }
     return NULL;
   }
@@ -50,11 +58,11 @@ class TextimageHooks {
    */
   #[Hook('file_download')]
   public function fileDownload(string $uri): int|array|null {
-    $path = \Drupal::service(StreamWrapperManagerInterface::class)->getTarget($uri);
+    $path = $this->streamWrapperManager->getTarget($uri);
     // Private file access for image style derivatives.
-    if (strpos($path, 'textimage') === 0) {
+    if ($path !== FALSE && str_starts_with($path, 'textimage')) {
       // Check that the file exists and is an image.
-      $image = \Drupal::service(ImageFactory::class)->get($uri);
+      $image = $this->imageFactory->get($uri);
       if ($image->isValid()) {
         return [
           // Send headers describing the image's size, and MIME-type...
@@ -76,14 +84,14 @@ class TextimageHooks {
   #[Hook('cron')]
   public function cron(): void {
     // Remove temporary, uncached, image files in all available schemes.
-    $wrappers = \Drupal::service(StreamWrapperManagerInterface::class)->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
+    $wrappers = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::WRITE_VISIBLE);
     foreach ($wrappers as $wrapper => $wrapper_data) {
-      if (file_exists($directory = \Drupal::service(TextimageFactoryInterface::class)->getStoreUri('/temp', $wrapper))) {
-        if (\Drupal::service(FileSystemInterface::class)->deleteRecursive($directory)) {
-          \Drupal::service(TextimageLogger::class)->notice('Textimage temporary image files removed.');
+      if (file_exists($directory = $this->textimageFactory->getStoreUri('/temp', $wrapper))) {
+        if ($this->fileSystem->deleteRecursive($directory)) {
+          $this->logger->notice('Textimage temporary image files removed.');
         }
         else {
-          \Drupal::service(TextimageLogger::class)->error('Textimage could not remove temporary image files.');
+          $this->logger->error('Textimage could not remove temporary image files.');
         }
       }
     }
@@ -126,9 +134,8 @@ class TextimageHooks {
   public function tokens(string $type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata): array {
     if ($type === 'node') {
       // Process tokens.
-      $replacements = \Drupal::service(TextimageFactoryInterface::class)->processTokens('textimage-url', $tokens, $data, $bubbleable_metadata);
-      $replacements += \Drupal::service(TextimageFactoryInterface::class)->processTokens('textimage-uri', $tokens, $data, $bubbleable_metadata);
-      return $replacements;
+      $replacements = $this->textimageFactory->processTokens('textimage-url', $tokens, $data, $bubbleable_metadata);
+      return $replacements + $this->textimageFactory->processTokens('textimage-uri', $tokens, $data, $bubbleable_metadata);
     }
     return [];
   }
@@ -139,7 +146,7 @@ class TextimageHooks {
   #[Hook('image_style_flush')]
   public function imageStyleFlush(ImageStyleInterface $style, ?string $path = NULL): void {
     // Manage the textimage part of image style flushing.
-    \Drupal::service(TextimageFactoryInterface::class)->flushStyle($style);
+    $this->textimageFactory->flushStyle($style);
   }
 
   /**
@@ -151,7 +158,7 @@ class TextimageHooks {
   public function imageStylePresave(ImageStyleInterface $style): void {
     // If Textimage TPSs are not yet set, set defaults.
     if (!in_array('textimage', $style->getThirdPartyProviders())) {
-      $style->setThirdPartySetting('textimage', 'uri_scheme', \Drupal::service(ConfigFactoryInterface::class)->get('system.file')->get('default_scheme'));
+      $style->setThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme'));
     }
   }
 
@@ -175,16 +182,16 @@ class TextimageHooks {
       '#description' => $this->t('Define Textimage options specific for this image style.'),
     ];
     // Define file storage wrapper used for the style images.
-    $scheme_options = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::WRITE_VISIBLE);
+    $scheme_options = $this->streamWrapperManager->getNames(StreamWrapperInterface::WRITE_VISIBLE);
     $form['textimage_options']['uri_scheme'] = [
       '#type' => 'radios',
       '#options' => $scheme_options,
       '#title' => $this->t('Image destination'),
       '#description' => $this->t('Select where Textimage image files should be stored. Private file storage has significantly more overhead than public files, but allows access restriction.'),
-      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', \Drupal::service(ConfigFactoryInterface::class)->get('system.file')->get('default_scheme')),
+      '#default_value' => $image_style->getThirdPartySetting('textimage', 'uri_scheme', $this->configFactory->get('system.file')->get('default_scheme')),
     ];
     // Adds a validate handler to deal with textimage options.
-    $form['#validate'][] = [$this, 'formImageStyleFormValidate'];
+    $form['#validate'][] = $this->formImageStyleFormValidate(...);
   }
 
   /**
